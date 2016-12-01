@@ -1,4 +1,4 @@
-##### CATALYST - Cytometry dATa anALYsis Tools
+#### CATALYST - Cytometry dATa anALYsis Tools
 
 To install the package from github, run the following code:
 
