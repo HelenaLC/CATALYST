@@ -1,0 +1,161 @@
+---
+title: 'CATALYST: Cytometry dATa anALYSis Tools'
+author: "Helena Lucia Crowell"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    theme: lumen
+    toc: yes
+  html_notebook: default
+---
+
+\setlength{\belowdisplayskip}{0pt} \setlength{\belowdisplayshortskip}{0pt}
+\setlength{\abovedisplayskip}{0pt} \setlength{\abovedisplayshortskip}{0pt}
+
+## Abstract
+
+By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed CATALYST (Cytometry dATa anALYSis Tools) to provide tools for preprocessing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm (Zunder et al. 2015, Nature Protocols 10, 316-333).
+
+## Introduction
+
+`CATALYST` targets compensation in CyTOF via a two-step approach comprising
+
+1. Single-cell debarcoding (SCD) of single-stained beads (or cells) 
+2. Estimation of a spillover matrix (SM) followed by compensation via multiplication of signal intensities \newline with its inverse, the compensation matrix (CM)
+<!-- -->
+\begin{equation*}
+\begin{split}
+I_{observed} &= I_{real}     \cdot SM        \\
+I_{real}     &= I_{observed} \cdot {SM}^{-1} \\ 
+             &= I_{observed} \cdot CM      
+\end{split}
+\end{equation*}
+
+The first step makes use of the SCD algorithm as proposed by Zunder et al. (2015). The R implementation at hand deviates slightly from the originally proposed algorithm (see section 1. Debarcoding). After having assigned a barcode ID to each event, spillover values are estimated from the barcode populations identified for each pair of interacting channels (see section 2. Compensation).
+
+# Data example `ss_beads`
+
+`ss_beads` if a flowFrame with 10000 cells and 61 observables, obtained from a 36ab-panel single-staining experiment. Beads were stained for antibodies captured by mass channels 139, 141 through 156, and 158 through 176, respectively, and pooled together. Note that, to demonstrate the debarcoding and compensation work-flow, we sampled 10'000 of all recorded events at the cost of not necessarily arriving at biologically meaningful results. 
+
+```{r}
+library(CATALYST)
+data(ss_beads)
+ss_beads[, c(14, 16:31, 33:51)]
+```
+
+# The `dbFrame` class
+
+Data returned and used throughout the debarcoding process are stored in a debarcoding frame. Event information, stored in a matrix, is passed from the `flowFrame` specified in `assignedPrelim()` to the `exprs` slot, and is accessible via `exprs()` as before. The `bc_key` slot is a binary matrix with numeric masses as column names and barcode IDs as row names. If supplied with a numeric vector of masses, `assignPrelim()` will generate a concurrent representation.
+
+```{r}
+bc_ms <- c(139, 141:156, 158:176)
+re <- assignPrelim(x = ss_beads, y = bc_ms, verbose = FALSE)
+bc_key(re)[1:5, 1:17]
+```
+
+`bc_ids` is a numeric vector of the ID assignments that have been made, where 0 corresponds to *"unassigned"*. These may be manipulated through `bc_ids<-` if replacement values are valid, i.e. occur in the `bc_key`. The `deltas` slot contains the separations between positive and nergative barcode populations. Lastly, `normed_bcs` are the barcode intensities normalized by population. Here, the number of columns will be equal to the number of rows in the `bc_key`. An overview of the object's dimensionality, current event assignments, separation cutoffs, and yields achieved upon debarcoding is given by `show()`.
+
+```{r}
+re
+```
+
+# 1. Deconvolution work-flow
+
+`SCDcomp` provides three functions for debarcoding and two visualizations that guide selection of thresholds and give a sense of barcode assignment quality.
+
+In summary, events are assigned to a sample when i) their positive and negative barcode populations are separated by a distance larger than a threshold value and ii) the combination of their positive barcode channels appears in the barcoding scheme.
+
+## 1.1 `assignPrelim`: Assignment of preliminary barcode IDs
+
+The debarcoding step commences by assigning each event a preliminary barcode ID. `assignPrelim()` thereby takes either a binary barcoding scheme or a vector of numeric masses as input, and accordingly assigns each event the appropirate row index or mass as ID. Depending on the `bc_key` supplied, there are three possible ways of proceeding:
+
+- **Single-staining**:  
+  If a numeric vector of masses is supplied, the most intense channel is considered positive and its respective mass assigned as ID.   
+- **Doublet-filtering**:  
+  Given a binary barcoding scheme with a coherent number $k$ of positive channels for all IDs, the $k$ highest channels are considered positive and $n-k$ channels negative. Separation of positive and negative events equates to the difference between the $k$th highest and $(n-k)$th lowest intensity value.  
+- **Non-constant number of 1's**:  
+  Given an inconsistent number of 1's in the binary codes, the highest separation between consecutive barcodes is looked at.
+  
+In both, the doublet-filtering and the latter case, each event is assigned a binary code that, if matched with a code in the barcoding scheme supplied, dictates which row index will be assigned as ID. Cells whose positive barcodes are still very low or whose binary pattern of positive and negative barcodes doesn't occur in the barcoding scheme will be given ID 0 for *"unassigned"*.
+
+FCS files are read into R with `read.FCS` of the `flowCore` package, and are represented as an object of class `flowFrame`. Provided with a `flowFrame` and a compatible barcoding scheme (barcode channel masses have to occur in the measurement data), `assignPrelim` will return a `dbFrame` containing `exprs` passed from the input `flowFrame`, a numeric vector of event assignments in slot `bc_ids`, separations between barcode populations on the normalized scale in slot `deltas`, and normalized barcode intensities in slot `normed_bcs`. Measurement intensities are normalized by population such that each is scaled to the 95% quantile for asinh transformed measurement intensities of events assigned to the respective barcode.
+
+```{r} 
+re <- assignPrelim(x = ss_beads, y = bc_ms, verbose = FALSE) 
+```
+
+## 1.2 `estCutoffs`: Estimation of population-specific separatation cutoffs
+
+Here, the choice of thresholds for the distance between negative and positive barcode populations is *i) automated* and *ii) independent for each barcode*. As opposed to a single and global cutoff parameter, `estCutoffs` will estimate a cutoff value that is specific for each sample to deal with barcode population cell yields that decline in an asynchronous fashion. The function will update the `sep_cutoffs`, `counts` and `yields` slots of the input `dbFrame`.
+
+For the estimation of cutoff parameters we concider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. The separation cutoff value should be chosen such that it appropriately balances confidence in barcode assignment and cell yield. We thus fit the yields function, its first and second derivative, and compute the first turning point, marking the on-set of the plateu regime, as an adequte cutoff estimate.
+
+```{r}
+# estimate separation cutoffs, and 
+# get counts and yields as a function of barcode separations 
+(re <- estCutoffs(x = re, verbose = FALSE))
+```
+
+## 1.3 `plotYields`: Distribution of barcode separations and cell yields upon debarcoding
+
+For each barcode, `plotYields` will generate a histogram of events separated by a given distance, as well as yields upon debarcoding as a function of separation cutoffs. The currently used separation cutoff as well as its resulting yield within the population is indicated in the plot's main title.
+
+```{r fig.align = 'center', fig.width = 8}
+# generate yields plot for barcode 174
+plotYields(x = re, which_bc = 174)
+```
+ 
+Option `which_bc = 0` will render a summary plot of all barcodes. Here, the overall yield achieved by applying the current set of cutoff values will be shown. All yield functions should behave as described above: decline, stagnation, decline. Convergence to 0 yield at low cutoffs is a strong indicator that staining in this channel did not work, and excluding the channel entirely is sensible in this case. It is thus recommended to always view the all-barcodes yield plot to eliminate uninformative populations as a too small population size may cause difficulties, especially when computing spill estimates.
+
+```{r fig.align = 'center', fig.width = 10}
+# generate summary yields plot
+plotYields(x = re, which_bc = 0)
+```
+ 
+## 1.4 `applyCutoffs`: Applying separation and mahalanobis distance thresholds
+
+```{r}
+# apply separation and Mahalanobis distance thresholds
+(re <- applyCutoffs(x = re))
+```
+
+## 1.5 `plotEvents`: Normalized intensities for each barcode population 
+
+```{r fig.align = 'center', fig.width = 10}
+# generate events plot
+plotEvents(x = re, which_bc = 139, n_events = "all")
+```
+
+# 2. Compensation work-flow
+
+## 2.1 `computeCompmat`: Computation of the compensation matrix
+
+Given a flowFrame of single-stained beads (or cells) and a numeric vector of barcode masses and barcode IDs, `computeCompmat` estimates the compensation matrix as follows. Let $s_{ij}$ denote the portion of signal measured in channel $j$ that is due to spill of channel $i$. Assuming spillover to be a linear phenomenon, we compute this fraction as the median intensity measured in the affected channel, $m_j^+$, over the median intensity of the spilling channel, $m_i^+$. The median signal of events that are i) negative in the given channel, ii) are not assigned to potentially interacting channels, and iii) are not unassigned, $m_j^-$ and $m_i^-$, respectively, are substracted as to account for background:
+
+$$s_{ij} = \frac{m_j^+-m_j^-}{m_i^+-m_i^-}$$
+
+On the basis of their additive nature, spill values are estimated independently for every pair of interacting channels. The current framework exclusively takes account of interactions that are sensible from a chemical and physical point of view. Precisely, +/-1M channels (detection sensitivity), the +16M channel (oxide formation) and channels measuring same metals (isotopic impurities) are taken into consideration. By default, the SM's diagonal entries $s_{ii}$, i.e. spill from a given channel to itself, is set to 1.
+
+<!-- INCLUDE TABLE HERE -->
+
+```{r} 
+compMat <- computeCompmat(x = re)
+```
+
+\newpage
+
+## 2.2 `plotSpillmat`: Spillover matrix heat map representation
+
+`plotSpillmat` provides a visualization of estimated spill percentages as a heat map. Channels not corresponding to a barcode are annotated in grey, and colours are ramped to the highest spillover value present.
+
+```{r fig.align = 'center', fig.width = 8, fig.height = 8} 
+plotSpillmat(bc_ms = bc_ms, CM = compMat) 
+```
+
+## 2.3 `plotScatter`: Raw vs. compensated data at a glance
+
+For each barcode population, `plotScatters` compares the channel-wise median intensities between measurement and compensated data.
+
+```{r fig.align = 'center', fig.width = 10, fig.height = 6} 
+plotScatter(x = re, CM = compMat) 
+```

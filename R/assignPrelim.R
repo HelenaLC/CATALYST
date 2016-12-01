@@ -23,6 +23,7 @@
 #' a numeric verctor of barcode IDs and separations between positive and negative 
 #' barcode populations, and a matrix of normalized barcode intensities. 
 #' See \code{\link{dbFrame}} for more details.
+
 #'
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -51,7 +52,7 @@ setMethod(f="assignPrelim",
         ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
         es <- flowCore::exprs(x)
         N <- nrow(es)
-
+        
         # get barcodes masses and check for validity of barcode channels
         ids   <- as.numeric(rownames(y))
         bc_ms <- as.numeric(colnames(y))  

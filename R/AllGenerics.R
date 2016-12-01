@@ -106,6 +106,12 @@ setGeneric(name="applyCutoffs",
 # ================================================================================
 # Generics for compensation
 # --------------------------------------------------------------------------------
+#' @rdname estTrim
+#' @export
+setGeneric(name="estTrim", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("estTrim"))
+
 #' @rdname computeCompmat
 #' @param ... further optional arguments.
 #' @export

@@ -8,7 +8,7 @@
 \usage{
 computeCompmat(x, ...)
 
-\S4method{computeCompmat}{dbFrame}(x, method = median)
+\S4method{computeCompmat}{dbFrame}(x, method = "mean", trim = 0.08)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}} containing measured intensities, 

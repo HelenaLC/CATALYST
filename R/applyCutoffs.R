@@ -35,7 +35,9 @@
 
 setMethod(f="applyCutoffs", 
     signature=signature(x="dbFrame"),
+    
     definition=function(x, mhl_cutoff=30) {
+        
         
         # get no. of events, channel and barcode masses
         N <- nrow(x@exprs)
@@ -54,7 +56,7 @@ setMethod(f="applyCutoffs",
         
         # extract barcode columns from FCS file
         bcs <- x@exprs[, bc_cols]
-
+        
         # compute mahalanobis distances of all events
         # given current separation cutoff
         mhl_dists <- numeric(N)
