@@ -1,7 +1,5 @@
 # CATALYST
-Cytometry dATa anALYsis Tools
-
-## Bead based compensation to correct for channel crosstalk in mass cytometry
+### Cytometry dATa anALYsis Tools
 
 To install the package from github, run the following code:
 
