@@ -17,7 +17,7 @@ outFCS(x, ...)
 
 \item{out_path}{character string. Specifies in which location output files are to be generated.}
 
-\item{name_ext}{optional vector of strings specifying output file names. 
+\item{names}{optional vector of strings specifying output file names. 
 By default, each FCS will be given the assigned ID as name.}
 }
 \description{
