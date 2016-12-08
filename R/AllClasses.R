@@ -78,11 +78,6 @@ setValidity(Class="dbFrame",
             return(cat("Invalid 'bc_key': Column names must be numeric",
                 "\nand coherent with masses extracted from 'exprs'."))
         
-        if(!nrow(object@normed_bcs) == nrow(object@exprs) | 
-                !ncol(object@normed_bcs) == nrow(object@bc_key))
-            return(cat("Number of rows in 'normed_bcs' and 'exprs', must be equal;",
-                "\nnumber of columns has to be equal to rows in 'bc_key'."))
-        
         return(TRUE)
     })
 

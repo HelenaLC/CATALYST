@@ -29,6 +29,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2
 #' @importFrom graphics plot
+#' @importFrom grDevices colorRampPalette 
 #' @export
 
 # --------------------------------------------------------------------------------
