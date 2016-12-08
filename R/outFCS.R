@@ -9,7 +9,7 @@
 #'
 #' @param x        a \code{\link{dbFrame}}.
 #' @param out_path character string. Specifies in which location output files are to be generated.
-#' @param name_ext optional vector of strings specifying output file names. 
+#' @param names    optional vector of strings specifying output file names. 
 #'                 By default, each FCS will be given the assigned ID as name.
 #' 
 #' @examples
