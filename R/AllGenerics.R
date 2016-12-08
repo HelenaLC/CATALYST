@@ -102,6 +102,12 @@ setGeneric(name="applyCutoffs",
     package="CATALYST",
     def=function(x, ...) standardGeneric("applyCutoffs"))
 
+#' @rdname outFCS
+#' @param ... further optional arguments.
+#' @export
+setGeneric(name="outFCS",      
+    package="CATALYST", 
+    def=function(x, ...) standardGeneric("outFCS"))
 
 # ================================================================================
 # Generics for compensation
