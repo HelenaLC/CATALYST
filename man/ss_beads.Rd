@@ -12,10 +12,11 @@ data(ss_beads)
 A flowFrame obtained from a 36ab-panel single-staining experimante.
 }
 \details{
-36ab-panel: Beads were stained for antibodies captured by mass channels 
-139, 141 through 156, and 158 through 176, respectively, and pooled together.
-Here we sampled a fraction of all recorded events to demonstrate the debarcoding and
-compensation work-flow, at the cost of not necessarily arriving at satisfying results.
+36ab-panel: Beads were stained for antibodies captured by 
+mass channels 139, 141 through 156, and 158 through 176, respectively, 
+and pooled together. Here we sampled a fraction of all recorded events 
+to demonstrate the debarcoding and compensation work-flow, 
+at the cost of not necessarily arriving at satisfying results.
 }
 \keyword{datasets}
 

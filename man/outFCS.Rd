@@ -3,22 +3,20 @@
 \docType{methods}
 \name{outFCS}
 \alias{outFCS}
-\alias{outFCS,dbFrame-method}
+\alias{outFCS,dbFrame,character-method}
 \title{Write population-wise FCS}
 \usage{
-outFCS(x, ...)
+outFCS(x, out_path)
 
-\S4method{outFCS}{dbFrame}(x, out_path, names = NULL)
+\S4method{outFCS}{dbFrame,character}(x, out_path)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
+\item{out_path}{character string. Specifies in which location 
+output files are to be generated.}
+
 \item{...}{further optional arguments.}
-
-\item{out_path}{character string. Specifies in which location output files are to be generated.}
-
-\item{names}{optional vector of strings specifying output file names. 
-By default, each FCS will be given the assigned ID as name.}
 }
 \description{
 Writes an FCS file for each barcode population.
@@ -27,7 +25,7 @@ Writes an FCS file for each barcode population.
 data(ss_beads)
 bc_ms <- c(139, 141:156, 158:176)
 re <- assignPrelim(x = ss_beads, y = bc_ms)
-#outFCS(x = re, out_path = ...)
+#outFCS(x = re, y = ...)
 
 }
 \author{
