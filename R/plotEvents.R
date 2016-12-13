@@ -1,19 +1,23 @@
-# ================================================================================
+# ==============================================================================
 # Plot events
-# --------------------------------------------------------------------------------
-
+# ------------------------------------------------------------------------------
 #' @rdname plotEvents
 #' @title Event plot
 #' 
 #' @description 
 #' Shows normalized barcode intensities for a given barcode.
 #'
-#' @param x        a \code{\link{dbFrame}} ccontaining normalized barcode intensities, 
-#'                 the debarcoding key, and barcode IDs.
-#' @param which_bc numeric or "all". Specifies which barcode to plot. Defaults to "all".
-#' @param n_events numeric or "all". Specifies how many events to plot per barcode. Defaults to 100.
-#' @param out_path character string. Specifies in which location output plot is to be generated.
-#' @param name_ext a character string. If specified, will be appended to the plot's name. Defaults to NULL.
+#' @param x a \code{\link{dbFrame}}.
+#' @param which_bc 
+#' numeric or "all". Specifies which barcode to plot. Defaults to "all".
+#' @param n_events 
+#' numeric or "all". Specifies how many events to plot per barcode.
+#' @param out_path 
+#' a character string. If specified, outputs will be generated in this location. 
+#' Defaults to NULL.
+#' @param name_ext 
+#' a character string. If specified, will be appended to the plot's name. 
+#' Defaults to NULL.
 #' 
 #' @details 
 #' EXPLAIN NORMALIZATION HERE
@@ -26,7 +30,8 @@
 #' 
 #' @references
 #' Zunder, E.R. et al. (2015).
-#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme and single-cell deconvolution algorithm.
+#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+#' and single-cell deconvolution algorithm.
 #' \emph{Nature Protocols} \bold{10}, 316-333. 
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
@@ -34,11 +39,12 @@
 #' @importFrom graphics plot
 #' @importFrom grDevices colorRampPalette pdf dev.off
 
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 setMethod(f="plotEvents", 
     signature=signature(x="dbFrame"), 
-    definition=function(x, which_bc="all", n_events=100, out_path=NULL, name_ext=NULL) {
+    definition=function(x, which_bc="all", n_events=100, 
+        out_path=NULL, name_ext=NULL) {
         
         normed_bcs <- x@normed_bcs
         bc_key <- x@bc_key
@@ -54,7 +60,8 @@ setMethod(f="plotEvents",
             bc_labs <- paste(colnames(x@exprs))[
                 ms %in% as.numeric(colnames(bc_key))]
         } else {
-            bc_labs <- paste(apply(bc_key, 1, function(x) paste(x, collapse="")))
+            bc_labs <- paste0(rownames(bc_key), ": ", 
+                apply(bc_key, 1, function(x) paste(x, collapse="")))
         }
         if (0 %in% ids) 
             bc_labs <- c("Unassigned", bc_labs)
@@ -64,7 +71,7 @@ setMethod(f="plotEvents",
         if (n_ids > 11) {
             cols <- colorRampPalette(pal)(ncol(normed_bcs))
         } else {
-            cols <- sample(pal,ncol(normed_bcs))
+            cols <- sample(pal, ncol(normed_bcs))
         }
         aes <- theme_bw() + theme(legend.key=element_blank(),
             panel.grid.major=element_line(color="lightgrey"),
@@ -80,7 +87,7 @@ setMethod(f="plotEvents",
         for (id in which_ids) {
             inds <- which(bc_ids == id)
             n <- length(inds)
-            if (length(inds) == 0) next
+            if (length(inds) < 10) next
             if (is.numeric(n_events) & length(inds) > n_events)
                 inds <- sort(sample(inds, n_events))
             psize <- 1 + 100 / length(inds)
@@ -90,9 +97,11 @@ setMethod(f="plotEvents",
             ymin <-   floor(4 * min(sub)) / 4
             ymax <- ceiling(4 * max(sub)) / 4
             
-            df <- data.frame(event=rep(1:nrow(sub), each=ncol(sub)),
+            
+            df <- data.frame(
+                event=rep(1:(length(sub) / n_bcs), each=ncol(normed_bcs)),
                 intensity=c(t(sub)),
-                bc=rep(1:ncol(sub), nrow(sub)))
+                bc=rep(1:ncol(normed_bcs), (length(sub) / n_bcs)))
 
             p[[length(p) + 1]] <- ggplot(df) + geom_point(stroke=.5, size=psize, 
                 aes_string(x="event", y="intensity", col="as.factor(bc)", alpha=.8)) +

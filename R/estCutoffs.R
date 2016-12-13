@@ -1,20 +1,24 @@
-# ================================================================================
+# ==============================================================================
 # Estimate separation cutoffs
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #' @rdname estCutoffs
 #' @title Estimation of distance separation cutoffs
 #' 
-#' @description For each barcode, estimates a cutoff parameter for the 
-#'              distance between positive and negative barcode populations.
+#' @description 
+#' For each barcode, estimates a cutoff parameter for the 
+#' distance between positive and negative barcode populations.
 #'
-#' @param x       a \code{\link{dbFrame}} containing the debarcoding key, barcode IDs and deltas.
-#' @param est     logical. Should separation cutoffs be estimated? Defaults to TRUE.
-#' @param verbose logical. Should extra information on progress be reported? Defaults to TRUE.
+#' @param x       
+#' a \code{\link{dbFrame}}.
+#' @param est     
+#' logical. Should separation cutoffs be estimated? Defaults to TRUE.
+#' @param verbose 
+#' logical. Should extra information on progress be reported? Defaults to TRUE.
 #'
 #' @return
-#' Will update the \code{sep_cutoffs}, \code{mhl_cutoff}, \code{counts} and \code{yields} 
-#' slots of the input \code{\link{dbFrame}} and return the latter.
+#' Will update the \code{sep_cutoffs}, \code{mhl_cutoff}, \code{counts} and 
+#' \code{yields} slots of the input \code{\link{dbFrame}} and return the latter.
 #' 
 #' @examples
 #' data(ss_beads)
@@ -25,7 +29,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats loess
 
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 setMethod(f="estCutoffs", 
     signature=signature(x="dbFrame"), 
@@ -34,7 +38,7 @@ setMethod(f="estCutoffs",
         seps <- seq(0, 1, .01)
         n_seps <- length(seps)
         
-        ids <- as.numeric(rownames(x@bc_key))
+        ids <- rownames(x@bc_key)
         n <- length(ids)
         
         # compute well-wise yield for each separation cutoff
@@ -53,7 +57,9 @@ setMethod(f="estCutoffs",
         }
         
         # normalize each barcode to maximum yield
-        yields <- t(apply(yields, 1, function(x) x / max(x)))
+        norm_val <- apply(yields, 1, max)
+        norm_val[norm_val == 0] <- 1
+        yields <- t(sapply(1:n, function(x) yields[x, ] / norm_val[x]))
         ests <- numeric(n)
         
         # estimate cutoff parameter
@@ -75,9 +81,10 @@ setMethod(f="estCutoffs",
                 
                 lws <- mapply( function(u, v) { 
                     predict(stats::loess(v~u, span=.3), u) }, ds, dy)
-                est <- ds[[1]][which(lws[[3]] > 0 & c(lws[[3]][-1] < 0, FALSE))[1]]
+                est <- ds[[1]][which(lws[[3]] > 0 & 
+                        c(lws[[3]][-1] < 0, FALSE))[1]]
                 
-                if (length(est) == 0) {
+                if (length(est) == 0 | is.na(est)) {
                     ests[ind] <- 1 
                 } else {
                     ests[ind] <- est
