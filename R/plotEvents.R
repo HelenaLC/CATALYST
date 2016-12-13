@@ -55,6 +55,7 @@ setMethod(f="plotEvents",
         ids <- sort(unique(bc_ids))
         n_ids <- length(which(ids!=0))
         n_bcs <- nrow(bc_key)
+        n_chs <- ncol(bc_key)
         
         if (sum(rowSums(bc_key) == 1) == n_bcs) {
             bc_labs <- paste(colnames(x@exprs))[
@@ -73,7 +74,7 @@ setMethod(f="plotEvents",
         } else {
             cols <- sample(pal, ncol(normed_bcs))
         }
-        aes <- theme_bw() + theme(legend.key=element_blank(),
+        thms <- theme_bw() + theme(legend.key=element_blank(),
             panel.grid.major=element_line(color="lightgrey"),
             panel.grid.minor=element_blank())
         
@@ -99,9 +100,9 @@ setMethod(f="plotEvents",
             
             
             df <- data.frame(
-                event=rep(1:(length(sub) / n_bcs), each=ncol(normed_bcs)),
+                event=rep(1:(length(sub) / n_chs), each=n_chs),
                 intensity=c(t(sub)),
-                bc=rep(1:ncol(normed_bcs), (length(sub) / n_bcs)))
+                bc=rep(1:n_chs, (length(sub) / n_chs)))
 
             p[[length(p) + 1]] <- ggplot(df) + geom_point(stroke=.5, size=psize, 
                 aes_string(x="event", y="intensity", col="as.factor(bc)", alpha=.8)) +
@@ -109,7 +110,7 @@ setMethod(f="plotEvents",
                 guides(alpha=FALSE, colour=guide_legend(override.aes=list(size=3))) +
                 scale_x_discrete(limits=NULL, labels=NULL) + ylim(ymin, ymax) + 
                 expand_limits(x=c(0, nrow(sub)+1)) +
-                xlab("Event number") + ylab("Normalized intensity") + aes +
+                xlab("Event number") + ylab("Normalized intensity") + thms +
                 ggtitle(bquote(bold(.(bc_labs[ids == id]))*
                         scriptstyle(" ("*.(n)*" events)")))
         }

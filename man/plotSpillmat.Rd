@@ -11,12 +11,15 @@ plotSpillmat(bc_ms, CM, out_path = NULL, name_ext = NULL)
 
 \item{CM}{matrix returned from \code{computeCompmat}.}
 
-\item{out_path}{specifies in which location output plot is to be generated.}
+\item{out_path}{a character string. If specified, outputs will be generated in this location. 
+Defaults to NULL.}
 
-\item{name_ext}{a character string. If specified, will be appended to the plot's name. Defaults to NULL.}
+\item{name_ext}{a character string. If specified, will be appended to the plot's name. 
+Defaults to NULL.}
 }
 \description{
-Generates a heat map of the spillover matrix annotated with estimated spill percentages.
+Generates a heat map of the spillover matrix annotated with 
+estimated spill percentages.
 }
 \examples{
 data(ss_beads)
