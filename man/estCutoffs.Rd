@@ -11,7 +11,7 @@ estCutoffs(x, ...)
 \S4method{estCutoffs}{dbFrame}(x, est = TRUE, verbose = TRUE)
 }
 \arguments{
-\item{x}{a \code{\link{dbFrame}} containing the debarcoding key, barcode IDs and deltas.}
+\item{x}{a \code{\link{dbFrame}}.}
 
 \item{...}{further optional arguments.}
 
@@ -20,12 +20,12 @@ estCutoffs(x, ...)
 \item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
 }
 \value{
-Will update the \code{sep_cutoffs}, \code{mhl_cutoff}, \code{counts} and \code{yields} 
-slots of the input \code{\link{dbFrame}} and return the latter.
+Will update the \code{sep_cutoffs}, \code{mhl_cutoff}, \code{counts} and 
+\code{yields} slots of the input \code{\link{dbFrame}} and return the latter.
 }
 \description{
 For each barcode, estimates a cutoff parameter for the 
-             distance between positive and negative barcode populations.
+distance between positive and negative barcode populations.
 }
 \examples{
 data(ss_beads)

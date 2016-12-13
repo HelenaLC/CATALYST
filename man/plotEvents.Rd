@@ -12,18 +12,19 @@ plotEvents(x, ...)
   out_path = NULL, name_ext = NULL)
 }
 \arguments{
-\item{x}{a \code{\link{dbFrame}} ccontaining normalized barcode intensities, 
-the debarcoding key, and barcode IDs.}
+\item{x}{a \code{\link{dbFrame}}.}
 
 \item{...}{further optional arguments.}
 
 \item{which_bc}{numeric or "all". Specifies which barcode to plot. Defaults to "all".}
 
-\item{n_events}{numeric or "all". Specifies how many events to plot per barcode. Defaults to 100.}
+\item{n_events}{numeric or "all". Specifies how many events to plot per barcode.}
 
-\item{out_path}{character string. Specifies in which location output plot is to be generated.}
+\item{out_path}{a character string. If specified, outputs will be generated in this location. 
+Defaults to NULL.}
 
-\item{name_ext}{a character string. If specified, will be appended to the plot's name. Defaults to NULL.}
+\item{name_ext}{a character string. If specified, will be appended to the plot's name. 
+Defaults to NULL.}
 }
 \description{
 Shows normalized barcode intensities for a given barcode.
@@ -43,7 +44,8 @@ Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
 \references{
 Zunder, E.R. et al. (2015).
-Palladium-based mass tag cell barcoding with a doublet-filtering scheme and single-cell deconvolution algorithm.
+Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
 

@@ -14,10 +14,6 @@
 #' output files are to be generated.
 #' 
 #' @examples
-#' data(ss_beads)
-#' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_beads, y = bc_ms)
-#' #outFCS(x = re, y = ...)
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
@@ -31,9 +27,16 @@ setMethod(f="outFCS",
     definition=function(x, out_path) {
         nms <- rownames(x@bc_key)
         ids <- sort(unique(x@bc_ids))
-        ids <- ids[ids != 0]
-        for (i in ids) {
+        for (i in ids[ids != 0]) {
+            if (sum(x@bc_ids == i) < 10) {
+                cat("Sample", i, "contains less than 10 events;",
+                    "no FCS file has been generated.\n")
+                next
+            }
             ff <- new("flowFrame", exprs=x@exprs[x@bc_ids == i, ])
-            write.FCS(ff, file.path(out_path, paste0(nms[ids == i], ".fcs")))
+            write.FCS(ff, file.path(out_path, paste0(i, ".fcs")))
         }
+        cat("No events assigned to sample(s)", 
+            paste(nms[!nms %in% ids], collapse=", "))
     })
+        

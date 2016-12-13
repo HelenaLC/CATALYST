@@ -4,10 +4,15 @@ library(flowCore)
 # ==============================================================================
 # compute debarcoding in one line
 # ------------------------------------------------------------------------------
-data(ss_beads)
-debarcode(x = ss_beads, y = bc_ms, out_path = "~/Desktop")
-# ------------------------------------------------------------------------------
+ff <- read.FCS("/Users/HLC/Dropbox/spillover/debarcoder/20161212_SC_titration_1.FCS")
+key <- read.csv("/Users/HLC/Dropbox/spillover/debarcoder/bc_key.csv", 
+    check.names = FALSE, row.names = 1)
+debarcode(x = ff, y = key, out_path = "~/Desktop")
 
+
+# ==============================================================================
+# debarcode and compensate step-by-step
+# ------------------------------------------------------------------------------
 path <- "/Users/HLC/Dropbox/spillover/corrected bead based compensation/Exp3"
 beads_ff  <- read.FCS(file.path(path, "160805_Exp3_beads-before.fcs"))
 

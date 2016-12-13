@@ -4,7 +4,7 @@
 \name{estTrim}
 \alias{estTrim}
 \alias{estTrim,dbFrame-method}
-\title{Estimation of trim value}
+\title{Estimation of optimal trim value}
 \usage{
 estTrim(x, ...)
 
@@ -18,16 +18,18 @@ estTrim(x, ...)
 
 \item{out_path}{specifies in which location output plot is to be generated. Defaults to NULL.}
 
-\item{name_ext}{a character string. If specified, will be appended to the output plot's name. Defaults to NULL.}
+\item{name_ext}{a character string. If specified, will be appended to the output plot's name. 
+Defaults to NULL.}
 }
 \value{
-For each value along \code{seq(min, max, step), \code{computeCompat} will be called with \code{method = "mean"} 
-and the respective trim parameter. Returned will be the value that minimizes the sum over squared population-wise
-median counts across all barcodes after compensation.}
+For each value along \code{seq(min, max, step), \code{\link{computeCompat}} 
+will be called with \code{method = "mean"} and the respective trim parameter. 
+Returned will be the value that minimizes the sum over squared population-
+wise median counts across all barcodes after compensation.}
 }
 \description{
-For each barcode, estimates a cutoff parameter for the 
-             distance between positive and negative barcode populations.
+Estimates a trim value that will minimize the sum over squared
+popultion- and channel-wise squared medians upon compensation.
 }
 \examples{
 data(ss_beads)

@@ -12,25 +12,28 @@ plotYields(x, ...)
   name_ext = NULL)
 }
 \arguments{
-\item{x}{a \code{\link{dbFrame}} containing measured intensities, the debarcoding key
-and results from \code{\link{estCutoffs}}.}
+\item{x}{a \code{\link{dbFrame}}.}
 
 \item{...}{further optional arguments.}
 
-\item{which_bc}{numeric. Specifies which barcode to plot. 0 will generate a summary plot with all barcodes.}
+\item{which_bc}{numeric. Specifies which barcode to plot. 0 will generate a summary plot 
+with all barcodes.}
 
-\item{out_path}{a character string. If specified, outputs will be generated in this location. Defaults to NULL.}
+\item{out_path}{a character string. If specified, outputs will be generated in this location. 
+Defaults to NULL.}
 
-\item{name_ext}{a character string. If specified, will be appended to the plot's name. Defaults to NULL.}
+\item{name_ext}{a character string. If specified, will be appended to the plot's name. 
+Defaults to NULL.}
 }
 \description{
 Histogram of counts and plot of yields as a function of separation cutoffs.
 }
 \details{
-The overall yield that will be achieved upon application of the specified separation cutoffs 
-is indicated in the summary plot. Respective separation thresholds and their resulting yields 
-are included in each barcode's plot. The separation cutoff value should be chosen such that 
-it appropriately balances confidence in barcode assignment and cell yield.
+The overall yield that will be achieved upon application of the specified 
+separation cutoffs is indicated in the summary plot. Respective separation 
+thresholds and their resulting yields are included in each barcode's plot. 
+The separation cutoff value should be chosen such that it appropriately 
+balances confidence in barcode assignment and cell yield.
 }
 \examples{
 data(ss_beads)
@@ -45,7 +48,8 @@ Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
 \references{
 Zunder, E.R. et al. (2015).
-Palladium-based mass tag cell barcoding with a doublet-filtering scheme and single-cell deconvolution algorithm.
+Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
 
