@@ -1,27 +1,29 @@
-# ================================================================================
+# ==============================================================================
 # Compute compensation matrix
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #' @rdname computeCompmat
 #' @title Compensation matrix
 #' 
-#' @description Computes the compensation matrix.
+#' @description 
+#' Computes the compensation matrix.
 #'
-#' @param x a \code{\link{dbFrame}} containing measured intensities, 
-#' a numeric vector of column indices corresponding to barcode 
-#' channels as debarcoding key, and barcode IDs.
-#' @param method function to be used for computing spillover estimates. Defaults to \code{median}.
+#' @param x 
+#' a \code{\link{dbFrame}}.
+#' @param method 
+#' function to be used for computing spillover estimates. 
+#' Defaults to \code{median}.
 #'
 #' @return 
-#' Returns a square compensation matrix with dimensions and dimension names matching 
-#' those of the input flowFrame. Only specified \code{bc_chs} are taken into consideration 
-#' for computation. Spillover is assumed to be linear and is thence computed as the ratio 
-#' of a positive barcode population's median intensity in affected and spilling channel, 
-#' corrected for their median negative signals. Furthermore, spillover values are computed 
-#' independently for each interacting pair of channels, that is, they are additive.
-#' The current framework considers only potential (not all possible) interactions, that is,
-#' +/-1M (detection sensitivity), same metals (isotopic impurites) and -16M (oxide formation).
-#' By default, diagonal entries are set to 1.
+#' Returns a square compensation matrix with dimensions and dimension names 
+#' matching those of the input flowFrame. Spillover is assumed to be linear and 
+#' is thence computed as the ratio of a positive barcode population's median 
+#' or (trimmed) mean intensity in affected and spilling channel. Furthermore, 
+#' on the basis of their additive nature, spillover values are computed 
+#' independently for each interacting pair of channels. The current framework 
+#' considers only potential (not all possible) interactions, that is,
+#' M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16M 
+#' (oxide formation). By default, diagonal entries are set to 1.
 #' 
 #' @examples
 #' data(ss_beads)
@@ -34,7 +36,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats median
 
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 setMethod(f="computeCompmat", 
           signature=signature(x="dbFrame"), 

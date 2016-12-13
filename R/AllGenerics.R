@@ -1,59 +1,59 @@
-# ================================================================================
+# ==============================================================================
 # Generics to access slots in a dbFrame
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-#' @rdname dbFrame-class
+#' @rdname dbFrame-methods
 #' @export
 setGeneric(name="bc_key", 
     package="CATALYST", 
     def=function(object) standardGeneric("bc_key"))
 
-#' @rdname dbFrame-class
+#' @rdname dbFrame-methods
 #' @export
 setGeneric(name="bc_ids",      
     package="CATALYST", 
     def=function(object) standardGeneric("bc_ids"))
 
-#' @rdname dbFrame-class
+#' @rdname dbFrame-methods
 #' @export
 setGeneric(name="deltas",      
     package="CATALYST", 
     def=function(object) standardGeneric("deltas"))
 
-#' @rdname dbFrame-class
+#' @rdname dbFrame-methods
 #' @export
 setGeneric(name="normed_bcs",  
     package="CATALYST", 
     def=function(object) standardGeneric("normed_bcs"))
 
-#' @rdname dbFrame-class
+#' @rdname dbFrame-methods
 #' @export
 setGeneric(name="sep_cutoffs", 
     package="CATALYST", 
     def=function(object) standardGeneric("sep_cutoffs"))
 
-#' @rdname dbFrame-class
+#' @rdname dbFrame-methods
 #' @export
 setGeneric(name="mhl_cutoff",  
     package="CATALYST", 
     def=function(object) standardGeneric("mhl_cutoff"))
 
-#' @rdname dbFrame-class
+#' @rdname dbFrame-methods
 #' @export
 setGeneric(name="counts",      
     package="CATALYST", 
     def=function(object) standardGeneric("counts"))
 
-#' @rdname dbFrame-class
+#' @rdname dbFrame-methods
 #' @export
 setGeneric(name="yields",      
     package="CATALYST", 
     def=function(object) standardGeneric("yields"))
 
 
-# ================================================================================
+# ==============================================================================
 # Generics to replace slots in a dbFrame
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # required by estCutoffs()
 setGeneric(name="sep_cutoffs<-", 
@@ -78,40 +78,51 @@ setGeneric(name="mhl_cutoff<-",
     def=function(object, value) standardGeneric("mhl_cutoff<-"))
 
 
-# ================================================================================
+# ==============================================================================
 # Generics for debarcoding
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #' @rdname assignPrelim
 #' @param ... further optional arguments.
 #' @export
 setGeneric(name="assignPrelim", 
     package="CATALYST",
-    def=function(x, y, ...) standardGeneric("assignPrelim"))
+    def=function(x, y, ...) 
+        standardGeneric("assignPrelim"))
 
 #' @rdname estCutoffs
 #' @param ... further optional arguments.
 #' @export
 setGeneric(name="estCutoffs",   
     package="CATALYST",
-    def=function(x, ...) standardGeneric("estCutoffs"))
+    def=function(x, ...) 
+        standardGeneric("estCutoffs"))
 
 #' @rdname applyCutoffs
 #' @param ... further optional arguments.
 #' @export
 setGeneric(name="applyCutoffs", 
     package="CATALYST",
-    def=function(x, ...) standardGeneric("applyCutoffs"))
+    def=function(x, ...) 
+        standardGeneric("applyCutoffs"))
 
 #' @rdname outFCS
 #' @param ... further optional arguments.
 #' @export
 setGeneric(name="outFCS",      
     package="CATALYST", 
-    def=function(x, ...) standardGeneric("outFCS"))
+    def=function(x, out_path) standardGeneric("outFCS"))
 
-# ================================================================================
+#' @rdname debarcode
+#' @param ... further optional arguments.
+#' @export
+setGeneric(name="debarcode",
+    package="CATALYST",
+    def=function(x, y, out_path, ...) 
+        standardGeneric("debarcode"))
+
+# ==============================================================================
 # Generics for compensation
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #' @rdname estTrim
 #' @export
 setGeneric(name="estTrim", 
@@ -126,9 +137,9 @@ setGeneric(name="computeCompmat",
     def=function(x, ...) standardGeneric("computeCompmat"))
 
 
-# ================================================================================
+# ==============================================================================
 # Generics for plotting
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #' @rdname plotYields
 #' @param ... further optional arguments.
 #' @export

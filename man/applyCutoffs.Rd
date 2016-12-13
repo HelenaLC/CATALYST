@@ -11,8 +11,7 @@ applyCutoffs(x, ...)
 \S4method{applyCutoffs}{dbFrame}(x, mhl_cutoff = 30)
 }
 \arguments{
-\item{x}{a \code{\link{dbFrame}} containing measured intensities, 
-the debarcoding key, barcode IDs, deltas, and separation cutoffs.}
+\item{x}{a \code{\link{dbFrame}}.}
 
 \item{...}{further optional arguments.}
 

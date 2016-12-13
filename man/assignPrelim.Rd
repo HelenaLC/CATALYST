@@ -18,11 +18,10 @@ assignPrelim(x, y, ...)
 \arguments{
 \item{x}{a \code{\link{flowFrame}}.}
 
-\item{y}{the debarcoding scheme.
-A binary matrix with numeric masses as column names OR
-a vector of numeric masses corresponding to barcode channels.
-When the latter is supplied, \code{assignPrelim} will create
-a matrix of the appropriate format internally.}
+\item{y}{the debarcoding scheme. A binary matrix with sample names as row names and 
+numeric masses as column names OR a vector of numeric masses corresponding to 
+barcode channels. When the latter is supplied, \code{assignPrelim} will 
+create a scheme of the appropriate format internally.}
 
 \item{...}{further optional arguments.}
 
@@ -31,14 +30,13 @@ a matrix of the appropriate format internally.}
 \item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
 }
 \value{
-Returns a \code{dbFrame} containing measured intensities, the debarcoding key, 
-a numeric verctor of barcode IDs and separations between positive and negative 
-barcode populations, and a matrix of normalized barcode intensities. 
-See \code{\link{dbFrame}} for more details.
+Returns a \code{\link{dbFrame}} containing measured intensities, 
+the debarcoding key, a numeric verctor of barcode IDs and separations between 
+positive and negative barcode populations, and barcode intensities
+normalized by population.
 }
 \description{
-Assigns a preliminary barcode ID to each event of normalized barcode intensities 
-and computes the barcode separation.
+Assigns a preliminary barcode ID to each event.
 }
 \examples{
 data(ss_beads)

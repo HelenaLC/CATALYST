@@ -1,6 +1,13 @@
 library(CATALYST)
 library(flowCore)
 
+# ==============================================================================
+# compute debarcoding in one line
+# ------------------------------------------------------------------------------
+data(ss_beads)
+debarcode(x = ss_beads, y = bc_ms, out_path = "~/Desktop")
+# ------------------------------------------------------------------------------
+
 path <- "/Users/HLC/Dropbox/spillover/corrected bead based compensation/Exp3"
 beads_ff  <- read.FCS(file.path(path, "160805_Exp3_beads-before.fcs"))
 
@@ -32,4 +39,3 @@ compMat <- computeCompmat(x = re, method = "mean", trim = trimVal)
 
 # before-vs-after compensation at a glance
 plotSpillmat(bc_ms = bc_ms, CM = compMat)
-

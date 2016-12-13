@@ -1,29 +1,30 @@
-# ================================================================================
+# ==============================================================================
 # Assign preliminary barcode IDs
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #' @rdname assignPrelim
 #' @title Single-cell debarcoding (1)
 #' 
 #' @description 
-#' Assigns a preliminary barcode ID to each event of normalized barcode intensities 
-#' and computes the barcode separation.
+#' Assigns a preliminary barcode ID to each event.
 #'
-#' @param x        a \code{\link{flowFrame}}.
-#' @param y        the debarcoding scheme.
-#'                 A binary matrix with numeric masses as column names OR
-#'                 a vector of numeric masses corresponding to barcode channels.
-#'                 When the latter is supplied, \code{assignPrelim} will create
-#'                 a matrix of the appropriate format internally.
-#' @param cofactor cofactor used for asinh transformation.
-#' @param verbose  logical. Should extra information on progress be reported? Defaults to TRUE.
+#' @param x 
+#' a \code{\link{flowFrame}}.
+#' @param y 
+#' the debarcoding scheme. A binary matrix with sample names as row names and 
+#' numeric masses as column names OR a vector of numeric masses corresponding to 
+#' barcode channels. When the latter is supplied, \code{assignPrelim} will 
+#' create a scheme of the appropriate format internally.
+#' @param cofactor 
+#' cofactor used for asinh transformation.
+#' @param verbose  
+#' logical. Should extra information on progress be reported? Defaults to TRUE.
 #'
 #' @return 
-#' Returns a \code{dbFrame} containing measured intensities, the debarcoding key, 
-#' a numeric verctor of barcode IDs and separations between positive and negative 
-#' barcode populations, and a matrix of normalized barcode intensities. 
-#' See \code{\link{dbFrame}} for more details.
-
+#' Returns a \code{\link{dbFrame}} containing measured intensities, 
+#' the debarcoding key, a numeric verctor of barcode IDs and separations between 
+#' positive and negative barcode populations, and barcode intensities
+#' normalized by population. 
 #'
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -38,14 +39,13 @@
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats quantile
-#' @importFrom flowCore colnames exprs
-#' @importClassesFrom flowCore flowFrame
+#' @importFrom flowCore colnames exprs flowFrame
 
 # --------------------------------------------------------------------------------
 
 setMethod(f="assignPrelim",
     signature=signature(x="flowFrame", y="data.frame"),
-    definition=function(x, y, cofactor = 10, verbose = TRUE) {
+    definition=function(x, y, cofactor=10, verbose=TRUE) {
         
         # get masses, intensities and no. of events
         nms <- flowCore::colnames(x)
@@ -54,7 +54,7 @@ setMethod(f="assignPrelim",
         N <- nrow(es)
         
         # get barcodes masses and check for validity of barcode channels
-        ids   <- as.numeric(rownames(y))
+        ids   <- rownames(y)
         bc_ms <- as.numeric(colnames(y))  
         if (any(!(bc_ms %in% ms)))
             stop("Invalid barcode channel(s) specified.")
@@ -71,7 +71,7 @@ setMethod(f="assignPrelim",
         # for each ea. of barcode intensities,
         # assign barcode ID and calculate separation
         if (verbose) message("Debarcoding data...")
-        bc_ids <- debarcode(bcs, bcs, y, ids, verbose)$bc_ids
+        bc_ids <- db(bcs, bcs, y, ids, verbose)$bc_ids
         
         # NORMALIZE BY POPULATION
         # rescale transformed barcodes for ea. population
@@ -80,9 +80,10 @@ setMethod(f="assignPrelim",
         normed_bcs <- matrix(0, nrow=N, ncol=ncol(bcs), 
             dimnames=list(NULL, colnames(bcs)))
         for (i in ids) {
+            key_ind <- ids == i
             inds <- bc_ids == i
             if (length(inds) > 1) {
-                pos_bcs <- bcs[inds, ids == i]
+                pos_bcs <- bcs[inds, y[key_ind, ] == 1]
                 norm_val <- stats::quantile(pos_bcs, .95)
                 normed_bcs[inds, ] <- bcs[inds, ] / norm_val
             }
@@ -91,7 +92,7 @@ setMethod(f="assignPrelim",
         # COMPUTE DEBARCODING
         # for normalized barcode intensities
         if (verbose) message("Debarcoding normalized data...")
-        re <- debarcode(normed_bcs, bcs, y, ids, verbose)
+        re <- db(normed_bcs, bcs, y, ids, verbose)
         
         return(new(Class="dbFrame", 
             exprs=es, bc_key=y, bc_ids=re$bc_ids, 
@@ -103,8 +104,9 @@ setMethod(f="assignPrelim",
 #' @rdname assignPrelim
 setMethod(f="assignPrelim",
     signature=signature(x="flowFrame", y="vector"),
-    definition=function(x, y, cofactor = 10, verbose = TRUE) {
+    definition=function(x, y, cofactor=10, verbose=TRUE) {
         n <- length(y)
-        y <- data.frame(matrix(diag(n), ncol=n, dimnames=list(y, y)), check.names=FALSE)
+        y <- data.frame(matrix(diag(n), ncol=n, 
+            dimnames=list(y, y)), check.names=FALSE)
         assignPrelim(x, y, cofactor, verbose)
     })
