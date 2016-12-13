@@ -1,15 +1,16 @@
-# ================================================================================
+# ==============================================================================
 # Apply separation and mahalanobies distance cutoffs
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #' @rdname applyCutoffs
 #' @title Single-cell debarcoding (2)
 #' 
 #' @description Applies separation and mahalanobies distance cutoffs.
 #'
-#' @param x          a \code{\link{dbFrame}} containing measured intensities, 
-#'                   the debarcoding key, barcode IDs, deltas, and separation cutoffs.
-#' @param mhl_cutoff mahalanobis distance threshold above which events should be unassigned.
+#' @param x 
+#' a \code{\link{dbFrame}}.
+#' @param mhl_cutoff 
+#' mahalanobis distance threshold above which events should be unassigned.
 #'
 #' @return
 #' Will update the \code{bc_ids} slot of the input \code{\link{dbFrame}}
@@ -31,13 +32,11 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats cov mahalanobis
 
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 setMethod(f="applyCutoffs", 
     signature=signature(x="dbFrame"),
-    
     definition=function(x, mhl_cutoff=30) {
-        
         
         # get no. of events, channel and barcode masses
         N <- nrow(x@exprs)
@@ -62,7 +61,8 @@ setMethod(f="applyCutoffs",
         mhl_dists <- numeric(N)
         for (i in ids) {
             inds <- which(x@bc_ids == i)
-            ex <- inds[which(x@deltas[inds] < x@sep_cutoffs[which(ids == i)])]
+            ex <- inds[which(x@deltas[inds] < 
+                    x@sep_cutoffs[which(rownames(x@bc_key) == i)])]
             inds <- inds[-which(inds %in% ex)]
             x@bc_ids[ex] <- 0
             sub  <- bcs[inds, ]

@@ -1,73 +1,86 @@
-# ================================================================================
+# ==============================================================================
 # Compute debarcoding
-# called by 'assignPrelim()'
+# ------------------------------------------------------------------------------
+
+#' @rdname debarcode
+#' @title Compute debarcoding
+#' 
+#' @description 
+#' For each barcode, estimates a cutoff parameter for the 
+#' distance between positive and negative barcode populations.
+#'
+#' @param x       
+#' a \code{\link{flowFrame}}.
+#' @param y 
+#' the debarcoding scheme. A binary matrix with sample names as row names and 
+#' numeric masses as column names OR a vector of numeric masses corresponding to 
+#' barcode channels. When the latter is supplied, \code{assignPrelim} will 
+#' create a scheme of the appropriate format internally.
+#' @param out_path
+#' a character string. All outputs (population-wise FCS files and 
+#' diagnostic plots) will be generated in this location. 
+#' @param cofactor 
+#' cofactor used for asinh transformation.
+#' @param mhl_cutoff 
+#' mahalanobis distance threshold above which events should be unassigned.
+#' @param verbose  
+#' logical. Should extra information on progress be reported? Defaults to TRUE.
+#' 
+#' @return
+#' Will generate population-wise FCS files, and events and yields plots
+#' in the specified \code{out_path}.
+#' 
+#' @examples
+#' data(ss_beads)
+#' bc_ms <- c(139, 141:156, 158:176)
+#' re <- assignPrelim(x = ss_beads, y = bc_ms)
+#' estCutoffs(x = re)
+#'
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @export
+
+# ------------------------------------------------------------------------------
+
+setMethod(f="debarcode",
+    signature=signature(x="flowFrame", y="data.frame"),
+    definition=function(x, y, out_path, 
+        cofactor=10, mhl_cutoff=30, verbose=TRUE) {
+    
+    # assign preliminary barcode IDs
+    re <- assignPrelim(x=x, y=y, cofactor=cofactor, verbose=verbose)
+    plotEvents(x=re, out_path=out_path, name_ext="_prelim")
+    
+    # estimate distance separation cutoffs,
+    # get counts and yields
+    re <- estCutoffs(x = re, verbose=verbose)
+    which <- sort(unique(re@bc_ids))
+    which <- which[!which == 0]
+    plotYields(x=re, which_bc=c(0, which), out_path=out_path)
+    
+    # apply deconcolution parameters
+    re <- applyCutoffs(x=re, mhl_cutoff=mhl_cutoff)
+    plotEvents(x=re, out_path=out_path, name_ext="_final")
+
+    # output population-wise FCS files
+    outFCS(x=re, out_path=out_path)
+    })
+
 # --------------------------------------------------------------------------------
 
-debarcode <- function(data, bcs, bc_key, ids, verbose) {
+#' @rdname debarcode
+setMethod(f="debarcode",
+    signature=signature(x="flowFrame", y="vector"),
+    definition=function(x, y, out_path, 
+        cofactor=10, mhl_cutoff=30, verbose=TRUE) {
+        n <- length(y)
+        y <- data.frame(matrix(diag(n), ncol=n, 
+            dimnames=list(y, y)), check.names=FALSE)
+        debarcode(x, y, out_path, 
+            cofactor=10, mhl_cutoff=30, verbose=TRUE)
+    })
+
     
-    cutoff <- 0 # used to prevent large neg. values from appearing
-    # to have sufficient separation from values near zero
-    
-    N <- nrow(bcs)
-    # order barcode intensities within ea. event
-    if (verbose) message("...ordering.")
-    bc_orders <- t(apply(data, 1, order, decreasing=TRUE))
-    
-    # DOUBLET-FILTERING
-    # look at k highest and (n-k)-lowest barcode channels
-    if (length(unique(rowSums(bc_key))) == 1) { 
-        
-        # number of expected pos. barcode intensities
-        n_pos_bcs <- sum(bc_key[1, ])    
-        
-        # get lowest pos. and highest neg. barcode for ea. event
-        lowest_pos  <- data[cbind(1:N, bc_orders[, n_pos_bcs])]
-        highest_neg <- data[cbind(1:N, bc_orders[, n_pos_bcs+1])]
-        
-        # compute separation b/w pos. and neg. barcodes for ea. event
-        deltas <- lowest_pos - highest_neg
-        
-        if (verbose) message("...classifying events.")
-        # assign binary barcode to ea. event
-        codes <- apply(data, 2, function(x) as.numeric(x >= lowest_pos))
-        
-        # assign barcode ID to ea. event
-        lookup <- rowSums(2 ^ col(bc_key) * bc_key)
-        preids <- rowSums(2 ^ col(codes)  * codes)
-        bc_ids <- ids[match(preids, lookup)]
-        bc_ids[is.na(bc_ids)] <- 0
-        
-        # exclude events whose pos. barcodes are still very low 
-        # (using bcs, not normalized bcs)
-        bc_ids[which(bcs[cbind(1:N, bc_orders[, n_pos_bcs])] < cutoff)] <- 0
-        
-        # NON-CONSTANT NUMBER OF 1'S
-        # difference b/w the kth and (k–1)th highest normalized barcode intensities
-    } else {
-        
-        # find largest barcode separation within ea. event 
-        # to assign pos. and neg. barcode values
-        diffs <- sapply(1:N, function(x) abs(diff(data[x, bc_orders[x, ]])))
-        deltas <- apply(diffs, 2, max)
-        largest_seps <- unlist(sapply(1:N, function(x) which(diffs[, x] == deltas[x])))
-        pos <- sapply(1:N, function(x) bc_orders[x, 1:largest_seps[x]])   
-        
-        if (verbose) message("...classifying events.")
-        # assign binary barcode to ea. event
-        codes <- sapply(1:N, function(x) 
-            as.numeric(1:ncol(bc_key) %in% pos[[x]]))
-        
-        # assign barcode ID to ea. event
-        lookup <- rowSums(2 ^ col(bc_key) * bc_key)
-        preids <- rowSums(2 ^ col(codes)  * codes)
-        bc_ids <- ids[match(preids, lookup)]
-        bc_ids[is.na(bc_ids)] <- 0
-        
-        # exclude events whose pos. barcodes are still very low 
-        # (using bcs, not normalized bcs)
-        pos_bcs <- sapply(1:N, function(x) bcs[x, pos[[x]]])
-        ex <- lapply(pos, function(x) any(x < cutoff))
-        bc_ids[unlist(ex)] <- 0
-    }
-    return(list(bc_ids=bc_ids, deltas=deltas))
-}
+
+
+
+
