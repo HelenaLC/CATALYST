@@ -1,16 +1,24 @@
-# ================================================================================
+# ==============================================================================
 # Plot spillover matrix heat map
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #' @rdname plotSpillmat
 #' @title Spillover matrix heat map
 #' 
-#' @description Generates a heat map of the spillover matrix annotated with estimated spill percentages.
+#' @description 
+#' Generates a heat map of the spillover matrix annotated with 
+#' estimated spill percentages.
 #'
-#' @param bc_ms    a vector of numeric masses corresponding to barcode channels.
-#' @param CM       matrix returned from \code{computeCompmat}.
-#' @param out_path specifies in which location output plot is to be generated.
-#' @param name_ext a character string. If specified, will be appended to the plot's name. Defaults to NULL.
+#' @param bc_ms 
+#' a vector of numeric masses corresponding to barcode channels.
+#' @param CM 
+#' matrix returned from \code{computeCompmat}.
+#' @param out_path 
+#' a character string. If specified, outputs will be generated in this location. 
+#' Defaults to NULL.
+#' @param name_ext 
+#' a character string. If specified, will be appended to the plot's name. 
+#' Defaults to NULL.
 #' 
 #' @examples
 #' data(ss_beads)
@@ -26,7 +34,7 @@
 #' @importFrom grDevices colorRampPalette
 #' @export
 
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 plotSpillmat <- function(bc_ms, CM, out_path=NULL, name_ext=NULL) {
     
