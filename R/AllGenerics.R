@@ -50,7 +50,6 @@ setGeneric(name="yields",
     package="CATALYST", 
     def=function(object) standardGeneric("yields"))
 
-
 # ==============================================================================
 # Generics to replace slots in a dbFrame
 # ------------------------------------------------------------------------------
@@ -76,7 +75,6 @@ setGeneric(name="bc_ids<-",
 setGeneric(name="mhl_cutoff<-",  
     package="CATALYST",
     def=function(object, value) standardGeneric("mhl_cutoff<-"))
-
 
 # ==============================================================================
 # Generics for debarcoding
@@ -135,7 +133,6 @@ setGeneric(name="estTrim",
 setGeneric(name="computeCompmat", 
     package="CATALYST",
     def=function(x, ...) standardGeneric("computeCompmat"))
-
 
 # ==============================================================================
 # Generics for plotting
