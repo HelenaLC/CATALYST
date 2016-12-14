@@ -22,10 +22,6 @@ output files are to be generated.}
 Writes an FCS file for each barcode population.
 }
 \examples{
-data(ss_beads)
-bc_ms <- c(139, 141:156, 158:176)
-re <- assignPrelim(x = ss_beads, y = bc_ms)
-#outFCS(x = re, y = ...)
 
 }
 \author{
