@@ -33,9 +33,8 @@
 #' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
 #' @examples
-#' data(ss_beads)
-#' bc_ms <- c(139, 141:156, 158:176)
-#' assignPrelim(x = ss_beads, y = bc_ms)
+#' data(sample_ff, bc_key)
+#' assignPrelim(x = sample_ff, y = bc_key)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats quantile

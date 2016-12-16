@@ -8,7 +8,7 @@
 #' Shows normalized barcode intensities for a given barcode.
 #'
 #' @param x a \code{\link{dbFrame}}.
-#' @param which_bc 
+#' @param which 
 #' numeric or "all". Specifies which barcode to plot. Defaults to "all".
 #' @param n_events 
 #' numeric or "all". Specifies how many events to plot per barcode.
@@ -23,10 +23,12 @@
 #' EXPLAIN NORMALIZATION HERE
 #' 
 #' @examples
-#' data(ss_beads)
-#' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_beads, y = bc_ms)
-#' plotEvents(x = re, which_bc = 139)
+#' data(sample_ff, sample_key)
+#' re <- assignPrelim(x = sample_ff, y = sample_key)
+#' plotEvents(x = re, which = "B3", n_events = "all")
+#' re <- estCutoffs(x = re)
+#' re <- applyCutoffs(x = re)
+#' plotEvents(x = re, which = "B3", n_events = "all")
 #' 
 #' @references
 #' Zunder, E.R. et al. (2015).
@@ -43,56 +45,53 @@
 
 setMethod(f="plotEvents", 
     signature=signature(x="dbFrame"), 
-    definition=function(x, which_bc="all", n_events=100, 
+    definition=function(x, which="all", n_events=100, 
         out_path=NULL, name_ext=NULL) {
         
-        normed_bcs <- x@normed_bcs
-        bc_key <- x@bc_key
-        bc_ids <- x@bc_ids
         nms <- colnames(x@exprs)
         ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
         
-        ids <- sort(unique(bc_ids))
-        n_ids <- length(which(ids!=0))
-        n_bcs <- nrow(bc_key)
-        n_chs <- ncol(bc_key)
+        ids <- sort(unique(x@bc_ids))
+        n_bcs <- nrow(x@bc_key)
+        n_chs <- ncol(x@bc_key)
         
-        if (sum(rowSums(bc_key) == 1) == n_bcs) {
+        if (sum(rowSums(x@bc_key) == 1) == n_bcs) {
             bc_labs <- paste(colnames(x@exprs))[
-                ms %in% as.numeric(colnames(bc_key))]
+                ms %in% as.numeric(colnames(x@bc_key))]
         } else {
-            bc_labs <- paste0(rownames(bc_key), ": ", 
-                apply(bc_key, 1, function(x) paste(x, collapse="")))
+            bc_labs <- paste0(rownames(x@bc_key), ": ", 
+                apply(x@bc_key, 1, function(x) paste(x, collapse="")))
         }
         if (0 %in% ids) 
             bc_labs <- c("Unassigned", bc_labs)
+        bc_labs <- bc_labs[c(0, rownames(x@bc_key)) %in% ids]
         
-        labs <- colnames(normed_bcs)
+        labs <- colnames(x@normed_bcs)
         pal <- RColorBrewer::brewer.pal(11,"Spectral")
-        if (n_ids > 11) {
-            cols <- colorRampPalette(pal)(ncol(normed_bcs))
+        if (n_chs > 11) {
+            cols <- colorRampPalette(pal)(ncol(x@normed_bcs))
         } else {
-            cols <- sample(pal, ncol(normed_bcs))
+            cols <- sample(pal, ncol(x@normed_bcs))
         }
         thms <- theme_bw() + theme(legend.key=element_blank(),
             panel.grid.major=element_line(color="lightgrey"),
             panel.grid.minor=element_blank())
         
-        if ("all" %in% which_bc) {
+        if ("all" %in% which) {
             which_ids <- ids
         } else {
-            which_ids <- which_bc
+            which_ids <- which
         }
         
         p <- list()
         for (id in which_ids) {
-            inds <- which(bc_ids == id)
+            inds <- which(x@bc_ids == id)
             n <- length(inds)
             if (length(inds) < 10) next
             if (is.numeric(n_events) & length(inds) > n_events)
                 inds <- sort(sample(inds, n_events))
             psize <- 1 + 100 / length(inds)
-            sub <- normed_bcs[inds, ]
+            sub <- x@normed_bcs[inds, ]
             
             tcks <- c(1,nrow(sub))
             ymin <-   floor(4 * min(sub)) / 4
