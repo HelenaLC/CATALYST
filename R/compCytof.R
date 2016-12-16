@@ -45,14 +45,8 @@ setMethod(f="compCytof",
     nms <- flowCore::colnames(x)
     ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
     ff_chs <- flowCore::colnames(x[, !is.na(ms)])
-    
-    # check which channels of spillover matrix are missing in flowFrame
-    # and drop corresponding rows and columns
-    y <- make_symetric(y)
-    ex <- rownames(y)[!rownames(y) %in% ff_chs]
-    if (length(ex) != 0)
-        y <- y[!rownames(y) %in% ex, !colnames(y) %in% ex]
     sm_chs <- rownames(y)
+    y <- make_symetric(y)
     
     # check which channels of input flowFrame are not 
     # contained in spillover matrix and give warning
@@ -61,21 +55,43 @@ setMethod(f="compCytof",
         new_mets <- gsub("[[:digit:]]+Di", "", add)
         old_ms <- as.numeric(regmatches(sm_chs, gregexpr("[0-9]+", sm_chs)))
         new_ms <- as.numeric(regmatches(add, gregexpr("[0-9]+", add)))
-        nms <- c(sm_chs, add)[order(c(old_ms, new_ms))]
+        ms <- c(old_ms, new_ms)
+        o <- order(ms)
+        ms <- ms[order(ms)]
+        nms <- c(sm_chs, add)[o]
         spill_cols <- get_spill_cols(new_ms, new_mets)
         
-        message("WARNING: Compensation is likely to be inaccurate.\n",
-            "         Spill values for the following interactions\n",
-            "         have not been estimated and are missing:")
-        for (i in seq_along(add)) {
-            if (length(spill_cols[[i]]) == 0) next
-            cat(add[i], "->", paste(nms[spill_cols[[i]]], collapse=", "), "\n")
+        if (sum(unlist(lapply(spill_cols, length))) != 0) {
+            message("WARNING: Compensation is likely to be inaccurate.\n",
+                "         Spill values for the following interactions\n",
+                "         have not been estimated:")
+            for (i in seq_along(add)) {
+                if (length(spill_cols[[i]]) == 0) next
+                cat(add[i], "->", paste(nms[spill_cols[[i]]], collapse=", "), "\n")
+            }
+        } else {
+            
         }
         # add them into the matrix
         sm <- diag(length(nms))
         rownames(sm) <- colnames(sm) <- nms
-        sm[sm_chs, sm_chs] <- y
+        sm[sm_chs, sm_chs] <- y[sm_chs, sm_chs]
     }
+
+    match <- new_ms %in% old_ms
+    if (any(ind <- old_ms %in% new_ms)) {
+        y_col <- sm_chs[ind]
+        sm_col <- nms[ms == old_ms[ind]]
+        sm[rownames(y), sm_col] <- y[, rep(y_col, length(sm_col))]
+    }
+    
+    # check which channels of spillover matrix are missing in flowFrame
+    # and drop corresponding rows and columns
+    
+    ex <- rownames(sm)[!rownames(sm) %in% ff_chs]
+    if (length(ex) != 0)
+        sm <- sm[!rownames(sm) %in% ex, !colnames(sm) %in% ex]
+
     compensate(x, y)
     })
 
