@@ -4,31 +4,31 @@
 \alias{plotSpillmat}
 \title{Spillover matrix heat map}
 \usage{
-plotSpillmat(bc_ms, CM, out_path = NULL, name_ext = NULL)
+plotSpillmat(bc_ms, SM, out_path = NULL, name_ext = NULL)
 }
 \arguments{
 \item{bc_ms}{a vector of numeric masses corresponding to barcode channels.}
-
-\item{CM}{matrix returned from \code{computeCompmat}.}
 
 \item{out_path}{a character string. If specified, outputs will be generated in this location. 
 Defaults to NULL.}
 
 \item{name_ext}{a character string. If specified, will be appended to the plot's name. 
 Defaults to NULL.}
+
+\item{CM}{matrix returned from \code{computeCompmat}.}
 }
 \description{
 Generates a heat map of the spillover matrix annotated with 
 estimated spill percentages.
 }
 \examples{
-data(ss_beads)
+data(ss_exp)
 bc_ms <- c(139, 141:156, 158:176)
-re <- assignPrelim(x = ss_beads, y = bc_ms)
+re <- assignPrelim(x = ss_exp, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
-compMat <- computeCompmat(x = re)
-plotSpillmat(bc_ms = bc_ms, CM = compMat)
+spillMat <- computeSpillmat(x = re)
+plotSpillmat(bc_ms = bc_ms, SM = spillMat)
 
 }
 \author{

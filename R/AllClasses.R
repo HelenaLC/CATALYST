@@ -21,8 +21,6 @@
 #' @slot bc_key 
 #' binary barcoding scheme with numeric masses as column names 
 #' and samples names as row names OR a numeric vector of barcode masses.
-#' @slot samples
-#' a character object with samples names extracted from \code{\link{bc_key}}.
 #' @slot bc_ids
 #' vector of barcode IDs. If a barcoding scheme is supplied, 
 #' the respective binary code's row name, else, the mass of the respective 

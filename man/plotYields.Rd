@@ -8,7 +8,7 @@
 \usage{
 plotYields(x, ...)
 
-\S4method{plotYields}{dbFrame}(x, which_bc = 0, out_path = NULL,
+\S4method{plotYields}{dbFrame}(x, which = 0, out_path = NULL,
   name_ext = NULL)
 }
 \arguments{
@@ -16,7 +16,7 @@ plotYields(x, ...)
 
 \item{...}{further optional arguments.}
 
-\item{which_bc}{numeric. Specifies which barcode to plot. 0 will generate a summary plot 
+\item{which}{numeric. Specifies which barcode to plot. 0 will generate a summary plot 
 with all barcodes.}
 
 \item{out_path}{a character string. If specified, outputs will be generated in this location. 
@@ -36,11 +36,13 @@ The separation cutoff value should be chosen such that it appropriately
 balances confidence in barcode assignment and cell yield.
 }
 \examples{
-data(ss_beads)
-bc_ms <- c(139, 141:156, 158:176)
-re <- assignPrelim(x = ss_beads, y = bc_ms)
+data(sample_ff, sample_key)
+re <- assignPrelim(x = sample_ff, y = sample_key)
 re <- estCutoffs(x = re)
-plotYields(x = re)
+# all samples summary plot
+plotYields(x = re, which = 0)
+# plot for specific sample
+plotYields(x = re, which = "D2")
 
 }
 \author{

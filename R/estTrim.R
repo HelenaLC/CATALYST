@@ -25,9 +25,9 @@
 #' wise median counts across all barcodes after compensation.}
 #' 
 #' @examples
-#' data(ss_beads)
+#' data(ss_exp)
 #' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_beads, y = bc_ms)
+#' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
 #' estTrim(x = re, min = 0.06, max = 0.14, step = 0.02)
@@ -55,8 +55,9 @@ setMethod(f="estTrim",
               trim_vals <- seq(min, max, step)
               df <- rss <- NULL
               for (trim in trim_vals) {
-                  cm <- computeCompmat(x=x, method="mean", trim=trim)
-                  tmp <- x@exprs %*% cm
+                  sm <- computeSpillmat(x=x, method="mean", trim=trim)
+                  sm <- make_symetric(sm)
+                  tmp <- x@exprs %*% solve(sm)
                   for (id in ids) {
                       median <- apply(tmp[x@bc_ids == id, ms != id], 2, median)
                       df <- rbind(df, data.frame(m=median, trim=trim))
