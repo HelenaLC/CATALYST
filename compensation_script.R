@@ -2,7 +2,7 @@
 path <- "/Users/HLC/Dropbox/spillover/corrected bead based compensation/Exp3"
 fcs <- file.path(path, "160805_Exp3_beads-before.fcs")
 library(flowCore)
-ss_beads  <- read.FCS(fcs)
+ss_exp  <- read.FCS(fcs)
 
 # specify mass channels stained for
 bc_ms <- c(139, 141:156, 158:176)
@@ -13,7 +13,7 @@ bc_ms <- c(139, 141:156, 158:176)
 
 # assign preliminary IDs
 library(CATALYST)
-re <- assignPrelim(x = ss_beads, y = bc_ms) 
+re <- assignPrelim(x = ss_exp, y = bc_ms) 
 plotEvents(x = re, which_bc = "all", n_events = 100, name_ext = "prelim") # out_path = ...
 
 # estimate population separation cutoffs
@@ -34,24 +34,17 @@ plotEvents(x = re, which_bc = "all", n_events = 100, name_ext = "_final") # out_
 trimVal <- estTrim(x = re, .06, .14, .02) # out_path = ...
 
 # estimate compensation matrix
-compMat <- computeCompmat(x = re, method = "mean", trim = trimVal) 
+spillMat <- computeSpillmat(x = re, method = "mean", trim = .08) 
 
 # plot spillover matrix heat map
-plotSpillmat(bc_ms = bc_ms, CM = compMat) # out_path = ...
+plotSpillmat(bc_ms = bc_ms, SM = spillMat) # out_path = ...
 
 # compensate single staining 
 comped_ss_beads <- ss_beads
-exprs(comped_ss_beads) <- ss_beads %*% compMat
+exprs(comped_ss_beads) <- exprs(ss_beads) %*% compMat
 write.FCS(comped_ss_beads, filename = paste0(gsub(".fcs", "", fcs), "_comped.fcs"))
 
 # compensate all FCS files in a folder
 # !!!need to specify path to folder!!!
-fcs <- list.files(path = ..., patter = ".fcs", full.names = TRUE)
-nms <- paste0(gsub(".fcs", "", fcs), "_comped.fcs")
-ffs <- lapply(fcs, read.FCS)
-for (i in seq_along(ffs)) {
-    tmp <- ffs[[i]]
-    exprs(tmp) <- exprs(tmp) %*% compMat
-    write.FCS(tmp[[i]], nms[i])
-}
+compCytof(path, spillMat)
     
