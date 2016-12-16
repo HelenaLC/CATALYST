@@ -9,7 +9,7 @@
 #' Histogram of counts and plot of yields as a function of separation cutoffs.
 #'
 #' @param x a \code{\link{dbFrame}}.
-#' @param which_bc 
+#' @param which 
 #' numeric. Specifies which barcode to plot. 0 will generate a summary plot 
 #' with all barcodes.
 #' @param out_path 
@@ -27,11 +27,13 @@
 #' balances confidence in barcode assignment and cell yield.
 #' 
 #' @examples
-#' data(ss_beads)
-#' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_beads, y = bc_ms)
+#' data(sample_ff, sample_key)
+#' re <- assignPrelim(x = sample_ff, y = sample_key)
 #' re <- estCutoffs(x = re)
-#' plotYields(x = re)
+#' # all samples summary plot
+#' plotYields(x = re, which = 0)
+#' # plot for specific sample
+#' plotYields(x = re, which = "D2")
 #'
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -48,7 +50,7 @@
 
 setMethod(f="plotYields", 
           signature=signature(x="dbFrame"), 
-          definition=function(x, which_bc=0, out_path=NULL, name_ext=NULL) {
+          definition=function(x, which=0, out_path=NULL, name_ext=NULL) {
               
               ids <- rownames(x@bc_key)
               n_bcs <- length(ids)
@@ -59,8 +61,8 @@ setMethod(f="plotYields",
               if (sum(rowSums(x@bc_key) == 1) == n_bcs) {
                   bc_labs <- paste(colnames(x@exprs))[bc_chs]
               } else {
-                  bc_labs <- paste(apply(x@bc_key, 1, function(x) 
-                      paste(x, collapse="")))
+                  bc_labs <- paste0(rownames(x@bc_key), ": ", 
+                      apply(x@bc_key, 1, function(x) paste(x, collapse="")))
               }
               
               seps <- seq(0, 1, .01)
@@ -83,7 +85,7 @@ setMethod(f="plotYields",
               yields <- x@yields
               
               h <- l <- list()
-              for (i in which_bc) {
+              for (i in which) {
                   if (i == 0) {
                       # summary plot with all barcodes
                       yield <- 0
@@ -166,10 +168,10 @@ setMethod(f="plotYields",
                   l[[length(l)]] <- gp2
               }
               
-              if (0 %in% which_bc) {
+              if (0 %in% which) {
                   if (!is.null(out_path))
                       pdf(file.path(out_path, paste0("yp-all-bcs", name_ext, ".pdf")), width=10, height=6)
-                  ind <- which(which_bc == 0)
+                  ind <- which(which == 0)
                   grid.arrange(h[[ind]], l[[ind]], lgd, ncol=2, nrow=2, 
                                layout_matrix=rbind(c(1, 3), c(2, 3)), 
                                widths=c(10, 2), heights=c(4, 4),
@@ -177,12 +179,12 @@ setMethod(f="plotYields",
                   if (!is.null(out_path)) dev.off()
               }
               
-              if (sum(fil <- !which_bc == 0) != 0) {
+              if (sum(fil <- !which == 0) != 0) {
                   if (!is.null(out_path))
                       pdf(file.path(out_path, paste0("yp-ea_bc", name_ext, ".pdf")), width=8, height=6)
-                  for (i in which_bc[fil]) {
-                      ind <- which(which_bc[fil] == i)
-                      j <- which(which_bc == i)
+                  for (i in which[fil]) {
+                      ind <- which(which[fil] == i)
+                      j <- which(which == i)
                       perc <- paste0(round(yields[ind, which(seps==ests[ind])], 3)*100, "%")
                       grid.arrange(h[[j]], l[[j]], nrow=2, widths=8, heights=c(3, 3),
                                    top=textGrob(bquote(bold(.(bc_labs[ind]))*scriptstyle(

@@ -2,11 +2,12 @@
 # Compute compensation matrix
 # ------------------------------------------------------------------------------
 
-#' @rdname computeCompmat
-#' @title Compensation matrix
+#' @rdname computeSpillmat
+#' @title Compute spillover matrx
 #' 
 #' @description 
-#' Computes the compensation matrix.
+#' Computes the spillover matrix based on 
+#' a priori identified single-positive popultions.
 #'
 #' @param x 
 #' a \code{\link{dbFrame}}.
@@ -26,19 +27,19 @@
 #' (oxide formation). By default, diagonal entries are set to 1.
 #' 
 #' @examples
-#' data(ss_beads)
+#' data(ss_exp)
 #' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_beads, y = bc_ms)
+#' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
-#' head(computeCompmat(x = re))
+#' head(computeSpillmat(x = re))
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats median
 
 # ------------------------------------------------------------------------------
 
-setMethod(f="computeCompmat", 
+setMethod(f="computeSpillmat", 
           signature=signature(x="dbFrame"), 
           
           definition=function(x, method = "mean", trim = .08) {
@@ -66,26 +67,10 @@ setMethod(f="computeCompmat",
               # find which columns of loaded FCS file 
               # correspond to masses listed in barcode key
               bc_cols <- sapply(bc_ms, function(x) which(ms %in% x))
- 
-              iso_tbl <- list(La=138:139, Pr=141, Nd=c(142:146, 148, 150), 
-                              Sm=c(144, 147:150, 152, 154), Eu=c(151, 153), 
-                              Gd=c(152, 154:158, 160), Dy=c(156, 158, 160:164), 
-                              Tb=159, Er=c(162, 164, 166:168, 170), Ho=165, 
-                              Yb=c(168, 170:174, 176), Tm=169, Lu=175:176)
               
               # for each barcode channel, get spillover candidate channels
               # (+/-1M, -16M and channels measuring isotopes)
-              spill_cols <- list()
-              for (i in ids) {
-                  j <- bc_cols[ids == i]
-                  p1 <- m1 <- ox <- iso <- NULL
-                  if ((ms[j] + 1)  %in% ms) p1 <- which(ms == (ms[j] + 1))
-                  if ((ms[j] - 1)  %in% ms) m1 <- which(ms == (ms[j] - 1)) 
-                  if ((ms[j] + 16) %in% ms) ox <- which(ms == (ms[j] + 16))
-                  iso <- iso_tbl[[mets[j]]]
-                  iso <- which(ms %in% iso[iso != i])
-                  spill_cols[[j]] <- unique(c(m1, p1, iso, ox))
-              }
+              spill_cols <- get_spill_cols(ms, mets)
               
               # compute and return compensation matrix
               SM <- diag(n_chs)
@@ -112,8 +97,6 @@ setMethod(f="computeCompmat",
                       }
                   }
               }
-              CM <- solve(SM)
-              
-              colnames(CM) <- rownames(CM) <- chs
-              CM
+              colnames(SM) <- rownames(SM) <- chs
+              SM[bc_cols, !is.na(ms)]
           })

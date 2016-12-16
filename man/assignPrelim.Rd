@@ -39,9 +39,8 @@ normalized by population.
 Assigns a preliminary barcode ID to each event.
 }
 \examples{
-data(ss_beads)
-bc_ms <- c(139, 141:156, 158:176)
-assignPrelim(x = ss_beads, y = bc_ms)
+data(sample_ff, bc_key)
+assignPrelim(x = sample_ff, y = bc_key)
 
 }
 \author{

@@ -21,9 +21,8 @@
 #' \code{yields} slots of the input \code{\link{dbFrame}} and return the latter.
 #' 
 #' @examples
-#' data(ss_beads)
-#' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_beads, y = bc_ms)
+#' data(sample_ff, sample_key)
+#' re <- assignPrelim(x = sample_ff, y = sample_key)
 #' estCutoffs(x = re)
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}

@@ -127,12 +127,19 @@ setGeneric(name="estTrim",
     package="CATALYST",
     def=function(x, ...) standardGeneric("estTrim"))
 
-#' @rdname computeCompmat
+#' @rdname computeSpillmat
 #' @param ... further optional arguments.
 #' @export
-setGeneric(name="computeCompmat", 
+setGeneric(name="computeSpillmat", 
     package="CATALYST",
-    def=function(x, ...) standardGeneric("computeCompmat"))
+    def=function(x, ...) standardGeneric("computeSpillmat"))
+
+#' @rdname compCytof
+#' @param ... further optional arguments.
+#' @export
+setGeneric(name="compCytof", 
+    package="CATALYST",
+    def=function(x, y, ...) standardGeneric("compCytof"))
 
 # ==============================================================================
 # Generics for plotting

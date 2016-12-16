@@ -25,9 +25,8 @@ and return the latter.
 Applies separation and mahalanobies distance cutoffs.
 }
 \examples{
-data(ss_beads)
-bc_ms <- c(139, 141:156, 158:176)
-re <- assignPrelim(x = ss_beads, y = bc_ms)
+data(sample_ff, sample_key)
+re <- assignPrelim(x = sample_ff, y = sample_key)
 re <- estCutoffs(x = re)
 applyCutoffs(x = re)
 

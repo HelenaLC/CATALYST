@@ -8,7 +8,7 @@
 \usage{
 plotEvents(x, ...)
 
-\S4method{plotEvents}{dbFrame}(x, which_bc = "all", n_events = 100,
+\S4method{plotEvents}{dbFrame}(x, which = "all", n_events = 100,
   out_path = NULL, name_ext = NULL)
 }
 \arguments{
@@ -16,7 +16,7 @@ plotEvents(x, ...)
 
 \item{...}{further optional arguments.}
 
-\item{which_bc}{numeric or "all". Specifies which barcode to plot. Defaults to "all".}
+\item{which}{numeric or "all". Specifies which barcode to plot. Defaults to "all".}
 
 \item{n_events}{numeric or "all". Specifies how many events to plot per barcode.}
 
@@ -33,10 +33,12 @@ Shows normalized barcode intensities for a given barcode.
 EXPLAIN NORMALIZATION HERE
 }
 \examples{
-data(ss_beads)
-bc_ms <- c(139, 141:156, 158:176)
-re <- assignPrelim(x = ss_beads, y = bc_ms)
-plotEvents(x = re, which_bc = 139)
+data(sample_ff, sample_key)
+re <- assignPrelim(x = sample_ff, y = sample_key)
+plotEvents(x = re, which = "B3", n_events = "all")
+re <- estCutoffs(x = re)
+re <- applyCutoffs(x = re)
+plotEvents(x = re, which = "B3", n_events = "all")
 
 }
 \author{
