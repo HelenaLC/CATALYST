@@ -32,7 +32,7 @@ get_spill_cols <- function(ms, mets) {
         if ((ms[i] + 1)  %in% ms) p1 <- which(ms == (ms[i] + 1))
         if ((ms[i] - 1)  %in% ms) m1 <- which(ms == (ms[i] - 1)) 
         if ((ms[i] + 16) %in% ms) ox <- which(ms == (ms[i] + 16))
-        iso <- iso_tbl[[mets[!is.na(ms)][i]]]
+        iso <- iso_tbl[[mets[i]]]
         iso <- which(ms %in% iso[iso != ms[i]])
         spill_cols[[i]] <- unique(c(m1, p1, iso, ox))
     }
