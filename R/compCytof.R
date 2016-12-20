@@ -46,18 +46,19 @@ setMethod(f="compCytof",
     ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
     ff_chs <- flowCore::colnames(x[, !is.na(ms)])
     sm_chs <- rownames(y)
+    sm_cols <- colnames(y)
     y <- make_symetric(y)
     
     # check which channels of input flowFrame are not 
     # contained in spillover matrix and give warning
-    add <- ff_chs[which(!ff_chs %in% sm_chs)]
+    add <- ff_chs[(!ff_chs %in% sm_chs)]
     if (length(add) != 0) {
         new_mets <- gsub("[[:digit:]]+Di", "", add)
         old_ms <- as.numeric(regmatches(sm_chs, gregexpr("[0-9]+", sm_chs)))
         new_ms <- as.numeric(regmatches(add, gregexpr("[0-9]+", add)))
         ms <- c(old_ms, new_ms)
         o <- order(ms)
-        ms <- ms[order(ms)]
+        ms <- ms[o]
         nms <- c(sm_chs, add)[o]
         spill_cols <- get_spill_cols(new_ms, new_mets)
         
@@ -75,7 +76,8 @@ setMethod(f="compCytof",
         # add them into the matrix
         sm <- diag(length(nms))
         rownames(sm) <- colnames(sm) <- nms
-        sm[sm_chs, sm_chs] <- y[sm_chs, sm_chs]
+        sl_sm_cols = sm_cols[sm_cols %in% ff_chs]
+        sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
     }
 
     match <- new_ms %in% old_ms
@@ -92,7 +94,7 @@ setMethod(f="compCytof",
     if (length(ex) != 0)
         sm <- sm[!rownames(sm) %in% ex, !colnames(sm) %in% ex]
 
-    compensate(x, y)
+    compensate(x, sm)
     })
 
 setMethod(f="compCytof",
