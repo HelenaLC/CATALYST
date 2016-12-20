@@ -10,7 +10,7 @@
 #' 
 #' @details 
 #' Following a 6-choose-3 barcoding scheme, mass channels 
-#' 102, 104, 105, 106, 108, and 110 where used for labeling
+#' 102, 104, 105, 106, 108, and 110 were used for labeling
 #' such that each of the 20 individual barcodes are positive 
 #' for exactly 3 of the 6 possible barcode channels.
 #'
