@@ -60,18 +60,22 @@ setMethod(f="compCytof",
         o <- order(ms)
         ms <- ms[o]
         nms <- c(sm_chs, add)[o]
-        spill_cols <- get_spill_cols(new_ms, new_mets)
+        # get the potential spillover interatctions 
+        allmets = gsub("[[:digit:]]+Di", "", nms)
+        spill_cols <- get_spill_cols(ms, allmets)
         
-        if (sum(unlist(lapply(spill_cols, length))) != 0) {
-            message("WARNING: Compensation is likely to be inaccurate.\n",
-                "         Spill values for the following interactions\n",
-                "         have not been estimated:")
-            for (i in seq_along(add)) {
-                if (length(spill_cols[[i]]) == 0) next
-                cat(add[i], "->", paste(nms[spill_cols[[i]]], collapse=", "), "\n")
+        first = T
+        for (i in seq_along(new_ms)) {
+            idx = which(ms == new_ms[i] & allmets == new_mets[i])
+            if ( length(spill_cols[[idx]]) > 0){
+                if (first){
+                    message("WARNING: Compensation is likely to be inaccurate.\n",
+                            "         Spill values for the following interactions\n",
+                            "         have not been estimated:")
+                    first = F
+                }
+                cat(nms[idx], "->", paste(nms[spill_cols[[idx]]], collapse=", "), "\n")
             }
-        } else {
-            
         }
         # add them into the matrix
         sm <- diag(length(nms))
