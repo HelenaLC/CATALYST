@@ -83,13 +83,25 @@ setMethod(f="compCytof",
         sl_sm_cols = sm_cols[sm_cols %in% ff_chs]
         sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
     }
-
-    match <- new_ms %in% old_ms
+    
     if (any(ind <- old_ms %in% new_ms)) {
+        # check if any new masses were already present in the old masses
+        # and add them to receive spillover according to the old masses
+        
+        # get the channels that correspond to the old_masses that have an aditional metal with the same weight
         y_col <- sm_chs[ind]
-        sm_col <- nms[ms == old_ms[ind]]
-        sm[rownames(y), sm_col] <- y[, rep(y_col, length(sm_col))]
+        names(y_col) <- sapply(old_ms[ind], as.character)
+        # get all columns that are part of the affected masses
+        fil = ms %in% old_ms[ind]
+        sm_col <- nms[fil]
+        sm_col_ms <-sapply(ms[fil], as.character)
+        sm[rownames(y), sm_col] <- y[,y_col[sm_col_ms]]
+        for (m in unique(sm_col_ms)){
+            mfil = ms == m
+            sm[mfil,mfil] <- 0
+        }
     }
+
     
     # check which channels of spillover matrix are missing in flowFrame
     # and drop corresponding rows and columns
@@ -97,7 +109,10 @@ setMethod(f="compCytof",
     ex <- rownames(sm)[!rownames(sm) %in% ff_chs]
     if (length(ex) != 0)
         sm <- sm[!rownames(sm) %in% ex, !colnames(sm) %in% ex]
-
+    
+    # make sure the diagonal is all 1
+    diag(sm) <- 1
+    
     compensate(x, sm)
     })
 
