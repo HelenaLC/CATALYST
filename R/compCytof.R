@@ -77,28 +77,31 @@ setMethod(f="compCytof",
                 cat(nms[idx], "->", paste(nms[spill_cols[[idx]]], collapse=", "), "\n")
             }
         }
-        # add them into the matrix
-        sm <- diag(length(nms))
-        rownames(sm) <- colnames(sm) <- nms
-        sl_sm_cols = sm_cols[sm_cols %in% ff_chs]
-        sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
     }
     
-    if (any(ind <- old_ms %in% new_ms)) {
-        # check if any new masses were already present in the old masses
-        # and add them to receive spillover according to the old masses
-        
-        # get the channels that correspond to the old_masses that have an aditional metal with the same weight
-        y_col <- sm_chs[ind]
-        names(y_col) <- sapply(old_ms[ind], as.character)
-        # get all columns that are part of the affected masses
-        fil = ms %in% old_ms[ind]
-        sm_col <- nms[fil]
-        sm_col_ms <-sapply(ms[fil], as.character)
-        sm[rownames(y), sm_col] <- y[,y_col[sm_col_ms]]
-        for (m in unique(sm_col_ms)){
-            mfil = ms == m
-            sm[mfil,mfil] <- 0
+    # add them into the matrix
+    sm <- diag(length(nms))
+    rownames(sm) <- colnames(sm) <- nms
+    sl_sm_cols = sm_cols[sm_cols %in% ff_chs]
+    sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
+    
+    if (length(add) != 0) {
+        if (any(ind <- old_ms %in% new_ms)) {
+            # check if any new masses were already present in the old masses
+            # and add them to receive spillover according to the old masses
+            
+            # get the channels that correspond to the old_masses that have an aditional metal with the same weight
+            y_col <- sm_chs[ind]
+            names(y_col) <- sapply(old_ms[ind], as.character)
+            # get all columns that are part of the affected masses
+            fil = ms %in% old_ms[ind]
+            sm_col <- nms[fil]
+            sm_col_ms <-sapply(ms[fil], as.character)
+            sm[rownames(y), sm_col] <- y[,y_col[sm_col_ms]]
+            for (m in unique(sm_col_ms)){
+                mfil = ms == m
+                sm[mfil,mfil] <- 0
+            }
         }
     }
 
