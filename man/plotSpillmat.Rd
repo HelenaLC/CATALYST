@@ -9,13 +9,13 @@ plotSpillmat(bc_ms, SM, out_path = NULL, name_ext = NULL)
 \arguments{
 \item{bc_ms}{a vector of numeric masses corresponding to barcode channels.}
 
+\item{SM}{spillover matrix returned from \code{computeSpillmat}.}
+
 \item{out_path}{a character string. If specified, outputs will be generated in this location. 
 Defaults to NULL.}
 
 \item{name_ext}{a character string. If specified, will be appended to the plot's name. 
 Defaults to NULL.}
-
-\item{CM}{matrix returned from \code{computeCompmat}.}
 }
 \description{
 Generates a heat map of the spillover matrix annotated with 
@@ -34,4 +34,3 @@ plotSpillmat(bc_ms = bc_ms, SM = spillMat)
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-

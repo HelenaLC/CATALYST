@@ -33,4 +33,3 @@ plotScatter(x = re, CM = compMat)
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-

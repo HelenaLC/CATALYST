@@ -1,18 +1,16 @@
 ---
-title: "CATALYST: Tools for (pre)processing and analysis of cytometry data"
-shorttitle: "CATALYST: Cytometry dATa anALYSis Tools"
-date: "`r doc_date()`"
-package: "`r pkg_ver('CATALYST')`"
-abstract: >
-  By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed \Rpackage{CATALYST} (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm (Zunder et al. 2015, Nature Protocols 10, 316-333).
-author: 
+title: "CATALYST: Tools for (pre)processing & analysis of cytometry data"
+date: "`r BiocStyle::doc_date()`"
+author:
 - name: Helena L Crowell
   email: crowellh@student.ethz.ch
-  affiliation: Institute of Molecular Life Sciences, University of Zurich, Zurich, Switzerland
 - name: Mark D Robinson
-  email: mark.robinson@imls.uzh.ch
-  affiliation: Swiss Institute of Bioinformatics, Univserity of Zurich, Zurich, Switzerland
+  affiliation: Institute of Molecular Life Sciences, University of Zurich, Zurich, Switzerland
+package: "`r BiocStyle::pkg_ver('CATALYST')`"
+abstract: >
+    By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed \Rpackage{CATALYST} (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm (Zunder et al. 2015, Nature Protocols 10, 316-333).
 vignette: >
+  %\VignetteIndexEntry{CATALYST: Tools for (pre)processing and analysis of cytometry data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output: 
@@ -21,17 +19,12 @@ output:
 
 \section{Introduction}
 
-
-
 \section{Data examples}
 
-To demonstrate the debarcoding and compensation work-flow with \Rpackage{CATALYST}, we provide two `flowFrame`s, `sample_ff` and `ss_exp`, obtained from 36ab-panel triple- and single-staining experiments, respectively. The former follows a 6-choose-3 barcoding scheme where mass channels 102, 104, 105, 106, 108, and 110 were used for labeling such that each of the 20 individual barcodes are positive for exactly 3 of the 6 possible barcode channels. Accompanying this, the barcoding scheme provided in `sample_key` contains a binary code of length 6 for each sample, e.g. 111000, as its unique identifier. For the single-staining experiment, beads were stained with antibodies captured by mass channels 139, 141 through 156, and 158 through 176, respectively, and pooled together. Note that, to decrease running time, we sampled 10'000 of all recorded events in both data sets at the cost of not necessarily arriving at biologically meaningful results.
+To demonstrate the debarcoding and compensation work-flow with \Rpackage{CATALYST}, we provide two `flowFrame`s, `sample_ff` and `ss_exp`, obtained from 36ab-panel triple- and single-staining experiments, respectively. The former follows a 6-choose-3 barcoding scheme where mass channels 102, 104, 105, 106, 108, and 110 were used for labeling such that each of the 20 individual barcodes are positive for exactly 3 out of the 6 possible barcode channels. Accompanying this, the barcoding scheme provided in `sample_key` contains a binary code of length 6 for each sample, e.g. 111000, as its unique identifier. For the single-staining experiment, beads were stained with antibodies captured by mass channels 139, 141 through 156, and 158 through 176, respectively, and pooled together. Note that, to decrease running time, we sampled 10'000 of all recorded events in both data sets at the cost of not necessarily arriving at biologically meaningful results.
 
 ```{r width = 5}
-# load package
 library(CATALYST)
-# load 6-choose-3 sample, barcoding scheme, 
-# and single-staining experiment
 data(sample_ff, sample_key, ss_exp)
 ```
 
@@ -206,6 +199,8 @@ Spill value are effected my the method chosen for their estimation, that is medi
 estTrim(x = re, min = 0.04, max = 0.12, step = 0.01)
 ```
 
+\newpage
+
 \subsubsection{\Rfunction{plotSpillmat}: Spillover matrix heat map}
 
 \Rfunction{plotSpillmat} provides a visualization of estimated spill percentages as a heat map. Channels not corresponding to a barcode are annotated in grey, and colours are ramped to the highest spillover value present.
@@ -214,3 +209,5 @@ estTrim(x = re, min = 0.04, max = 0.12, step = 0.01)
 # plot spillover matrix heat map
 plotSpillmat(bc_ms = bc_ms, SM = spillMat) 
 ```
+
+\section{References}

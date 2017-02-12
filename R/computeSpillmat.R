@@ -13,7 +13,10 @@
 #' a \code{\link{dbFrame}}.
 #' @param method 
 #' function to be used for computing spillover estimates. 
-#' Defaults to \code{median}.
+#' Defaults to \code{mean}.
+#' @param trim
+#' trim value used for estimation of spill values. Note that
+#' \code{trim = 0.5} is equivalent to \code{method = "median"}.
 #'
 #' @return 
 #' Returns a square compensation matrix with dimensions and dimension names 
@@ -42,7 +45,7 @@
 setMethod(f="computeSpillmat", 
           signature=signature(x="dbFrame"), 
           
-          definition=function(x, method = "mean", trim = .08) {
+          definition=function(x, method="mean", trim=.08) {
               
               if(method=="mean")
                   method = function(...) mean(..., trim=trim)

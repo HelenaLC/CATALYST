@@ -19,7 +19,7 @@
 #' Defaults to NULL.
 #' 
 #' @return
-#' For each value along \code{seq(min, max, step), \code{\link{computeCompat}} 
+#' For each value along \code{seq(min, max, step), \code{\link{computeSpillmat}} 
 #' will be called with \code{method = "mean"} and the respective trim parameter. 
 #' Returned will be the value that minimizes the sum over squared population-
 #' wise median counts across all barcodes after compensation.}

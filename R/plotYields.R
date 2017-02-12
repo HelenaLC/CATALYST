@@ -44,6 +44,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
 #' @importFrom stats predict smooth.spline
+#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette pdf dev.off
 
 # ------------------------------------------------------------------------------
@@ -179,11 +180,11 @@ setMethod(f="plotYields",
                   if (!is.null(out_path)) dev.off()
               }
               
-              if (sum(fil <- !which == 0) != 0) {
+              if (sum(fil <- which != 0) != 0) {
                   if (!is.null(out_path))
                       pdf(file.path(out_path, paste0("yp-ea_bc", name_ext, ".pdf")), width=8, height=6)
                   for (i in which[fil]) {
-                      ind <- which(which[fil] == i)
+                      ind <- pmatch(i, bc_labs)
                       j <- which(which == i)
                       perc <- paste0(round(yields[ind, which(seps==ests[ind])], 3)*100, "%")
                       grid.arrange(h[[j]], l[[j]], nrow=2, widths=8, heights=c(3, 3),
