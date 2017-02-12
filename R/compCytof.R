@@ -61,20 +61,21 @@ setMethod(f="compCytof",
         ms <- ms[o]
         nms <- c(sm_chs, add)[o]
         # get the potential spillover interatctions 
-        allmets = gsub("[[:digit:]]+Di", "", nms)
-        spill_cols <- get_spill_cols(ms, allmets)
+        all_mets = gsub("[[:digit:]]+Di", "", nms)
+        spill_cols <- get_spill_cols(ms, all_mets)
         
-        first = T
+        first = TRUE
         for (i in seq_along(new_ms)) {
-            idx = which(ms == new_ms[i] & allmets == new_mets[i])
+            idx = which(ms == new_ms[i] & all_mets == new_mets[i])
             if ( length(spill_cols[[idx]]) > 0){
                 if (first){
                     message("WARNING: Compensation is likely to be inaccurate.\n",
                             "         Spill values for the following interactions\n",
                             "         have not been estimated:")
-                    first = F
+                    first = FALSE
                 }
-                cat(nms[idx], "->", paste(nms[spill_cols[[idx]]], collapse=", "), "\n")
+                cat(nms[idx], "->", 
+                    paste(nms[spill_cols[[idx]]], collapse=", "), "\n")
             }
         }
     }
@@ -90,7 +91,8 @@ setMethod(f="compCytof",
             # check if any new masses were already present in the old masses
             # and add them to receive spillover according to the old masses
             
-            # get the channels that correspond to the old_masses that have an aditional metal with the same weight
+            # get the channels that correspond to the old_masses 
+            # that have an aditional metal with the same weight
             y_col <- sm_chs[ind]
             names(y_col) <- sapply(old_ms[ind], as.character)
             # get all columns that are part of the affected masses
@@ -105,10 +107,8 @@ setMethod(f="compCytof",
         }
     }
 
-    
     # check which channels of spillover matrix are missing in flowFrame
     # and drop corresponding rows and columns
-    
     ex <- rownames(sm)[!rownames(sm) %in% ff_chs]
     if (length(ex) != 0)
         sm <- sm[!rownames(sm) %in% ex, !colnames(sm) %in% ex]
@@ -119,11 +119,13 @@ setMethod(f="compCytof",
     compensate(x, sm)
     })
 
+# ------------------------------------------------------------------------------
+
 setMethod(f="compCytof",
     signature=signature(x="character", y="matrix"),
     definition=function(x, y, out_path=NULL) {
         if (!file.exists(x))
-            stop("x is nor a flowFrame nor a valid file/folder path.")
+            stop("x is not a flowFrame nor a valid file/folder path.")
         fcs <- list.files(path=x, pattern=".fcs", full.names=TRUE)
         if (length(fcs) == 0)
             stop("No FCS files found in specified location.")
