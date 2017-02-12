@@ -100,7 +100,7 @@ setMethod(f="compCytof",
     definition=function(x, y, out_path=NULL) {
         if (!file.exists(x))
             stop("x is nor a flowFrame nor a valid file/folder path.")
-        fcs <- list.files(path=x, patter=".fcs", full.names=TRUE)
+        fcs <- list.files(path=x, pattern=".fcs", full.names=TRUE)
         if (length(fcs) == 0)
             stop("No FCS files found in specified location.")
         ffs <- lapply(fcs, flowCore::read.FCS)

@@ -11,8 +11,8 @@
 #'
 #' @param bc_ms 
 #' a vector of numeric masses corresponding to barcode channels.
-#' @param CM 
-#' matrix returned from \code{computeCompmat}.
+#' @param SM 
+#' spillover matrix returned from \code{computeSpillmat}.
 #' @param out_path 
 #' a character string. If specified, outputs will be generated in this location. 
 #' Defaults to NULL.
