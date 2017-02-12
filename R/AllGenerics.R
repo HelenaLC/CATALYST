@@ -108,7 +108,7 @@ setGeneric(name="applyCutoffs",
 #' @export
 setGeneric(name="outFCS",      
     package="CATALYST", 
-    def=function(x, out_path) standardGeneric("outFCS"))
+    def=function(x, out_path, ...) standardGeneric("outFCS"))
 
 #' @rdname debarcode
 #' @param ... further optional arguments.
@@ -122,6 +122,7 @@ setGeneric(name="debarcode",
 # Generics for compensation
 # ------------------------------------------------------------------------------
 #' @rdname estTrim
+#' @param ... further optional arguments.
 #' @export
 setGeneric(name="estTrim", 
     package="CATALYST",

@@ -6,9 +6,9 @@
 \alias{outFCS,dbFrame,character-method}
 \title{Write population-wise FCS}
 \usage{
-outFCS(x, out_path)
+outFCS(x, out_path, ...)
 
-\S4method{outFCS}{dbFrame,character}(x, out_path)
+\S4method{outFCS}{dbFrame,character}(x, out_path, verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
@@ -17,14 +17,24 @@ outFCS(x, out_path)
 output files are to be generated.}
 
 \item{...}{further optional arguments.}
+
+\item{verbose}{no FCS files have been generated.}
 }
 \description{
 Writes an FCS file for each barcode population.
 }
+\details{
+FCS files are not generation for populations with 
+no or less than 10 event assignments.
+}
 \examples{
+data(sample_ff, sample_key)
+re <- assignPrelim(x = sample_ff, y = sample_key)
+re <- estCutoffs(x = re)
+re <- applyCutoffs(x = re)
+outFCS(x = re, out_path = file.path(tempdir()))
 
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-

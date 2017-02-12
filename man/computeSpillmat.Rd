@@ -16,7 +16,10 @@ computeSpillmat(x, ...)
 \item{...}{further optional arguments.}
 
 \item{method}{function to be used for computing spillover estimates. 
-Defaults to \code{median}.}
+Defaults to \code{mean}.}
+
+\item{trim}{trim value used for estimation of spill values. Note that
+\code{trim = 0.5} is equivalent to \code{method = "median"}.}
 }
 \value{
 Returns a square compensation matrix with dimensions and dimension names 
@@ -45,4 +48,3 @@ head(computeSpillmat(x = re))
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-

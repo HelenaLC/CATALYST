@@ -33,8 +33,8 @@
 #' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
 #' @examples
-#' data(sample_ff, bc_key)
-#' assignPrelim(x = sample_ff, y = bc_key)
+#' data(sample_ff, sample_key)
+#' assignPrelim(x = sample_ff, y = sample_key)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats quantile
@@ -70,7 +70,7 @@ setMethod(f="assignPrelim",
         # for each ea. of barcode intensities,
         # assign barcode ID and calculate separation
         if (verbose) message("Debarcoding data...")
-        bc_ids <- db(bcs, bcs, y, ids, verbose)$bc_ids
+        bc_ids <- getIds(bcs, y, ids, verbose)
         
         # NORMALIZE BY POPULATION
         # rescale transformed barcodes for ea. population
@@ -81,7 +81,7 @@ setMethod(f="assignPrelim",
         for (i in ids) {
             key_ind <- ids == i
             inds <- bc_ids == i
-            if (length(inds) > 1) {
+            if (sum(inds) > 1) {
                 pos_bcs <- bcs[inds, y[key_ind, ] == 1]
                 norm_val <- stats::quantile(pos_bcs, .95)
                 normed_bcs[inds, ] <- bcs[inds, ] / norm_val
@@ -90,12 +90,12 @@ setMethod(f="assignPrelim",
         
         # COMPUTE DEBARCODING
         # for normalized barcode intensities
-        if (verbose) message("Debarcoding normalized data...")
-        re <- db(normed_bcs, bcs, y, ids, verbose)
+        if (verbose) message("Computing deltas...")
+        deltas <- getDeltas(normed_bcs, y, verbose)
         
         return(new(Class="dbFrame", 
-            exprs=es, bc_key=y, bc_ids=re$bc_ids, 
-            deltas=re$deltas, normed_bcs=normed_bcs))
+            exprs=es, bc_key=y, bc_ids=bc_ids, 
+            deltas=deltas, normed_bcs=normed_bcs))
     })
 
 # --------------------------------------------------------------------------------

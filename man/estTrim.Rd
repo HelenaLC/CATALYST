@@ -14,6 +14,8 @@ estTrim(x, ...)
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
+\item{...}{further optional arguments.}
+
 \item{min, max, step}{specify sequence of trim values for which compensation should be evaluated.}
 
 \item{out_path}{specifies in which location output plot is to be generated. Defaults to NULL.}
@@ -22,7 +24,7 @@ estTrim(x, ...)
 Defaults to NULL.}
 }
 \value{
-For each value along \code{seq(min, max, step), \code{\link{computeCompat}} 
+For each value along \code{seq(min, max, step), \code{\link{computeSpillmat}} 
 will be called with \code{method = "mean"} and the respective trim parameter. 
 Returned will be the value that minimizes the sum over squared population-
 wise median counts across all barcodes after compensation.}
@@ -43,4 +45,3 @@ estTrim(x = re, min = 0.06, max = 0.14, step = 0.02)
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-
