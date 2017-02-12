@@ -2,8 +2,8 @@
 % Please edit documentation in R/AllClasses.R
 \docType{class}
 \name{dbFrame-class}
-\alias{dbFrame}
 \alias{dbFrame-class}
+\alias{dbFrame}
 \title{Debarcoding frame class}
 \description{
 Class representing the data returned by and used throughout debarcoding.
@@ -46,7 +46,7 @@ are separated by a distance between in [0,0.01), ..., [0.99,1], respectively.}
 percentage of events within a barcode that will be obtained after applying
 a separation cutoff of 0, 0.01, ..., 1, respectively.}
 }}
+
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-

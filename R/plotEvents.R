@@ -37,8 +37,9 @@
 #' \emph{Nature Protocols} \bold{10}, 316-333. 
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import ggplot2 grid gridExtra
+#' @import ggplot2
 #' @importFrom graphics plot
+#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette pdf dev.off
 
 # ------------------------------------------------------------------------------
@@ -47,6 +48,8 @@ setMethod(f="plotEvents",
     signature=signature(x="dbFrame"), 
     definition=function(x, which="all", n_events=100, 
         out_path=NULL, name_ext=NULL) {
+        
+        set.seed(8)
         
         nms <- colnames(x@exprs)
         ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
@@ -88,7 +91,7 @@ setMethod(f="plotEvents",
             inds <- which(x@bc_ids == id)
             n <- length(inds)
             if (length(inds) < 10) next
-            if (is.numeric(n_events) & length(inds) > n_events)
+            if (is.numeric(n_events) & length(inds) > n_events) 
                 inds <- sort(sample(inds, n_events))
             psize <- 1 + 100 / length(inds)
             sub <- x@normed_bcs[inds, ]
