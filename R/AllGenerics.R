@@ -159,3 +159,10 @@ setGeneric(name="plotEvents",
     package="CATALYST",
     def=function(x, ...) standardGeneric("plotEvents"))
 
+#' @rdname plotMahal
+#' @param ... further optional arguments.
+#' @export
+setGeneric(name="plotMahal", 
+           package="CATALYST",
+           def=function(x, ...) standardGeneric("plotMahal"))
+

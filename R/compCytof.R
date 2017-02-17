@@ -116,7 +116,7 @@ setMethod(f="compCytof",
     # make sure the diagonal is all 1
     diag(sm) <- 1
     
-    compensate(x, sm)
+    flowCore::compensate(x, sm)
     })
 
 # ------------------------------------------------------------------------------

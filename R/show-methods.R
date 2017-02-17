@@ -23,12 +23,18 @@ setMethod(f="show",
             cat("\nSeparation cutoffs:")
             tbl <- t(data.frame(
                 "ID"=names(tmp), 
-                "Yield"=object@sep_cutoffs[inds]))
+                "Cutoff"=object@sep_cutoffs[inds]))
             dimnames(tbl)[2] <- list(rep("", dim(tbl)[2]))
             print(noquote(tbl))
             
+            # better way to do this?
             seps <- seq(0, 1, .01)
-            ind <- match(object@sep_cutoffs[inds], seps)
+            ind <- NULL
+            for (i in object@sep_cutoffs[inds]) {
+                for (j in seps) {
+                    if (isTRUE(all.equal(i, j))) ind <- append(ind, which(seps == j))
+                }
+            }
             yields <- object@yields[cbind(inds, ind)]
             cat("\nYields upon debarcoding:\n")
             cat("     ", paste0(round(mean(yields), 4) * 100, "%"), 
