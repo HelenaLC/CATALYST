@@ -74,7 +74,7 @@ setMethod(f="plotEvents",
         if (n_chs > 11) {
             cols <- colorRampPalette(pal)(ncol(x@normed_bcs))
         } else {
-            cols <- sample(pal, ncol(x@normed_bcs))
+            cols <- pal[ceiling(seq(1, 11, length=ncol(x@normed_bcs)))] 
         }
         thms <- theme_bw() + theme(legend.key=element_blank(),
             panel.grid.major=element_line(color="lightgrey"),

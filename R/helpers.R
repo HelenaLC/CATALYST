@@ -48,4 +48,3 @@ make_symetric <- function(SM) {
     sm[rownames(SM), colnames(SM)] <- SM 
     sm
 }
-    
