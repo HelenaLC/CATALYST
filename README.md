@@ -10,7 +10,7 @@ devtools::install_github(repo = "HelenaLC/CATALYST",
 
 **02/17/17 update**
 
-- ** added plotMahal() **
+- **added plotMahal()**
 - fixed bug when calculating yields
 - fixed random sampling of colors when calling plotEvents()
 
