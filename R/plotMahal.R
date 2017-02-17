@@ -104,14 +104,17 @@ setMethod(f="plotMahal",
     widths  <- rep(5, n)
     
     if (!is.null(out_path)) {
+        heights <- c(1.5, rep(5, n))
+        widths  <- rep(5, n)
         pdf(file.path(out_path, paste0("mahal_plot", name_ext, ".pdf")), 
             width=12, height=12*(sum(heights) / (sum(widths))))
-    }
- 
-    grid.arrange(grobs=p, layout_matrix=m, heights=heights, widths=widths)
-    
-    if (!is.null(out_path)) 
+        grid.arrange(grobs=p, layout_matrix=m, heights=heights, widths=widths)
         dev.off()
+    } else {
+        heights <- c(2.5, rep(5, n))
+        widths  <- rep(5, n)
+        grid.arrange(grobs=p, layout_matrix=m, heights=heights, widths=widths)
+    }
 })
               
             
