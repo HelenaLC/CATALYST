@@ -7,18 +7,19 @@ key <- read.csv("/Users/HLC/Dropbox/spillover/debarcoder/bc_key.csv",
 # assign preliminary IDs
 library(CATALYST)
 re <- assignPrelim(x = ff, y = key) 
-plotEvents(x = re, which_bc = "all", n_events = 100)
+plotEvents(x = re, which = "all", n_events = 100)
 
 # estimate population separation cutoffs
 re <- estCutoffs(x = re)  
-plotYields(x = re, which_bc = c(0, sort(unique(bc_ids(re)))))
+plotYields(x = re, which = c(0, sort(unique(bc_ids(re)))))
 
 # optionally, choose cutoffs manually
 #sep_cutoffs(re) <- ...
 
 # apply deconvolution parameters
 re <- applyCutoffs(x = re, mhl_cutoff = 25)
-plotEvents(x = re, which_bc = "all", n_events = 100)
+plotMahal(x = re, which = "B3")
+plotEvents(x = re, which = "all", n_events = 100)
 
 # write popultion-wise FCS
 #outFCS(x = re, out_path = ...)
