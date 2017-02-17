@@ -33,7 +33,7 @@
 #' # all samples summary plot
 #' plotYields(x = re, which = 0)
 #' # plot for specific sample
-#' plotYields(x = re, which = "D2")
+#' plotYields(x = re, which = "D1")
 #'
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -186,10 +186,12 @@ setMethod(f="plotYields",
                   for (i in which[fil]) {
                       ind <- pmatch(i, bc_labs)
                       j <- which(which == i)
-                      perc <- paste0(round(yields[ind, which(seps==ests[ind])], 3)*100, "%")
+                      perc <- paste0(round(yields[ind, sapply(seps, function(x) 
+                          isTRUE(all.equal(x, ests[ind])))], 3)*100, "%")
+                      #perc <- paste0(round(yields[ind, which(seps==ests[ind])], 3)*100, "%")
                       grid.arrange(h[[j]], l[[j]], nrow=2, widths=8, heights=c(3, 3),
                                    top=textGrob(bquote(bold(.(bc_labs[ind]))*scriptstyle(
-                                       " (cutoff estimate "*.(ests[ind])*" with "*.(perc)*" yield)")), just="top"))
+                                       " (current cutoff "*.(ests[ind])*" with "*.(perc)*" yield)")), just="top"))
                   }
                   if (!is.null(out_path)) dev.off()
               }

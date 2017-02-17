@@ -71,6 +71,7 @@ setMethod(f="applyCutoffs",
                         x=sub, center=colMeans(sub), cov=stats::cov(sub))
         }
         x@bc_ids[which(mhl_dists > mhl_cutoff)] <- 0
+        x@mhl_dists <- mhl_dists
         x@mhl_cutoff <- mhl_cutoff
         x
     })

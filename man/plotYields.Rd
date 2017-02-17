@@ -42,7 +42,7 @@ re <- estCutoffs(x = re)
 # all samples summary plot
 plotYields(x = re, which = 0)
 # plot for specific sample
-plotYields(x = re, which = "D2")
+plotYields(x = re, which = "D1")
 
 }
 \references{
