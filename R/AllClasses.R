@@ -30,6 +30,8 @@
 #' barcode populations computed from normalized barcode intensities.
 #' @slot normed_bcs 
 #' matrix containing normalized barcode intensities.
+#' @slot mhl_dists
+#' mahalanobis distances.
 #' @slot sep_cutoffs
 #' numeric vector of distance separation cutoffs between positive and negative 
 #' barcode populations above which events will be unassigned.
@@ -59,6 +61,7 @@ dbFrame <- setClass(Class="dbFrame",
         bc_ids="vector",
         deltas="numeric",
         normed_bcs ="matrix",
+        mhl_dists = "numeric",
         sep_cutoffs="numeric",
         mhl_cutoff="numeric",
         counts="matrix",

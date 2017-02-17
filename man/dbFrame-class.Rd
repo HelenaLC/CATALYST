@@ -32,6 +32,8 @@ barcode populations computed from normalized barcode intensities.}
 
 \item{\code{normed_bcs}}{matrix containing normalized barcode intensities.}
 
+\item{\code{mhl_dists}}{mahalanobis distances.}
+
 \item{\code{sep_cutoffs}}{numeric vector of distance separation cutoffs between positive and negative 
 barcode populations above which events will be unassigned.}
 
