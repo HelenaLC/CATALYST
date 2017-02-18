@@ -14,8 +14,8 @@ devtools::install_github(repo = "HelenaLC/CATALYST",
   `estCutoffs()` can now be skipped if `sep_cutoffs` are supplied manually
 - check necessary slots are filled when running functions
 - inform user if yield is below 10% in `estCutoffs()` and `applyCutoffs()`
-- `plotSpillmat()`: added options "annotate" and "palette"
-- `plotEvents()`: added validity check for "which"
+- added options "annotate" and "palette" in `plotSpillmat()`
+- added validity check for "which" in `plotEvents()` and `plotYields()`
 
 **02/17/17 update**
 
