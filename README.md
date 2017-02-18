@@ -15,7 +15,8 @@ devtools::install_github(repo = "HelenaLC/CATALYST",
 - make `plotYields()` work if `sep_cutoffs` slot is empty
 - check necessary slots are filled when running functions
 - inform user if yield is below 10% in `estCutoffs()` and `applyCutoffs()`
-- added options "annotate" and "palette" in `plotSpillmat()`
+- `plotSpillmat()`: added options "annotate" and "palette"
+- `plotEvents()`: added validity check for "which"
 
 **02/17/17 update**
 
