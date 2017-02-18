@@ -5,26 +5,24 @@
 # ------------------------------------------------------------------------------
 
 check_validity_which <- function(which, ids, fct) {
-    
+
     msg_events <- c(
-        " Valid values are IDs that occur as row names in the 'bc_key' slot\n",
-        " of the supplied 'dbFrame', or 0 for unassigned events.")
+        " Valid values for 'which' are IDs that occur as row names in the\n",
+        " 'bc_key' slot of the supplied 'dbFrame', or 0 for unassigned events.")
     
     msg_yields <- c(
-        " Valid values are IDs that occur as row names in the 'bc_key' slot\n",
-        " of the supplied 'dbFrame', or 0 for all barcodes.")
+        " Valid values for 'which' are IDs that occur as row names in the\n",
+        " 'bc_key' slot of the supplied 'dbFrame', or 0 for all barcodes.")
     
     if (length(which) == 1 && !which %in% c(0, ids)) {
         if (fct == "events") {
             stop(paste(which), 
                 " is not a valid barcode ID.\n", 
-                msg_events,
-                call.=FALSE)
+                msg_events, call.=FALSE)
         } else if (fct == "yields") {
             stop(paste(which), 
                 " is not a valid barcode ID.\n", 
-                msg_yields,
-                call.=FALSE)
+                msg_yields, call.=FALSE)
         }
     } else {
         new <- which[!is.na(match(which, c(0, ids)))]
@@ -33,13 +31,11 @@ check_validity_which <- function(which, ids, fct) {
             if (fct == "events") {
                 stop(paste(removed, collapse=", "), 
                     " are not valid barcode IDs.\n",
-                    msg_events,
-                    call.=FALSE)
+                    msg_events, call.=FALSE)
             } else if (fct == "yields") {
                 stop(paste(removed, collapse=", "), 
                     " are not valid barcode IDs.\n",
-                    msg_yields,
-                    call.=FALSE)
+                    msg_yields, call.=FALSE)
             }
         } else if (length(new) != length(which)) {
             which <- new

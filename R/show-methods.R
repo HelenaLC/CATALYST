@@ -1,19 +1,21 @@
 # ==============================================================================
 # Show method for dbFrame
 # ------------------------------------------------------------------------------
+
 setMethod(f="show",
     signature="dbFrame",
     definition=function(object) {
         dims <- dim(object@exprs)
         cat("dbFrame objectect with\n", 
-            dims[1], "events,", 
-            dims[2], "observables and",
-            nrow(object@bc_key), "barcodes:\n")
+            dims[1], " events, ", 
+            dims[2], " observables and ",
+            nrow(object@bc_key), " barcodes:\n", sep="")
         
         cat("\nCurrent assignments:\n")
         cat("     ", sum(object@bc_ids == 0), "event(s) unassigned")
 
-        tmp <- c(sort(table(object@bc_ids[object@bc_ids != 0]), decreasing=TRUE))
+        tmp <- c(sort(table(object@bc_ids[object@bc_ids != 0]), 
+                      decreasing=TRUE))
         tbl <- t(data.frame("ID"=names(tmp), "Count"=tmp))
         dimnames(tbl)[2] <- list(rep("", dim(tbl)[2]))
         print(noquote(tbl))
@@ -32,7 +34,8 @@ setMethod(f="show",
             ind <- NULL
             for (i in object@sep_cutoffs[inds]) {
                 for (j in seps) {
-                    if (isTRUE(all.equal(i, j))) ind <- append(ind, which(seps == j))
+                    if (isTRUE(all.equal(i, j))) 
+                        ind <- append(ind, which(seps == j))
                 }
             }
             yields <- object@yields[cbind(inds, ind)]
@@ -47,6 +50,5 @@ setMethod(f="show",
             print(noquote(tbl))
         }
     })
+
 # --------------------------------------------------------------------------------
-
-
