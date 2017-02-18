@@ -16,7 +16,7 @@ devtools::install_github(repo = "HelenaLC/CATALYST",
 - check necessary slots are filled when running functions
 - inform user if yield is below 10% in `estCutoffs()` and `applyCutoffs()`
 - `plotSpillmat()`: added options "annotate" and "palette"
-- `plotEvents()`: added validity check for 'which'
+- `plotEvents()`: added validity check for "which"
 
 **02/17/17 update**
 
