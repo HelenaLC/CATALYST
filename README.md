@@ -8,12 +8,10 @@ devtools::install_github(repo = "HelenaLC/CATALYST",
                          auth_token = "65a3354f8323e33574e9659dfc9f639a47149e47")
 ```
 
-**up next**
+**02/18/17 update**
 
-- compute counts and yields in `assignPrelim()`:  
-  `estCutoffs()` can now be skipped if `sep_cutoffs` are supplied manually
-- check necessary slots are filled when running functions
-- inform user if yield is below 10% in `estCutoffs()` and `applyCutoffs()`
+- counts and yields are now computed in `assignPrelim()`:  
+  `estCutoffs()` may be skipped if `sep_cutoffs` are supplied manually
 - added options "annotate" and "palette" in `plotSpillmat()`
 - added validity check for "which" in `plotEvents()` and `plotYields()`
 
