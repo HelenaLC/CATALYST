@@ -35,6 +35,12 @@ setMethod(f="normed_bcs",
           definition=function(object) return(object@normed_bcs))
 
 #' @rdname dbFrame-methods
+#' @aliases mhl_dists mhl_dists-method dbFrame-method dbFrame-methods
+setMethod(f="mhl_dists",  
+          signature="dbFrame", 
+          definition=function(object) return(object@mhl_dists))
+
+#' @rdname dbFrame-methods
 #' @aliases sep_cutoffs sep_cutoffs-method dbFrame-method dbFrame-methods
 setMethod(f="sep_cutoffs", 
           signature="dbFrame", 
@@ -48,7 +54,7 @@ setMethod(f="mhl_cutoff",
 
 #' @rdname dbFrame-methods
 #' @aliases counts counts-method dbFrame-method dbFrame-methods
-setMethod(f="counts",      
+setMethod(f="counts", 
           signature="dbFrame", 
           definition=function(object) return(object@counts))
 
@@ -83,6 +89,26 @@ setReplaceMethod(f="bc_ids",
                      object@bc_ids <- value
                      object <- estCutoffs(x = object)
                      object <- applyCutoffs(x = object)
+                     return(object)
+                 })
+
+# ==============================================================================
+# Replace method for slot mhl_dists
+# ------------------------------------------------------------------------------
+setReplaceMethod(f="mhl_dists", 
+                 signature=signature(object="dbFrame", value="numeric"), 
+                 definition=function(object, value) {
+                     object@mhl_dists <- value
+                     return(object)
+                 })
+
+# ==============================================================================
+# Replace method for slot mhl_cutoff
+# ------------------------------------------------------------------------------
+setReplaceMethod(f="mhl_cutoff", 
+                 signature=signature(object="dbFrame", value="numeric"), 
+                 definition=function(object, value) {
+                     object@mhl_cutoff <- value
                      return(object)
                  })
 
