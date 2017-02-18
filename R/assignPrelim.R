@@ -40,7 +40,7 @@
 #' @importFrom stats quantile
 #' @importFrom flowCore colnames exprs flowFrame
 
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 setMethod(f="assignPrelim",
     signature=signature(x="flowFrame", y="data.frame"),
@@ -50,9 +50,9 @@ setMethod(f="assignPrelim",
         nms <- flowCore::colnames(x)
         ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
         es <- flowCore::exprs(x)
-        N <- nrow(es)
         
         # get barcodes masses and check for validity of barcode channels
+        n_bcs <- nrow(y)
         ids   <- rownames(y)
         bc_ms <- as.numeric(colnames(y))  
         if (any(!(bc_ms %in% ms)))
@@ -67,16 +67,15 @@ setMethod(f="assignPrelim",
         bcs <- asinh(es[, bc_cols] / cofactor)
         
         # COMPUTE DEBARCODING
-        # for each ea. of barcode intensities,
-        # assign barcode ID and calculate separation
+        # assign barcode ID to ea. event 
         if (verbose) message("Debarcoding data...")
-        bc_ids <- getIds(bcs, y, ids, verbose)
+        bc_ids <- get_ids(bcs, y, ids, verbose)
         
         # NORMALIZE BY POPULATION
         # rescale transformed barcodes for ea. population
         # using preliminary assignments
         if (verbose) message("Normalizing...")
-        normed_bcs <- matrix(0, nrow=N, ncol=ncol(bcs), 
+        normed_bcs <- matrix(0, nrow=nrow(x), ncol=ncol(bcs), 
             dimnames=list(NULL, colnames(bcs)))
         for (i in ids) {
             key_ind <- ids == i
@@ -88,17 +87,41 @@ setMethod(f="assignPrelim",
             }
         }
         
-        # COMPUTE DEBARCODING
-        # for normalized barcode intensities
+        # get deltas from normalized intensities 
         if (verbose) message("Computing deltas...")
-        deltas <- getDeltas(normed_bcs, y, verbose)
+        deltas <- get_deltas(normed_bcs, y, verbose)
         
-        return(new(Class="dbFrame", 
-            exprs=es, bc_key=y, bc_ids=bc_ids, 
-            deltas=deltas, normed_bcs=normed_bcs))
+        seps <- seq(0, 1, .01)
+        n_seps <- length(seps)
+        
+        # compute well-wise yield for each separation cutoff
+        if (verbose) message("Computing counts and yields...")
+        yields <- counts <- matrix(0, nrow=n_bcs, ncol=n_seps)
+        for (i in seq_along(ids)) {
+            sub <- bc_ids == ids[i]
+            for (j in seq_along(seps)) {
+                k <- deltas[sub] >= seps[j]
+                yields[i, j] <- sum(k)
+                counts[i, j] <- sum(k & deltas[sub] < seps[j + 1])
+                if (j == n_seps)
+                    counts[i, j] <- sum(k)
+            }
+        }
+        
+        # normalize yields
+        norm_val <- apply(yields, 1, max)
+        norm_val[norm_val == 0] <- 1
+        yields <- t(sapply(1:n_bcs, function(x) yields[x, ] / norm_val[x]))
+        
+        x <- new(Class="dbFrame", 
+                 exprs=es, bc_key=y, bc_ids=bc_ids, 
+                 deltas=deltas, normed_bcs=normed_bcs,
+                 sep_cutoffs=rep(0, n_bcs),
+                 counts=counts, yields=yields)
+        get_mhl_dists(x)
     })
 
-# --------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #' @rdname assignPrelim
 setMethod(f="assignPrelim",
