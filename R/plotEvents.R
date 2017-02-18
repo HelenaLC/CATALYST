@@ -55,20 +55,12 @@ setMethod(f="plotEvents",
         # check validity of 'which': stop if not a single ID is valid,
         # warning if some ID(s) is/are not valid and remove it/them
         if (!"all" %in% which) {
-<<<<<<< HEAD
             if (length(which) == 1 && !which %in% c(0, rownames(x@bc_key))) {
-=======
-            if (length(which) == 1 && !which %in% rownames(x@bc_key)) {
->>>>>>> c673f517bbef09090fd5347f4a801209eb745654
                 stop(paste(which), 
                      " is not a valid barcode ID.", 
                      call.=FALSE)
             } else {
-<<<<<<< HEAD
                 tmp <- which[!is.na(match(which, c(0, rownames(x@bc_key))))]
-=======
-                tmp <- which[!is.na(match(which, rownames(x@bc_key)))]
->>>>>>> c673f517bbef09090fd5347f4a801209eb745654
                 if (length(tmp) != length(which)) {
                     removed <- which[!which %in% tmp]
                     if (length(removed) == 1) {
