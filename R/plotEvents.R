@@ -9,9 +9,12 @@
 #'
 #' @param x a \code{\link{dbFrame}}.
 #' @param which 
-#' numeric or "all". Specifies which barcode to plot. Defaults to "all".
+#' "all", numeric or character. Specifies which barcode(s) to plot. 
+#' Valid values are IDs that occur as row names in the \code{bc_key} 
+#' of the supplied \code{\link{dbFrame}}, or 0 for unassigned events. 
+#' Defaults to "all".
 #' @param n_events 
-#' numeric or "all". Specifies how many events to plot per barcode.
+#' numeric or "all". Specifies number of events to plot. Defaults to 100.
 #' @param out_path 
 #' a character string. If specified, outputs will be generated in this location. 
 #' Defaults to NULL.
@@ -48,6 +51,35 @@ setMethod(f="plotEvents",
     signature=signature(x="dbFrame"), 
     definition=function(x, which="all", n_events=100, 
         out_path=NULL, name_ext=NULL) {
+        
+        # check validity of 'which': stop if not a single ID is valid,
+        # warning if some ID(s) is/are not valid and remove it/them
+        if (!"all" %in% which) {
+            if (length(which) == 1 && !which %in% rownames(x@bc_key)) {
+                stop(paste(which), 
+                     " is not a valid barcode ID.", 
+                     call.=FALSE)
+            } else {
+                tmp <- which[!is.na(match(which, rownames(x@bc_key)))]
+                if (length(tmp) != length(which)) {
+                    removed <- which[!which %in% tmp]
+                    if (length(removed) == 1) {
+                        warning(paste(removed),
+                                " is not a valid barcode ID",
+                                " and has been skipped.",
+                                call.=FALSE)
+                    } else {
+                        warning(paste(removed, collapse=", "),
+                                " are not valid barcode IDs",
+                                " and have been skipped.",
+                                call.=FALSE)
+                    }
+                } else if (length(tmp) == 0)
+                    stop(paste(tmp, collapse=", "), 
+                         " are not valid barcode IDs.",
+                         call.=FALSE)
+            }
+        }
         
         set.seed(8)
         
@@ -99,7 +131,6 @@ setMethod(f="plotEvents",
             tcks <- c(1,nrow(sub))
             ymin <-   floor(4 * min(sub)) / 4
             ymax <- ceiling(4 * max(sub)) / 4
-            
             
             df <- data.frame(
                 event=rep(1:(length(sub) / n_chs), each=n_chs),
