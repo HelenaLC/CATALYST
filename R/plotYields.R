@@ -53,6 +53,34 @@ setMethod(f="plotYields",
           signature=signature(x="dbFrame"), 
           definition=function(x, which=0, out_path=NULL, name_ext=NULL) {
               
+              # check validity of 'which': stop if not a single ID is valid,
+              # warning if some ID(s) is/are not valid and remove it/them
+              if (length(which) == 1 && !which %in% c(0, rownames(x@bc_key))) {
+                  stop(paste(which), 
+                      " is not a valid barcode ID.", 
+                      call.=FALSE)
+              } else {
+                  new <- which[!is.na(match(which, c(0, rownames(x@bc_key))))]
+                  if (length(new) != length(which)) {
+                      removed <- which[!which %in% new]
+                      which <- new
+                      if (length(removed) == 1) {
+                          warning(paste(removed),
+                              " is not a valid barcode ID",
+                              " and has been skipped.",
+                              call.=FALSE)
+                      } else {
+                          warning(paste(removed, collapse=", "),
+                              " are not valid barcode IDs",
+                              " and have been skipped.",
+                              call.=FALSE)
+                      }
+                  } else if (length(tmp) == 0)
+                      stop(paste(tmp, collapse=", "), 
+                          " are not valid barcode IDs.",
+                          call.=FALSE)
+              }
+
               ids <- rownames(x@bc_key)
               n_bcs <- length(ids)
               nms <- colnames(x@exprs)
@@ -184,11 +212,10 @@ setMethod(f="plotYields",
                   if (!is.null(out_path))
                       pdf(file.path(out_path, paste0("yp-ea_bc", name_ext, ".pdf")), width=8, height=6)
                   for (i in which[fil]) {
-                      ind <- pmatch(i, bc_labs)
+                      ind <- match(i, rownames(x@bc_key))
                       j <- which(which == i)
                       perc <- paste0(round(yields[ind, sapply(seps, function(x) 
                           isTRUE(all.equal(x, ests[ind])))], 3)*100, "%")
-                      #perc <- paste0(round(yields[ind, which(seps==ests[ind])], 3)*100, "%")
                       grid.arrange(h[[j]], l[[j]], nrow=2, widths=8, heights=c(3, 3),
                                    top=textGrob(bquote(bold(.(bc_labs[ind]))*scriptstyle(
                                        " (current cutoff "*.(ests[ind])*" with "*.(perc)*" yield)")), just="top"))

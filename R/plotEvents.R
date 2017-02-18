@@ -60,9 +60,10 @@ setMethod(f="plotEvents",
                      " is not a valid barcode ID.", 
                      call.=FALSE)
             } else {
-                tmp <- which[!is.na(match(which, c(0, rownames(x@bc_key))))]
-                if (length(tmp) != length(which)) {
-                    removed <- which[!which %in% tmp]
+                new <- which[!is.na(match(which, c(0, rownames(x@bc_key))))]
+                if (length(new) != length(which)) {
+                    removed <- which[!which %in% new]
+                    which <- new
                     if (length(removed) == 1) {
                         warning(paste(removed),
                                 " is not a valid barcode ID",
@@ -74,8 +75,8 @@ setMethod(f="plotEvents",
                                 " and have been skipped.",
                                 call.=FALSE)
                     }
-                } else if (length(tmp) == 0)
-                    stop(paste(tmp, collapse=", "), 
+                } else if (length(new) == 0)
+                    stop(paste(new, collapse=", "), 
                          " are not valid barcode IDs.",
                          call.=FALSE)
             }
