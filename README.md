@@ -10,9 +10,8 @@ devtools::install_github(repo = "HelenaLC/CATALYST",
 
 **up next**
 
-- compute counts and yields in `assignPrelim()`
-- `estCutoffs()` can now be skipped if `sep_cutoffs` are supplied manually
-- make `plotYields()` work if `sep_cutoffs` slot is empty
+- compute counts and yields in `assignPrelim()`:  
+  `estCutoffs()` can now be skipped if `sep_cutoffs` are supplied manually
 - check necessary slots are filled when running functions
 - inform user if yield is below 10% in `estCutoffs()` and `applyCutoffs()`
 - `plotSpillmat()`: added options "annotate" and "palette"
