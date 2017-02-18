@@ -6,6 +6,7 @@
 \alias{bc_ids}
 \alias{deltas}
 \alias{normed_bcs}
+\alias{mhl_dists}
 \alias{sep_cutoffs}
 \alias{mhl_cutoff}
 \alias{counts}
@@ -33,6 +34,11 @@
 \alias{normed_bcs,dbFrame-method}
 \alias{normed_bcs}
 \alias{normed_bcs-method}
+\alias{dbFrame-method}
+\alias{dbFrame-methods}
+\alias{mhl_dists,dbFrame-method}
+\alias{mhl_dists}
+\alias{mhl_dists-method}
 \alias{dbFrame-method}
 \alias{dbFrame-methods}
 \alias{sep_cutoffs,dbFrame-method}
@@ -69,6 +75,8 @@ deltas(object)
 
 normed_bcs(object)
 
+mhl_dists(object)
+
 sep_cutoffs(object)
 
 mhl_cutoff(object)
@@ -86,6 +94,8 @@ yields(object)
 \S4method{deltas}{dbFrame}(object)
 
 \S4method{normed_bcs}{dbFrame}(object)
+
+\S4method{mhl_dists}{dbFrame}(object)
 
 \S4method{sep_cutoffs}{dbFrame}(object)
 

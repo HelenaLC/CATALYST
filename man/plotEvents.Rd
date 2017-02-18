@@ -16,9 +16,12 @@ plotEvents(x, ...)
 
 \item{...}{further optional arguments.}
 
-\item{which}{numeric or "all". Specifies which barcode to plot. Defaults to "all".}
+\item{which}{"all", numeric or character. Specifies which barcode(s) to plot. 
+Valid values are IDs that occur as row names in the \code{bc_key} 
+of the supplied \code{\link{dbFrame}}, or 0 for unassigned events. 
+Defaults to "all".}
 
-\item{n_events}{numeric or "all". Specifies how many events to plot per barcode.}
+\item{n_events}{numeric or "all". Specifies number of events to plot. Defaults to 100.}
 
 \item{out_path}{a character string. If specified, outputs will be generated in this location. 
 Defaults to NULL.}

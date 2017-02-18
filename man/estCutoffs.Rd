@@ -8,14 +8,12 @@
 \usage{
 estCutoffs(x, ...)
 
-\S4method{estCutoffs}{dbFrame}(x, est = TRUE, verbose = TRUE)
+\S4method{estCutoffs}{dbFrame}(x, verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
 \item{...}{further optional arguments.}
-
-\item{est}{logical. Should separation cutoffs be estimated? Defaults to TRUE.}
 
 \item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
 }
