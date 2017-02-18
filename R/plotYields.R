@@ -10,8 +10,11 @@
 #'
 #' @param x a \code{\link{dbFrame}}.
 #' @param which 
-#' numeric. Specifies which barcode to plot. 0 will generate a summary plot 
-#' with all barcodes.
+#' numeric. Specifies which barcode to plot. 
+#' 0, numeric or character. Specifies which barcode(s) to plot. 
+#' Valid values are IDs that occur as row names in the \code{bc_key} 
+#' of the supplied \code{\link{dbFrame}}; 
+#' 0 (default) will generate a summary plot with all barcodes.
 #' @param out_path 
 #' a character string. If specified, outputs will be generated in this location. 
 #' Defaults to NULL.
@@ -53,34 +56,9 @@ setMethod(f="plotYields",
           signature=signature(x="dbFrame"), 
           definition=function(x, which=0, out_path=NULL, name_ext=NULL) {
               
-              # check validity of 'which': stop if not a single ID is valid,
-              # warning if some ID(s) is/are not valid and remove it/them
-              if (length(which) == 1 && !which %in% c(0, rownames(x@bc_key))) {
-                  stop(paste(which), 
-                      " is not a valid barcode ID.", 
-                      call.=FALSE)
-              } else {
-                  new <- which[!is.na(match(which, c(0, rownames(x@bc_key))))]
-                  if (length(new) != length(which)) {
-                      removed <- which[!which %in% new]
-                      which <- new
-                      if (length(removed) == 1) {
-                          warning(paste(removed),
-                              " is not a valid barcode ID",
-                              " and has been skipped.",
-                              call.=FALSE)
-                      } else {
-                          warning(paste(removed, collapse=", "),
-                              " are not valid barcode IDs",
-                              " and have been skipped.",
-                              call.=FALSE)
-                      }
-                  } else if (length(tmp) == 0)
-                      stop(paste(tmp, collapse=", "), 
-                          " are not valid barcode IDs.",
-                          call.=FALSE)
-              }
-
+              which <- check_validity_which(
+                  which, rownames(x@bc_key), "yields")
+              
               ids <- rownames(x@bc_key)
               n_bcs <- length(ids)
               nms <- colnames(x@exprs)

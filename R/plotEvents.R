@@ -52,35 +52,9 @@ setMethod(f="plotEvents",
     definition=function(x, which="all", n_events=100, 
         out_path=NULL, name_ext=NULL) {
         
-        # check validity of 'which': stop if not a single ID is valid,
-        # warning if some ID(s) is/are not valid and remove it/them
-        if (!"all" %in% which) {
-            if (length(which) == 1 && !which %in% c(0, rownames(x@bc_key))) {
-                stop(paste(which), 
-                     " is not a valid barcode ID.", 
-                     call.=FALSE)
-            } else {
-                new <- which[!is.na(match(which, c(0, rownames(x@bc_key))))]
-                if (length(new) != length(which)) {
-                    removed <- which[!which %in% new]
-                    which <- new
-                    if (length(removed) == 1) {
-                        warning(paste(removed),
-                                " is not a valid barcode ID",
-                                " and has been skipped.",
-                                call.=FALSE)
-                    } else {
-                        warning(paste(removed, collapse=", "),
-                                " are not valid barcode IDs",
-                                " and have been skipped.",
-                                call.=FALSE)
-                    }
-                } else if (length(new) == 0)
-                    stop(paste(new, collapse=", "), 
-                         " are not valid barcode IDs.",
-                         call.=FALSE)
-            }
-        }
+        if (!"all" %in% which) 
+            which <- check_validity_which(
+                which, rownames(x@bc_key), "events")
         
         set.seed(8)
         
