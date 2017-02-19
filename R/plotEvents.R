@@ -139,7 +139,7 @@ setMethod(f="plotEvents",
                         scriptstyle(" ("*.(n)*" events)")))
         }
         
-        # throw informative warning about popultions with 
+        # throw informative warning about populations with 
         # no or less than 50 event assignments
         if (!is.null(skipped)) {
             if (length(skipped) == 1) {
