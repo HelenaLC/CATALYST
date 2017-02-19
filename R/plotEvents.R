@@ -14,7 +14,7 @@
 #' of the supplied \code{\link{dbFrame}}, or 0 for unassigned events. 
 #' Defaults to "all".
 #' @param n_events 
-#' numeric or "all". Specifies number of events to plot. Defaults to 100.
+#' numeric. Specifies number of events to plot. Defaults to 100.
 #' @param out_path 
 #' a character string. If specified, outputs will be generated in this location. 
 #' Defaults to NULL.
@@ -44,17 +44,25 @@
 #' @importFrom graphics plot
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette pdf dev.off
-
-# ------------------------------------------------------------------------------
+#' @export
+# ==============================================================================
 
 setMethod(f="plotEvents", 
     signature=signature(x="dbFrame"), 
     definition=function(x, which="all", n_events=100, 
         out_path=NULL, name_ext=NULL) {
         
+        # ----------------------------------------------------------------------
+        # check validity of function arguments
         if (!"all" %in% which) 
             which <- check_validity_which(
                 which, rownames(x@bc_key), "events")
+        if (!is.numeric(n_events) || n_events == 0 || length(n_events) > 1) {
+            warning("'n_events' must be a numeric greater than 0 and ",
+                "of length one;\n using default value 100.", call.=FALSE)
+            n_events <- 100
+        }
+        # ----------------------------------------------------------------------
         
         set.seed(8)
         
@@ -93,12 +101,18 @@ setMethod(f="plotEvents",
             which_ids <- which
         }
         
+        # initialize vector to store IDs with no or insufficient events assigned
+        skipped <- NULL
+        
         p <- list()
         for (id in which_ids) {
             inds <- which(x@bc_ids == id)
             n <- length(inds)
-            if (length(inds) < 10) next
-            if (is.numeric(n_events) & length(inds) > n_events) 
+            if (length(inds) < 50) {
+                skipped <- c(skipped, id)
+                next
+            }
+            if (length(inds) > n_events) 
                 inds <- sort(sample(inds, n_events))
             psize <- 1 + 100 / length(inds)
             sub <- x@normed_bcs[inds, ]
@@ -125,12 +139,32 @@ setMethod(f="plotEvents",
                         scriptstyle(" ("*.(n)*" events)")))
         }
         
-        if (!is.null(out_path)) {
-            pdf(file.path(out_path, paste0("event_plot", name_ext, ".pdf")), 
-                width=10, height=5)
-            for (i in 1:length(p)) plot(p[[i]])
-            dev.off()
-        } else {
-            for (i in 1:length(p)) plot(p[[i]])
+        # throw informative warning about popultions with 
+        # no or less than 50 event assignments
+        if (!is.null(skipped)) {
+            if (length(skipped) == 1) {
+                warning("Barcode ID ", paste(skipped), 
+                    " has no or less than 50 event assignments;",
+                    " no plot has been generated.\n",
+                    "It is recommended to remove this population",
+                    " or reconsider its separation cutoff.", call.=FALSE)
+            } else {
+                warning("Barcodes IDs ", paste(skipped, collapse=", "), 
+                    " have no or less than 50 event assignments; ",
+                    "their plots have not been generated.\n",
+                    "It is recommended to remove these populations",
+                    " or reconsider their separation cutoffs.", call.=FALSE)
+            }
+        }
+        
+        if (length(p) != 0) {
+            if (!is.null(out_path)) {
+                pdf(file.path(out_path, paste0("event_plot", name_ext, ".pdf")), 
+                    width=10, height=5)
+                for (i in 1:length(p)) plot(p[[i]])
+                dev.off()
+            } else {
+                for (i in 1:length(p)) plot(p[[i]])
+            }
         }
     })
