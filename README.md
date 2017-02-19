@@ -10,6 +10,11 @@ devtools::install_github(repo = "HelenaLC/CATALYST",
 
 **02/18/17 update**
 
+- added validity check for "n_events" in `plotEvents()` and  
+  warning about populations with insufficient event assignments
+
+**02/18/17 update**
+
 - counts and yields are now computed in `assignPrelim()`:  
   `estCutoffs()` may be skipped if `sep_cutoffs` are supplied manually
 - added options "annotate" and "palette" in `plotSpillmat()`
