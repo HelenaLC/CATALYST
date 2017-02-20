@@ -34,7 +34,7 @@
 #' compCytof(ss_exp, spillMat)
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @importFrom flowCore colnames exprs flowFrame
+#' @importFrom flowCore flowFrame colnames exprs compensate
 #' @export
 # ------------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ setMethod(f="compCytof",
         o <- order(ms)
         ms <- ms[o]
         nms <- c(sm_chs, add)[o]
-        # get the potential spillover interatctions 
+        # get the potential spillover interactions 
         all_mets = gsub("[[:digit:]]+Di", "", nms)
         spill_cols <- get_spill_cols(ms, all_mets)
         
@@ -116,7 +116,14 @@ setMethod(f="compCytof",
     # make sure the diagonal is all 1
     diag(sm) <- 1
     
-    flowCore::compensate(x, sm)
+    comped <- flowCore::compensate(x, sm)
+    if (!is.null(out_path)) {
+        nm <- deparse(substitute(ss_exp))
+        suppressWarnings(flowCore::write.FCS(comped,
+            file.path(out_path, paste0(nm, "_comped.fcs"))))
+    } else {
+        comped
+    }
     })
 
 # ------------------------------------------------------------------------------
@@ -130,9 +137,17 @@ setMethod(f="compCytof",
         if (length(fcs) == 0)
             stop("No FCS files found in specified location.")
         ffs <- lapply(fcs, flowCore::read.FCS)
-        out_nms <- paste0(gsub(".fcs", "", fcs), "_comped.fcs")
-        for (i in seq_along(ffs))
-            write.FCS(compCytof(ffs[[i]], y), out_nms[i])
+        if (is.null(out_path)) {
+            out_nms <- paste0(gsub(".fcs", "", fcs), "_comped.fcs")
+            for (i in seq_along(ffs))
+                suppressWarnings(flowCore::write.FCS(
+                    compCytof(ffs[[i]], y), out_nms[i]))
+        } else {
+            out_nms <- file.path(out_path, list.files(path=x, pattern=".fcs"))
+            for (i in seq_along(ffs))
+                suppressWarnings(flowCore::write.FCS(
+                    compCytof(ffs[[i]], y), out_nms[i]))
+        }
         })
 
 
