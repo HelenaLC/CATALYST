@@ -87,90 +87,88 @@ setGeneric(name="yields<-",
 # ==============================================================================
 # Generics for debarcoding
 # ------------------------------------------------------------------------------
+
 #' @rdname assignPrelim
-#' @param ... further optional arguments.
+#' @param ... optional arguments.
 #' @export
 setGeneric(name="assignPrelim", 
     package="CATALYST",
-    def=function(x, y, ...) 
-        standardGeneric("assignPrelim"))
+    def=function(x, y, ...) standardGeneric("assignPrelim"))
 
 #' @rdname estCutoffs
-#' @param ... further optional arguments.
+#' @param ... optional arguments.
 #' @export
 setGeneric(name="estCutoffs",   
     package="CATALYST",
-    def=function(x, ...) 
-        standardGeneric("estCutoffs"))
+    def=function(x, ...) standardGeneric("estCutoffs"))
 
 #' @rdname applyCutoffs
-#' @param ... further optional arguments.
+#' @param ... optional arguments.
 #' @export
 setGeneric(name="applyCutoffs", 
     package="CATALYST",
-    def=function(x, ...) 
-        standardGeneric("applyCutoffs"))
+    def=function(x, ...) standardGeneric("applyCutoffs"))
 
 #' @rdname outFCS
-#' @param ... further optional arguments.
+#' @param ... optional arguments.
 #' @export
 setGeneric(name="outFCS",      
     package="CATALYST", 
     def=function(x, out_path, ...) standardGeneric("outFCS"))
 
 #' @rdname debarcode
-#' @param ... further optional arguments.
+#' @param ... optional arguments.
 #' @export
 setGeneric(name="debarcode",
     package="CATALYST",
-    def=function(x, y, out_path, ...) 
-        standardGeneric("debarcode"))
-
-# ==============================================================================
-# Generics for compensation
-# ------------------------------------------------------------------------------
-#' @rdname estTrim
-#' @param ... further optional arguments.
-#' @export
-setGeneric(name="estTrim", 
-    package="CATALYST",
-    def=function(x, ...) standardGeneric("estTrim"))
-
-#' @rdname computeSpillmat
-#' @param ... further optional arguments.
-#' @export
-setGeneric(name="computeSpillmat", 
-    package="CATALYST",
-    def=function(x, ...) standardGeneric("computeSpillmat"))
-
-#' @rdname compCytof
-#' @param ... further optional arguments.
-#' @export
-setGeneric(name="compCytof", 
-    package="CATALYST",
-    def=function(x, y, ...) standardGeneric("compCytof"))
+    def=function(x, y, out_path, ...) standardGeneric("debarcode"))
 
 # ==============================================================================
 # Generics for plotting
 # ------------------------------------------------------------------------------
+
 #' @rdname plotYields
-#' @param ... further optional arguments.
+#' @param ... optional arguments.
 #' @export
 setGeneric(name="plotYields", 
     package="CATALYST",
     def=function(x, ...) standardGeneric("plotYields"))
 
 #' @rdname plotEvents
-#' @param ... further optional arguments.
+#' @param ... optional arguments.
 #' @export
 setGeneric(name="plotEvents", 
     package="CATALYST",
     def=function(x, ...) standardGeneric("plotEvents"))
 
 #' @rdname plotMahal
-#' @param ... further optional arguments.
+#' @param ... optional arguments.
 #' @export
 setGeneric(name="plotMahal", 
-           package="CATALYST",
-           def=function(x, ...) standardGeneric("plotMahal"))
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotMahal"))
 
+# ==============================================================================
+# Generics for compensation
+# ------------------------------------------------------------------------------
+
+#' @rdname estTrim
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="estTrim", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("estTrim"))
+
+#' @rdname computeSpillmat
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="computeSpillmat", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("computeSpillmat"))
+
+#' @rdname compCytof
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="compCytof", 
+    package="CATALYST",
+    def=function(x, y, ...) standardGeneric("compCytof"))

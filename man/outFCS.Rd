@@ -16,7 +16,7 @@ outFCS(x, out_path, ...)
 \item{out_path}{character string. Specifies in which location 
 output files are to be generated.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{verbose}{no FCS files have been generated.}
 }

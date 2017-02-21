@@ -35,7 +35,6 @@ setMethod(f="estCutoffs",
         n_bcs <- nrow(x@bc_key)
         ests <- numeric(n_bcs)
         
-        # estimate cutoff parameter
         ds <- list ()
         ds[[1]] <- seq(0, 1, .01)
         w <- diff(ds[[1]])[1]
