@@ -1,5 +1,5 @@
 # ==============================================================================
-# returns barcode IDs 
+# return barcode IDs 
 # called by 'assignPrelim()'
 # ------------------------------------------------------------------------------
 get_ids <- function(bcs, bc_key, ids, verbose) {
@@ -107,10 +107,11 @@ get_deltas <- function(data, bc_key, verbose) {
 }
 
 # ==============================================================================
-# computes mahalanobis distances given current separation cutoffs
+# compute mahalanobis distances given current separation cutoffs
 # called by 'assignPrelim()'
 # ------------------------------------------------------------------------------
 get_mhl_dists <- function(x) {
+        
     # get channel and barcode masses
     nms <- colnames(x@exprs)
     ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
@@ -118,6 +119,13 @@ get_mhl_dists <- function(x) {
     # find which columns correspond to barcode masses
     bc_cols <- which(ms %in% colnames(x@bc_key))
     n_bcs <- length(bc_cols)
+    
+    # if not supplied, don't use any cutoffs
+    if (length(x@sep_cutoffs) == 0) {
+        sep_cutoffs <- rep(0, n_bcs)
+    } else {
+        sep_cutoffs <- x@sep_cutoffs
+    }
     
     ids <- unique(x@bc_ids)
     ids <- sort(ids[which(ids != 0)])
@@ -130,7 +138,7 @@ get_mhl_dists <- function(x) {
     mhl_dists <- numeric(nrow(x@exprs))
     for (i in ids) {
         inds <- which(x@bc_ids == i)
-        ex <- inds[x@deltas[inds] < x@sep_cutoffs[rownames(x@bc_key) == i]]
+        ex <- inds[x@deltas[inds] < sep_cutoffs[rownames(x@bc_key) == i]]
         inds <- inds[!(inds %in% ex)]
         x@bc_ids[ex] <- 0
         sub  <- bcs[inds, ]

@@ -32,8 +32,7 @@
 #' @import ggplot2 grid gridExtra
 #' @importFrom grDevices colorRampPalette
 #' @export
-
-# ------------------------------------------------------------------------------
+# ==============================================================================
 
 plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
     

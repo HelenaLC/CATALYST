@@ -14,7 +14,7 @@ estTrim(x, ...)
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{min, max, step}{specify sequence of trim values for which compensation should be evaluated.}
 
