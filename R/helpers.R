@@ -107,51 +107,6 @@ get_deltas <- function(data, bc_key, verbose) {
 }
 
 # ==============================================================================
-# compute mahalanobis distances given current separation cutoffs
-# called by 'assignPrelim()'
-# ------------------------------------------------------------------------------
-get_mhl_dists <- function(x) {
-        
-    # get channel and barcode masses
-    nms <- colnames(x@exprs)
-    ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
-    
-    # find which columns correspond to barcode masses
-    bc_cols <- which(ms %in% colnames(x@bc_key))
-    n_bcs <- length(bc_cols)
-    
-    # if not supplied, don't use any cutoffs
-    if (length(x@sep_cutoffs) == 0) {
-        sep_cutoffs <- rep(0, n_bcs)
-    } else {
-        sep_cutoffs <- x@sep_cutoffs
-    }
-    
-    ids <- unique(x@bc_ids)
-    ids <- sort(ids[which(ids != 0)])
-    
-    # extract barcode columns from FCS file
-    bcs <- x@exprs[, bc_cols]
-    
-    # compute mahalanobis distances of all events
-    # given current separation cutoff
-    mhl_dists <- numeric(nrow(x@exprs))
-    for (i in ids) {
-        inds <- which(x@bc_ids == i)
-        ex <- inds[x@deltas[inds] < sep_cutoffs[rownames(x@bc_key) == i]]
-        inds <- inds[!(inds %in% ex)]
-        x@bc_ids[ex] <- 0
-        sub  <- bcs[inds, ]
-        if (length(sub) != n_bcs)
-            if (nrow(sub) > n_bcs)
-                mhl_dists[inds] <- stats::mahalanobis(
-                    x=sub, center=colMeans(sub), cov=stats::cov(sub))
-    }
-    x@mhl_dists <- mhl_dists
-    x
-}
-
-# ==============================================================================
 # retrieve legend from ggplot
 # ------------------------------------------------------------------------------
 get_legend <- function(p) {
