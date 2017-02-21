@@ -8,18 +8,24 @@
 \usage{
 applyCutoffs(x, ...)
 
-\S4method{applyCutoffs}{dbFrame}(x, mhl_cutoff = 30)
+\S4method{applyCutoffs}{dbFrame}(x, mhl_cutoff = 30, sep_cutoffs = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{mhl_cutoff}{mahalanobis distance threshold above which events should be unassigned.}
+
+\item{sep_cutoffs}{non-negative numeric of length one or same length as the number of rows in
+the \code{bc_key}. Specifies the distance separation cutoffs between positive 
+and negative barcode populations above which events should be unassigned.
+If \code{NULL} (default), \code{applyCutoffs} will try to access the 
+'sep_cutoffs' slot of the supplied \code{\link{dbFrame}}.}
 }
 \value{
-Will update the \code{bc_ids} slot of the input \code{\link{dbFrame}}
-and return the latter.
+Will update the \code{bc_ids} and, if specified, 
+\code{sep_cutoffs} of the input \code{\link{dbFrame}}.
 }
 \description{
 Applies separation and mahalanobies distance cutoffs.
@@ -27,6 +33,11 @@ Applies separation and mahalanobies distance cutoffs.
 \examples{
 data(sample_ff, sample_key)
 re <- assignPrelim(x = sample_ff, y = sample_key)
+
+# use global separation cutoff
+applyCutoffs(x = re, sep_cutoffs = 0.3)
+
+# estimate population-specific cutoffs
 re <- estCutoffs(x = re)
 applyCutoffs(x = re)
 

@@ -61,7 +61,19 @@
 \alias{yields-method}
 \alias{dbFrame-method}
 \alias{dbFrame-methods}
+\alias{mhl_cutoff<-,dbFrame,numeric-method}
+\alias{<-}
+\alias{dbFrame-method}
+\alias{dbFrame-methods}
+\alias{mhl_cutoff<-,dbFrame,ANY-method}
+\alias{<-}
+\alias{dbFrame-method}
+\alias{dbFrame-methods}
 \alias{sep_cutoffs<-,dbFrame,numeric-method}
+\alias{<-}
+\alias{dbFrame-method}
+\alias{dbFrame-methods}
+\alias{sep_cutoffs<-,dbFrame,ANY-method}
 \alias{<-}
 \alias{dbFrame-method}
 \alias{dbFrame-methods}
@@ -105,5 +117,11 @@ yields(object)
 
 \S4method{yields}{dbFrame}(object)
 
+\S4method{mhl_cutoff}{dbFrame,numeric}(object) <- value
+
+\S4method{mhl_cutoff}{dbFrame,ANY}(object) <- value
+
 \S4method{sep_cutoffs}{dbFrame,numeric}(object) <- value
+
+\S4method{sep_cutoffs}{dbFrame,ANY}(object) <- value
 }

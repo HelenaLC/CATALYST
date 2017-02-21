@@ -3,7 +3,6 @@
 #       - stop if not a single ID is valid
 #       - warning if some ID(s) is/are not valid and remove it/them
 # ------------------------------------------------------------------------------
-
 check_validity_which <- function(which, ids, fct) {
 
     msg_events <- c(

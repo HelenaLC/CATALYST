@@ -16,7 +16,7 @@ the location of FCS files that should be compensates.}
 
 \item{y}{a spillover matrix.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{out_path}{a character string. If specified, compensated FCS files will be generated 
 in this location. If \code{x} is a character string, file names will be 

@@ -13,7 +13,7 @@ estCutoffs(x, ...)
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
 }

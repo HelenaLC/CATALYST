@@ -26,7 +26,7 @@ create a scheme of the appropriate format internally.}
 \item{out_path}{a character string. All outputs (population-wise FCS files and 
 diagnostic plots) will be generated in this location.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{cofactor}{cofactor used for asinh transformation.}
 

@@ -14,14 +14,14 @@ plotEvents(x, ...)
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{which}{"all", numeric or character. Specifies which barcode(s) to plot. 
 Valid values are IDs that occur as row names in the \code{bc_key} 
 of the supplied \code{\link{dbFrame}}, or 0 for unassigned events. 
 Defaults to "all".}
 
-\item{n_events}{numeric or "all". Specifies number of events to plot. Defaults to 100.}
+\item{n_events}{numeric. Specifies number of events to plot. Defaults to 100.}
 
 \item{out_path}{a character string. If specified, outputs will be generated in this location. 
 Defaults to NULL.}
@@ -33,15 +33,18 @@ Defaults to NULL.}
 Shows normalized barcode intensities for a given barcode.
 }
 \details{
-EXPLAIN NORMALIZATION HERE
+Displayed are intensities normalized by population: Each event is scaled to 
+the 95\% quantile of the population it has been assigned to. Barcodes with no 
+or less than 50 event assignments will be skipped; it is strongly recoomended 
+to remove such populations or reconsider their separation cutoffs.
 }
 \examples{
 data(sample_ff, sample_key)
 re <- assignPrelim(x = sample_ff, y = sample_key)
-plotEvents(x = re, which = "B3", n_events = "all")
+plotEvents(x = re, which = "B3", n_events = 1000)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
-plotEvents(x = re, which = "B3", n_events = "all")
+plotEvents(x = re, which = "B3", n_events = 1000)
 
 }
 \references{

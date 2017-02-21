@@ -23,7 +23,7 @@ numeric masses as column names OR a vector of numeric masses corresponding to
 barcode channels. When the latter is supplied, \code{assignPrelim} will 
 create a scheme of the appropriate format internally.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{cofactor}{cofactor used for asinh transformation.}
 
