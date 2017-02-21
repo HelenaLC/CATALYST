@@ -8,16 +8,26 @@
 \usage{
 plotYields(x, ...)
 
-\S4method{plotYields}{dbFrame}(x, which = 0, out_path = NULL,
-  name_ext = NULL)
+\S4method{plotYields}{dbFrame}(x, which = 0, annotate = TRUE,
+  legend = TRUE, out_path = NULL, name_ext = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
-\item{which}{numeric. Specifies which barcode to plot. 0 will generate a summary plot 
-with all barcodes.}
+\item{which}{numeric. Specifies which barcode to plot. 
+0, numeric or character. Specifies which barcode(s) to plot. 
+Valid values are IDs that occur as row names in the \code{bc_key} 
+of the supplied \code{\link{dbFrame}}; 
+0 (default) will generate a summary plot with all barcodes.}
+
+\item{annotate}{logical. If TRUE (default) and the \code{sep_cutoffs} slot of the supplied
+\code{\link{dbFrame}} is not empty, vertical lines will be drawn at cutoff
+values and the resulting yield will be included in the plot title.}
+
+\item{legend}{logical. Specifies if a legend should be included. 
+This will only affect the summary plot (\code{which=0}).}
 
 \item{out_path}{a character string. If specified, outputs will be generated in this location. 
 Defaults to NULL.}
@@ -26,12 +36,12 @@ Defaults to NULL.}
 Defaults to NULL.}
 }
 \description{
-Histogram of counts and plot of yields as a function of separation cutoffs.
+Histogram of x@counts and plot of x@yields as a function of separation cutoffs.
 }
 \details{
 The overall yield that will be achieved upon application of the specified 
 separation cutoffs is indicated in the summary plot. Respective separation 
-thresholds and their resulting yields are included in each barcode's plot. 
+thresholds and their resulting x@yields are included in each barcode's plot. 
 The separation cutoff value should be chosen such that it appropriately 
 balances confidence in barcode assignment and cell yield.
 }

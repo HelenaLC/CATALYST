@@ -23,15 +23,18 @@
 #' Defaults to NULL.
 #' 
 #' @details 
-#' EXPLAIN NORMALIZATION HERE
+#' Displayed are intensities normalized by population: Each event is scaled to 
+#' the 95\% quantile of the population it has been assigned to. Barcodes with no 
+#' or less than 50 event assignments will be skipped; it is strongly recoomended 
+#' to remove such populations or reconsider their separation cutoffs.
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
-#' plotEvents(x = re, which = "B3", n_events = "all")
+#' plotEvents(x = re, which = "B3", n_events = 1000)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
-#' plotEvents(x = re, which = "B3", n_events = "all")
+#' plotEvents(x = re, which = "B3", n_events = 1000)
 #' 
 #' @references
 #' Zunder, E.R. et al. (2015).
@@ -44,7 +47,6 @@
 #' @importFrom graphics plot
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette pdf dev.off
-#' @export
 # ==============================================================================
 
 setMethod(f="plotEvents", 
@@ -52,22 +54,22 @@ setMethod(f="plotEvents",
     definition=function(x, which="all", n_events=100, 
         out_path=NULL, name_ext=NULL) {
         
-        # ----------------------------------------------------------------------
+        # ······································································
         # check validity of function arguments
         if ("all" %in% which & length(which) > 1) {
             warning("'which' must either \"all\", or a numeric or character\n",
                 "corresponding to valid barcode IDs; ",
-                "using default value \"all\".", call.=FALSE)
-        } else {
+                "using default value \"all\".")
+        } else if (!"all" %in% which) {
             which <- check_validity_which(
                 which, rownames(x@bc_key), "events")
         }
         if (!is.numeric(n_events) || n_events == 0 || length(n_events) > 1) {
-            warning("'n_events' must be a numeric greater than 0 and ",
-                "of length one;\nusing default value 100.", call.=FALSE)
+            warning("'n_events' must be a numeric greater than 0",
+                " and of length one;\n  using default value 100.")
             n_events <- 100
         }
-        # ----------------------------------------------------------------------
+        # ······································································
 
         n_chs <- ncol(x@bc_key)
         ids <- sort(unique(x@bc_ids))
@@ -128,30 +130,32 @@ setMethod(f="plotEvents",
                 expand_limits(x=c(0, nrow(ints)+1)) +
                 ylim(floor(4*min(ints))/4, ceiling(4*max(ints))/4) + 
                 xlab("Event number") + ylab("Normalized intensity") + 
-                ggtitle(bquote(bold(.(bc_labs[ids == id]))*
+                ggtitle(bquote(bold(.(bc_labs[pmatch(id, bc_labs)]))*
                         scriptstyle(" ("*.(n)*" events)"))) +
                 theme_bw() + theme(legend.key=element_blank(),
                     panel.grid.major=element_line(color="lightgrey"),
                     panel.grid.minor=element_blank())
         }
         
+        # ······································································
         # throw informative warning about populations with 
         # no or less than 50 event assignments
         if (!is.null(skipped)) {
             if (length(skipped) == 1) {
                 warning("Barcode ID ", paste(skipped), 
                     " has no or less than 50 event assignments;",
-                    " no plot has been generated.\n",
-                    "It is recommended to remove this population",
-                    " or reconsider its separation cutoff.", call.=FALSE)
+                    " no plot has been generated.\n ",
+                    " It is recommended to remove this population",
+                    " or reconsider its separation cutoff.")
             } else {
                 warning("Barcodes IDs ", paste(skipped, collapse=", "), 
-                    " have no or less than 50 event assignments; ",
-                    "their plots have not been generated.\n",
-                    "It is recommended to remove these populations",
-                    " or reconsider their separation cutoffs.", call.=FALSE)
+                    " have no or less than 50 event assignments;",
+                    " their plots have not been generated.\n ",
+                    " It is recommended to remove these populations",
+                    " or reconsider their separation cutoffs.")
             }
         }
+        # ······································································
         
         if (length(p) != 0) {
             if (!is.null(out_path)) {

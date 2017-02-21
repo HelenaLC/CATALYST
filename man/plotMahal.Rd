@@ -14,7 +14,7 @@ plotMahal(x, ...)
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{which}{specifies which barcode to plot.}
 

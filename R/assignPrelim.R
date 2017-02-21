@@ -39,8 +39,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats quantile
 #' @importFrom flowCore colnames exprs flowFrame
-
-# ------------------------------------------------------------------------------
+# ==============================================================================
 
 setMethod(f="assignPrelim",
     signature=signature(x="flowFrame", y="data.frame"),
@@ -113,12 +112,10 @@ setMethod(f="assignPrelim",
         norm_val[norm_val == 0] <- 1
         yields <- t(sapply(1:n_bcs, function(x) yields[x, ] / norm_val[x]))
         
-        x <- new(Class="dbFrame", 
+        new(Class="dbFrame", 
                  exprs=es, bc_key=y, bc_ids=bc_ids, 
                  deltas=deltas, normed_bcs=normed_bcs,
-                 sep_cutoffs=rep(0, n_bcs),
                  counts=counts, yields=yields)
-        get_mhl_dists(x)
     })
 
 # ------------------------------------------------------------------------------

@@ -13,7 +13,7 @@ computeSpillmat(x, ...)
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
-\item{...}{further optional arguments.}
+\item{...}{optional arguments.}
 
 \item{method}{function to be used for computing spillover estimates. 
 Defaults to \code{mean}.}
