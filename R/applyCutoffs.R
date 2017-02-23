@@ -55,26 +55,26 @@ setMethod(f="applyCutoffs",
         }
         
         # get channel and barcode masses
-        nms <- colnames(x@exprs)
-        ms <- as.numeric(gsub("[[:alpha:][:punct:]]", "", nms))
+        ms <- gsub("[[:alpha:][:punct:]]", "", colnames(exprs(x)))
         
         # find which columns correspond to barcode masses
-        bc_cols <- which(ms %in% colnames(x@bc_key))
+        bc_cols <- which(ms %in% colnames(bc_key(x)))
         n_bcs <- length(bc_cols)
         
         # extract barcode columns from FCS file
-        bcs <- x@exprs[, bc_cols]
+        bcs <- exprs(x)[, bc_cols]
         
-        ids <- unique(x@bc_ids)
+        ids <- unique(bc_ids(x))
         ids <- ids[which(ids != 0)]
 
         # compute mahalanobis distances given current separation cutoff
         mhl_dists <- numeric(nrow(x@exprs))
         for (i in ids) {
             inds <- which(x@bc_ids == i)
-            ex <- inds[x@deltas[inds] < x@sep_cutoffs[rownames(x@bc_key) == i]]
+            ex <- inds[deltas(x)[inds] < 
+                    sep_cutoffs(x)[rownames(bc_key(x)) == i]]
             inds <- inds[!(inds %in% ex)]
-            x@bc_ids[ex] <- 0
+            bc_ids(x)[ex] <- 0
             sub  <- bcs[inds, ]
             if (length(sub) != n_bcs)
                 if (nrow(sub) > n_bcs)
@@ -82,7 +82,7 @@ setMethod(f="applyCutoffs",
                         x=sub, center=colMeans(sub), cov=stats::cov(sub))
         }
         bc_ids(x)[mhl_dists > mhl_cutoff] <- 0
-        x@mhl_dists <- mhl_dists
+        mhl_dists(x)  <- mhl_dists
         mhl_cutoff(x) <- mhl_cutoff
         x
     })

@@ -32,7 +32,7 @@ setMethod(f="estCutoffs",
     signature=signature(x="dbFrame"), 
     definition=function(x, verbose=TRUE) {
         
-        n_bcs <- nrow(x@bc_key)
+        n_bcs <- nrow(bc_key(x))
         ests <- numeric(n_bcs)
         
         ds <- list ()
@@ -44,7 +44,7 @@ setMethod(f="estCutoffs",
         if (verbose) message("Estimating separation cutoffs...")
         for (i in 1:n_bcs) {
             dy <- list()
-            dy[[1]] <- x@yields[i, ]
+            dy[[1]] <- yields(x)[i, ]
             dy[[2]] <- diff(dy[[1]]) / w
             dy[[3]] <- diff(dy[[2]]) / w
             names(dy) <- paste0("dy", 0:2)
@@ -60,6 +60,6 @@ setMethod(f="estCutoffs",
                 ests[i] <- est
             }
         }
-        x@sep_cutoffs <- ests
+        sep_cutoffs(x) <- ests
         x
     })
