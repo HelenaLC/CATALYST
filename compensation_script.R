@@ -2,7 +2,7 @@
 path <- "/Users/HLC/Dropbox/spillover/corrected bead based compensation/Exp3"
 fcs <- file.path(path, "160805_Exp3_beads-before.fcs")
 library(flowCore)
-ss_exp  <- read.FCS(fcs)
+ss_exp  <- flowCore::read.FCS(fcs)
 
 # specify mass channels stained for
 bc_ms <- c(139, 141:156, 158:176)

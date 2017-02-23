@@ -137,6 +137,8 @@ setReplaceMethod(f="sep_cutoffs",
         if (length(value) != nrow(object@bc_key))
             stop("'Replacement value' must be of length one\n or same length",
                 " as the number of rows in the 'bc_key'.")
+        object@sep_cutoffs <- value
+        return(object)
     })
                     
 #' @rdname dbFrame-methods
