@@ -39,9 +39,12 @@
 
 setMethod(f="plotMahal", 
           signature=signature(x="dbFrame"), 
-          definition=function(x, which, cofactor=50, out_path=NULL, name_ext=NULL) {
+          definition=function(x, which, cofactor=50, 
+              out_path=NULL, name_ext=NULL) {
     
     inds <- x@bc_ids == which
+    if (sum(inds) > 5e3) 
+        inds <- inds[sample(which(inds), 5e3)]
     nms <- colnames(x@exprs)
     ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
     es <- asinh(x@exprs[inds, ms %in% colnames(x@bc_key)] / cofactor)
