@@ -46,8 +46,7 @@ setMethod(f="assignPrelim",
     definition=function(x, y, cofactor=10, verbose=TRUE) {
         
         # get masses, intensities and no. of events
-        nms <- flowCore::colnames(x)
-        ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
+        ms <- gsub("[[:alpha:][:punct:]]", "", flowCore::colnames(x))
         es <- flowCore::exprs(x)
         
         # get barcodes masses and check for validity of barcode channels

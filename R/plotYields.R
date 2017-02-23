@@ -93,10 +93,6 @@ setMethod(f="plotYields",
               } else {
                   cols <- sample(pal, n_bcs)
               }
-              tick_labs <- paste(round(seps[seq(1, n_seps, 10)], 1))
-              thms <- theme_bw() + theme(
-                  panel.grid.major=element_line(color="lightgrey"),
-                  panel.grid.minor=element_blank())
               
               # initialize list of count histograms (h) and yield plots (l)
               h <- l <- list()
@@ -104,46 +100,52 @@ setMethod(f="plotYields",
                   if (i == 0) {
                       # summary plot with all barcodes
                       yield <- 0
-                      yield <- sum(sapply(1:n_bcs, 
-                          function(k) yield <- sum(yield, 
+                      yield <- sum(sapply(1:n_bcs, function(k) 
+                          yield <- sum(yield, 
                               x@yields[k, seps == x@sep_cutoffs[k]]))) / n_bcs
                       yield <- paste0(round(yield*100, 2), "%")
                       
                       df_h <- data.frame(sep=seps, count=colSums(x@counts))
                       df_l <- data.frame(sep=rep(seps, n_bcs), 
                           yield=c(t(x@yields)), bc=rep(1:n_bcs, each=n_seps))
-                      
-                      # barcode-specific x@yields plot
+
                   } else {
-                      ind <- ids == i 
-                      df_h <- data.frame(sep=seps, count=x@counts[ind, ])
-                      df_l <- data.frame(sep=seps, yield=x@yields[ind, ])
+                      # barcode-specific yields plot
+                      j <- ids == i 
+                      df_h <- data.frame(sep=seps, count=x@counts[j, ])
+                      df_l <- data.frame(sep=seps, yield=x@yields[j, ])
                       df_c <- data.frame(sep=seps, pred=predict(
                           smooth.spline(df_l$sep, df_l$yield))$y)
                   }
                   
-                  # x@counts as a function of barcode separation
+                  # counts as a function of barcode separation
                   h[[length(h)+1]] <- ggplot() + 
                       geom_bar(data=df_h, aes_string(x="sep", y="count"), 
                                stat="identity", width=1/n_seps, 
                                fill="navy", colour="cornflowerblue") +
                       scale_x_continuous(breaks=seq(0, 1, .1)) +
                       scale_y_continuous(labels=scientific_10) +
-                      xlab("Barcode separation") + ylab("Event count") + thms
+                      xlab("Barcode separation") + ylab("Event count") +
+                      theme_bw() + theme(
+                          panel.grid.major=element_line(color="lightgrey"),
+                          panel.grid.minor=element_blank())
                   
-                  # x@yields as a function of separation cutoff
+                  # yields as a function of separation cutoff
                   l[[length(l)+1]] <- ggplot() + 
                       scale_x_continuous(breaks=seq(0, 1, .1)) +
                       scale_y_continuous(breaks=seq(0, 1, .25), 
                           labels=paste0(seq(0, 1, .25)*100, "%")) +
                       xlab("Barcode separation threshold") + 
-                      ylab("Yield after debarcoding") + thms
+                      ylab("Yield after debarcoding") +
+                      theme_bw() + theme(
+                          panel.grid.major=element_line(color="lightgrey"),
+                          panel.grid.minor=element_blank())
                   
                   if (i == 0) {
                       # scale colour according to barcode
                       l[[length(l)]] <- l[[length(l)]] +
-                          geom_line(data=df_l, size=.5, 
-                              aes_string(x="sep", y="yield", col="as.factor(bc)")) +
+                          geom_line(data=df_l, size=.5, aes_string(
+                              x="sep", y="yield", col="as.factor(bc)")) +
                           scale_colour_manual(values=cols, name=NULL, labels=bc_labs)
                       if (legend) {
                           l[[length(l)]] <- l[[length(l)]] +
@@ -155,17 +157,21 @@ setMethod(f="plotYields",
                       } 
                       l[[length(l)]] <- l[[length(l)]] + guides(colour=FALSE)
                   } else {
-                      # add vertical line at cutoff estimate
-                      h[[length(h)]] <- h[[length(h)]] +
-                          geom_vline(aes_string(xintercept="x@sep_cutoffs[ind]"), lty=3)
-                      
-                      # add vertical line at cutoff estimate and smooth spline fit
+                      # add smooth spline fit
                       l[[length(l)]] <- l[[length(l)]] +
                           geom_point(data=df_l, aes_string(x="sep", y="yield"), 
                                      pch=21, size=3, alpha=.5, stroke=.5,
                                      col="navy", fill="cornflowerblue") +
-                          geom_line(data=df_c, aes_string(x="sep", y="pred"), col="red") +
-                          geom_vline(aes_string(xintercept="x@sep_cutoffs[ind]"), lty=3)
+                          geom_line(data=df_c, aes_string(x="sep", y="pred"), 
+                              col="firebrick")
+                      
+                      if (annotate & length(x@sep_cutoffs) != 0) {
+                          # add vertical line at cutoff estimate
+                          h[[length(h)]] <- h[[length(h)]] + geom_vline(lty=3,
+                              aes_string(xintercept="x@sep_cutoffs[j]"))
+                          l[[length(l)]] <- l[[length(l)]] + geom_vline(lty=3,
+                              aes_string(xintercept="x@sep_cutoffs[j]"))
+                      }
                   }
                   
                   # adjust widths for grid layout
@@ -210,14 +216,25 @@ setMethod(f="plotYields",
                       pdf(file.path(out_path, 
                           paste0("yield_plot", name_ext, ".pdf")), 
                           width=8, height=6)
-                  for (i in which[fil]) {
-                      ind <- match(i, rownames(x@bc_key))
-                      j <- which(which == i)
-                      perc <- paste0(round(x@yields[ind, sapply(seps, function(x) 
-                          isTRUE(all.equal(x, x@sep_cutoffs[ind])))], 3)*100, "%")
-                      grid.arrange(h[[j]], l[[j]], nrow=2, widths=8, heights=c(3, 3),
-                                   top=textGrob(bquote(bold(.(bc_labs[ind]))*scriptstyle(
-                                       " (current cutoff "*.(x@sep_cutoffs[ind])*" with "*.(perc)*" yield)")), just="top"))
+                  if (annotate & length(x@sep_cutoffs) != 0) {
+                      for (i in which[fil]) {
+                          ind <- match(i, rownames(x@bc_key))
+                          j <- which(which == i)
+                          p <- paste0(round(x@yields[ind, sapply(seps, 
+                              function(k) isTRUE(all.equal(
+                                  k, x@sep_cutoffs[ind])))], 3)*100, "%")
+                          grid.arrange(h[[j]], l[[j]], 
+                              nrow=2, widths=8, heights=c(3, 3),top=textGrob(
+                                  bquote(bold(.(bc_labs[ind]))*scriptstyle(
+                                  " (separation cutoff "*.(x@sep_cutoffs[ind])
+                                      *" with "*.(p)*" yield)")), just="top"))
+                      }
+                  } else {
+                      for (i in which[fil]) {
+                          j <- which(which == i)
+                          grid.arrange(h[[j]], l[[j]], 
+                              nrow=2, widths=8, heights=c(3, 3))
+                      }
                   }
                   if (!is.null(out_path)) dev.off()
               }
