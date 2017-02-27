@@ -1,7 +1,4 @@
-#' @rdname launchGUI
-#' @title Launch shiny GUI
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' 
+#' @export
 launchGUI <- function() {
-    runApp(appDir="https://github.com/HelenaLC/CATALYST/shinyGUI", launch.browser=TRUE)
+    shiny::runApp(appDir=file.path(system.file(package="CATALYST"), "shinyGUI"), display.mode="normal")
 }
