@@ -16,26 +16,28 @@ compensation_tab <- fluidPage(
                             ),
                   sidebarPanel(width=4,
                                fileInput("fcs2", "Upload FCS", accept=".fcs"),
-                               textOutput("text_compCytof_1"),
-                               verbatimTextOutput("text_compCytof_2"),
                                uiOutput("compensation_sidebar_1"),
                                uiOutput("compensation_sidebar_2"))))
 
 # ------------------------------------------------------------------------------
 
 compensation_sidebar_1 <- tagList(
-    checkboxInput("use_mean", "Use means"),
-    checkboxInput("est_trim", "Use trim estimate", value=TRUE),
-    checkboxInput("enter_trim", "Enter trim value"),
-    uiOutput("enter_trim"),
-    actionButton("compensate", "Compensate", style=button_style))
+    checkboxInput("box_upldSM", "Upload spillover matrix (CSV)", value=TRUE),
+    uiOutput("input_upldSM"),
+    checkboxInput("box_estSM",    "Estimate spill from single-stained controls"),
+    uiOutput("text_compCytof"), 
+    checkboxInput("box_useMedians", "Use medians"),
+    checkboxInput("box_estTrim", "Use trim estimate", value=TRUE),
+    checkboxInput("box_enterTrim", "Enter trim value"),
+    uiOutput("input_enterTrim"))
+    #actionButton("button_compensate", "Compensate", style=button_style))
 
 # ------------------------------------------------------------------------------
 
 compensation_sidebar_2 <- tagList(
     hr(style="border-color:black"),
     tags$style(dwnld_1), tags$style(dwnld_2),
-    downloadButton("dwnld_1", "Compensated beads", class="dwnld_1"),
-    downloadButton("dwnld_2", "Compensated cells", class="dwnld_1"),
-    downloadButton("dwnld_3", "Compensation matrix",  class="dwnld_2"))
+    downloadButton("dwnld_comped_1", "Compensated beads", class="dwnld_1"),
+    downloadButton("dwnld_comped_2", "Compensated cells", class="dwnld_1"),
+    downloadButton("dwnld_spillMat", "Spillover matrix",  class="dwnld_2"))
 

@@ -1,5 +1,5 @@
 # load required packages
-pkgs <- c("shiny")
+pkgs <- c("shiny", "shinydashboard", "ggplot2")
 lapply(pkgs, require, character.only=TRUE)
 
 # set maximum web request size to 500 MB
@@ -68,7 +68,7 @@ shinyServer(function(input, output, session) {
 
         # assign IDs
         showNotification(h5("Assigning preliminary IDs..."), id="msg", 
-                         type="warning", duration=NULL, closeButton=FALSE)
+                         type="message", duration=NULL, closeButton=FALSE)
         vals$re1 <- assignPrelim(x=vals$ff1, y=vals$key)
         removeNotification(id="msg")
         
@@ -298,7 +298,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$button_applyCutoffs, {
         
         showNotification(h6("Applying thresholds..."), id="msg", 
-                         type="warning", duration=NULL, closeButton=FALSE)
+                         type="message", duration=NULL, closeButton=FALSE)
         vals$re3 <- applyCutoffs(x = vals$re2,
                                  mhl_cutoff = input$input_mhlCutoff)
         removeNotification(id="msg")
@@ -359,18 +359,68 @@ shinyServer(function(input, output, session) {
 # COMPENSATION
 ####################################################################################################
     
+# --------------------------------------------------------------------------------------------------
+# sidebar
+    
     observe({
         if (is.null(input$fcs2) ||
             is.null(vals$re3)) 
             return()
-        
-        # read input flowFrame
-        vals$ff2 <- flowCore::read.FCS(input$fcs2$datapath)
-        
-        # render sidebar
+        vals$ff2 <- flowCore::read.FCS(input$fcs2$datapath)    
         output$compensation_sidebar_1 <- renderUI({ compensation_sidebar_1 })
+    })
+    
+    output$input_upldSM <- renderUI({
+        if (input$box_upldSM)
+            fileInput("input_SM", NULL, accept=".csv")
+    })
+    
+    observe({
+        if (!is.null(input$input_SM))
+            vals$sm <- read.csv(input$input_SM$datapath, check.names=FALSE, row.names=1)
+    })
+    
+    observe({
+        if (is.null(input$box_estSM) ||
+            input$box_estSM == 0)
+            return()
+        showNotification(h5("Estimating spillover..."), id="msg", 
+                         type="message", duration=NULL, closeButton=FALSE)
+        vals$sm <- computeSpillmat(x = vals$re3)
+        removeNotification(id="msg")
+    })
+    
+    output$text_compCytof <- renderUI({
+        if (is.null(input$box_estSM) ||
+            input$box_estSM == 0)
+            return()
+        tagList(textOutput("text_compCytof_1"), 
+                verbatimTextOutput("text_compCytof_2"))
+    })
 
-        # render plot tabs
+# --------------------------------------------------------------------------------------------------
+# toggle checkboxes
+    
+    observe({
+        if (is.null(input$box_upldSM) ||
+            input$box_upldSM == 0)
+            return()
+        updateCheckboxInput(session, "box_estSM", value=FALSE)
+    })
+    
+    observe({
+        if (is.null(input$box_estSM) ||
+            input$box_estSM == 0)
+            return()
+        updateCheckboxInput(session, "box_upldSM", value=FALSE)
+    })
+    
+# -------------------------------------------------------------------------------------------------- 
+    
+    observe({
+        if (is.null(vals$ff1) || 
+            is.null(input$input_bcChs))
+            return()
         output$panel_estTrim      <- renderUI({ panel_estTrim      })
         output$panel_plotSpillmat <- renderUI({ panel_plotSpillmat })
         output$panel_plotScatter  <- renderUI({ panel_plotScatter  }) 
@@ -378,35 +428,34 @@ shinyServer(function(input, output, session) {
             panel_scatters(flowCore::colnames(vals$ff1),
                 input$input_bcChs[1], input$input_bcChs[2])
         })
+    })
+    
+    observe({
+        if (is.null(vals$sm)) return()
+        output$text_compCytof_1 <- renderText(
+            "WARNING: Compensation is likely to be inaccurate. 
+            Spill values for the following interactions have not been estimated:")
+        output$text_compCytof_2 <- renderPrint(
+            cat(capture.output(vals$cmp1 <- compCytof(x=vals$ff1, y=vals$sm)), sep="\n"))
+        vals$cmp2 <- compCytof(x=vals$ff2, y=vals$sm)
         
-        # estTrim()
-        output$plot_estTrim <- renderPlot(
-            (estTrim(x = vals$re3)))
-        
-        # computeSpillmat()
-        vals$sm <- computeSpillmat(x = vals$re3)
-        
-        # plotScatter()
-        output$plot_plotScatter <- renderPlot(
-            plotScatter(x = vals$re3,
-                        SM = vals$sm)
-        )
+    })
 
-        # spillover matrix heat map
-        output$plot_plotSpillmat <- renderPlot(
-            plotSpillmat(bc_ms = vals$key,
-                         SM = vals$sm)
-        )
-        
-        # compensate
-        output$text_compCytof_1 <- renderText({
-                "WARNING: Compensation is likely to be inaccurate. 
-                 Spill values for the following interactions have not been estimated:"
-        })
-        output$text_compCytof_2 <- renderPrint({
-            cat(capture.output(vals$cmp1 <- compCytof(x = vals$ff1, y = vals$sm)), sep="\n")
-        })
-        vals$cmp2 <- compCytof(x = vals$ff2, y = vals$sm)
+    output$plot_plotSpillmat <- renderPlot({
+        if (is.null(vals$sm)) return()
+        input$button_newSpill
+        plotSpillmat(bc_ms=vals$key, SM=isolate(vals$sm))
+    })
+    
+    output$plot_plotScatter <- renderPlot({
+        if (is.null(vals$sm)) return()
+        input$button_newSpill
+        plotScatter(x=vals$re3, SM=isolate(vals$sm))
+    })
+    
+    output$compensation_sidebar_2 <- renderUI({
+        if (is.null(vals$cmp1) || is.null(vals$cmp2) || is.null(vals$sm)) return()
+        compensation_sidebar_2
     })
 
 # --------------------------------------------------------------------------------------------------
@@ -416,60 +465,68 @@ shinyServer(function(input, output, session) {
     output$text_spill <- renderText({
         input$button_view
         paste0(sprintf("%.3f", 100*vals$sm[isolate(input$input_scatterCh1), 
-                                    isolate(input$input_scatterCh2)]), "%")
+                                           isolate(input$input_scatterCh2)]), "%")
+    })
+    
+    # adjust spill
+    observeEvent(input$button_newSpill, {
+        if (is.null(input$input_newSpill)) 
+            return()
+        vals$sm[input$input_scatterCh1, 
+                input$input_scatterCh2] <- input$input_newSpill/100
     })
     
     # top-left scatter (ff1 uncompensated)
-    output$plot_scatter1 <- renderPlot({
+    output$plot_scatter1 <- renderPlot({ 
         input$button_view
-        scatter(ff = vals$ff1,
-                which = c(isolate(input$input_scatterCh1),
-                          isolate(input$input_scatterCh2)),
-                cofactor = isolate(input$input_cofactor))
+        scatter(ff=vals$ff1, 
+                which=c(isolate(input$input_scatterCh1), 
+                        isolate(input$input_scatterCh2)),
+                cofactor=isolate(input$input_cofactor))
     })
     output$text_info1 <- renderText({ 
-        text_info(vals$ff1, input$input_cofactor, input$rect1, 
+        text_info(vals$ff1, isolate(input$input_cofactor), input$rect1, 
             isolate(input$input_scatterCh1), isolate(input$input_scatterCh2))
     })   
     
     # top-right scatter (ff1 compensated)
     output$plot_scatter2 <- renderPlot({
-        input$button_view
-        scatter(ff = vals$cmp1,
-                which = c(isolate(input$input_scatterCh1),
-                          isolate(input$input_scatterCh2)),
-                cofactor = isolate(input$input_cofactor))
+        (input$button_view || input$button_newSpill)
+        scatter(ff=isolate(vals$cmp1),
+                which=c(isolate(input$input_scatterCh1),
+                        isolate(input$input_scatterCh2)),
+                cofactor=isolate(input$input_cofactor))
     })
     output$text_info2 <- renderText({ 
         input$button_view 
-        text_info(vals$cmp1, input$input_cofactor, input$rect2, 
+        text_info(isolate(vals$cmp1), isolate(input$input_cofactor), input$rect2, 
             isolate(input$input_scatterCh1), isolate(input$input_scatterCh2))
     })
     
     # bottom-left scatter (ff2 uncompensated)
     output$plot_scatter3 <- renderPlot({ 
         input$button_view 
-        scatter(ff = vals$ff2,
-                which = c(isolate(input$input_scatterCh1), 
-                          isolate(input$input_scatterCh2)),
-                cofactor = isolate(input$input_cofactor))
+        scatter(ff=vals$ff2,
+                which=c(isolate(input$input_scatterCh1), 
+                        isolate(input$input_scatterCh2)),
+                cofactor=isolate(input$input_cofactor))
     })
     output$text_info3 <- renderText({ 
-        text_info(vals$ff2, input$input_cofactor, input$rect3,
+        text_info(vals$ff2, isolate(input$input_cofactor), input$rect3,
                   isolate(input$input_scatterCh1), isolate(input$input_scatterCh2))
     }) 
     
     # bottom-left scatter (ff2 uncompensated)
     output$plot_scatter4 <- renderPlot({ 
-        input$button_view 
-        scatter(ff = vals$cmp2,
-                which = c(isolate(input$input_scatterCh1), 
-                          isolate(input$input_scatterCh2)),
-                cofactor = isolate(input$input_cofactor))
+        (input$button_view || input$button_newSpill)
+        scatter(ff=isolate(vals$cmp2),
+                which=c(isolate(input$input_scatterCh1), 
+                        isolate(input$input_scatterCh2)),
+                cofactor=isolate(input$input_cofactor))
     })
     output$text_info4 <- renderText({ 
         input$button_view 
-        text_info(vals$cmp2, input$input_cofactor, input$rect4, 
+        text_info(isolate(vals$cmp2), isolate(input$input_cofactor), input$rect4, 
             isolate(input$input_scatterCh1), isolate(input$input_scatterCh2))
     })
     
@@ -489,12 +546,12 @@ shinyServer(function(input, output, session) {
                                           plotEvents(x = vals$re3, which = vals$ep_choices, out_path = tmpdir, n_events = as.numeric(input$n_events))
                                           zip(zipfile=file, contentType = "application/zip", files=paste0(c("summary_yield_plot", "yield_plot", "event_plot"), ".pdf")) })
     
-    output$dwnld_1  <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs), "-comped.fcs") },
-                                       content  = function(file) { flowCore::write.FCS(ffc,  file) })
-    output$dwnld_2  <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs2),"-comped.fcs") },
-                                       content  = function(file) { flowCore::write.FCS(ff2c, file) })
-    output$dwnld_cm <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs), "-sm.csv") },
-                                       content  = function(file) { write.csv(CM, file) })
+    output$dwnld_comped_1 <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs), "-comped.fcs") },
+                                             content  = function(file) { flowCore::write.FCS(vals$cmp1, file) })
+    output$dwnld_comped_2 <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs2),"-comped.fcs") },
+                                             content  = function(file) { flowCore::write.FCS(vals$cmp2, file) })
+    output$dwnld_spillMat <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs), "-spillMat.csv") },
+                                             content  = function(file) { write.csv(vals$sm, file) })
     
 })
 
