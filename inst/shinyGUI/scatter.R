@@ -1,7 +1,5 @@
 scatter <- function(ff, which, cofactor=50, out_path=NULL, name_ext=NULL) {
-  
-    library(ggplot2)
-    
+
     es <- flowCore::exprs(ff)  
     es <- asinh(es / cofactor) 
     if (nrow(ff) > 1e4)         

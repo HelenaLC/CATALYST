@@ -1,13 +1,11 @@
 # load required packages
-pkgs <- c("shiny", "shinydashboard", "shinyjs")
+pkgs <- c("shiny")
 lapply(pkgs, require, character.only=TRUE)
 
 # set maximum web request size to 500 MB
 options(shiny.maxRequestSize=500*1024^2)
 
 shinyServer(function(input, output, session) {
-
-    library(magrittr)
     
     source("ui/guides.R")
     source("ui/aes.R")
@@ -16,7 +14,6 @@ shinyServer(function(input, output, session) {
     source("ui/compensation_plots.R")
     source("helpers.R")
     source("scatter.R")
-    library(CATALYST)
     
 # --------------------------------------------------------------------------------------------------
     
