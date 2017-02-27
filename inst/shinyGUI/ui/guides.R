@@ -19,12 +19,12 @@ debarcoding_guide <- fluidPage(
     
     box(width=12, status="primary", style="background-color:aliceblue", tags$ul(
         tags$li(strong("Upload FCS"), "- the measurement data you wish to debarcode"),
-        tags$li(strong("Upload barcoding scheme"), "(CSV) - a binary matrix 
+        tags$li(strong("Upload barcoding scheme"), "- a binary matrix 
                 with barcode masses as column and sample IDs as row names
                 that specifies which channels are to be positive for each sample", 
                 HTML("<u>or</u>"), strong("Select barcode channels"), 
                 "in the case of single-stained samples",
-                div(style="display:inline; color:firebrick", "- this is required for compensation!")),
+                div(style="display:inline; color:firebrick", "- these may be used for compensation.")),
         tags$li(strong("Assign preliminary IDs", style="color:steelblue")),
         tags$li(strong("Estimate separation cutoffs"), 
                 "(this will be done automatically) or", 
@@ -40,7 +40,6 @@ debarcoding_guide <- fluidPage(
                 strong("Get plots", style="color:green"), 
                 "to download diagnostic plots"))),
               
-
     h4("Assignment of preliminary barcode IDs", style="color:darkorange"),
     p("The debarcoding step commences by preliminarily assigning each event to a sample.
       In the simplest case of single-stained data, the most intense channel is considered positive 
@@ -79,15 +78,20 @@ compensation_guide <- fluidPage(
 
     
     box(width=12, status="primary", style="background-color:aliceblue", tags$ul(
-        tags$li(strong("Upload FCS"), "- the measurement data you wish to compensate")))
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-)
+        tags$li(strong("Upload FCS"), "- the measurement data you wish to compensate"),
+        tags$li(strong("Upload spillover matrix (CSV)"),
+                "- a spillover matrix with column and row names", 
+                HTML("<u>or</u>"), strong("Estimate spill from single-stained controls"),
+                div(style="display:inline; color:firebrick", 
+                    "- this requires having selected barcode channels during debarcoding!")),
+        tags$li("Review", strong("Before vs. after scatters", style="color:dimgrey"), 
+                "to check current compensation and", 
+                strong("Adjust", style="color:orange"), 
+                "spill values to align positive and negative populations"),
+        tags$li("Download", strong("Compensated beads, cells and spillover matrix", style="color:green")))))
+
+
+
+
+
+
