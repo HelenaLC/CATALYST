@@ -1,3 +1,9 @@
+#' @rdname launchGUI
+#' @export
+setGeneric(name="launchGUI", 
+    package="CATALYST", 
+    def=function(object) standardGeneric("launchGUI"))
+
 # ==============================================================================
 # Generics to access slots in a dbFrame
 # ------------------------------------------------------------------------------
@@ -165,6 +171,13 @@ setGeneric(name="estTrim",
 setGeneric(name="computeSpillmat", 
     package="CATALYST",
     def=function(x, ...) standardGeneric("computeSpillmat"))
+
+#' @rdname plotScatter
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotScatter", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotScatter"))
 
 #' @rdname compCytof
 #' @param ... optional arguments.
