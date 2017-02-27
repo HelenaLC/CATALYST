@@ -1,9 +1,3 @@
-#' @rdname launchGUI
-#' @export
-setGeneric(name="launchGUI", 
-    package="CATALYST", 
-    def=function(object) standardGeneric("launchGUI"))
-
 # ==============================================================================
 # Generics to access slots in a dbFrame
 # ------------------------------------------------------------------------------
