@@ -163,7 +163,7 @@ setMethod(f="plotYields",
                                      pch=21, size=3, alpha=.5, stroke=.5,
                                      col="navy", fill="cornflowerblue") +
                           geom_line(data=df_c, aes_string(x="sep", y="pred"), 
-                              col="firebrick")
+                              col="red")
                       
                       if (annotate & length(x@sep_cutoffs) != 0) {
                           # add vertical line at cutoff estimate

@@ -59,7 +59,6 @@ setMethod(f="computeSpillmat",
               n_chs <- length(chs)
               tmp <- gregexpr("[0-9]+", chs)
               ms <- as.numeric(regmatches(chs, tmp))
-              
               mets <- gsub("[[:digit:]]+Di", "", chs)
               
               # get barcode IDs and barcodes masses

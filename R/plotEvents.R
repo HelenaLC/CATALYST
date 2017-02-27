@@ -62,7 +62,7 @@ setMethod(f="plotEvents",
                 "using default value \"all\".")
         } else if (!"all" %in% which) {
             which <- check_validity_which(
-                which, rownames(x@bc_key), "events")
+                which, rownames(bc_key(x)), "events")
         }
         if (!is.numeric(n_events) || n_events == 0 || length(n_events) > 1) {
             warning("'n_events' must be a numeric greater than 0",
@@ -71,37 +71,42 @@ setMethod(f="plotEvents",
         }
         # ······································································
 
-        n_chs <- ncol(x@bc_key)
-        ids <- sort(unique(x@bc_ids))
+        n_chs <- ncol(bc_key(x))
+        bc_ids <- rownames(bc_key(x))
+        ids <- sort(unique(bc_ids(x)))
         if ("all" %in% which) which <- ids
 
         # get barcode labels: 
         # channel name if barcodes are single-positive, 
         # barcode ID and binary code elsewise 
-        if (sum(rowSums(x@bc_key) == 1) == nrow(x@bc_key)) {
-            nms <- colnames(x@exprs)
+        if (sum(rowSums(bc_key(x)) == 1) == nrow(bc_key(x))) {
+            nms <- colnames(exprs(x))
             ms <- as.numeric(gsub("[[:alpha:][:punct:]]", "", nms))
-            bc_labs <- paste(nms[ms %in% colnames(x@bc_key)])
+            bc_labs <- paste(nms[ms %in% colnames(bc_key(x))])
         } else {
-            bc_labs <- paste0(rownames(x@bc_key), ": ", 
-                apply(x@bc_key, 1, function(x) paste(x, collapse="")))
+            bc_labs <- paste0(bc_ids, ": ", 
+                apply(bc_key(x), 1, function(x) paste(x, collapse="")))
         }
-        if (0 %in% ids) bc_labs <- c("Unassigned", bc_labs)
+        
+        if (0 %in% ids) {
+            bc_labs <- c("Unassigned", bc_labs)
+            bc_ids <- c(0, bc_ids)
+        }
         
         # get colors for plotting:
         # interpolate if more than 11 barcodes, 
         # use colors spaced equally along palette elsewise
         pal <- RColorBrewer::brewer.pal(11,"Spectral")
         if (n_chs > 11) {
-            cols <- colorRampPalette(pal)(ncol(x@normed_bcs))
+            cols <- colorRampPalette(pal)(ncol(normed_bcs(x)))
         } else {
-            cols <- pal[ceiling(seq(1, 11, length=ncol(x@normed_bcs)))] 
+            cols <- pal[ceiling(seq(1, 11, length=ncol(normed_bcs(x))))] 
         }
         
         skipped <- NULL
         p <- list()
         for (id in which) {
-            inds <- x@bc_ids == id
+            inds <- bc_ids(x) == id
             n <- sum(inds)
             # store IDs with no or insufficient events assigned
             if (sum(inds) < 50) {
@@ -112,7 +117,7 @@ setMethod(f="plotEvents",
             if (sum(inds) > n_events) 
                 inds <- sort(sample(which(inds), n_events))
             # use normalized barcode intensities
-            ints <- x@normed_bcs[inds, ]
+            ints <- normed_bcs(x)[inds, ]
 
             df <- data.frame(
                 event=rep(1:(length(ints) / n_chs), each=n_chs),
@@ -123,14 +128,14 @@ setMethod(f="plotEvents",
                 geom_point(stroke=.5, size=1+100/sum(inds), aes_string(
                     x="event", y="intensity", col="as.factor(bc)", alpha=.8)) +
                 scale_colour_manual(values=cols, name=NULL, 
-                    labels=colnames(x@normed_bcs)) + 
+                    labels=colnames(normed_bcs(x))) + 
                 guides(alpha=FALSE, 
                     colour=guide_legend(override.aes=list(size=3))) +
                 scale_x_discrete(limits=NULL, labels=NULL) + 
                 expand_limits(x=c(0, nrow(ints)+1)) +
                 ylim(floor(4*min(ints))/4, ceiling(4*max(ints))/4) + 
                 xlab("Event number") + ylab("Normalized intensity") + 
-                ggtitle(bquote(bold(.(bc_labs[pmatch(id, bc_labs)]))*
+                ggtitle(bquote(bold(.(bc_labs[match(id, bc_ids)]))*
                         scriptstyle(" ("*.(n)*" events)"))) +
                 theme_bw() + theme(legend.key=element_blank(),
                     panel.grid.major=element_line(color="lightgrey"),
