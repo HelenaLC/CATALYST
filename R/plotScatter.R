@@ -23,8 +23,8 @@
 #' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
-#' compMat <- computeCompmat(x = re)
-#' plotScatter(x = re, CM = compMat)
+#' spillMat <- computeSpillmat(x = re)
+#' plotScatter(x = re, SM = spillMat)
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2
@@ -33,19 +33,25 @@
 
 # --------------------------------------------------------------------------------
 
-plotScatter <- function(x, CM, out_path=NULL, name_ext=NULL) {
-    
+setMethod(f="plotScatter", 
+    signature=signature(x="dbFrame"), 
+    definition=function(x, SM, out_path=NULL, name_ext=NULL) {
+
+    CM <- solve(make_symetric(SM))
     ids <- as.numeric(rownames(x@bc_key))
     n_bcs <- length(ids)
     
-    nms <- paste(colnames(CM))
+    nms <- paste(colnames(x@exprs))
     ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
     bc_cols <- which(ms %in% ids)
     bc_range <- min(bc_cols) : max(bc_cols)
     n <- length(bc_range)
     ms <- ms[bc_range]
     
-    es <- list(x@exprs, x@exprs %*% CM)
+    cols <- colnames(x@exprs) %in% colnames(CM)
+    comped <- x@exprs
+    comped[, cols] <- comped[, cols] %*% CM
+    es <- list(x@exprs, comped)
     es <- lapply(es, function(x) x[, bc_range])
 
     df <- NULL
@@ -84,6 +90,6 @@ plotScatter <- function(x, CM, out_path=NULL, name_ext=NULL) {
     } else {
         plot(p)
     }
-}
+})
 
   
