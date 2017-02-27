@@ -42,7 +42,7 @@ summary_tbl <- function(x) {
 
 text_info <- function(ff, cofactor, brush, ch1, ch2) {
     if (is.null(brush)) {
-        paste("Please brush points\n to check medians.")
+        paste("Brush points\n to check medians.")
     } else {
         selected <- brushedPoints(
             df=data.frame(asinh(flowCore::exprs(ff) / cofactor)),
