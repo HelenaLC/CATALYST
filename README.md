@@ -8,6 +8,12 @@ devtools::install_github(repo = "HelenaLC/CATALYST",
                          auth_token = "65a3354f8323e33574e9659dfc9f639a47149e47")
 ```
 
+To launch the Shiny GUI, run:
+
+```r
+CATALYST::launchGUI()
+```
+
 **02/18/17 update**
 
 - added validity check for "n_events" in `plotEvents()` and  
