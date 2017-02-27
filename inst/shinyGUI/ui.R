@@ -1,5 +1,3 @@
-library(shinydashboard)
-
 header <- dashboardHeader(title=tagList("CATALYST", icon("rocket")))
 
 header$children[[3]]$children <- tagList(
