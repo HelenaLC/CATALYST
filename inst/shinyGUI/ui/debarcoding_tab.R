@@ -24,7 +24,7 @@ debarcoding_tab <- fluidPage(
 # ------------------------------------------------------------------------------
 
 debarcoding_sidebar_1 <- tagList(
-    checkboxInput("box_csv", "Upload barcoding scheme", value=TRUE),   
+    checkboxInput("box_csv", "Upload barcoding scheme (CSV)", value=TRUE),   
     uiOutput("file_csv"),
     checkboxInput("box_bcChs", "Select barcode channels"), 
     uiOutput("select_bcChs"),
