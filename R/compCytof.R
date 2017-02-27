@@ -67,8 +67,8 @@ setMethod(f="compCytof",
         first = TRUE
         for (i in seq_along(new_ms)) {
             idx = which(ms == new_ms[i] & all_mets == new_mets[i])
-            if ( length(spill_cols[[idx]]) > 0){
-                if (first){
+            if ( length(spill_cols[[idx]]) > 0) {
+                if (first) {
                     message("WARNING: Compensation is likely to be inaccurate.\n",
                             "         Spill values for the following interactions\n",
                             "         have not been estimated:")
@@ -151,7 +151,10 @@ setMethod(f="compCytof",
         })
 
 
-
+get_warnings <- function() {
+    print("Warning") 
+    return("Data")
+}
 
 
 

@@ -32,6 +32,7 @@
 #' @import ggplot2 grid gridExtra
 #' @importFrom grDevices colorRampPalette
 #' @export
+
 # ==============================================================================
 
 plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
@@ -86,7 +87,7 @@ plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
     
     p <- ggplot_gtable(ggplot_build(p))
     p$layout$clip[p$layout$name == "panel"] <- "off"
-    grid.draw(p)
+    grid::grid.draw(p)
 }
               
               
