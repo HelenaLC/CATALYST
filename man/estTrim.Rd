@@ -45,3 +45,4 @@ estTrim(x = re, min = 0.06, max = 0.14, step = 0.02)
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
+

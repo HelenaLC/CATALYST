@@ -55,12 +55,13 @@ plotYields(x = re, which = 0)
 plotYields(x = re, which = "D1")
 
 }
+\author{
+Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+}
 \references{
 Zunder, E.R. et al. (2015).
 Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
 and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
-\author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-}
+
