@@ -33,3 +33,4 @@ plotSpillmat(bc_ms = bc_ms, SM = spillMat)
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
+

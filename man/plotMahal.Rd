@@ -40,9 +40,10 @@ re <- applyCutoffs(x = re)
 plotMahal(x = re, which = "B4")
 
 }
-\references{
-
-}
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
+\references{
+
+}
+

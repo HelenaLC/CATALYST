@@ -48,3 +48,4 @@ head(computeSpillmat(x = re))
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
+

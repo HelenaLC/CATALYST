@@ -39,3 +39,4 @@ plotScatter(x = re, SM = spillMat)
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
+
