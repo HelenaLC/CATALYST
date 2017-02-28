@@ -47,8 +47,11 @@ setMethod(f="computeSpillmat",
           
           definition=function(x, method="mean", trim=.08) {
               
-              if(method=="mean")
-                  method = function(...) mean(..., trim=trim)
+              if (method == "mean") {
+                  method=function(...) mean(..., trim=trim) 
+              } else if (method == "median") {
+                  method=function(...) median(...)
+              }
               
               if (sum(rowSums(x@bc_key) == 1) != ncol(x@bc_key)) 
                   stop("Cannot compute compensation matrix 
