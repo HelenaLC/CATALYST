@@ -14,6 +14,10 @@ To launch the Shiny GUI, run:
 CATALYST::launchGUI()
 ```
 
+**02/27/17 update**
+- *** added Shiny GUI ***
+- fixed argument "method" in `computeSpillmat()`
+
 **02/18/17 update**
 
 - added validity check for "n_events" in `plotEvents()` and  
