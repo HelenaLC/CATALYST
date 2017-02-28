@@ -8,12 +8,11 @@ compensation_tab <- fluidPage(
     sidebarLayout(position="left",
                   mainPanel(width=8,
                             tabBox(width=12,
-                                   tabPanel(icon("info-circle"), uiOutput("compensation_guide")),
-                                   tabPanel("Estimate trim",    uiOutput("panel_estTrims")),
-                                   tabPanel("Spillover matrix", uiOutput("panel_plotSpillmat")),
-                                   tabPanel("Summary plot",     uiOutput("panel_plotScatter")),
-                                   tabPanel("Before vs. after", uiOutput("panel_scatters")))
-                            ),
+                                   tabPanel(icon("info-circle"),         uiOutput("compensation_guide")),
+                                   tabPanel("Trim value estimation",     uiOutput("panel_estTrims")),
+                                   tabPanel("Spillover matrix",          uiOutput("panel_plotSpillmat")),
+                                   tabPanel("Before vs. after scatters", uiOutput("panel_scatters")),
+                                   tabPanel("Summary plot",              uiOutput("panel_plotScatter")))),
                   sidebarPanel(width=4,
                                fileInput("fcs2", "Upload FCS", accept=".fcs"),
                                uiOutput("compensation_sidebar_1"),
@@ -22,15 +21,16 @@ compensation_tab <- fluidPage(
 # ------------------------------------------------------------------------------
 
 compensation_sidebar_1 <- tagList(
-    checkboxInput("box_upldSM", "Upload spillover matrix (CSV)", value=TRUE),
+    checkboxInput("box_estSM", "Estimate spill from single-stained controls", value=TRUE),
+    checkboxInput("box_upldSM", "Upload spillover matrix (CSV)"),
     uiOutput("input_upldSM"),
-    checkboxInput("box_estSM",    "Estimate spill from single-stained controls"),
     uiOutput("text_compCytof"), 
-    checkboxInput("box_useMedians", "Use medians"),
-    checkboxInput("box_estTrim", "Use trim estimate", value=TRUE),
+    checkboxInput("box_useMedians", "Use medians", value=TRUE),
+    checkboxInput("box_estTrim", "Estimate trim value"),
     checkboxInput("box_enterTrim", "Enter trim value"),
-    uiOutput("input_enterTrim"))
-    #actionButton("button_compensate", "Compensate", style=button_style))
+    uiOutput("text_enterTrim"),
+    div(uiOutput("input_enterTrim"),  style="display:inline-block; width:25%"),
+    div(uiOutput("button_enterTrim"), style="display:inline-block; width:25%; vertical-align:top"))
 
 # ------------------------------------------------------------------------------
 
