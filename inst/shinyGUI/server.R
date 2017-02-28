@@ -1,5 +1,5 @@
 # load required packages
-pkgs <- c("shiny", "shinydashboard", "ggplot2")
+pkgs <- c("shiny", "shinydashboard", "ggplot2", "magrittr")
 lapply(pkgs, require, character.only=TRUE)
 
 # set maximum web request size to 500 MB
@@ -95,7 +95,6 @@ shinyServer(function(input, output, session) {
         observe({
             if (is.null(vals$re2)) return()
         
-
 # --------------------------------------------------------------------------------------------------
 # yield plot panel
 # --------------------------------------------------------------------------------------------------
@@ -323,37 +322,78 @@ shinyServer(function(input, output, session) {
     })
 
 # --------------------------------------------------------------------------------------------------
-# use mean / estimate/enter trim value
+# checkboxes "Use medians" | "Use trim estimate" | "Enter trim value"
 # --------------------------------------------------------------------------------------------------
     
+    # toggle checkboxes
     observe({
-        if (is.null(input$use_mean) || 
-            input$use_mean == 0) 
+        if (is.null(input$box_useMedians) || 
+            input$box_useMedians == 0) 
             return()
-        updateCheckboxInput(session, "est_trim",   value=FALSE)
-        updateCheckboxInput(session, "enter_trim", value=FALSE)
+        updateCheckboxInput(session, "box_estTrim",   value=FALSE)
+        updateCheckboxInput(session, "box_enterTrim", value=FALSE)
     })
     
     observe({
-        if (is.null(input$est_trim) || 
-            input$est_trim == 0) 
+        if (is.null(input$box_estTrim) || 
+            input$box_estTrim == 0) 
             return()
-        updateCheckboxInput(session, "use_mean",   value=FALSE)
-        updateCheckboxInput(session, "enter_trim", value=FALSE)
+        updateCheckboxInput(session, "box_useMedians", value=FALSE)
+        updateCheckboxInput(session, "box_enterTrim",  value=FALSE)
     })
     
     observe({
-        if (is.null(input$enter_trim) || 
-            input$enter_trim == 0) 
+        if (is.null(input$box_enterTrim) || 
+            input$box_enterTrim == 0) 
             return()
-        updateCheckboxInput(session, "use_mean", value=FALSE)
-        updateCheckboxInput(session, "est_trim", value=FALSE)
+        updateCheckboxInput(session, "box_useMedians", value=FALSE)
+        updateCheckboxInput(session, "box_estTrim",    value=FALSE)
     })
     
-    output$enter_trim <- renderUI ({
-        if (input$enter_trim) 
-            numericInput("input_trim", label=NULL, width="32%",
-                         value=.05, min=.01, max=.5, step=.01) })
+    # checkbox "Use medians"
+    observe({
+        if (is.null(input$box_useMedians) || input$box_useMedians == 0) return()
+        showNotification(h5("Estimating spillover..."), id="msg", 
+                         type="message", duration=NULL, closeButton=FALSE)
+        vals$sm  <- computeSpillmat(x=vals$re3, method="median")
+        removeNotification(id="msg")
+    })
+
+    # checkboxe "Use trim estimate"
+    observe({
+        if (is.null(input$box_estTrim) || input$box_estTrim == 0) return()
+        showNotification(h5("Estimating optimal trim value..."), id="msg", 
+                         type="message", duration=NULL, closeButton=FALSE)
+        vals$trm <- estTrim(x=vals$re3)
+        removeNotification(id="msg")
+        showNotification(h5("Estimating spillover..."), id="msg", 
+                         type="message", duration=NULL, closeButton=FALSE)
+        vals$sm  <- computeSpillmat(x=vals$re3, trim=vals$trm)
+        removeNotification(id="msg")
+    })
+    
+    # checkbox "Enter trim value"
+    output$text_enterTrim <- renderUI({
+        if (input$box_enterTrim) 
+            helpText("Note that a trim value of 0.5 is equal to using medians.")
+    })
+    output$input_enterTrim <- renderUI ({
+        if (input$box_enterTrim)
+        numericInput("input_enterTrim", label=NULL,
+                     value=NULL, min=.01, max=.5, step=.01) 
+    })
+    output$button_enterTrim <- renderUI({
+        if (input$box_enterTrim) 
+            actionButton("button_enterTrim", "Confirm", style=ylw_button)
+    })
+    observeEvent(input$button_enterTrim, {
+        if (is.null(input$input_enterTrim)) return()
+        showNotification(h5("Estimating spillover..."), id="msg", 
+                         type="message", duration=NULL, closeButton=FALSE)
+        vals$trm <- input$input_enterTrim
+        vals$sm  <- computeSpillmat(x=vals$re3, trim=vals$trm)
+        removeNotification(id="msg")
+    })
     
 ####################################################################################################
 # COMPENSATION
@@ -381,8 +421,9 @@ shinyServer(function(input, output, session) {
     })
     
     observe({
-        if (is.null(input$box_estSM) ||
-            input$box_estSM == 0)
+        if (is.null(input$box_estSM) || 
+            input$box_estSM == 0 || 
+            is.null(vals$re3)) 
             return()
         showNotification(h5("Estimating spillover..."), id="msg", 
                          type="message", duration=NULL, closeButton=FALSE)
@@ -491,6 +532,7 @@ shinyServer(function(input, output, session) {
     
     # top-right scatter (ff1 compensated)
     output$plot_scatter2 <- renderPlot({
+        if (is.null(vals$cmp1)) return()
         (input$button_view || input$button_newSpill)
         scatter(ff=isolate(vals$cmp1),
                 which=c(isolate(input$input_scatterCh1),
@@ -518,6 +560,7 @@ shinyServer(function(input, output, session) {
     
     # bottom-left scatter (ff2 uncompensated)
     output$plot_scatter4 <- renderPlot({ 
+        if (is.null(vals$cmp2)) return()
         (input$button_view || input$button_newSpill)
         scatter(ff=isolate(vals$cmp2),
                 which=c(isolate(input$input_scatterCh1), 
