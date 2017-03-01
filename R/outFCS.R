@@ -12,6 +12,11 @@
 #' @param out_path
 #' character string. Specifies in which location 
 #' output files are to be generated.
+#' @param out_nms
+#' an optional character string. Specifies the name of a CSV file
+#' containing names to use for each sample's output FCS file
+#' (2 column table: Sample IDs and desired output file names).
+#' If NULL (default), sample IDs will be used as file names.
 #' @param verbose
 # if TRUE (default), a warning is given about populations for which 
 #' no FCS files have been generated.
@@ -36,18 +41,36 @@
 
 setMethod(f="outFCS",       
     signature=signature(x="dbFrame", out_path="character"), 
-    definition=function(x, out_path, verbose=TRUE) {
-        nms <- rownames(x@bc_key)
-        ids <- sort(unique(x@bc_ids))
+    definition=function(x, out_path, out_nms=NULL, verbose=TRUE) {
+        smpl_nms <- rownames(bc_key(x))
+        if (is.null(out_nms)) {
+            out_nms <- rownames(x@bc_key)
+        } else if (is.character(out_nms)) {
+            nms_tbl <- read.csv(out_nms, header=FALSE)
+            if (nrow(nms_tbl) != nrow(bc_key(x)))
+                stop(paste("Only", nrow(nms_tbl), "file names provided
+                           but", nrow(bc_key(x)), "needed."))
+            if (sum(smpl_nms %in% nms_tbl[, 1]) != nrow(bc_key(x))) 
+                stop("Couldn't find a file name for all samples.
+                     Please make sure all sample IDs occur 
+                     in the provided naming scheme.")
+            out_nms <- paste(nms_tbl[,2])
+        }
+        ids <- sort(unique(bc_ids(x)))
         skip <- c()
-        for (i in ids[ids != 0]) {
-            if (sum(x@bc_ids == i) < 10) {
+        for (i in ids) {
+            if (sum(bc_ids(x) == i) < 10) {
                 skip <- c(skip, i) 
                 next
             }
-            ff <- new("flowFrame", exprs=x@exprs[x@bc_ids == i, ])
+            ff <- new("flowFrame", exprs=x@exprs[bc_ids(x) == i, ])
+            if (i == 0) {
+                nm <- "Unassigned"
+            } else {
+                nm <- out_nms[smpl_nms == i]
+            }
             suppressWarnings(
-                write.FCS(ff, file.path(out_path, paste0(i, ".fcs"))))
+                flowCore::write.FCS(ff, file.path(out_path, paste0(nm, ".fcs"))))
         }
         if (verbose) {
             if (length(skip) > 1) {
@@ -58,7 +81,8 @@ setMethod(f="outFCS",
                 cat("o Sample", skip, "contains less than 10 events\n",
                     " (no FCS file has been generated for this barcode)\n")
             }
-            tmp <- nms[!nms %in% ids]
+            
+            tmp <- smpl_nms[!smpl_nms %in% ids]
             if (length(tmp) > 1) {
                 cat("o No events assigned to samples", 
                     paste(tmp, collapse=", "),"")
