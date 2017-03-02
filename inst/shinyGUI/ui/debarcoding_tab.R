@@ -3,8 +3,7 @@
 # ------------------------------------------------------------------------------
 
 debarcoding_tab <- fluidPage(      
-    tags$style(type="text/css", "a{color:steelblue; 
-                                   font-weight:bold}"),
+    tags$style(type="text/css", "a{color:steelblue; font-weight:bold}"),
     sidebarLayout(
         mainPanel(width=8, 
                   fluidPage(
@@ -17,7 +16,8 @@ debarcoding_tab <- fluidPage(
         sidebarPanel(width=4,
                      fileInput("fcs", "Upload FCS", accept=".fcs", width="100%"),
                      uiOutput("debarcoding_sidebar_1"),
-                     uiOutput("debarcoding_sidebar_2"))))
+                     uiOutput("debarcoding_sidebar_2"),
+                     uiOutput("debarcoding_sidebar_3"))))
                                  
                   
 
@@ -38,7 +38,7 @@ debarcoding_sidebar_2 <- tagList(
     # cutoff estimates
     checkboxInput("box_estCutoffs", "Estimate separation cutoffs", value=TRUE),
     # population-specific cutoffs
-    checkboxInput("box_indivCutoffs", "Adjust population-specific cutoffs"),
+    checkboxInput("box_adjustCutoff", "Adjust population-specific cutoffs"),
     div(uiOutput("select_adjustCutoff"), style="display:inline-block; width:25%"),
     div(uiOutput("input_adjustCutoff"),  style="display:inline-block; width:25%; vertical-align:top"),
     div(uiOutput("button_adjustCutoff"), style="display:inline-block; width:25%; vertical-align:top"),
@@ -50,8 +50,16 @@ debarcoding_sidebar_2 <- tagList(
     sliderInput("input_mhlCutoff", "Mahalanobis distance threshold",
                 width="100%", min=0, max=100, value=30),
     # "Apply cutoffs" button
-    actionButton("button_applyCutoffs", "Apply cutoffs", style=button_style),
+    actionButton("button_applyCutoffs", "Apply cutoffs", style=button_style))
+
+# ------------------------------------------------------------------------------
+
+debarcoding_sidebar_3 <- tagList(
     hr(style="border-color:black"),
+    # checkboxes for FCS file naming
+    checkboxInput("box_IDsAsNms", "Use sample IDs as files names", value=TRUE),
+    checkboxInput("box_upldNms",  "Upload naming sheet (CSV)"),
+    uiOutput("upldNms"),
     # download buttons
     tags$style(dwnld_1), tags$style(dwnld_2),
     downloadButton("dwnld_fcs", "Output FCS files", class="dwnld_1"), 

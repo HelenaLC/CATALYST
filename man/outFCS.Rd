@@ -8,7 +8,8 @@
 \usage{
 outFCS(x, out_path, ...)
 
-\S4method{outFCS}{dbFrame,character}(x, out_path, verbose = TRUE)
+\S4method{outFCS}{dbFrame,character}(x, out_path, out_nms = NULL,
+  verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
@@ -17,6 +18,11 @@ outFCS(x, out_path, ...)
 output files are to be generated.}
 
 \item{...}{optional arguments.}
+
+\item{out_nms}{an optional character string. Either the name of a 2 column CSV table 
+with sample IDs and desired output file names, or a vector of length 
+\code{nrow(bc_key(x))} ordered as the samples in the barcoding scheme.
+If NULL (default), sample IDs will be used as file names.}
 
 \item{verbose}{no FCS files have been generated.}
 }
