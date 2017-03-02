@@ -13,9 +13,9 @@
 #' character string. Specifies in which location 
 #' output files are to be generated.
 #' @param out_nms
-#' an optional character string. Specifies the name of a CSV file
-#' containing names to use for each sample's output FCS file
-#' (2 column table: Sample IDs and desired output file names).
+#' an optional character string. Either the name of a 2 column CSV table 
+#' with sample IDs and desired output file names, or a vector of length 
+#' \code{nrow(bc_key(x))} ordered as the samples in the barcoding scheme.
 #' If NULL (default), sample IDs will be used as file names.
 #' @param verbose
 # if TRUE (default), a warning is given about populations for which 
@@ -46,15 +46,22 @@ setMethod(f="outFCS",
         if (is.null(out_nms)) {
             out_nms <- rownames(x@bc_key)
         } else if (is.character(out_nms)) {
-            nms_tbl <- read.csv(out_nms, header=FALSE)
-            if (nrow(nms_tbl) != nrow(bc_key(x)))
-                stop(paste("Only", nrow(nms_tbl), "file names provided
+            if (is.null(dim(out_nms))) {
+                if (length(out_nms) != nrow(bc_key(x)))
+                    stop(paste("Only", length(out_nms), "file names provided
                            but", nrow(bc_key(x)), "needed."))
-            if (sum(smpl_nms %in% nms_tbl[, 1]) != nrow(bc_key(x))) 
-                stop("Couldn't find a file name for all samples.
-                     Please make sure all sample IDs occur 
-                     in the provided naming scheme.")
-            out_nms <- paste(nms_tbl[,2])
+                out_nms <- out_nms
+            } else {
+                nms_tbl <- read.csv(out_nms, header=FALSE)
+                if (nrow(nms_tbl) != nrow(bc_key(x)))
+                    stop(paste("Only", nrow(nms_tbl), "file names provided
+                               but", nrow(bc_key(x)), "needed."))
+                if (sum(smpl_nms %in% nms_tbl[, 1]) != nrow(bc_key(x))) 
+                    stop("Couldn't find a file name for all samples.
+                         Please make sure all sample IDs occur 
+                         in the provided naming scheme.")
+                out_nms <- paste(nms_tbl[,2])
+            }
         }
         ids <- sort(unique(bc_ids(x)))
         skip <- c()

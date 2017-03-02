@@ -29,6 +29,7 @@ shinyServer(function(input, output, session) {
         ep_choices  = NULL, # only IDs with events assigned
         adj_choices = NULL, # all barcode IDs excluding 0
         mhl_choices = NULL, # IDs with events assigned excluding 0
+        nms = NULL,  # names to use for output FCS files
 # COMPENSATION
         ff2  = NULL, # input flowFrame for compensation
         log  = NULL, # console output
@@ -91,6 +92,8 @@ shinyServer(function(input, output, session) {
         
         output$debarcoding_sidebar_2 <- renderUI ({ debarcoding_sidebar_2 })
         })
+    
+        
 
         observe({
             if (is.null(vals$re2)) return()
@@ -170,15 +173,15 @@ shinyServer(function(input, output, session) {
     # CHECKBOX - "Adjust population-specific cutoffs"
     # SELECT - choose bc for cutoff adjustment
     output$select_adjustCutoff <- renderUI ({
-        if (input$box_indivCutoffs)
+        if (input$box_adjustCutoff)
             selectInput("select_adjustCutoff", NULL,
                         choices=vals$adj_choices, selected=vals$adj_choices[1])
     })
     
     # synchronize select_adjustCutoff w/ yield plot
     observe({
-        if (is.null(input$box_indivCutoffs) || 
-            input$box_indivCutoffs == 0 || 
+        if (is.null(input$box_adjustCutoff) || 
+            input$box_adjustCutoff == 0 || 
             input$yp_which == 0) 
             return() 
         updateSelectInput(session, "select_adjustCutoff", 
@@ -187,7 +190,7 @@ shinyServer(function(input, output, session) {
     
     # INPUT - enter cutoff val
     output$input_adjustCutoff <- renderUI ({
-        if (input$box_indivCutoffs)
+        if (input$box_adjustCutoff)
             numericInput("input_adjustCutoff", NULL,
                          min=0, max=1, step=.01,
                          value=vals$re2@sep_cutoffs[
@@ -196,7 +199,7 @@ shinyServer(function(input, output, session) {
     
     # BUTTON - "Adjust"
     output$button_adjustCutoff <- renderUI ({
-        if (input$box_indivCutoffs) 
+        if (input$box_adjustCutoff) 
             actionButton("button_adjustCutoff", "Adjust", style=ylw_button)
     })
     
@@ -270,13 +273,13 @@ shinyServer(function(input, output, session) {
         if (is.null(input$box_estCutoffs) || 
             input$box_estCutoffs == 0) 
             return()
-        updateCheckboxInput(session, "box_indivCutoffs", value=FALSE)
+        updateCheckboxInput(session, "box_adjustCutoff", value=FALSE)
         updateCheckboxInput(session, "box_globalCutoff", value=FALSE)
     })
     
     observe({
-        if (is.null(input$box_indivCutoffs) || 
-            input$box_indivCutoffs == 0) 
+        if (is.null(input$box_adjustCutoff) || 
+            input$box_adjustCutoff == 0) 
             return()
         updateCheckboxInput(session, "box_estCutoffs",   value=FALSE)
         updateCheckboxInput(session, "box_globalCutoff", value=FALSE)
@@ -287,7 +290,7 @@ shinyServer(function(input, output, session) {
             input$box_globalCutoff == 0) 
             return()
         updateCheckboxInput(session, "box_estCutoffs",   value=FALSE)
-        updateCheckboxInput(session, "box_indivCutoffs", value=FALSE)
+        updateCheckboxInput(session, "box_adjustCutoff", value=FALSE)
     })
 
 # --------------------------------------------------------------------------------------------------
@@ -319,6 +322,8 @@ shinyServer(function(input, output, session) {
             plotMahal(x = vals$re3, 
                       which = input$mhl_which,
                       cofactor = input$input_mhlCofactor))
+        
+        output$debarcoding_sidebar_3 <- renderUI({ debarcoding_sidebar_3 })
     })
 
 # --------------------------------------------------------------------------------------------------
@@ -364,7 +369,7 @@ shinyServer(function(input, output, session) {
         if (is.null(input$box_estTrim) || input$box_estTrim == 0) return()
         showNotification(h5("Estimating optimal trim value..."), id="msg", 
                          type="message", duration=NULL, closeButton=FALSE)
-        vals$trm <- estTrim(x=vals$re3)
+        output$plot_estTrim <- renderPlot({ vals$trm <- estTrim(x=vals$re3) })
         removeNotification(id="msg")
         showNotification(h5("Estimating spillover..."), id="msg", 
                          type="message", duration=NULL, closeButton=FALSE)
@@ -439,6 +444,26 @@ shinyServer(function(input, output, session) {
                 verbatimTextOutput("text_compCytof_2"))
     })
 
+    output$upldNms <- renderUI({
+        if (input$box_upldNms)
+        tagList(
+            helpText("A table with 2 columns: 
+                     Sample IDs and the desired file names."),
+            fileInput("input_upldNms", NULL, accept=".csv"))
+    })
+# 
+#     output$input_upldNms <- renderUI({
+#         if (input$box_upldNms)
+#             fileInput("input_upldNms", NULL, accept=".csv")
+#     })
+#     
+    observe({
+        if (is.null(input$input_upldNms) ||
+            input$box_upldNms == 0)
+            return()
+        vals$nms <- read.csv(input$input_upldNms$datapath, header=FALSE)
+    })
+
 # --------------------------------------------------------------------------------------------------
 # toggle checkboxes
     
@@ -454,6 +479,20 @@ shinyServer(function(input, output, session) {
             input$box_estSM == 0)
             return()
         updateCheckboxInput(session, "box_upldSM", value=FALSE)
+    })
+    
+    observe({
+        if (is.null(input$box_IDsAsNms) ||
+            input$box_IDsAsNms == 0)
+            return()
+        updateCheckboxInput(session, "box_upldNms", value=FALSE)
+    })
+    
+    observe({
+        if (is.null(input$box_upldNms) ||
+            input$box_upldNms == 0)
+            return()
+        updateCheckboxInput(session, "box_IDsAsNms", value=FALSE)
     })
     
 # -------------------------------------------------------------------------------------------------- 
@@ -579,14 +618,38 @@ shinyServer(function(input, output, session) {
     
     output$dwnld_fcs  <- downloadHandler(filename = function()     { "fcs.zip" },
                                          content  = function(file) { tmpdir <- tempdir(); setwd(tmpdir)
-                                         outFCS(x = vals$re3, out_path = tmpdir) 
-                                         zip(zipfile=file, files=c(paste0(ep, ".fcs"))) }, 
+                                         inds <- c(0, rownames(bc_key(vals$re3))) %in% sort(unique(bc_ids(vals$re3)))
+                                         if (input$box_IDsAsNms) {
+                                             outFCS(x=vals$re3, out_path=tmpdir) 
+                                             file_nms <- c("Unassigned", rownames(bc_key(vals$re3)))[inds]
+                                         } else if (input$box_upldNms) {
+                                             if (is.null(input$input_upldNms)) {
+                                                 showNotification("Please upload a naming.",
+                                                                  type="error", closeButton=FALSE)
+                                                 return()
+                                             } else if (nrow(vals$nms) < nrow(bc_key(vals$re3))) {
+                                                 showNotification(paste("Only", nrow(vals$nms), 
+                                                                  "file names provided but", 
+                                                                  nrow(bc_key(vals$re3)), "needed."),
+                                                                  type="error", closeButton=FALSE)
+                                                 return()
+                                             } else if (sum(vals$nms[, 1] %in% rownames(bc_key(vals$re3))) != nrow(bc_key(vals$re3))) {
+                                                 showNotification("Couldn't find a file name for all samples.\n
+                                                                  Please make sure all sample IDs occur\n
+                                                                  in the provided naming scheme.",
+                                                                  type="error", closeButton=FALSE)
+                                                 return()
+                                             }
+                                             outFCS(x=vals$re3, out_path=tmpdir, out_nms=paste(vals$nms[, 2]))
+                                             file_nms <- c("Unassigned", paste(vals$nms[, 2]))[inds]
+                                         }
+                                         zip(zipfile=file, files=paste0(file_nms, ".fcs")) }, 
                                          contentType = "application/zip")
     
     output$dwnld_yep   <- downloadHandler(filename = function()     { "yield_event_plots.zip" },
                                           content  = function(file) { tmpdir <- tempdir(); setwd(tmpdir)
-                                          plotYields(x = vals$re3, which = vals$yp_choices, out_path = tmpdir)
-                                          plotEvents(x = vals$re3, which = vals$ep_choices, out_path = tmpdir, n_events = as.numeric(input$n_events))
+                                          plotYields(x=vals$re3, which=vals$yp_choices, out_path=tmpdir)
+                                          plotEvents(x=vals$re3, which=vals$ep_choices, out_path=tmpdir, n_events=as.numeric(input$n_events))
                                           zip(zipfile=file, contentType = "application/zip", files=paste0(c("summary_yield_plot", "yield_plot", "event_plot"), ".pdf")) })
     
     output$dwnld_comped_1 <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs), "-comped.fcs") },

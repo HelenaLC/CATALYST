@@ -25,9 +25,9 @@ compensation_sidebar_1 <- tagList(
     checkboxInput("box_upldSM", "Upload spillover matrix (CSV)"),
     uiOutput("input_upldSM"),
     uiOutput("text_compCytof"), 
-    checkboxInput("box_useMedians", "Use medians", value=TRUE),
-    checkboxInput("box_estTrim", "Estimate trim value"),
+    checkboxInput("box_estTrim", "Estimate trim value", value=TRUE),
     checkboxInput("box_enterTrim", "Enter trim value"),
+    checkboxInput("box_useMedians", "Use medians"),
     uiOutput("text_enterTrim"),
     div(uiOutput("input_enterTrim"),  style="display:inline-block; width:25%"),
     div(uiOutput("button_enterTrim"), style="display:inline-block; width:25%; vertical-align:top"))
