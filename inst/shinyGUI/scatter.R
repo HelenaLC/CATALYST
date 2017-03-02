@@ -32,23 +32,6 @@ scatter <- function(ff, which, cofactor=50, out_path=NULL, name_ext=NULL) {
             axis.title=element_text(size=14), 
             axis.text=element_text(size=12))
 }
-
-# path <- "/Users/HLC/Dropbox/spillover/corrected bead based compensation/Exp3"
-# ff1 <- flowCore::read.FCS(file.path(path, "160805_Exp3_beads-before.fcs"))
-# ff2 <- flowCore::read.FCS(file.path(path, "160805_Exp3_cells-only.fcs"))
-# bc_ms <- c(139, 141:156, 158:176)
-# re <- assignPrelim(x = ff1, y = bc_ms)
-# re <- estCutoffs(x = re)
-# re <- applyCutoffs(x = re)
-# trm <- estTrim(x = re)
-# sm <- computeSpillmat(x = re, trim=trm)
-# library(ggplot2)
-# library(grid)
-# library(gridExtra)
-# scatter(ff = ff1, which = c("Gd160Di", "Yb176Di"), cofactor = 20)
-
-
-
     
    
 
