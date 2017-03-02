@@ -17,8 +17,6 @@ scatter <- function(ff, which, cofactor=50, out_path=NULL, name_ext=NULL) {
         geom_point(alpha=.1, size=2) + 
         geom_rug(sides="tr", col="darkred", alpha=.2, size=.1) + 
         coord_cartesian(xlim=x_lims, ylim=y_lims, expand=FALSE) +
-        #scale_x_continuous(limits=x_lims, labels=function(x) format(x, nsmall=1)) +
-        #scale_y_continuous(limits=y_lims, labels=function(x) format(x, nsmall=1)) +
         scale_x_continuous(labels=function(x) format(x, nsmall=1)) +
         scale_y_continuous(labels=function(x) format(x, nsmall=1)) +
         theme_bw() + theme(
