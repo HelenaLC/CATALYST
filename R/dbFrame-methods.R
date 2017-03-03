@@ -71,6 +71,18 @@ setMethod(f="yields",
 setReplaceMethod(f="bc_ids", 
     signature=signature(object="dbFrame"), 
     definition=function(object, value) {
+        valid_ids <- c(0, rownames(object@bc_key))
+        if (!any(value %in% valid_ids)) {
+            invalid <- value[!value %in% valid_ids]
+            if (length(invalid) == 1) 
+                stop("\n", invalid, " is not a valid barcode ID.",
+                    "\n'bc_ids' should be either 0 = \"unassigned\"",
+                    "\nor occur as rownames in the 'bc_key'.")
+            if (length(invalid) > 1) 
+                stop("\nBarcode IDs ", paste0(invalid, collapse=", "), 
+                    " are invalid.\n'bc_ids' should be either 0 = \"",
+                    "unassigned\"\nor occur as rownames in the 'bc_key'.")
+        }
         object@bc_ids <- value
         return(object)
     })
@@ -151,3 +163,4 @@ setReplaceMethod(f="sep_cutoffs",
         stop("Replacement value must be a non-negative numeric with length one",
             "\n or same length as the number of rows in the 'bc_key'.")
     })
+                
