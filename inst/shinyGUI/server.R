@@ -58,7 +58,12 @@ shinyServer(function(input, output, session) {
 # --------------------------------------------------------------------------------------------------
     
     observeEvent(input$button_assignPrelim, {
-        if (is.null(input$input_bcChs) & is.null(input$csv)) return()
+        if (is.null(input$csv) & is.null(input$input_bcChs)) {
+            showNotification("Please upload a barcoding scheme or
+                             select single-positive channels.",
+                             type="error", closeButton=FALSE)
+            return()
+        }
         
         # get barcode key
         if (!is.null(input$input_bcChs)) {
@@ -73,42 +78,36 @@ shinyServer(function(input, output, session) {
         vals$re1 <- assignPrelim(x=vals$ff1, y=vals$key)
         removeNotification(id="msg")
         
+        # inputSelect choices for yield, event and mahal panel
         vals$adj_choices <- rownames(bc_key(vals$re1))
         vals$yp_choices  <- c(0, rownames(bc_key(vals$re1)))
         names(vals$yp_choices) <- c("All", rownames(bc_key(vals$re1)))
         vals$ids <- sort(unique(bc_ids(vals$re1)))
         vals$ep_choices  <- vals$ids
         vals$mhl_choices <- vals$ids[vals$ids != 0]
-        
-# --------------------------------------------------------------------------------------------------
-# event plot panel
-# --------------------------------------------------------------------------------------------------
-        
+
+        # render yield and event plot panel
         output$ep_panel <- renderUI ({ ep_panel(vals$ep_choices) })
+        output$yp_panel <- renderUI ({ yp_panel(vals$yp_choices) })
+        
         output$plot_plotEvents <- renderPlot(
             plotEvents(x = vals$re1, 
                        which = input$ep_which, 
                        n_events = as.numeric(input$n_events)))
         
         output$debarcoding_sidebar_2 <- renderUI ({ debarcoding_sidebar_2 })
+        
         })
     
-        
-
-        observe({
+        output$plot_plotYields <- renderPlot({
             if (is.null(vals$re2)) return()
+            plotYields(x = vals$re2, 
+                       which = input$yp_which)
+        })
         
-# --------------------------------------------------------------------------------------------------
-# yield plot panel
-# --------------------------------------------------------------------------------------------------
-        
-            output$yp_panel <- renderUI ({ yp_panel(vals$yp_choices) })
-            output$plot_plotYields <- renderPlot(
-                plotYields(x = vals$re2, 
-                           which = input$yp_which))
-            
-            #tags$head(tags$style("#table_summary {white-space:nowrap}"))    
-            output$table_summary <- DT::renderDataTable({ summary_tbl(vals$re2) })
+        output$table_summary <- DT::renderDataTable({ 
+            if (is.null(vals$re2)) return()
+            summary_tbl(vals$re2) 
         })
 
 # --------------------------------------------------------------------------------------------------
@@ -137,12 +136,12 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input$mhl_prev, { 
         if (input$mhl_which == vals$mhl_choices[1]) return()
-        updateSelectInput(session, "ep_which", 
+        updateSelectInput(session, "mhl_which", 
                           selected=vals$mhl_choices[which(vals$mhl_choices == input$mhl_which)-1]) })
     
     observeEvent(input$mhl_next, { 
         if (input$mhl_which == vals$mhl_choices[length(vals$mhl_choices)]) return()
-        updateSelectInput(session, "ep_which", 
+        updateSelectInput(session, "mhl_which", 
                           selected=vals$mhl_choices[which(vals$mhl_choices == input$mhl_which)+1]) })
     
 # --------------------------------------------------------------------------------------------------
@@ -181,9 +180,10 @@ shinyServer(function(input, output, session) {
     # synchronize select_adjustCutoff w/ yield plot
     observe({
         if (is.null(input$box_adjustCutoff) || 
-            input$box_adjustCutoff == 0 || 
-            input$yp_which == 0) 
-            return() 
+            input$box_adjustCutoff == 0 ||
+            is.null(input$yp_which) ||
+            input$yp_which == 0)
+            return()
         updateSelectInput(session, "select_adjustCutoff", 
                           selected=input$yp_which)
     })
@@ -193,8 +193,8 @@ shinyServer(function(input, output, session) {
         if (input$box_adjustCutoff)
             numericInput("input_adjustCutoff", NULL,
                          min=0, max=1, step=.01,
-                         value=vals$re2@sep_cutoffs[
-                             input$select_adjustCutoff == rownames(vals$re2@bc_key)])
+                         value=sep_cutoffs(vals$re2)[
+                             input$select_adjustCutoff == rownames(bc_key(vals$re2))])
     })
     
     # BUTTON - "Adjust"
