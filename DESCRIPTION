@@ -26,4 +26,5 @@ Suggests:
     BiocStyle,
     knitr,
     rmarkdown,
-    shiny
+    shiny,
+    shinydashboard
