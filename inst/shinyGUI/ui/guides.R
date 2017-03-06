@@ -1,7 +1,19 @@
 # ==================================================================================================
+# NORMALIZATION
+# --------------------------------------------------------------------------------------------------
+normalization_guide <- fluidPage(
+    h1("Bead-based normalization", style="color:firebrick"),
+    p("*** IN PROGRESS ***"),
+    p("CATALYST provides an implementation of the bead-based normalization described in", 
+      a("Finck et al., 2015:", em("Normalization of mass cytometry data with bead standards."), 
+        href="http://onlinelibrary.wiley.com/doi/10.1002/cyto.a.22271/abstract"))
+)
+
+# ==================================================================================================
 # DEBARCODING
 # --------------------------------------------------------------------------------------------------
 debarcoding_guide <- fluidPage(
+    
     tags$style(HTML("li{list-style-type:decimal; padding-bottom:5px; padding-top:5px}")),
     h1("Single-cell deconvolution", style="color:firebrick"),
     
@@ -17,7 +29,7 @@ debarcoding_guide <- fluidPage(
       strong("population-specific"), "separation thresholds, as well as", 
       strong("automated estimation"), "and", strong("individual adjustment"), "of these thresholds"),
     
-    box(width=12, status="primary", style="background-color:aliceblue", tags$ul(
+    shinydashboard::box(width=12, status="primary", style="background-color:aliceblue", tags$ul(
         tags$li(strong("Upload FCS"), "- the measurement data you wish to debarcode"),
         tags$li(strong("Upload barcoding scheme"), "- a binary matrix 
                 with barcode masses as column and sample IDs as row names
@@ -66,9 +78,8 @@ debarcoding_guide <- fluidPage(
 # ==================================================================================================
 # COMPENSATION
 # --------------------------------------------------------------------------------------------------
-
 compensation_guide <- fluidPage(
-   
+    
     h1("Bead-based compensation", style="color:firebrick"),
     
     p("CATALYST performs compensation via a two-step approach comprising: 
@@ -77,7 +88,7 @@ compensation_guide <- fluidPage(
       measurement intensities by its inverse, the compensation matrix."),
 
     
-    box(width=12, status="primary", style="background-color:aliceblue", tags$ul(
+    shinydashboard::box(width=12, status="primary", style="background-color:aliceblue", tags$ul(
         tags$li(strong("Upload FCS"), "- the measurement data you wish to compensate"),
         tags$li(strong("Upload spillover matrix (CSV)"),
                 "- a spillover matrix with column and row names", 
