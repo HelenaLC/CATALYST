@@ -27,7 +27,7 @@
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
-#' plotMahal(x = re, which = "B4")
+#' plotMahal(x = re, which = "B3")
 #'
 #' @references 
 #' 
@@ -45,8 +45,7 @@ setMethod(f="plotMahal",
     inds <- x@bc_ids == which
     if (sum(inds) > 5e3) 
         inds <- inds[sample(which(inds), 5e3)]
-    nms <- colnames(x@exprs)
-    ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
+    ms <- gsub("[[:alpha:][:punct:]]", "", colnames(x@exprs))
     es <- asinh(x@exprs[inds, ms %in% colnames(x@bc_key)] / cofactor)
     
     thms <- theme_classic() + theme(
@@ -56,7 +55,8 @@ setMethod(f="plotMahal",
         axis.text=element_blank(),
         aspect.ratio=1)
     
-    max <- ceiling(max(x@mhl_dists[inds])/5)*5
+    max_dist <- ceiling(max(x@mhl_dists[inds])/5)*5
+    max_int  <- max(es)
     
     n <- ncol(x@bc_key)
     p <- list()
@@ -65,17 +65,20 @@ setMethod(f="plotMahal",
             df <- data.frame(x=es[, i], y=es[, j], col=x@mhl_dists[inds])
             if (i == j) {
                 p[[length(p) + 1]] <- ggplot(df) + 
+                    scale_x_continuous(limits=c(0, max_int)) +
                     geom_histogram(aes_string(x="x"), bins=100,
                                    fill="black", color=NA) + 
                     thms + labs(x=" ", y=" ") + coord_fixed(1)
             } else {
                 p[[length(p) + 1]] <- ggplot(df) + labs(x=" ", y=" ") + thms +
+                    scale_x_continuous(limits=c(0, max_int)) +
+                    scale_y_continuous(limits=c(0, max_int)) +
                     geom_point(aes_string(x="x", y="y", col="col"), size=1) +
                     guides(colour=guide_colourbar(title.position="top", 
                                                   title.hjust=.5)) +
                     scale_color_gradientn(
                         colours=rev(brewer.pal(11, "RdYlBu")),
-                        limits=c(0, max), breaks=seq(0, max, 5),
+                        limits=c(0, max_dist), breaks=seq(0, max_dist, 5),
                         name=paste0(which, ": ", 
                                     paste(x@bc_key[which,], collapse="")))
             }
