@@ -1,6 +1,5 @@
 # load required packages
-pkgs <- c("shiny", "shinydashboard", "ggplot2", "magrittr")
-lapply(pkgs, require, character.only=TRUE)
+library(magrittr)
 
 # set maximum web request size to 500 MB
 options(shiny.maxRequestSize=500*1024^2)
@@ -8,13 +7,14 @@ options(shiny.maxRequestSize=500*1024^2)
 shinyServer(function(input, output, session) {
     
     source("ui/guides.R")
-    source("ui/aes.R")
-    source("ui/debarcoding_tab.R")
+    output$normalization_guide <- renderUI(normalization_guide)
+    output$debarcoding_guide   <- renderUI(debarcoding_guide)
+    output$compensation_guide  <- renderUI(compensation_guide)
+    
     source("ui/debarcoding_plots.R")
     source("ui/compensation_plots.R")
     source("helpers.R")
-    source("scatter.R")
-    
+
 # --------------------------------------------------------------------------------------------------
     
     vals <- reactiveValues(
@@ -44,9 +44,6 @@ shinyServer(function(input, output, session) {
 # DEBARCODING
 # ==================================================================================================
     
-    output$debarcoding_guide  <- renderUI({ debarcoding_guide })
-    output$compensation_guide <- renderUI({ compensation_guide })
-    
     output$debarcoding_sidebar_1 <- renderUI({
         if (is.null(input$fcs)) return()
         vals$ff1 <- flowCore::read.FCS(input$fcs$datapath)
@@ -75,40 +72,78 @@ shinyServer(function(input, output, session) {
         # assign IDs
         showNotification(h5("Assigning preliminary IDs..."), id="msg", 
                          type="message", duration=NULL, closeButton=FALSE)
-        vals$re1 <- assignPrelim(x=vals$ff1, y=vals$key)
+        vals$re1 <- CATALYST::assignPrelim(x=vals$ff1, y=vals$key)
         removeNotification(id="msg")
         
-        # inputSelect choices for yield, event and mahal panel
+        # inputSelect choices for yield plot and cutoff adjustment
         vals$adj_choices <- rownames(bc_key(vals$re1))
         vals$yp_choices  <- c(0, rownames(bc_key(vals$re1)))
         names(vals$yp_choices) <- c("All", rownames(bc_key(vals$re1)))
-        vals$ids <- sort(unique(bc_ids(vals$re1)))
-        vals$ep_choices  <- vals$ids
-        vals$mhl_choices <- vals$ids[vals$ids != 0]
 
         # render yield and event plot panel
-        output$ep_panel <- renderUI ({ ep_panel(vals$ep_choices) })
-        output$yp_panel <- renderUI ({ yp_panel(vals$yp_choices) })
+        output$ep_panel <- renderUI(ep_panel(vals$ep_choices))
+        output$yp_panel <- renderUI(yp_panel(vals$yp_choices))
+        output$mhl_panel <- renderUI(mhl_panel(vals$mhl_choices))
         
-        output$plot_plotEvents <- renderPlot(
-            plotEvents(x = vals$re1, 
-                       which = input$ep_which, 
-                       n_events = as.numeric(input$n_events)))
-        
-        output$debarcoding_sidebar_2 <- renderUI ({ debarcoding_sidebar_2 })
-        
-        })
-    
+        # yield plot
         output$plot_plotYields <- renderPlot({
             if (is.null(vals$re2)) return()
-            plotYields(x = vals$re2, 
-                       which = input$yp_which)
+            CATALYST::plotYields(x=vals$re2, which=input$yp_which)
         })
         
-        output$table_summary <- DT::renderDataTable({ 
-            if (is.null(vals$re2)) return()
-            summary_tbl(vals$re2) 
+        # 2. debarcoding sidebar: 
+        #       checkboxes "Estimate separation cutoffs"
+        #                  "Adjust population-specific cutoffs"
+        #                  "Enter global separation cutoff"
+        #       slider     "Mahalanobis distance threshold"
+        #       checkboxes "Use sample IDs as file names"
+        #                  "Upload naming sheet (CSV)"
+        #       downalods  "Output FCS files"
+        #                  "Get plots"
+        output$debarcoding_sidebar_2 <- renderUI ({ debarcoding_sidebar_2 })
         })
+        
+    # inputSelect choices for event and mahal plot
+    observe({
+        if (is.null(vals$re3)) return()
+        vals$ids <- sort(unique(bc_ids(vals$re3)))
+        vals$ep_choices  <- vals$ids
+        vals$mhl_choices <- vals$ids[vals$ids != 0]
+    })
+    
+    # summary table: IDs | Counts | Cutoffs | Yields
+    output$table_summary <- DT::renderDataTable({ 
+        if (is.null(vals$re3)) return()
+        summary_tbl(vals$re3) 
+    })
+    
+    observe({
+        if (is.null(vals$re2) || is.null(input$slider_mhlCutoff)) return()
+        vals$re3 <- CATALYST::applyCutoffs(vals$re2, input$slider_mhlCutoff)
+    })
+    
+    # event plot
+    output$plot_plotEvents <- renderPlot({
+        if (is.null(vals$re3) ||
+            is.null(input$ep_which) ||
+            is.null(input$n_events))
+            return()
+        CATALYST::plotEvents(x=vals$re3,
+                             which=input$ep_which,
+                             n_events=as.numeric(input$n_events))
+    })
+    
+    # mahal plot
+    output$plot_plotMahal <- renderPlot({
+        if (is.null(vals$re3) ||
+            is.null(input$mhl_which) ||
+            is.null(input$input_mhlCofactor))
+            return()
+        CATALYST::plotMahal(x=vals$re3, 
+                            which=input$mhl_which,
+                            cofactor=input$input_mhlCofactor)
+    })
+        
 
 # --------------------------------------------------------------------------------------------------
 # next / previous buttons
@@ -166,7 +201,7 @@ shinyServer(function(input, output, session) {
         if (is.null(input$box_estCutoffs) ||
             input$box_estCutoffs == 0)
             return()
-            vals$re2 <- estCutoffs(x = vals$re1)
+            vals$re2 <- CATALYST::estCutoffs(x = vals$re1)
     })
     
     # CHECKBOX - "Adjust population-specific cutoffs"
@@ -294,39 +329,6 @@ shinyServer(function(input, output, session) {
     })
 
 # --------------------------------------------------------------------------------------------------
-# BUTTON - "Apply cutoffs"
-# --------------------------------------------------------------------------------------------------
-    
-    observeEvent(input$button_applyCutoffs, {
-        
-        showNotification(h6("Applying thresholds..."), id="msg", 
-                         type="message", duration=NULL, closeButton=FALSE)
-        vals$re3 <- applyCutoffs(x = vals$re2,
-                                 mhl_cutoff = input$input_mhlCutoff)
-        removeNotification(id="msg")
-        
-        # update choices
-        vals$ids <- sort(unique(bc_ids(vals$re3)))
-        vals$ep_choices  <- vals$ids
-        vals$mhl_choices <- vals$ids[vals$ids != 0]
-        
-        # update event panel
-        output$plot_plotEvents <- renderPlot(
-            plotEvents(x = vals$re3,
-                       which = input$ep_which,
-                       n_events = as.numeric(input$n_events)))
-        
-        # mahal plot panel
-        output$mhl_panel <- renderUI ({ mhl_panel(vals$mhl_choices) })
-        output$plot_plotMahal <- renderPlot( 
-            plotMahal(x = vals$re3, 
-                      which = input$mhl_which,
-                      cofactor = input$input_mhlCofactor))
-        
-        output$debarcoding_sidebar_3 <- renderUI({ debarcoding_sidebar_3 })
-    })
-
-# --------------------------------------------------------------------------------------------------
 # checkboxes "Use medians" | "Use trim estimate" | "Enter trim value"
 # --------------------------------------------------------------------------------------------------
     
@@ -360,7 +362,7 @@ shinyServer(function(input, output, session) {
         if (is.null(input$box_useMedians) || input$box_useMedians == 0) return()
         showNotification(h5("Estimating spillover..."), id="msg", 
                          type="message", duration=NULL, closeButton=FALSE)
-        vals$sm  <- computeSpillmat(x=vals$re3, method="median")
+        vals$sm  <- CATALYST::computeSpillmat(x=vals$re3, method="median")
         removeNotification(id="msg")
     })
 
@@ -369,11 +371,12 @@ shinyServer(function(input, output, session) {
         if (is.null(input$box_estTrim) || input$box_estTrim == 0) return()
         showNotification(h5("Estimating optimal trim value..."), id="msg", 
                          type="message", duration=NULL, closeButton=FALSE)
-        output$plot_estTrim <- renderPlot({ vals$trm <- estTrim(x=vals$re3) })
+        capture.output(compCytof(x=vals$ff1, y=vals$sm))
+        output$plot_estTrim <- renderPlot({ vals$trm <- capture.output(compCytof(x=vals$ff1, y=vals$sm)) })
         removeNotification(id="msg")
         showNotification(h5("Estimating spillover..."), id="msg", 
                          type="message", duration=NULL, closeButton=FALSE)
-        vals$sm  <- computeSpillmat(x=vals$re3, trim=vals$trm)
+        vals$sm  <- CATALYST::computeSpillmat(x=vals$re3, trim=vals$trm)
         removeNotification(id="msg")
     })
     
@@ -396,7 +399,7 @@ shinyServer(function(input, output, session) {
         showNotification(h5("Estimating spillover..."), id="msg", 
                          type="message", duration=NULL, closeButton=FALSE)
         vals$trm <- input$input_enterTrim
-        vals$sm  <- computeSpillmat(x=vals$re3, trim=vals$trm)
+        vals$sm  <- CATALYST::computeSpillmat(x=vals$re3, trim=vals$trm)
         removeNotification(id="msg")
     })
     
@@ -432,7 +435,7 @@ shinyServer(function(input, output, session) {
             return()
         showNotification(h5("Estimating spillover..."), id="msg", 
                          type="message", duration=NULL, closeButton=FALSE)
-        vals$sm <- computeSpillmat(x = vals$re3)
+        vals$sm <- CATALYST::computeSpillmat(x = vals$re3)
         removeNotification(id="msg")
     })
     
@@ -517,20 +520,20 @@ shinyServer(function(input, output, session) {
             Spill values for the following interactions have not been estimated:")
         output$text_compCytof_2 <- renderPrint(
             cat(capture.output(vals$cmp1 <- compCytof(x=vals$ff1, y=vals$sm)), sep="\n"))
-        vals$cmp2 <- compCytof(x=vals$ff2, y=vals$sm)
+        vals$cmp2 <- CATALYST::compCytof(x=vals$ff2, y=vals$sm)
         
     })
 
     output$plot_plotSpillmat <- renderPlot({
         if (is.null(vals$sm)) return()
         input$button_newSpill
-        plotSpillmat(bc_ms=vals$key, SM=isolate(vals$sm))
+        CATALYST::plotSpillmat(bc_ms=vals$key, SM=isolate(vals$sm))
     })
     
     output$plot_plotScatter <- renderPlot({
         if (is.null(vals$sm)) return()
         input$button_newSpill
-        plotScatter(x=vals$re3, SM=isolate(vals$sm))
+        CATALYST::plotScatter(x=vals$re3, SM=isolate(vals$sm))
     })
     
     output$compensation_sidebar_2 <- renderUI({
@@ -620,7 +623,7 @@ shinyServer(function(input, output, session) {
                                          content  = function(file) { tmpdir <- tempdir(); setwd(tmpdir)
                                          inds <- c(0, rownames(bc_key(vals$re3))) %in% sort(unique(bc_ids(vals$re3)))
                                          if (input$box_IDsAsNms) {
-                                             outFCS(x=vals$re3, out_path=tmpdir) 
+                                             CATALYST::outFCS(x=vals$re3, out_path=tmpdir) 
                                              file_nms <- c("Unassigned", rownames(bc_key(vals$re3)))[inds]
                                          } else if (input$box_upldNms) {
                                              if (is.null(input$input_upldNms)) {
@@ -640,16 +643,16 @@ shinyServer(function(input, output, session) {
                                                                   type="error", closeButton=FALSE)
                                                  return()
                                              }
-                                             outFCS(x=vals$re3, out_path=tmpdir, out_nms=paste(vals$nms[, 2]))
-                                             file_nms <- c("Unassigned", paste(vals$nms[, 2]))[inds]
+                                             CATALYST::outFCS(x=vals$re3, out_path=tmpdir, out_nms=paste0(vals$nms[, 2], "_", rownames(bc_key(vals$re3))))
+                                             file_nms <- c("Unassigned", paste0(vals$nms[, 2], "_", rownames(bc_key(vals$re3))))[inds]
                                          }
                                          zip(zipfile=file, files=paste0(file_nms, ".fcs")) }, 
                                          contentType = "application/zip")
     
     output$dwnld_yep   <- downloadHandler(filename = function()     { "yield_event_plots.zip" },
                                           content  = function(file) { tmpdir <- tempdir(); setwd(tmpdir)
-                                          plotYields(x=vals$re3, which=vals$yp_choices, out_path=tmpdir)
-                                          plotEvents(x=vals$re3, which=vals$ep_choices, out_path=tmpdir, n_events=as.numeric(input$n_events))
+                                          CATALYST::plotYields(x=vals$re3, which=vals$yp_choices, out_path=tmpdir)
+                                          CATALYST::plotEvents(x=vals$re3, which=vals$ep_choices, out_path=tmpdir, n_events=as.numeric(input$n_events))
                                           zip(zipfile=file, contentType = "application/zip", files=paste0(c("summary_yield_plot", "yield_plot", "event_plot"), ".pdf")) })
     
     output$dwnld_comped_1 <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs), "-comped.fcs") },

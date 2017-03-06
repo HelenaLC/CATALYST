@@ -16,7 +16,7 @@ yp_panel <- function(choices) {
                      actionButton("yp_next", NULL, width="30px", icon("chevron-right")))),
         fluidRow(# plotting window
                  column(8, align="center",
-                        tags$head(tags$style("#plot_plotYields{height:66vh !important;}")),
+                        tags$head(tags$style("#plot_plotYields{height:50vh !important;}")),
                         plotOutput("plot_plotYields", width="100%")),
                  # summary table
                  column(4, align="center",
@@ -46,7 +46,7 @@ ep_panel <- function(choices) {
                      selectInput("n_events", NULL, width="120px", choices=c(1e2,250,1e3,2500,1e4), selected=1e3))),
         # plotting window
         fluidRow(align="center", 
-                 tags$head(tags$style("#plot_plotEvents{height:100vh !important;}")),
+                 tags$head(tags$style("#plot_plotEvents{height:50vh !important;}")),
                  plotOutput("plot_plotEvents", width="100%")))
 }
 

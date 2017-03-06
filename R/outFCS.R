@@ -60,7 +60,7 @@ setMethod(f="outFCS",
                     stop("Couldn't find a file name for all samples.
                          Please make sure all sample IDs occur 
                          in the provided naming scheme.")
-                out_nms <- paste(nms_tbl[,2])
+                out_nms <- paste0(nms_tbl[,2], "_", smpl_nms)
             }
         }
         ids <- sort(unique(bc_ids(x)))
