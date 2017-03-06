@@ -86,7 +86,7 @@ setMethod(f="estTrim",
               if (!is.null(out_path)) {
                   ggsave(file.path(out_path, paste0("trim_scatter", name_ext, ".pdf")), plot=p)
               } else {
-                  p
+                  plot(p)
               }
               return(opt)
           })
