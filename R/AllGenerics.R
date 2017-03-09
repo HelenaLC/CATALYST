@@ -109,6 +109,13 @@ setGeneric(name="applyCutoffs",
     package="CATALYST",
     def=function(x, ...) standardGeneric("applyCutoffs"))
 
+#' @rdname concatFCS
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="concatFCS",      
+    package="CATALYST", 
+    def=function(x) standardGeneric("concatFCS"))
+
 #' @rdname outFCS
 #' @param ... optional arguments.
 #' @export
