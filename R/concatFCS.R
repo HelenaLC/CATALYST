@@ -2,7 +2,7 @@
 # concatinates all FCS files in the specified location
 # ------------------------------------------------------------------------------
 
-#' @rdname conactFCS
+#' @rdname concatFCS
 #' @title FCS file concatination
 #' 
 #' @description 
@@ -25,6 +25,7 @@
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom flowCore flowFrame colnames exprs 
+#' @export
 # ==============================================================================
  
 setMethod(f="concatFCS",
@@ -33,9 +34,11 @@ setMethod(f="concatFCS",
     
     fcs <- list.files(x, ".fcs", full.names=TRUE, ignore.case=TRUE)
     n <- length(fcs)
-    if (n == 0) stop("No FCS files have been found in \"", x, "\"")
-    if (n == 1) stop("Only a single FCS file has been found in \"", 
-        x, "\"\n  - No concatination required!")
+    if (n < 2) {
+        if (n == 0) stop("No FCS files have been found in \"", x, "\"")
+        if (n == 1) stop("Only a single FCS file has been found in \"", 
+            x, "\"\n  - No concatination required!")
+    }
     
     ffs <- lapply(fcs, flowCore::read.FCS)
     chs <- lapply(ffs, flowCore::colnames)
@@ -59,6 +62,7 @@ setMethod(f="concatFCS",
     ff <- new("flowFrame", exprs=new_es, 
         parameters=parameters(ffs[[1]]), 
         description=description(ffs[[1]]))
+    
     if (is.null(y)) {
         return(ff)
     } else {
