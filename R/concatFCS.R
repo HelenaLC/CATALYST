@@ -60,14 +60,15 @@ setMethod(f="concatFCS",
     new_es <- do.call(rbind, exprs)
     new_es[, time_col] <- new_times
     ff <- new("flowFrame", exprs=new_es, 
-        parameters=parameters(ffs[[1]]), 
-        description=description(ffs[[1]]))
+        parameters=flowCore::parameters(ffs[[1]]), 
+        description=flowCore::description(ffs[[1]]))
     
     if (is.null(y)) {
         return(ff)
     } else {
-        suppressWarnings(write.FCS(ff, file.path(y, paste0(gsub(".fcs", "", 
-            list.files(x, ".fcs", ignore.case=TRUE)[[1]], ignore.case=TRUE), 
-            "_concat.fcs"))))
+        suppressWarnings(flowCore::write.FCS(ff, 
+            file.path(y, paste0(gsub("_\\d+.fcs", "",
+                list.files(x, ".fcs", ignore.case=TRUE)[[1]], 
+                ignore.case=TRUE), "_concat.fcs"))))
     }
 })
