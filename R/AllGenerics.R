@@ -1,8 +1,20 @@
 # ==============================================================================
+# Generics for normalization
+# ------------------------------------------------------------------------------
+
+#' @rdname normCytof
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="normCytof", 
+    package="CATALYST", 
+    def=function(x, y, ...) standardGeneric("normCytof"))
+
+# ==============================================================================
 # Generics to access slots in a dbFrame
 # ------------------------------------------------------------------------------
 
 #' @rdname dbFrame-methods
+#' @name dbFrame-methods
 #' @export
 setGeneric(name="bc_key", 
     package="CATALYST", 
@@ -29,8 +41,8 @@ setGeneric(name="normed_bcs",
 #' @rdname dbFrame-methods
 #' @export
 setGeneric(name="mhl_dists",  
-           package="CATALYST", 
-           def=function(object) standardGeneric("mhl_dists"))
+    package="CATALYST", 
+    def=function(object) standardGeneric("mhl_dists"))
 
 #' @rdname dbFrame-methods
 #' @export
@@ -46,8 +58,8 @@ setGeneric(name="mhl_cutoff",
 
 #' @rdname dbFrame-methods
 #' @export
-setGeneric(name="counts",      
-    package="CATALYST", 
+setGeneric(name="counts",
+    package="CATALYST",
     def=function(object) standardGeneric("counts"))
 
 #' @rdname dbFrame-methods
@@ -61,20 +73,20 @@ setGeneric(name="yields",
 # ------------------------------------------------------------------------------
 
 setGeneric(name="bc_ids<-",      
-           package="CATALYST",
-           def=function(object, value) standardGeneric("bc_ids<-"))
+    package="CATALYST",
+    def=function(object, value) standardGeneric("bc_ids<-"))
 
 setGeneric(name="mhl_dists<-",      
-           package="CATALYST",
-           def=function(object, value) standardGeneric("mhl_dists<-"))
+    package="CATALYST",
+    def=function(object, value) standardGeneric("mhl_dists<-"))
 
 setGeneric(name="sep_cutoffs<-", 
     package="CATALYST",
     def=function(object, value) standardGeneric("sep_cutoffs<-"))
 
 setGeneric(name="mhl_cutoff<-",  
-           package="CATALYST",
-           def=function(object, value) standardGeneric("mhl_cutoff<-"))
+    package="CATALYST",
+    def=function(object, value) standardGeneric("mhl_cutoff<-"))
 
 setGeneric(name="counts<-",      
     package="CATALYST",
@@ -123,17 +135,6 @@ setGeneric(name="outFCS",
     package="CATALYST", 
     def=function(x, out_path, ...) standardGeneric("outFCS"))
 
-#' @rdname debarcode
-#' @param ... optional arguments.
-#' @export
-setGeneric(name="debarcode",
-    package="CATALYST",
-    def=function(x, y, out_path, ...) standardGeneric("debarcode"))
-
-# ==============================================================================
-# Generics for plotting
-# ------------------------------------------------------------------------------
-
 #' @rdname plotYields
 #' @param ... optional arguments.
 #' @export
@@ -172,13 +173,6 @@ setGeneric(name="estTrim",
 setGeneric(name="computeSpillmat", 
     package="CATALYST",
     def=function(x, ...) standardGeneric("computeSpillmat"))
-
-#' @rdname plotScatter
-#' @param ... optional arguments.
-#' @export
-setGeneric(name="plotScatter", 
-    package="CATALYST",
-    def=function(x, ...) standardGeneric("plotScatter"))
 
 #' @rdname compCytof
 #' @param ... optional arguments.
