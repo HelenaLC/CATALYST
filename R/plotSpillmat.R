@@ -20,9 +20,9 @@
 #' an optional vector of colors to interpolate.
 #' 
 #' @examples
-#' data(ss_exp)
+#' data(ss_beads)
 #' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_exp, y = bc_ms)
+#' re <- assignPrelim(x = ss_beads, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
 #' spillMat <- computeSpillmat(x = re)
@@ -48,8 +48,8 @@ plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
     lab_cols[axis_labs %in% nms[bc_cols]] <- "black"
     
     df <- data.frame(c1=rep(1:n, n), 
-                     c2=rev(rep(1:n, each=n)), 
-                     spill=round(100*c(t(SM)), 1))
+        c2=rev(rep(1:n, each=n)), 
+        spill=round(100*c(t(SM)), 1))
     
     max <- ceiling(max(df$spill[df$spill != 100])/.25)*.25
     
@@ -79,15 +79,14 @@ plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
         col_labs <- format(col_sums, digits=2)
         
         p <- p + geom_text(aes_string(label="spill_labs"), size=3) +
-        annotate("text", rep(n+1.15, n), 1:n, label=rev(row_labs), 
-                 fontface="bold", size=2.5, col=rev(lab_cols)) +
-        annotate("text", 1:n, rep(n+1, n), label=col_labs,      
-                 fontface="bold", size=2.5) 
+            annotate("text", rep(n+1.15, n), 1:n, label=rev(row_labs), 
+                fontface="bold", size=2.5, col=rev(lab_cols)) +
+            annotate("text", 1:n, rep(n+1, n), label=col_labs,      
+                fontface="bold", size=2.5) 
     }
     
     p <- ggplot_gtable(ggplot_build(p))
     p$layout$clip[p$layout$name == "panel"] <- "off"
     grid::grid.draw(p)
 }
-              
-              
+

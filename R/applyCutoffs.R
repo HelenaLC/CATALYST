@@ -7,20 +7,19 @@
 #' 
 #' @description Applies separation and mahalanobies distance cutoffs.
 #'
-#' @param x 
-#' a \code{\link{dbFrame}}.
-#' @param mhl_cutoff 
-#' mahalanobis distance threshold above which events should be unassigned.
-#' @param sep_cutoffs
-#' non-negative numeric of length one or same length as the number of rows in
-#' the \code{bc_key}. Specifies the distance separation cutoffs between positive 
-#' and negative barcode populations above which events should be unassigned.
-#' If \code{NULL} (default), \code{applyCutoffs} will try to access the 
-#' 'sep_cutoffs' slot of the supplied \code{\link{dbFrame}}.
+#' @param x a \code{\link{dbFrame}}.
+#' @param mhl_cutoff mahalanobis distance threshold above which events should 
+#' be unassigned. This argument will be ignored if the \code{mhl_cutoff} slot 
+#' of the input \code{dbFrame} is specified.
+#' @param sep_cutoffs non-negative numeric of length one or same length as the 
+#' number of rows in the \code{bc_key}. Specifies the distance separation 
+#' cutoffs between positive and negative barcode populations above which events 
+#' should be unassigned. If \code{NULL} (default), \code{applyCutoffs} will try 
+#' to access the 'sep_cutoffs' slot of the supplied \code{dbFrame}.
 #'
 #' @return 
-#' Will update the \code{bc_ids} and, if specified, 
-#' \code{sep_cutoffs} of the input \code{\link{dbFrame}}.
+#' Will update the \code{bc_ids} and, if not already specified, 
+#' \code{sep_cutoffs} and \code{mhl_cutoff} slots of the input \code{dbFrame}.
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
@@ -46,6 +45,16 @@
 setMethod(f="applyCutoffs", 
     signature=signature(x="dbFrame"),
     definition=function(x, mhl_cutoff=30, sep_cutoffs=NULL) {
+        
+        # if specified, access 'mhl_cutoff' and 'sep_cutoffs' slots
+        if (length(mhl_cutoff(x)) != 0) {
+            mhl_cutoff <- mhl_cutoff(x)
+        } else {
+            # check validity of input 'mhl_cutoff'
+            if (!is.numeric(mhl_cutoff) | length(mhl_cutoff) != 1)
+                stop("'mhl_cutoff' must be a single ",
+                    "non-negative and non-zero numeric.")
+        }
         if (!is.null(sep_cutoffs)) {
             sep_cutoffs(x) <- sep_cutoffs
         } else {
@@ -54,23 +63,20 @@ setMethod(f="applyCutoffs",
                     " 'estCutoffs()' first, or specify cutoffs manually.")
         }
         
-        # get channel and barcode masses
-        ms <- gsub("[[:alpha:][:punct:]]", "", colnames(exprs(x)))
-        
         # find which columns correspond to barcode masses
+        # and extract barcode columns
+        ms <- gsub("[[:alpha:][:punct:]]", "", colnames(exprs(x)))
         bc_cols <- which(ms %in% colnames(bc_key(x)))
         n_bcs <- length(bc_cols)
-        
-        # extract barcode columns from FCS file
         bcs <- exprs(x)[, bc_cols]
         
         ids <- unique(bc_ids(x))
         ids <- ids[which(ids != 0)]
-
+        
         # compute mahalanobis distances given current separation cutoff
-        mhl_dists <- numeric(nrow(x@exprs))
+        mhl_dists <- numeric(nrow(exprs(x)))
         for (i in ids) {
-            inds <- which(x@bc_ids == i)
+            inds <- which(bc_ids(x) == i)
             ex <- inds[deltas(x)[inds] < 
                     sep_cutoffs(x)[rownames(bc_key(x)) == i]]
             inds <- inds[!(inds %in% ex)]

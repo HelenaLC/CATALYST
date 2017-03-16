@@ -18,4 +18,3 @@ such that each of the 20 individual barcodes are positive
 for exactly 3 of the 6 possible barcode channels.
 }
 \keyword{datasets}
-

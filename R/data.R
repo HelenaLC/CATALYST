@@ -46,8 +46,8 @@
 # ==============================================================================
 # Example data for compensation 
 # ------------------------------------------------------------------------------
-#' @rdname ss_exp
-#' @aliases ss_exp
+#' @rdname ss_beads
+#' @aliases ss_beads
 #' @title Single-stained beads
 #'
 #' @description 
@@ -61,6 +61,6 @@
 #'
 #' @docType data
 #' @keywords datasets
-#' @usage data(ss_exp)
+#' @usage data(ss_beads)
 #' @format A flowFrame with 10000 cells and 61 observables.
-"ss_exp"
+"ss_beads"

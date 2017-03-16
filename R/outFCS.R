@@ -1,11 +1,9 @@
 # ==============================================================================
 # Plot events
 # ------------------------------------------------------------------------------
-
 #' @rdname outFCS
-#' @title Write population-wise FCS
-#' 
-#' @description Writes an FCS file for each barcode population.
+#' @title Write population-wise FCS files
+#' @description Writes an FCS file for each sample from a dbFrame.
 #'
 #' @param x 
 #' a \code{\link{dbFrame}}.
@@ -15,15 +13,20 @@
 #' @param out_nms
 #' an optional character string. Either the name of a 2 column CSV table 
 #' with sample IDs and desired output file names, or a vector of length 
-#' \code{nrow(bc_key(x))} ordered as the samples in the barcoding scheme.
+#' \code{nrow(bc_key(x))} ordered as the samples in the barcoding scheme. 
 #' If NULL (default), sample IDs will be used as file names.
-#' @param verbose
-# if TRUE (default), a warning is given about populations for which 
-#' no FCS files have been generated.
+#' @param verbose 
+#' if TRUE (default), a warning is given about populations 
+#' for which no FCS files have been generated.
 #' 
 #' @details 
-#' FCS files are not generation for populations with 
-#' no or less than 10 event assignments.
+#' Creates a separate FCS file for each barcode population. 
+#' If \code{out_nms} is NULL (default), files will be named after  
+#' the barcode population's ID in the \code{bc_key} slot of the input 
+#' \code{\link{dbFrame}}; unassigned events will be written to "unassigned.fcs". 
+#' No file is generated for populations with less than 10 event assignments.
+#' 
+#' @return a character of the output path.
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
@@ -35,8 +38,8 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
 #' @importFrom flowCore flowFrame write.FCS
+#' @importFrom utils read.csv
 #' @export
-
 # ------------------------------------------------------------------------------
 
 setMethod(f="outFCS",       
@@ -49,17 +52,17 @@ setMethod(f="outFCS",
             if (is.null(dim(out_nms))) {
                 if (length(out_nms) != nrow(bc_key(x)))
                     stop(paste("Only", length(out_nms), "file names provided
-                           but", nrow(bc_key(x)), "needed."))
+                        but", nrow(bc_key(x)), "needed."))
                 out_nms <- out_nms
             } else {
-                nms_tbl <- read.csv(out_nms, header=FALSE)
+                nms_tbl <- utils::read.csv(out_nms, header=FALSE)
                 if (nrow(nms_tbl) != nrow(bc_key(x)))
                     stop(paste("Only", nrow(nms_tbl), "file names provided
-                               but", nrow(bc_key(x)), "needed."))
+                        but", nrow(bc_key(x)), "needed."))
                 if (sum(smpl_nms %in% nms_tbl[, 1]) != nrow(bc_key(x))) 
                     stop("Couldn't find a file name for all samples.
-                         Please make sure all sample IDs occur 
-                         in the provided naming scheme.")
+                        Please make sure all sample IDs occur 
+                        in the provided naming scheme.")
                 out_nms <- paste0(nms_tbl[,2], "_", smpl_nms)
             }
         }
@@ -77,7 +80,8 @@ setMethod(f="outFCS",
                 nm <- out_nms[smpl_nms == i]
             }
             suppressWarnings(
-                flowCore::write.FCS(ff, file.path(out_path, paste0(nm, ".fcs"))))
+                flowCore::write.FCS(ff, 
+                    file.path(out_path, paste0(nm, ".fcs"))))
         }
         if (verbose) {
             if (length(skip) > 1) {
@@ -92,10 +96,12 @@ setMethod(f="outFCS",
             tmp <- smpl_nms[!smpl_nms %in% ids]
             if (length(tmp) > 1) {
                 cat("o No events assigned to samples", 
-                    paste(tmp, collapse=", "),"")
+                    paste(tmp, collapse=", "))
             } else if (length(tmp) == 1) {
                 cat("o No events assigned to sample", 
-                    paste(tmp, collapse=", "),"")
+                    paste(tmp, collapse=", "))
             }
         }
+        cat("\n***", length(ids), "FCS files created in\n")
+        out_path
     })

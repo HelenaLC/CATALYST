@@ -13,9 +13,9 @@ setMethod(f="show",
         
         cat("\nCurrent assignments:\n")
         cat("     ", sum(object@bc_ids == 0), "event(s) unassigned")
-
+        
         tmp <- c(sort(table(object@bc_ids[object@bc_ids != 0]), 
-                      decreasing=TRUE))
+            decreasing=TRUE))
         tbl <- t(data.frame("ID"=names(tmp), "Count"=tmp))
         dimnames(tbl)[2] <- list(rep("", dim(tbl)[2]))
         print(noquote(tbl))
@@ -50,5 +50,3 @@ setMethod(f="show",
             print(noquote(tbl))
         }
     })
-
-# --------------------------------------------------------------------------------

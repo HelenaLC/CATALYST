@@ -70,12 +70,12 @@ setMethod(f="plotEvents",
             n_events <- 100
         }
         # ······································································
-
+        
         n_chs <- ncol(bc_key(x))
         bc_ids <- rownames(bc_key(x))
         ids <- sort(unique(bc_ids(x)))
         if ("all" %in% which) which <- ids
-
+        
         # get barcode labels: 
         # channel name if barcodes are single-positive, 
         # barcode ID and binary code elsewise 
@@ -118,12 +118,12 @@ setMethod(f="plotEvents",
                 inds <- sort(sample(which(inds), n_events))
             # use normalized barcode intensities
             ints <- normed_bcs(x)[inds, ]
-
+            
             df <- data.frame(
                 event=rep(1:(length(ints) / n_chs), each=n_chs),
                 intensity=c(t(ints)),
                 bc=rep(1:n_chs, (length(ints) / n_chs)))
-
+            
             p[[length(p) + 1]] <- ggplot(df) + 
                 geom_point(stroke=.5, size=1+100/sum(inds), aes_string(
                     x="event", y="intensity", col="as.factor(bc)", alpha=.8)) +
