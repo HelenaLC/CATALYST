@@ -5,7 +5,7 @@
 get_ids <- function(bcs, bc_key, ids, verbose) {
     
     cutoff <- 0 # used to prevent large neg. values from appearing
-                # to have sufficient separation from values near zero
+    # to have sufficient separation from values near zero
     
     N <- nrow(bcs)
     # order barcode intensities within ea. event
@@ -36,7 +36,7 @@ get_ids <- function(bcs, bc_key, ids, verbose) {
         # exclude events whose pos. barcodes are still very low 
         # (using bcs, not normalized bcs)
         bc_ids[is.na(bc_ids) | 
-                   bcs[cbind(1:N, bc_orders[, n_pos_bcs])] < cutoff] <- 0
+                bcs[cbind(1:N, bc_orders[, n_pos_bcs])] < cutoff] <- 0
         
         # NON-CONSTANT NUMBER OF 1'S
         # difference b/w the kth and (k–1)th highest 

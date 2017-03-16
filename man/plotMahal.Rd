@@ -29,21 +29,20 @@ Defaults to NULL.}
 \description{
 Histogram of counts and plot of yields as a function of separation cutoffs.
 }
-\details{
-
-}
 \examples{
 data(sample_ff, sample_key)
 re <- assignPrelim(x = sample_ff, y = sample_key)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
-plotMahal(x = re, which = "B4")
+plotMahal(x = re, which = "B3")
 
+}
+\references{
+Zunder, E.R. et al. (2015).
+Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+and single-cell deconvolution algorithm.
+\emph{Nature Protocols} \bold{10}, 316-333.
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-\references{
-
-}
-
