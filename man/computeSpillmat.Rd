@@ -37,9 +37,9 @@ Computes the spillover matrix based on
 a priori identified single-positive popultions.
 }
 \examples{
-data(ss_exp)
+data(ss_beads)
 bc_ms <- c(139, 141:156, 158:176)
-re <- assignPrelim(x = ss_exp, y = bc_ms)
+re <- assignPrelim(x = ss_beads, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
 head(computeSpillmat(x = re))
@@ -48,4 +48,3 @@ head(computeSpillmat(x = re))
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-

@@ -4,11 +4,14 @@
 \name{compCytof}
 \alias{compCytof}
 \alias{compCytof,flowFrame,matrix-method}
+\alias{compCytof,character,matrix-method}
 \title{Compensate CyTOF experiment}
 \usage{
 compCytof(x, y, ...)
 
 \S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL)
+
+\S4method{compCytof}{character,matrix}(x, y, out_path = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{flowFrame}} OR a character string specifying 
@@ -24,24 +27,29 @@ inherited from uncompensated FCS files and given extension "_comped".
 Defaults to NULL.}
 }
 \value{
-Compensates the input \code{\link{flowFrame}} OR, 
-if \code{x} is a character string, all FCS files in the specified location.
+If \code{out_path} is NULL (default), returns a \code{\link{flowFrame}} 
+containing the compensated measurement data. Else, compensated data 
+will be  written to the specified location as FCS 3.0 standard files.
 }
 \description{
 For each barcode, estimates a cutoff parameter for the 
 distance between positive and negative barcode populations.
 }
+\details{
+Compensates the input \code{\link{flowFrame}} OR, 
+if \code{x} is a character string, all FCS files in the specified location.
+}
 \examples{
-data(ss_exp)
+data(ss_beads)
 bc_ms <- c(139, 141:156, 158:176)
-re <- assignPrelim(x = ss_exp, y = bc_ms)
+re <- assignPrelim(x = ss_beads, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
 spillMat <- computeSpillmat(x = re)
-compCytof(ss_exp, spillMat)
+compCytof(ss_beads, spillMat)
 
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
 }
-
