@@ -28,9 +28,6 @@ linked together in the order of appearance in the specified location.
 \description{
 Concatinates all FCS files in the specified location
 }
-\examples{
-
-}
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
