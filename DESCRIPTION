@@ -3,12 +3,12 @@ Type: Package
 Title: Cytometry dATa anALYSis Tools
 Version: 0.99.0
 Author: Helena Lucia Crowell <crowellh@student.ethz.ch>, Mark Robinson
-    <mark.robinson@imls.uzh.ch>
-biocViews: MassSpectrometry, Preprocessing, StatisticalMethod
+    <mark.robinson@imls.uzh.ch>, Vito Zanotelli <vito.zanotelli@uzh.ch>
+biocViews: MassSpectrometry, Preprocessing, StatisticalMethod, SingleCell
 Maintainer: Helena Lucia Crowell <crowellh@student.ethz.ch>
 Depends:
     R (>= 3.3)
-Description: Tools for (pre)processing and analysis of cytometry data
+Description: Tools for (pre)processing and analysis of cytometry data.
 Imports:
     flowCore,
     ggplot2,
@@ -17,14 +17,11 @@ Imports:
     grid,
     gridExtra,
     methods,
-    stats
+    RColorBrewer,
+    stats,
+    utils
 License: GPL (>=2)
 LazyData: TRUE
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
-Suggests:
-    BiocStyle,
-    knitr,
-    rmarkdown,
-    shiny,
-    shinydashboard
+RoxygenNote: 6.0.1
+Suggests: BiocStyle, knitr, rmarkdown

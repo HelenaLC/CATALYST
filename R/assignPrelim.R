@@ -112,9 +112,9 @@ setMethod(f="assignPrelim",
         yields <- t(sapply(1:n_bcs, function(x) yields[x, ] / norm_val[x]))
         
         new(Class="dbFrame", 
-                 exprs=es, bc_key=y, bc_ids=bc_ids, 
-                 deltas=deltas, normed_bcs=normed_bcs,
-                 counts=counts, yields=yields)
+            exprs=es, bc_key=y, bc_ids=bc_ids, 
+            deltas=deltas, normed_bcs=normed_bcs,
+            counts=counts, yields=yields)
     })
 
 # ------------------------------------------------------------------------------

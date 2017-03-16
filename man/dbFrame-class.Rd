@@ -2,18 +2,31 @@
 % Please edit documentation in R/AllClasses.R
 \docType{class}
 \name{dbFrame-class}
-\alias{dbFrame}
 \alias{dbFrame-class}
+\alias{dbFrame}
 \title{Debarcoding frame class}
 \description{
-Class representing the data returned by and used throughout debarcoding.
+This class represents the data returned by and used throughout debarcoding.
 }
 \details{
+Objects of class \code{dbFrame} hold all data required for debarcoding:
+\enumerate{
+\item as the initial step of single-cell deconcolution, 
+\code{\link{assignPrelim}} will return a \code{dbFrame} containing the
+input measurement data, barcoding scheme, and preliminary event assignments.
+\item assignments will be made final by \code{\link{applyCutoffs}}.
+Optionally, population-specific separation cutoffs may be estimated 
+by running \code{\link{estCutoffs}} prior to this.
+\item \code{\link{plotYields}}, \code{\link{plotEvents}} and 
+\code{\link{plotMahal}} aim to guide selection of devoncolution parameters 
+and to give a sense of the resulting barcode assignment quality.
+}
 \code{show(dbFrame)} will display \itemize{
-\item the dimensionality of the measurement data and number of barcodes used
+\item the dimensionality of the measurement data and number of barcodes
 \item current assignments in order of decreasing population size
-\item separation cutoff estimates
-\item the average and per-population yield achieven upon debarcoding}
+\item current separation cutoffs
+\item the average and per-population yield 
+      that will be achieven upon debarcoding}
 }
 \section{Slots}{
 
@@ -37,7 +50,7 @@ barcode populations computed from normalized barcode intensities.}
 \item{\code{sep_cutoffs}}{numeric vector of distance separation cutoffs between positive and negative 
 barcode populations above which events will be unassigned.}
 
-\item{\code{mhl_cutoff}}{non-negative numeric value specifying the Mahalanobis distance cutoffs
+\item{\code{mhl_cutoff}}{non-negative and non-zero numeric value specifying the Mahalanobis distance 
 below which events will be unassigned.}
 
 \item{\code{counts}}{matrix of dimension (# barcodes)x(101) where each row contains the number 
@@ -48,7 +61,7 @@ are separated by a distance between in [0,0.01), ..., [0.99,1], respectively.}
 percentage of events within a barcode that will be obtained after applying
 a separation cutoff of 0, 0.01, ..., 1, respectively.}
 }}
+
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-
