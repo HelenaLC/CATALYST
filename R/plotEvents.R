@@ -145,6 +145,7 @@ setMethod(f="plotEvents",
         # ······································································
         # throw informative warning about populations with 
         # no or less than 50 event assignments
+        skipped <- skipped[skipped != 0]
         if (!is.null(skipped)) {
             if (length(skipped) == 1) {
                 warning("Barcode ID ", paste(skipped), 
