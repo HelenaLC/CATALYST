@@ -9,7 +9,7 @@
 #' Assigns a preliminary barcode ID to each event.
 #'
 #' @param x 
-#' a \code{\link{flowFrame}}.
+#' a \code{\link{flowFrame}} or character of an FCS file name.
 #' @param y 
 #' the debarcoding scheme. A binary matrix with sample names as row names and 
 #' numeric masses as column names OR a vector of numeric masses corresponding to 
@@ -38,7 +38,7 @@
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats quantile
-#' @importFrom flowCore colnames exprs flowFrame
+#' @importFrom flowCore colnames exprs flowFrame read.FCS
 # ==============================================================================
 
 setMethod(f="assignPrelim",
@@ -123,6 +123,36 @@ setMethod(f="assignPrelim",
 setMethod(f="assignPrelim",
     signature=signature(x="flowFrame", y="vector"),
     definition=function(x, y, cofactor=10, verbose=TRUE) {
+        n <- length(y)
+        y <- data.frame(matrix(diag(n), ncol=n, 
+            dimnames=list(y, y)), check.names=FALSE)
+        assignPrelim(x, y, cofactor, verbose)
+    })
+
+# ------------------------------------------------------------------------------
+
+#' @rdname assignPrelim
+setMethod(f="assignPrelim",
+    signature=signature(x="character", y="data.frame"),
+    definition=function(x, y, cofactor=10, verbose=TRUE) {
+        if (length(x) != 1) 
+            stop("'x' should be a single character or flowFrame.")
+        if (sum(grep("\\.fcs$", x, TRUE)) != 1) 
+            stop(x, " is not an FCS file.")
+        x <- flowCore::read.FCS(x)
+        assignPrelim(x, y, cofactor, verbose)
+    })
+
+# ------------------------------------------------------------------------------
+
+#' @rdname assignPrelim
+setMethod(f="assignPrelim",
+    signature=signature(x="character", y="vector"),
+    definition=function(x, y, cofactor=10, verbose=TRUE) {
+        if (length(x) != 1) 
+            stop("'x' should be a single character or flowFrame.")
+        if (sum(grep("\\.fcs$", x, TRUE)) != 1) 
+            stop(x, " is not an FCS file.")
         n <- length(y)
         y <- data.frame(matrix(diag(n), ncol=n, 
             dimnames=list(y, y)), check.names=FALSE)
