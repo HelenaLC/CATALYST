@@ -11,6 +11,7 @@
 \alias{mhl_cutoff}
 \alias{counts}
 \alias{yields}
+\alias{exprs,dbFrame-method}
 \alias{dbFrame-methods}
 \alias{exprs}
 \alias{bc_key}
@@ -90,21 +91,21 @@ yields(object)
 
 \item{value}{the replacement value.}
 }
-\description{
+\value{
 \describe{
-\item{\code{exprs}}{extract the raw data intensities.}
-\item{\code{bc_key}}{extract the barcoding scheme.}
-\item{\code{bc_ids}}{extract currently made event assignments.}
-\item{\code{deltas}}{extract barcode separations computed from normalized 
+\item{\code{exprs}}{extracts the raw data intensities.}
+\item{\code{bc_key}}{extracts the barcoding scheme.}
+\item{\code{bc_ids}}{extracts currently made event assignments.}
+\item{\code{deltas}}{extracts barcode separations computed from normalized 
                      intensities. \code{sep_cutoffs} apply to these values 
                      (see \code{\link{applyCutoffs}}).}
 \item{\code{normed_bcs}}{extracts normalized barcode intensities 
                          (see \code{\link{assignPrelim}}).}
-\item{\code{sep_cutoffs}, \code{sep_cutoffs<-}}{extract or replace separation 
-cutoffs. If option \code{sep_cutoffs} is not specified, these will be used by 
-\code{\link{applyCutoffs}}. Replacement value must be a non-negative numeric 
-with length one or same length as the number of rows in the \code{bc_key}.}
-\item{\code{mhl_cutoff}, \code{mhl_cutoff<-}}{extract or replace the 
+\item{\code{sep_cutoffs}, \code{sep_cutoffs<-}}{extracts or replaces 
+separation cutoffs. If option \code{sep_cutoffs} is not specified, these will
+be used by \code{\link{applyCutoffs}}. Replacement value must be a non-
+negative numeric with length one or same length as the number of barcodes.}
+\item{\code{mhl_cutoff}, \code{mhl_cutoff<-}}{extracts or replaces the 
 Mahalanobis distance threshold above which events are to be unassigned.
 Replacement value must be a single non-negative and non-zero numeric.}
 \item{\code{counts}}{extract the counts matrix (see \code{\link{dbFrame}}).}

@@ -16,6 +16,10 @@ rows/columns are annotated with the total amount of spill caused/received.}
 
 \item{palette}{an optional vector of colors to interpolate.}
 }
+\value{
+plots estimated spill percentages as a heat map. 
+Colours are ramped to the highest spillover value present
+}
 \description{
 Generates a heat map of the spillover matrix annotated with 
 estimated spill percentages.

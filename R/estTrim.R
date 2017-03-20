@@ -25,9 +25,9 @@
 #' squared population-wise median counts across all barcodes after compensation.
 #' 
 #' @examples
-#' data(ss_exp)
+#' data(ss_beads)
 #' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_exp, y = bc_ms)
+#' re <- assignPrelim(x = ss_beads, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
 #' estTrim(x = re, min = 0.06, max = 0.14, step = 0.02)

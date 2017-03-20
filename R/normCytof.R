@@ -9,19 +9,26 @@
 #' an implementation of Finck et al.'s normalization of mass cytometry data 
 #' using bead standards with automated bead gating.
 #'
-#' @param x a character string of the FCS file to be normalized.
-#' @param y \code{"dvs"} or \code{"beta"} or a numeric vector of bead masses.
-#' @param gate \code{"auto"} or \code{"manual"}. 
-#' Specifies how beads should be gated.
+#' @param x 
+#' a \code{\link{flowFrame}} or character of the FCS file to be normalized.
+#' @param y 
+#' \code{"dvs"} (for bead masses 140, 151, 153, 165, 175) or \code{"beta"} 
+#' (for bead masses 139, 141, 159, 169, 175) or a numeric vector of bead masses.
 #' @param out_path 
 #' a character string. If specified, outputs will be generated in this location. 
 #' If NULL (the default), \code{normCytof} will return a \code{\link{flowFrame}}
 #' of the normalized data (if \code{remove=FALSE}) or a \code{\link{flowSet}} 
 #' containing normalized cells and beads (if \code{remove=TRUE}).
-#' @param remove_beads logical. If TRUE (the default) normalized cells and beads 
-#' will be returned separately.
-#' @param norm_to a character string of an FCS file from which baseline values
-#' should be computed and to which the input data should be normalized.
+#' @param remove_beads 
+#' logical. If TRUE (the default) beads will be removed and normalized cells and
+#' beads returned separately.
+#' @param norm_to 
+#' a \code{\link{flowFrame}} or character of an FCS file from which baseline 
+#' values should be computed and to which the input data should be normalized.
+#' @param trim 
+#' a single non-negative numeric. A \emph{median} +/- ... \emph{mad} rule is
+#' applied to the preliminary population of bead events to remove bead-bead 
+#' doublets and low signal beads prior to estimating normalization factors.
 #' 
 #' @return
 #' if \code{out_path=NULL} (the default) a \code{\link{flowFrame}} of the 
@@ -34,51 +41,44 @@
 #' @references 
 #' Finck, R. et al. (2013).
 #' Normalization of mass cytometry data with bead standards.
-#' \emph{Cytometry A} \bold{83A}, 483–494.
+#' \emph{Cytometry A} \bold{83A}, 483-494.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
+#' @importFrom flowCore colnames exprs flowFrame flowSet read.FCS write.FCS
+#' @importFrom grDevices pdf dev.off
 #' @importFrom RColorBrewer brewer.pal
+#' @importFrom stats approx mad runmed
 
 # ------------------------------------------------------------------------------
 
-x <- "/Users/HLC/Dropbox/spillover/concatenation test/20150918_MDMenz_concat.fcs"
-normCytof(x, "dvs", out_path="/Users/HLC/Dropbox/spillover/concatenation test/")
-
 setMethod(f="normCytof", 
-    signature=signature(x="character"), 
-    definition=function(x, y, gate="auto", 
-        out_path=NULL, remove_beads=TRUE, norm_to=NULL) {
+    signature=signature(x="flowFrame"), 
+    definition=function(x, y, out_path=NULL,
+        remove_beads=TRUE, norm_to=NULL, trim=5) {
     
-    ff <- flowCore::read.FCS(x)
-    es <- flowCore::exprs(ff)
+    es <- flowCore::exprs(x)
     es_t <- asinh(es/5)
-    chs <- flowCore::colnames(ff)
+    chs <- flowCore::colnames(x)
     ms <- gsub("[[:alpha:][:punct:]]", "", chs)
-    ms <- ms[!is.na(as.numeric(ms))]
     
     # find time, length, DNA and bead channels
     time_col <- grep("time", chs, TRUE)
     length_col <- grep("length", chs, TRUE)
     dna_cols <- grep("Ir191|Ir193", chs, TRUE)
-    tmp <- get_bead_cols(chs, y)
-    bead_cols <- tmp[[1]]
-    bead_ms <- tmp[[2]]
+    bead_cols <- get_bead_cols(chs, y)
+    bead_ms <- ms[bead_cols]
     n_beads <- length(bead_ms)
+    ms <- ms[!is.na(as.numeric(ms))]
 
     # identify bead singlets
     message("Identifying beads...")
     key <- data.frame(matrix(c(0, 0, rep(1, n_beads)), ncol=2+n_beads,
         dimnames=list("is_bead", c(191, 193, bead_ms))), check.names=FALSE)
-    re <- assignPrelim(ff, key, verbose=FALSE)
+    re <- assignPrelim(x, key, verbose=FALSE)
     re <- estCutoffs(re, verbose=FALSE)
-    re <- applyCutoffs(re, sep_cutoffs=0.5)
+    re <- applyCutoffs(re)
     bead_inds <- bc_ids(re) == "is_bead"
-    ex <- sapply(bead_cols, function(k) 
-        abs(es_t[bead_inds, k] - median(es_t[bead_inds, k])) > 
-            2*mad(es_t[bead_inds, k]))
-    ex <- apply(ex, 1, any)
-    bead_inds[ex] <- FALSE
     
     # get all events that should be removed later
     # including bead-bead and cell-bead doublets
@@ -87,84 +87,113 @@ setMethod(f="normCytof",
         above_min <- sapply(1:n_beads, function(i) sum(k[i] > min_bead_ints[i]))
         sum(above_min) == n_beads })
     
+    # trim tails
+    ex <- sapply(bead_cols, function(k) 
+        abs(es_t[bead_inds, k] - median(es_t[bead_inds, k])) > 
+            trim*stats::mad(es_t[bead_inds, k]))
+    ex <- apply(ex, 1, any)
+    bead_inds[which(bead_inds)[ex]] <- FALSE
+
     # get slopes - baseline (global mean) versus smoothed bead intensitites
+    # and linearly interpolate slopes at non-bead events
+    message("Computing normalization factors...")
     if (is.null(norm_to)) {
-        message("Computing normalization factors...")
         bead_es <- es[bead_inds, bead_cols]
+        bead_ts <- es[bead_inds, time_col]
     } else {
-        bead_ff <- flowCore::read.FCS(norm_to)
-        bead_es <- flowCore::exprs(bead_ff[, bead_cols])
+        if (is.character(norm_to)) {
+            if (length(norm_to) != 1) 
+                stop("'norm_to' should be a single character or flowFrame.")
+            if (sum(flowCore::isFCSfile(norm_to)) != 1) 
+                stop(norm_to, " is not a valid FCS file.")
+            norm_to <- flowCore::read.FCS(norm_to)
+        }
+        es2 <- flowCore::exprs(norm_to)
+        es2_t <- asinh(es2/5)
+        re <- assignPrelim(norm_to, key, verbose=FALSE)
+        re <- estCutoffs(re, verbose=FALSE)
+        re <- applyCutoffs(re, sep_cutoffs=.3)
+        bead_inds2 <- bc_ids(re) == "is_bead"
+        ex <- sapply(bead_cols, function(k) 
+            abs(es2_t[bead_inds2, k] - median(es2_t[bead_inds2, k])) > 
+                trim*stats::mad(es2_t[bead_inds2, k]))
+        ex <- apply(ex, 1, any)
+        bead_inds2[which(bead_inds2)[ex]] <- FALSE
+        bead_es <- es2[bead_inds2, bead_cols]
+        bead_ts <- es2[bead_inds2, time_col]
     }
     baseline <- apply(bead_es, 2, mean)
     bead_slopes <- apply(bead_es*baseline, 1, sum) / apply(bead_es^2, 1, sum)
+    slopes <- approx(bead_ts, bead_slopes, es[, time_col])$y
     
-    # linearly interpolate slopes
-    times <- es[, time_col]
-    slopes <- approx(times[bead_inds], bead_slopes, times)$y
-    
-    # normalize 
+    # normalize and write FCS of normalized data
     normed_es <- cbind(
         es[,  c(time_col, length_col)], 
         es[, -c(time_col, length_col)]*slopes)
-
-    if (remove_beads) {
-        cells <- new("flowFrame",
-            exprs=normed_es[!remove, ],
-            parameters=flowCore::parameters(ff),
-            description=flowCore::description(ff))
-        beads <- new("flowFrame",
-            exprs=normed_es[remove, ],
-            parameters=flowCore::parameters(ff),
-            description=flowCore::description(ff))
-        if (is.null(out_path)) {
-            flowSet(cells, beads)
-        } else {
-            out_nm <-  file.path(gsub(".fcs", "", x))
-            suppressWarnings(flowCore::write.FCS(cells, 
-                paste0(out_nm, "_normalized.fcs")))
-            suppressWarnings(flowCore::write.FCS(beads, 
-                paste0(out_nm, "_beads.fcs")))
-        }
-    } else {
-        normed <- new("flowFrame",
-            exprs=normed_es,
-            parameters=flowCore::parameters(ff),
-            description=flowCore::description(ff))
-        if (is.null(out_path)) {
-            normed
-        } else {
-            suppressWarnings(flowCore::write.FCS(normed, 
-                paste0(file.path(gsub(".fcs", "", x)), "_normalized.fcs")))
-        }
-    }
+    outNormed(x, normed_es, remove_beads, remove, out_path)    
 
     # bead intensitites smoothed by conversion to local medians
     smoothed_beads <- data.frame(
         es[bead_inds, time_col], 
         sapply(bead_cols, function(k) 
-            runmed(es[bead_inds, k], 501, "constant")))
+            stats::runmed(es[bead_inds, k], 501, "constant")))
 
     # normalize raw bead intensities via multiplication with slopes
     smoothed_normed_beads <- data.frame(
         sapply(c(time_col, bead_cols), function(k) 
-            runmed(normed_es[bead_inds, k], 501, "constant")))
+            stats::runmed(normed_es[bead_inds, k], 501, "constant")))
     colnames(smoothed_beads) <- colnames(smoothed_normed_beads) <- 
         chs[c(time_col, bead_cols)]
+      
+    p1 <- paste0(format(round(sum(bead_inds)/nrow(es)*100,2),nsmall=2), "%")
+    p2 <- paste0(format(round(sum(remove)   /nrow(es)*100,2),nsmall=2), "%")
+    t1 <- paste("Beads used for normalization (singlets only):", p1)
+    t2 <- paste0("All events removed (including bead-/cell-bead doublets): ", p2, "\n")
+    ps <- c(plotBeads(es_t, bead_inds, bead_cols, dna_cols, TRUE, FALSE, TRUE),
+        plotBeads(es_t, remove, bead_cols, dna_cols, FALSE, TRUE, TRUE))
     
-    m <- matrix(1:(2*n_beads), nrow=2)
-    m <- m[nrow(m):1, ]
-    pdf(file.path(out_path, "beads.pdf"), width=n_beads*3)
-    gridExtra::grid.arrange(nrow=3, heights=c(2.5,4,4), 
-        layout_matrix=rbind(m, (2*n_beads+1):(3*n_beads)), grobs=c(
-            plotBeads(es_t, bead_inds, bead_cols, dna_cols, TRUE, FALSE, TRUE),
-            plotBeads(es_t, remove,    bead_cols, dna_cols, FALSE, TRUE, TRUE)))
-    dev.off()
-   
-    pdf(file.path(out_path, "beads_before_vs_after.pdf"), width=15, height=12.5)
-    grid.arrange(nrow=3, heights=c(6,.5,6),
-        plotSmoothedBeads(smoothed_beads, "Smoothed beads"), 
-        rectGrob(gp=gpar(fill="white", col="white")),
-        plotSmoothedBeads(smoothed_normed_beads, "Smoothed normalized beads"))
-    dev.off()
+    if (!is.null(out_path)) {
+        pdf(file.path(out_path, "beads_gated.pdf"), 
+            width=n_beads*5, height=12.8)
+        grid.arrange(grobs=ps, row=3, ncol=n_beads, 
+            widths=rep(5, n_beads), heights=c(2.8, 5, 5),
+            top=textGrob(paste(t1, t2, sep="\n"), just="right",
+                gp=gpar(fontface="bold", fontsize=15)))
+        dev.off()
+    } else {
+        grid.arrange(grobs=ps, row=3, ncol=n_beads, 
+            widths=rep(5, n_beads), heights=c(3, 5, 5),
+            top=textGrob(paste(t1, t2, sep="\n"), just="right",
+                gp=gpar(fontface="bold", fontsize=15)))
+    }
+     
+    if (!is.null(out_path)) {
+        pdf(file.path(out_path, "beads_before_vs_after.pdf"), 
+            width=15, height=12.5)
+        grid.arrange(nrow=3, heights=c(6, .5, 6),
+            plotSmoothed(smoothed_beads, "Smoothed beads"), 
+            rectGrob(gp=gpar(fill="white", col="white")),
+            plotSmoothed(smoothed_normed_beads, "Smoothed normalized beads"))
+        dev.off()
+    } else {
+        grid.arrange(nrow=3, heights=c(6, .5, 6),
+            plotSmoothed(smoothed_beads, "Smoothed beads"), 
+            rectGrob(gp=grid::gpar(fill="white", col="white")),
+            plotSmoothed(smoothed_normed_beads, "Smoothed normalized beads"))
+    }
     })
 
+# ------------------------------------------------------------------------------
+
+#' @rdname normCytof
+setMethod(f="normCytof",
+    signature=signature(x="character"),
+    definition=function(x, y, out_path=NULL,
+        remove_beads=TRUE, norm_to=NULL, trim=5) {
+        if (length(x) != 1) 
+            stop("'x' should be a single character or flowFrame.")
+        if (sum(flowCore::isFCSfile(x)) != 1) 
+            stop(x, " is not a valid FCS file.")
+        x <- flowCore::read.FCS(x)
+        normCytof(x, y, out_path=NULL, remove_beads=TRUE, norm_to=NULL, trim=5)
+    })

@@ -13,7 +13,9 @@
 #' 102, 104, 105, 106, 108, and 110 were used for labeling
 #' such that each of the 20 individual barcodes are positive 
 #' for exactly 3 of the 6 possible barcode channels.
-#'
+#' 
+#' @value a \code{\link{flowFrame}}.
+#' 
 #' @docType data
 #' @keywords datasets
 #' @usage data(sample_ff)
@@ -36,6 +38,8 @@
 #' for exactly 3 of the 6 possible barcode channels. For each sample, 
 #' the barcoding scheme contains a binary code of length 6, e.g. 111000, 
 #' as a unique identifier.
+#' 
+#' @value a \code{\link{data.frame}}.
 #'
 #' @docType data
 #' @keywords datasets
@@ -58,6 +62,8 @@
 #' and pooled together. Here we sampled a fraction of all recorded events 
 #' to demonstrate the debarcoding and compensation work-flow, 
 #' at the cost of not necessarily arriving at satisfying results. 
+#' 
+#' @value a \code{\link{flowFrame}}.
 #'
 #' @docType data
 #' @keywords datasets

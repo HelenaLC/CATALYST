@@ -20,7 +20,8 @@
 #' a character string. If specified, will be appended to the plot's name. 
 #' Defaults to NULL.
 #' 
-#' @details 
+#' @return plots all inter-barcode interactions for the population specified by 
+#' argument \code{which}. Events are colored by their Mahalanobis distance. 
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
@@ -30,6 +31,10 @@
 #' plotMahal(x = re, which = "B4")
 #'
 #' @references 
+#' Zunder, E.R. et al. (2015).
+#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+#' and single-cell deconvolution algorithm.
+#' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra

@@ -22,6 +22,21 @@ output:
 
 To demonstrate the debarcoding and compensation work-flow with `r Rpackage("CATALYST")`, we provide two sample data sets, *sample_data.fcs* and *ss_beads.fcs*. The former follows a 6-choose-3 barcoding scheme where mass channels 102, 104, 105, 106, 108, and 110 were used for labeling such that each of the 20 individual barcodes are positive for exactly 3 out of the 6 barcode channels. Accompanying this, the provided *sample_key.csv* contains a binary code of length 6 for each sample, e.g. 111000, as its unique identifier. The data in *ss_beads.fcs* was obtained from 36 single-antibody stained samples. Herefor, beads were stained with antibodies captured by mass channels 139, 141 through 156, and 158 through 176, respectively, and pooled together. Note that, to decrease running time, we sampled 1'000 events of each population at the cost of not necessarily arriving at biologically meaningful results.
 
+# Normalization
+
+`r Rpackage("CATALYST")` provides an implementation of bead-based normalization as described by Finck et al. [@Finck2013]. Here, identification of bead-singlets (used for normalization), as well as of bead-bead and cell-bead doublets (to be removed) is automated as follows: 
+
+1. beads are identified as events with their top signals in the bead channels
+1. cell-bead doublets are remove by applying a separation cutoff to the distance between the lowest bead and highest non-bead signal
+1. events passing all vertical gates defined by the lower bounds of bead signals are removed (these include bead-bead and bead-cell doublets)
+1. bead-bead doublets are removed by applying a $\pm5\;mad$ rule to events identified in step 2. The remaining bead events are used for normalization.
+
+```{r fig.width=17, fig.height=8.5}
+library(CATALYST)
+data(raw_data)
+normCytof(x=raw_data, y="dvs")
+```
+
 # Single-cell deconvolution
 
 `r Rpackage("CATALYST")` provides three functions for debarcoding and three visualizations that guide selection of thresholds and give a sense of barcode assignment quality.
@@ -208,7 +223,7 @@ Yb    | 168, 170, 171, 172, 173, 174, 176 |
 Tm    | 169                               |
 Lu    | 175, 176                          |
 
-Table: List of isotopes available for each metal used in CyTOF. In addition to $M\pm1$ and $M+16$ channels, these mass channels are considered during estimation of spill to capture channel crosstalk that is due to isotopic contanimations.
+Table: List of isotopes available for each metal used in CyTOF. In addition to $M\pm1$ and $M+16$ channels, these mass channels are considered during estimation of spill to capture channel crosstalk that is due to isotopic contanimations [@isotopes].
 
 ## Compensation work-flow
 
@@ -252,4 +267,4 @@ estTrim(x=re, min=0.1, max=0.5, step=0.05)
 plotSpillmat(bc_ms=bc_ms, SM=spillMat) 
 ```
 
-\section{References}
+# References
