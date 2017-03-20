@@ -6,16 +6,14 @@
 #' @title Yield plot
 #' 
 #' @description 
-#' Histogram of x@counts and plot of x@yields 
-#' as a function of separation cutoffs.
+#' Distribution of barcode separations and 
+#' yields as a function of separation cutoffs.
 #'
 #' @param x a \code{\link{dbFrame}}.
-#' @param which 
-#' numeric. Specifies which barcode to plot. 
-#' 0, numeric or character. Specifies which barcode(s) to plot. 
-#' Valid values are IDs that occur as row names in the \code{bc_key} 
-#' of the supplied \code{\link{dbFrame}}; 
-#' 0 (default) will generate a summary plot with all barcodes.
+#' @param which 0, numeric or character. Specifies which barcode(s) to plot. 
+#' Valid values are IDs that occur as row names in the \code{bc_key} of the 
+#' supplied \code{\link{dbFrame}}; 0 (the default) will generate a summary plot 
+#' with all barcodes.
 #' @param annotate
 #' logical. If TRUE (default) and the \code{sep_cutoffs} slot of the supplied
 #' \code{\link{dbFrame}} is not empty, vertical lines will be drawn at cutoff
@@ -30,12 +28,17 @@
 #' a character string. If specified, will be appended to the plot's name. 
 #' Defaults to NULL.
 #'
-#' @details 
-#' The overall yield that will be achieved upon application of the specified 
-#' separation cutoffs is indicated in the summary plot. Respective separation 
-#' thresholds and their resulting x@yields are included in each barcode's plot. 
+#' @details
+#' The overall yield that will be achieved upon application of the specified set
+#' of separation cutoffs is indicated in the summary plot. Respective separation 
+#' thresholds and their resulting yields are included in each barcode's plot. 
 #' The separation cutoff value should be chosen such that it appropriately 
 #' balances confidence in barcode assignment and cell yield.
+#' 
+#' @return plots the distribution of barcode separations and yields upon 
+#' debarcoding as a function of separation cutoffs. If available, currently 
+#' used separation cutoffs as well as their resulting yields will be indicated 
+#' in the plot`s main title.
 #' 
 #' @examples
 #' data(sample_ff, sample_key)

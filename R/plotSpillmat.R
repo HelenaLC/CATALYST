@@ -19,6 +19,9 @@
 #' @param palette
 #' an optional vector of colors to interpolate.
 #' 
+#' @return plots estimated spill percentages as a heat map. 
+#' Colours are ramped to the highest spillover value present
+#' 
 #' @examples
 #' data(ss_beads)
 #' bc_ms <- c(139, 141:156, 158:176)

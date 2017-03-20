@@ -137,8 +137,8 @@ setMethod(f="assignPrelim",
     definition=function(x, y, cofactor=10, verbose=TRUE) {
         if (length(x) != 1) 
             stop("'x' should be a single character or flowFrame.")
-        if (sum(grep("\\.fcs$", x, TRUE)) != 1) 
-            stop(x, " is not an FCS file.")
+        if (sum(flowCore::isFCSfile(x)) != 1) 
+            stop(x, " is not a valid FCS file.")
         x <- flowCore::read.FCS(x)
         assignPrelim(x, y, cofactor, verbose)
     })
@@ -151,8 +151,8 @@ setMethod(f="assignPrelim",
     definition=function(x, y, cofactor=10, verbose=TRUE) {
         if (length(x) != 1) 
             stop("'x' should be a single character or flowFrame.")
-        if (sum(grep("\\.fcs$", x, TRUE)) != 1) 
-            stop(x, " is not an FCS file.")
+        if (sum(flowCore::isFCSfile(x)) != 1) 
+            stop(x, " is not a valid FCS file.")
         n <- length(y)
         y <- data.frame(matrix(diag(n), ncol=n, 
             dimnames=list(y, y)), check.names=FALSE)

@@ -3,40 +3,46 @@
 \docType{methods}
 \name{normCytof}
 \alias{normCytof}
+\alias{normCytof,flowFrame-method}
 \alias{normCytof,character-method}
 \title{Bead-based normalization}
 \usage{
 normCytof(x, y, ...)
 
-\S4method{normCytof}{character}(x, y, gate = "auto", out_path = NULL,
-  remove_beads = TRUE, norm_to = NULL)
+\S4method{normCytof}{flowFrame}(x, y, out_path = NULL, remove_beads = TRUE,
+  norm_to = NULL, trim = 5)
+
+\S4method{normCytof}{character}(x, y, out_path = NULL, remove_beads = TRUE,
+  norm_to = NULL, trim = 5)
 }
 \arguments{
-\item{x}{a character string of the FCS file to be normalized.}
+\item{x}{a \code{\link{flowFrame}} or character of the FCS file to be normalized.}
 
-\item{y}{\code{"dvs"} or \code{"beta"} or a numeric vector of bead masses.}
+\item{y}{\code{"dvs"} (for bead masses 140, 151, 153, 165, 175) or \code{"beta"} 
+(for bead masses 139, 141, 159, 169, 175) or a numeric vector of bead masses.}
 
 \item{...}{optional arguments.}
-
-\item{gate}{\code{"auto"} or \code{"manual"}. 
-Specifies how beads should be gated.}
 
 \item{out_path}{a character string. If specified, outputs will be generated in this location. 
 If NULL (the default), \code{normCytof} will return a \code{\link{flowFrame}}
 of the normalized data (if \code{remove=FALSE}) or a \code{\link{flowSet}} 
 containing normalized cells and beads (if \code{remove=TRUE}).}
 
-\item{remove_beads}{logical. If TRUE (the default) normalized cells and beads 
-will be returned separately.}
+\item{remove_beads}{logical. If TRUE (the default) beads will be removed and normalized cells and
+beads returned separately.}
 
-\item{norm_to}{a character string of an FCS file from which baseline values
-should be computed and to which the input data should be normalized.}
+\item{norm_to}{a \code{\link{flowFrame}} or character of an FCS file from which baseline 
+values should be computed and to which the input data should be normalized.}
+
+\item{trim}{a single non-negative numeric. A \emph{median} +/- ... \emph{mad} rule is
+applied to the preliminary population of bead events to remove bead-bead 
+doublets and low signal beads prior to estimating normalization factors.}
 }
 \value{
 if \code{out_path=NULL} (the default) a \code{\link{flowFrame}} of the 
-normalized data (if \code{remove=FALSE}) or a \code{\link{flowSet}} containing 
-normalized cells and beads (if \code{remove=TRUE}). Else, a character of the
-location were output FCS files and plots have been generated.
+normalized data (if \code{remove=FALSE}) or \code{\link{flowSet}} containing 
+normalized cells and beads (if \code{remove=TRUE}). Else, a character of the 
+location where output FCS files and plots have been generated.
 }
 \description{
 an implementation of Finck et al.'s normalization of mass cytometry data 
