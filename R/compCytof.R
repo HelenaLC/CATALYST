@@ -6,8 +6,23 @@
 #' @title Compensate CyTOF experiment
 #' 
 #' @description 
-#' For each barcode, estimates a cutoff parameter for the 
-#' distance between positive and negative barcode populations.
+#' Compensates a mass spectrometry based experiment using a provided spillover
+#' matrix, assuming a linear spillover in the experiment.
+#' 
+#' If the spillover matrix does not contain all the same columns than the experiment,
+#' it will be adapted according to the following rules:
+#' - non metal columns present in the experiment but not in the psillover matrix will
+#'   be added such that they do neiter receive nor emit spillover
+#'   -> Exception: if the added metal has a mass equal to amass already present in the
+#'      spillover matrix, it will receive (but not emit) spillover according to the present
+#'      metal with the same mass.
+#'   -> If an added metal could potentially receive spillover, as it is the same metal type, has a
+#'      mass of +- 1 or +16 of a metal present in the experiment a warning will be issued,
+#'      as there could be a possible spillover interaction missed in the experiment, leading
+#'      potentially to faulty compensation.
+#'      
+#' - columns present in the spillover matrix but not in the experiment will be removed from
+#'   the spillover matrix.
 #'
 #' @param x       
 #' a \code{\link{flowFrame}} OR a character string specifying 
@@ -119,9 +134,13 @@ setMethod(f="compCytof",
                 fil = ms %in% old_ms[ind]
                 sm_col <- nms[fil]
                 sm_col_ms <-sapply(ms[fil], as.character)
+                # add the spillover
                 sm[rownames(y), sm_col] <- y[,y_col[sm_col_ms]]
                 for (m in unique(sm_col_ms)){
                     mfil = ms == m
+                    # set the spillover between channels of the same mass to 0
+                    # other wise the linear system can get singular.
+                    # the diagonal elements will be set to 1 lateron again
                     sm[mfil,mfil] <- 0
                 }
             }
