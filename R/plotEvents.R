@@ -22,11 +22,12 @@
 #' a character string. If specified, will be appended to the plot's name. 
 #' Defaults to NULL.
 #' 
-#' @details 
-#' Displayed are intensities normalized by population: Each event is scaled to 
-#' the 95\% quantile of the population it has been assigned to. Barcodes with no 
-#' or less than 50 event assignments will be skipped; it is strongly recoomended 
-#' to remove such populations or reconsider their separation cutoffs.
+#' @return plots intensities normalized by population for each barcode specified 
+#' by \code{which}: Each event corresponds to the intensities plotted on a 
+#' vertical line at a given point along the x-axis. Events are scaled to the 
+#' 95\% quantile of the population it has been assigned to. Barcodes with no or 
+#' less than 50 event assignments will be skipped; it is strongly recoomended to 
+#' remove such populations or reconsider their separation cutoffs.
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
@@ -145,7 +146,6 @@ setMethod(f="plotEvents",
         # ······································································
         # throw informative warning about populations with 
         # no or less than 50 event assignments
-        skipped <- skipped[skipped != 0]
         if (!is.null(skipped)) {
             if (length(skipped) == 1) {
                 warning("Barcode ID ", paste(skipped), 

@@ -1,8 +1,27 @@
 # ==============================================================================
+# Generics for normalization
+# ------------------------------------------------------------------------------
+
+#' @rdname normCytof
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="normCytof", 
+    package="CATALYST", 
+    def=function(x, y, ...) standardGeneric("normCytof"))
+
+#' @rdname concatFCS
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="concatFCS", 
+    package="CATALYST", 
+    def=function(x, ...) standardGeneric("concatFCS"))
+
+# ==============================================================================
 # Generics to access slots in a dbFrame
 # ------------------------------------------------------------------------------
 
 #' @rdname dbFrame-methods
+#' @name dbFrame-methods
 #' @export
 setGeneric(name="bc_key", 
     package="CATALYST", 
@@ -16,7 +35,7 @@ setGeneric(name="bc_ids",
 
 #' @rdname dbFrame-methods
 #' @export
-setGeneric(name="deltas",      
+setGeneric(name="deltas",  
     package="CATALYST", 
     def=function(object) standardGeneric("deltas"))
 
@@ -116,13 +135,6 @@ setGeneric(name="outFCS",
     package="CATALYST", 
     def=function(x, out_path, ...) standardGeneric("outFCS"))
 
-#' @rdname debarcode
-#' @param ... optional arguments.
-#' @export
-setGeneric(name="debarcode",
-    package="CATALYST",
-    def=function(x, y, out_path, ...) standardGeneric("debarcode"))
-
 # ==============================================================================
 # Generics for plotting
 # ------------------------------------------------------------------------------
@@ -165,13 +177,6 @@ setGeneric(name="estTrim",
 setGeneric(name="computeSpillmat", 
     package="CATALYST",
     def=function(x, ...) standardGeneric("computeSpillmat"))
-
-#' @rdname plotScatter
-#' @param ... optional arguments.
-#' @export
-setGeneric(name="plotScatter", 
-    package="CATALYST",
-    def=function(x, ...) standardGeneric("plotScatter"))
 
 #' @rdname compCytof
 #' @param ... optional arguments.

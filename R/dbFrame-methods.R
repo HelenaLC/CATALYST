@@ -3,28 +3,27 @@
 # ------------------------------------------------------------------------------
 
 #' @rdname dbFrame-methods
-#' @name dbFrame-methods
 #' 
 #' @title Extraction and replacement methods for objects of class \code{dbFrame}
 #' @aliases 
 #' dbFrame-methods exprs bc_key bc_ids deltas normed_bcs mhl_dists 
 #' sep_cutoffs sep_cutoffs<- mhl_cutoff mhl_cutoff<- counts yields
 #' 
-#' @description
+#' @return
 #' \describe{
-#' \item{\code{exprs}}{extract the raw data intensities.}
-#' \item{\code{bc_key}}{extract the barcoding scheme.}
-#' \item{\code{bc_ids}}{extract currently made event assignments.}
-#' \item{\code{deltas}}{extract barcode separations computed from normalized 
+#' \item{\code{exprs}}{extracts the raw data intensities.}
+#' \item{\code{bc_key}}{extracts the barcoding scheme.}
+#' \item{\code{bc_ids}}{extracts currently made event assignments.}
+#' \item{\code{deltas}}{extracts barcode separations computed from normalized 
 #'                      intensities. \code{sep_cutoffs} apply to these values 
 #'                      (see \code{\link{applyCutoffs}}).}
 #' \item{\code{normed_bcs}}{extracts normalized barcode intensities 
 #'                          (see \code{\link{assignPrelim}}).}
-#' \item{\code{sep_cutoffs}, \code{sep_cutoffs<-}}{extract or replace separation 
-#' cutoffs. If option \code{sep_cutoffs} is not specified, these will be used by 
-#' \code{\link{applyCutoffs}}. Replacement value must be a non-negative numeric 
-#' with length one or same length as the number of rows in the \code{bc_key}.}
-#' \item{\code{mhl_cutoff}, \code{mhl_cutoff<-}}{extract or replace the 
+#' \item{\code{sep_cutoffs}, \code{sep_cutoffs<-}}{extracts or replaces 
+#' separation cutoffs. If option \code{sep_cutoffs} is not specified, these will
+#' be used by \code{\link{applyCutoffs}}. Replacement value must be a non-
+#' negative numeric with length one or same length as the number of barcodes.}
+#' \item{\code{mhl_cutoff}, \code{mhl_cutoff<-}}{extracts or replaces the 
 #' Mahalanobis distance threshold above which events are to be unassigned.
 #' Replacement value must be a single non-negative and non-zero numeric.}
 #' \item{\code{counts}}{extract the counts matrix (see \code{\link{dbFrame}}).}
@@ -34,17 +33,17 @@
 #' @param object a \code{\link{dbFrame}}.
 #' @param value the replacement value.
 #' 
-#' @importFrom flowCore exprs
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 
 # ==============================================================================
 # Access slots in a dbFrame
 # ------------------------------------------------------------------------------
-
+#' 
 #' @rdname dbFrame-methods
+#' @importFrom flowCore exprs
 #' @export
-setMethod(f="exprs", 
-    signature="dbFrame", 
+setMethod(f="exprs",
+    signature="dbFrame",
     definition=function(object) return(object@exprs))
 
 #' @rdname dbFrame-methods
