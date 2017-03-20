@@ -23,6 +23,7 @@
 #' @details
 #' Compensates the input \code{\link{flowFrame}} OR, 
 #' if \code{x} is a character string, all FCS files in the specified location.
+#' 
 #' @return 
 #' If \code{out_path} is NULL (default), returns a \code{\link{flowFrame}} 
 #' containing the compensated measurement data. Else, compensated data 
@@ -82,8 +83,8 @@ setMethod(f="compCytof",
             
             first = TRUE
             for (i in seq_along(new_ms)) {
-                idx = which(ms == new_ms[i] & all_mets == new_mets[i])
-                if ( length(spill_cols[[idx]]) > 0) {
+                idx <- which(ms == new_ms[i] & all_mets == new_mets[i])
+                if ( length(idx) > 0) {
                     if (first) {
                         message("WARNING: ",
                             "Compensation is likely to be inaccurate.\n",

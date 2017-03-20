@@ -5,6 +5,8 @@
 \alias{assignPrelim}
 \alias{assignPrelim,flowFrame,data.frame-method}
 \alias{assignPrelim,flowFrame,vector-method}
+\alias{assignPrelim,character,data.frame-method}
+\alias{assignPrelim,character,vector-method}
 \title{Single-cell debarcoding (1)}
 \usage{
 assignPrelim(x, y, ...)
@@ -14,9 +16,15 @@ assignPrelim(x, y, ...)
 
 \S4method{assignPrelim}{flowFrame,vector}(x, y, cofactor = 10,
   verbose = TRUE)
+
+\S4method{assignPrelim}{character,data.frame}(x, y, cofactor = 10,
+  verbose = TRUE)
+
+\S4method{assignPrelim}{character,vector}(x, y, cofactor = 10,
+  verbose = TRUE)
 }
 \arguments{
-\item{x}{a \code{\link{flowFrame}}.}
+\item{x}{a \code{\link{flowFrame}} or character of an FCS file name.}
 
 \item{y}{the debarcoding scheme. A binary matrix with sample names as row names and 
 numeric masses as column names OR a vector of numeric masses corresponding to 
