@@ -71,7 +71,7 @@ setMethod(f="applyCutoffs",
         bcs <- exprs(x)[, bc_cols]
         
         ids <- unique(bc_ids(x))
-        ids <- ids[which(ids != 0)]
+        ids <- ids[ids != 0]
         
         # compute mahalanobis distances given current separation cutoff
         mhl_dists <- numeric(nrow(exprs(x)))
@@ -83,9 +83,14 @@ setMethod(f="applyCutoffs",
             bc_ids(x)[ex] <- 0
             sub  <- bcs[inds, ]
             if (length(sub) != n_bcs)
-                if (nrow(sub) > n_bcs)
-                    mhl_dists[inds] <- stats::mahalanobis(
-                        x=sub, center=colMeans(sub), cov=stats::cov(sub))
+                if (nrow(sub) > n_bcs) {
+                    covMat <- stats::cov(sub)
+                    # check if covariance matrix is invertible
+                    if (!any(class(tryCatch(solve(covMat) %*% covMat, 
+                        error=function(e) e)) == "error"))
+                        mhl_dists[inds] <- stats::mahalanobis(
+                            x=sub, center=colMeans(sub), cov=covMat)
+                }
         }
         bc_ids(x)[mhl_dists > mhl_cutoff] <- 0
         mhl_dists(x)  <- mhl_dists
