@@ -16,26 +16,32 @@ estTrim(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{min, max, step}{specify sequence of trim values for which compensation should be evaluated.}
+\item{min, max, step}{specifies sequence of trim values for which 
+compensation should be evaluated.}
 
-\item{out_path}{specifies in which location output plot is to be generated. Defaults to NULL.}
-
-\item{name_ext}{a character string. If specified, will be appended to the output plot's name. 
+\item{out_path}{specifies in which location output plot is to be generated. 
 Defaults to NULL.}
+
+\item{name_ext}{a character string. If specified, will be appended 
+to the output plot's name. Defaults to NULL.}
 }
 \value{
-For each value along \code{seq(min, max, step), \code{\link{computeSpillmat}} 
-will be called with \code{method = "mean"} and the respective trim parameter. 
-Returned will be the value that minimizes the sum over squared population-
-wise median counts across all barcodes after compensation.}
+For each value along \code{seq(min, max, step)}, \code{estTrim} will call
+\code{\link{computeSpillmat}} with \code{method = "mean"} and the respective 
+trim parameter. Returned will be the value that minimizes the sum over 
+squared population-wise median counts across all barcodes after compensation.
 }
 \description{
 Estimates a trim value that will minimize the sum over squared
 popultion- and channel-wise squared medians upon compensation.
 }
 \examples{
+# get single-stained control samples
 data(ss_exp)
-bc_ms <- c(139, 141:156, 158:176)
+
+# specify mass channels stained for
+bc_ms <- c(139, 141:157, 159:176)
+
 re <- assignPrelim(x = ss_exp, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
@@ -45,4 +51,3 @@ estTrim(x = re, min = 0.06, max = 0.14, step = 0.02)
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-
