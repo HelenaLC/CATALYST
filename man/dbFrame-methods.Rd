@@ -112,6 +112,9 @@ Replacement value must be a single non-negative and non-zero numeric.}
 \item{\code{yields}}{extract the yields matrix (see \code{\link{dbFrame}}).}
 }
 }
+\description{
+Methods for replacing and accessing slots in a \code{\link{dbFrame}}.
+}
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
