@@ -16,11 +16,10 @@ plotYields(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{which}{numeric. Specifies which barcode to plot. 
-0, numeric or character. Specifies which barcode(s) to plot. 
-Valid values are IDs that occur as row names in the \code{bc_key} 
-of the supplied \code{\link{dbFrame}}; 
-0 (default) will generate a summary plot with all barcodes.}
+\item{which}{0, numeric or character. Specifies which barcode(s) to plot. 
+Valid values are IDs that occur as row names in the \code{bc_key} of the 
+supplied \code{\link{dbFrame}}; 0 (the default) will generate a summary plot 
+with all barcodes.}
 
 \item{annotate}{logical. If TRUE (default) and the \code{sep_cutoffs} slot of the supplied
 \code{\link{dbFrame}} is not empty, vertical lines will be drawn at cutoff
@@ -35,13 +34,20 @@ Defaults to NULL.}
 \item{name_ext}{a character string. If specified, will be appended to the plot's name. 
 Defaults to NULL.}
 }
+\value{
+plots the distribution of barcode separations and yields upon 
+debarcoding as a function of separation cutoffs. If available, currently 
+used separation cutoffs as well as their resulting yields will be indicated 
+in the plot`s main title.
+}
 \description{
-Histogram of x@counts and plot of x@yields as a function of separation cutoffs.
+Distribution of barcode separations and 
+yields as a function of separation cutoffs.
 }
 \details{
-The overall yield that will be achieved upon application of the specified 
-separation cutoffs is indicated in the summary plot. Respective separation 
-thresholds and their resulting x@yields are included in each barcode's plot. 
+The overall yield that will be achieved upon application of the specified set
+of separation cutoffs is indicated in the summary plot. Respective separation 
+thresholds and their resulting yields are included in each barcode's plot. 
 The separation cutoff value should be chosen such that it appropriately 
 balances confidence in barcode assignment and cell yield.
 }
@@ -49,14 +55,13 @@ balances confidence in barcode assignment and cell yield.
 data(sample_ff, sample_key)
 re <- assignPrelim(x = sample_ff, y = sample_key)
 re <- estCutoffs(x = re)
-# all samples summary plot
-plotYields(x = re, which = 0)
-# plot for specific sample
-plotYields(x = re, which = "D1")
 
-}
-\author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+# all barcodes summary plot
+plotYields(x = re, which = 0)
+
+# plot for specific sample
+plotYields(x = re, which = "C1")
+
 }
 \references{
 Zunder, E.R. et al. (2015).
@@ -64,4 +69,6 @@ Palladium-based mass tag cell barcoding with a doublet-filtering scheme
 and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
-
+\author{
+Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+}

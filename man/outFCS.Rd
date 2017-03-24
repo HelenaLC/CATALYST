@@ -4,7 +4,7 @@
 \name{outFCS}
 \alias{outFCS}
 \alias{outFCS,dbFrame,character-method}
-\title{Write population-wise FCS}
+\title{Write population-wise FCS files}
 \usage{
 outFCS(x, out_path, ...)
 
@@ -21,17 +21,24 @@ output files are to be generated.}
 
 \item{out_nms}{an optional character string. Either the name of a 2 column CSV table 
 with sample IDs and desired output file names, or a vector of length 
-\code{nrow(bc_key(x))} ordered as the samples in the barcoding scheme.
+\code{nrow(bc_key(x))} ordered as the samples in the barcoding scheme. 
 If NULL (default), sample IDs will be used as file names.}
 
-\item{verbose}{no FCS files have been generated.}
+\item{verbose}{if TRUE (default), a warning is given about populations 
+for which no FCS files have been generated.}
+}
+\value{
+a character of the output path.
 }
 \description{
-Writes an FCS file for each barcode population.
+Writes an FCS file for each sample from a dbFrame.
 }
 \details{
-FCS files are not generation for populations with 
-no or less than 10 event assignments.
+Creates a separate FCS file for each barcode population. 
+If \code{out_nms} is NULL (default), files will be named after  
+the barcode population's ID in the \code{bc_key} slot of the input 
+\code{\link{dbFrame}}; unassigned events will be written to "unassigned.fcs". 
+No file is generated for populations with less than 10 event assignments.
 }
 \examples{
 data(sample_ff, sample_key)
@@ -44,4 +51,3 @@ outFCS(x = re, out_path = file.path(tempdir()))
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
-
