@@ -30,8 +30,12 @@
 #' (oxide formation). By default, diagonal entries are set to 1.
 #' 
 #' @examples
+#' # get single-stained control samples
 #' data(ss_exp)
+#' 
+#' # specify mass channels stained for
 #' bc_ms <- c(139, 141:156, 158:176)
+#' 
 #' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
@@ -43,65 +47,65 @@
 # ------------------------------------------------------------------------------
 
 setMethod(f="computeSpillmat", 
-          signature=signature(x="dbFrame"), 
-          
-          definition=function(x, method="mean", trim=.08) {
-              
-              if (method == "mean") {
-                  method=function(...) mean(..., trim=trim) 
-              } else if (method == "median") {
-                  method=function(...) median(...)
-              }
-              
-              if (sum(rowSums(x@bc_key) == 1) != ncol(x@bc_key)) 
-                  stop("Cannot compute compensation matrix 
-                       from non single-staining experiment.")
-              
-              # get no. of channels, masses and metals
-              chs <- colnames(x@exprs)
-              n_chs <- length(chs)
-              tmp <- gregexpr("[0-9]+", chs)
-              ms <- as.numeric(regmatches(chs, tmp))
-              mets <- gsub("[[:digit:]]+Di", "", chs)
-              
-              # get barcode IDs and barcodes masses
-              ids <- unique(x@bc_ids)
-              ids <- sort(ids[which(ids != 0)])
-              bc_ms <- as.numeric(rownames(x@bc_key))
-              
-              # find which columns of loaded FCS file 
-              # correspond to masses listed in barcode key
-              bc_cols <- sapply(bc_ms, function(x) which(ms %in% x))
-              
-              # for each barcode channel, get spillover candidate channels
-              # (+/-1M, -16M and channels measuring isotopes)
-              spill_cols <- get_spill_cols(ms, mets)
-              
-              # compute and return compensation matrix
-              SM <- diag(n_chs)
-              for (i in ids) {
-                  j <- bc_cols[ids == i]
-                  pos <- x@bc_ids == i
-                  neg <- !x@bc_ids %in% c(0, i, ms[spill_cols[[j]]])
-                  if (sum(pos) != 0) {
-                      if (sum(neg) == 0) {
-                          for (k in spill_cols[[j]]) {
-                              spill <-
-                                  method(x@exprs[pos, k]) / method(x@exprs[pos, j])
-                              if (is.na(spill)) spill <- 0
-                              SM[j, k] <- spill
-                          }
-                      } else {
-                          for (k in spill_cols[[j]]) {
-                              spill <-
-                                  ( method(x@exprs[pos, k]) - method(x@exprs[neg, k]) ) /
-                                  ( method(x@exprs[pos, j]) - method(x@exprs[neg, j]) )
-                              if (is.na(spill) | spill < 0) spill <- 0
-                              SM[j, k] <- spill
-                          }
-                      }
-                  }
-              }
-              colnames(SM) <- rownames(SM) <- chs
-              SM[bc_cols, !is.na(ms)]
-          })
+    signature=signature(x="dbFrame"), 
+    
+    definition=function(x, method="mean", trim=.08) {
+        
+        if (method == "mean") {
+            method=function(...) mean(..., trim=trim) 
+        } else if (method == "median") {
+            method=function(...) median(...)
+        }
+        
+        if (sum(rowSums(x@bc_key) == 1) != ncol(x@bc_key)) 
+            stop("Cannot compute compensation matrix 
+                from non single-staining experiment.")
+        
+        # get no. of channels, masses and metals
+        chs <- colnames(x@exprs)
+        n_chs <- length(chs)
+        tmp <- gregexpr("[0-9]+", chs)
+        ms <- as.numeric(regmatches(chs, tmp))
+        mets <- gsub("[[:digit:]]+Di", "", chs)
+        
+        # get barcode IDs and barcodes masses
+        ids <- unique(x@bc_ids)
+        ids <- sort(ids[which(ids != 0)])
+        bc_ms <- as.numeric(rownames(x@bc_key))
+        
+        # find which columns of loaded FCS file 
+        # correspond to masses listed in barcode key
+        bc_cols <- sapply(bc_ms, function(x) which(ms %in% x))
+        
+        # for each barcode channel, get spillover candidate channels
+        # (+/-1M, -16M and channels measuring isotopes)
+        spill_cols <- get_spill_cols(ms, mets)
+        
+        # compute and return compensation matrix
+        SM <- diag(n_chs)
+        for (i in ids) {
+            j <- bc_cols[ids == i]
+            pos <- x@bc_ids == i
+            neg <- !x@bc_ids %in% c(0, i, ms[spill_cols[[j]]])
+            if (sum(pos) != 0) {
+                if (sum(neg) == 0) {
+                    for (k in spill_cols[[j]]) {
+                        spill <-
+                            method(x@exprs[pos, k]) / method(x@exprs[pos, j])
+                        if (is.na(spill)) spill <- 0
+                        SM[j, k] <- spill
+                    }
+                } else {
+                    for (k in spill_cols[[j]]) {
+                        spill <-
+                            (method(x@exprs[pos, k])-method(x@exprs[neg, k]))/
+                            (method(x@exprs[pos, j])-method(x@exprs[neg, j]))
+                        if (is.na(spill) | spill < 0) spill <- 0
+                        SM[j, k] <- spill
+                    }
+                }
+            }
+        }
+        colnames(SM) <- rownames(SM) <- chs
+        SM[bc_cols, !is.na(ms)]
+    })

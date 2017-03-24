@@ -1,65 +1,99 @@
 # ==============================================================================
-# Access slots in a dbFrame
+# Accessor and replacement methods for class dbFrame
 # ------------------------------------------------------------------------------
 
 #' @rdname dbFrame-methods
-#' @title dbFrame-methods
+#' 
+#' @title Extraction and replacement methods for objects of class \code{dbFrame}
+#' @aliases 
+#' dbFrame-methods exprs bc_key bc_ids deltas normed_bcs mhl_dists 
+#' sep_cutoffs sep_cutoffs<- mhl_cutoff mhl_cutoff<- counts yields
+#' 
+#' @description
+#' Methods for replacing and accessing slots in a \code{\link{dbFrame}}.
+#' 
+#' @return
+#' \describe{
+#' \item{\code{exprs}}{extracts the raw data intensities.}
+#' \item{\code{bc_key}}{extracts the barcoding scheme.}
+#' \item{\code{bc_ids}}{extracts currently made event assignments.}
+#' \item{\code{deltas}}{extracts barcode separations computed from normalized 
+#'                      intensities. \code{sep_cutoffs} apply to these values 
+#'                      (see \code{\link{applyCutoffs}}).}
+#' \item{\code{normed_bcs}}{extracts normalized barcode intensities 
+#'                          (see \code{\link{assignPrelim}}).}
+#' \item{\code{sep_cutoffs}, \code{sep_cutoffs<-}}{extracts or replaces 
+#' separation cutoffs. If option \code{sep_cutoffs} is not specified, these will
+#' be used by \code{\link{applyCutoffs}}. Replacement value must be a non-
+#' negative numeric with length one or same length as the number of barcodes.}
+#' \item{\code{mhl_cutoff}, \code{mhl_cutoff<-}}{extracts or replaces the 
+#' Mahalanobis distance threshold above which events are to be unassigned.
+#' Replacement value must be a single non-negative and non-zero numeric.}
+#' \item{\code{counts}}{extract the counts matrix (see \code{\link{dbFrame}}).}
+#' \item{\code{yields}}{extract the yields matrix (see \code{\link{dbFrame}}).}
+#' }
+#' 
+#' @examples 
+#' 
+#' 
+#' @param object a \code{\link{dbFrame}}.
+#' @param value the replacement value.
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+
+# ==============================================================================
+# Access slots in a dbFrame
+# ------------------------------------------------------------------------------
+#' 
+#' @rdname dbFrame-methods
 #' @importFrom flowCore exprs
-#' @aliases exprs exprs-method dbFrame-method dbFrame-methods
-setMethod(f="exprs",       
-    signature="dbFrame", 
+#' @export
+setMethod(f="exprs",
+    signature="dbFrame",
     definition=function(object) return(object@exprs))
 
 #' @rdname dbFrame-methods
-#' @aliases bc_key bc_key-method dbFrame-method dbFrame-methods
 setMethod(f="bc_key",      
     signature="dbFrame", 
     definition=function(object) return(object@bc_key))
 
 #' @rdname dbFrame-methods
-#' @aliases bc_ids bc_ids-method dbFrame-method dbFrame-methods
 setMethod(f="bc_ids",      
     signature="dbFrame", 
-    definition=function(object) return(object@bc_ids))
+    definition=function(object) return(object@bc_ids)) 
 
 #' @rdname dbFrame-methods
-#' @aliases deltas deltas-method dbFrame-method dbFrame-methods
 setMethod(f="deltas",      
     signature="dbFrame", 
     definition=function(object) return(object@deltas))
 
 #' @rdname dbFrame-methods
-#' @aliases normed_bcs normed_bcs-method dbFrame-method dbFrame-methods
 setMethod(f="normed_bcs",  
     signature="dbFrame", 
     definition=function(object) return(object@normed_bcs))
 
 #' @rdname dbFrame-methods
-#' @aliases mhl_dists mhl_dists-method dbFrame-method dbFrame-methods
 setMethod(f="mhl_dists",  
     signature="dbFrame", 
     definition=function(object) return(object@mhl_dists))
 
 #' @rdname dbFrame-methods
-#' @aliases sep_cutoffs sep_cutoffs-method dbFrame-method dbFrame-methods
 setMethod(f="sep_cutoffs", 
     signature="dbFrame", 
     definition=function(object) return(object@sep_cutoffs))
 
 #' @rdname dbFrame-methods
-#' @aliases mhl_cutoff mhl_cutoff-method dbFrame-method dbFrame-methods
 setMethod(f="mhl_cutoff",  
     signature="dbFrame", 
     definition=function(object) return(object@mhl_cutoff))
 
 #' @rdname dbFrame-methods
-#' @aliases counts counts-method dbFrame-method dbFrame-methods
-setMethod(f="counts", 
-    signature="dbFrame", 
+#' @export
+setMethod(f="counts",
+    signature="dbFrame",
     definition=function(object) return(object@counts))
 
 #' @rdname dbFrame-methods
-#' @aliases yields yields-method dbFrame-method dbFrame-methods
 setMethod(f="yields",   
     signature="dbFrame", 
     definition=function(object) return(object@yields))
@@ -103,8 +137,6 @@ setReplaceMethod(f="mhl_dists",
 # ------------------------------------------------------------------------------
 
 #' @rdname dbFrame-methods
-#' @aliases <- dbFrame-method dbFrame-methods
-#' @docType methods
 #' @export
 setReplaceMethod(f="mhl_cutoff", 
     signature=signature(object="dbFrame", value="numeric"), 
@@ -120,8 +152,6 @@ setReplaceMethod(f="mhl_cutoff",
     })
 
 #' @rdname dbFrame-methods
-#' @aliases <- dbFrame-method dbFrame-methods
-#' @docType methods
 #' @export
 setReplaceMethod(f="mhl_cutoff", 
     signature=signature(object="dbFrame", value="ANY"), 
@@ -134,8 +164,6 @@ setReplaceMethod(f="mhl_cutoff",
 # ------------------------------------------------------------------------------
 
 #' @rdname dbFrame-methods
-#' @aliases <- dbFrame-method dbFrame-methods
-#' @docType methods
 #' @export
 setReplaceMethod(f="sep_cutoffs", 
     signature=signature(object="dbFrame", value="numeric"), 
@@ -152,10 +180,8 @@ setReplaceMethod(f="sep_cutoffs",
         object@sep_cutoffs <- value
         return(object)
     })
-                    
+
 #' @rdname dbFrame-methods
-#' @aliases <- dbFrame-method dbFrame-methods
-#' @docType methods
 #' @export
 setReplaceMethod(f="sep_cutoffs", 
     signature=signature(object="dbFrame", value="ANY"), 
@@ -163,4 +189,5 @@ setReplaceMethod(f="sep_cutoffs",
         stop("Replacement value must be a non-negative numeric with length one",
             "\n or same length as the number of rows in the 'bc_key'.")
     })
-                
+
+
