@@ -33,6 +33,9 @@
 #' \item{\code{yields}}{extract the yields matrix (see \code{\link{dbFrame}}).}
 #' }
 #' 
+#' @examples 
+#' 
+#' 
 #' @param object a \code{\link{dbFrame}}.
 #' @param value the replacement value.
 #' 

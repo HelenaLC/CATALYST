@@ -41,7 +41,7 @@ Alongside the multiplexed-stained cell sample `cells`, the package contains 36 s
 
 ### `concatFCS`: Concatination of FCS files
 
-Multiple FCS files can be concatenated via `concatFCS`. If `out_path=NULL` (the default), the function will return a single `flowFrame` containing the measurement data of all files. Otherwise, an FCS 3.0 standard file of the concatenated data will be written to the specified location.
+Multiple `flowFrame`s or FCS files can be concatenated via `concatFCS`, which takes either a `flowSet`, a list of `flowFrame`s, a character specifying the location of the FCS files to be concatinated, or a vector of FCS file names as input. If `out_path=NULL` (the default), the function will return a single `flowFrame` containing the measurement data of all files. Otherwise, an FCS 3.0 standard file of the concatenated data will be written to the specified location.
 
 ```{r}
 library(CATALYST)
@@ -170,7 +170,7 @@ plotEvents(x=re, which="D1", n_events=500)
 
 Function `plotMahal` will plot all inter-barcode interactions for the population specified with argument `which`. Events are colored by their Mahalanobis distance. <span style="color:firebrick">*NOTE: For more than 7 barcodes (up to 128 samples) the function will render an error, as this visualization is infeasible and hardly informative. Using the default Mahalanobis cutoff value of 30 is recommended in such cases.*</span> 
 
-```{r warning=FALSE, fig.width=9, fig.height=9.75} 
+```{r warning=FALSE, fig.width=6, fig.height=6.5} 
 plotMahal(x=re, which="A5")
 ```
 
@@ -248,10 +248,10 @@ spillMat <- computeSpillmat(x=re)
 To optimize results achieved upon compensation, `estTrim` will estimate the SM for a range of trim values, and evaluate, for each barcode population, the sum over squared medians of each negative channel upon compensation. Along with an **optimal** trim value, the function will return a figure of population- and channel-wise median counts for each trim value. The returned value is the one that minimizes this sum. Nevertheless, it may be worth chosing a trim value that gives rise to compensated data that is centered around 0 at the cost of a higher sum of squared medians. It is thus recommended to view the diagnostic plot to check the selected value, and potentially choose another.
 For example, in the figure below, the minimal sum of squares is achieved with a trim value of 0.4 while 0.2 appears to be a better choice as populations are kept from highly positive or negative medians. 
 
-```{r fig.width=8, fig.height=6}
+```{r fig.width=7, fig.height=4}
 # estimate trim value minimizing sum of squared 
 # population- and channel-wise medians upon compensation
-trimVal <- estTrim(x=re, min=0.04, max=0.12, step=0.01)
+trimVal <- estTrim(x=re, min=0.06, max=0.10)
 ```
 
 \newpage
@@ -296,10 +296,10 @@ which <- c("La139Di", "Gd155Di")
 which <- c("Er167Di", "Er168Di")
 cols <- colorRampPalette(rev(RColorBrewer::brewer.pal(10, "Spectral")))
 bw <- .25; n <- 64
-smoothScatter(ss_t[, which],           nbin=n, bandwidth=bw, colramp=cols, main='Single stains')
-smoothScatter(ss_comped_t[, which],    nbin=n, bandwidth=bw, colramp=cols, main='Compensated')
-smoothScatter(cells_t[, which],        nbin=n, bandwidth=bw, colramp=cols, main='Multiplexed cells')
-smoothScatter(comped_cells_t[, which], nbin=n, bandwidth=bw, colramp=cols, main='Compensated')
+smoothScatter(ss_t[, which],           nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Single stains')
+smoothScatter(ss_comped_t[, which],    nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Compensated')
+smoothScatter(cells_t[, which],        nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Multiplexed cells')
+smoothScatter(comped_cells_t[, which], nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Compensated')
 ```
 
 # Appendix

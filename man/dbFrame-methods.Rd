@@ -115,6 +115,10 @@ Replacement value must be a single non-negative and non-zero numeric.}
 \description{
 Methods for replacing and accessing slots in a \code{\link{dbFrame}}.
 }
+\examples{
+
+
+}
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
