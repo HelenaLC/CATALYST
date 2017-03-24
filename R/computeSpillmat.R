@@ -31,8 +31,7 @@
 #' 
 #' @examples
 #' # get single-stained control samples
-#' fcsFile <- system.file("extdata/ss_exp.fcs", package="CATALYST")
-#' ss_exp <- flowCore::read.FCS(fcsFile)
+#' data(ss_exp)
 #' 
 #' # specify mass channels stained for
 #' bc_ms <- c(139, 141:156, 158:176)

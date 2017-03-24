@@ -10,7 +10,7 @@
 normCytof(x, y, ...)
 
 \S4method{normCytof}{flowFrame}(x, y, out_path = NULL, remove_beads = TRUE,
-  norm_to = NULL, k = 500, trim = 5)
+  norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
 
 \S4method{normCytof}{character}(x, y, out_path = NULL, remove_beads = TRUE,
   norm_to = NULL, trim = 5)
@@ -39,6 +39,8 @@ values should be computed and to which the input data should be normalized.}
 \item{trim}{a single non-negative numeric. A \emph{median} +/- ... \emph{mad} rule is
 applied to the preliminary population of bead events to remove bead-bead 
 doublets and low signal beads prior to estimating normalization factors.}
+
+\item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
 }
 \value{
 if \code{out_path=NULL} (the default) a \code{\link{flowFrame}} of the 
@@ -51,10 +53,9 @@ an implementation of Finck et al.'s normalization of mass cytometry data
 using bead standards with automated bead gating.
 }
 \examples{
-path <- system.file("extdata", package="CATALYST")
-fcsFiles <- list.files(path, "data_\\\\d+.fcs", full.names=TRUE)
-raw_data <- concatFCS(fcsFiles)
-normCytof(x = raw_data, y = "dvs")
+data(raw_data)
+ff <- concatFCS(raw_data)
+normCytof(x = ff, y = "dvs")
 
 }
 \references{

@@ -22,12 +22,12 @@
 #' of all input data or a character of the FCS file name.
 #' 
 #' @examples
-#' path <- system.file("extdata", package="CATALYST")
-#' fcsFiles <- list.files(path, "data_\\d+.fcs", full.names=TRUE)
-#' concatFCS(fcsFiles)
+#' data(raw_data)
+#' concatFCS(raw_data)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom flowCore colnames exprs flowFrame flowSet fsApply isFCSfile
+#' @importFrom methods as
 #' @export
 
 # ------------------------------------------------------------------------------
@@ -63,6 +63,7 @@ setMethod(f="concatFCS",
 
 # ------------------------------------------------------------------------------
 
+#' @rdname concatFCS
 setMethod(f="concatFCS",
     signature=signature(x="character"),
     definition=function(x, out_path=NULL) {
@@ -85,6 +86,7 @@ setMethod(f="concatFCS",
 
 # ------------------------------------------------------------------------------
 
+#' @rdname concatFCS
 setMethod(f="concatFCS",
     signature=signature(x="list"),
     definition=function(x, out_path=NULL) {
