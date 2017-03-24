@@ -22,19 +22,24 @@
 #' a character string. If specified, will be appended to the plot's name. 
 #' Defaults to NULL.
 #' 
-#' @details 
-#' Displayed are intensities normalized by population: Each event is scaled to 
-#' the 95\% quantile of the population it has been assigned to. Barcodes with no 
-#' or less than 50 event assignments will be skipped; it is strongly recoomended 
-#' to remove such populations or reconsider their separation cutoffs.
+#' @return plots intensities normalized by population for each barcode specified 
+#' by \code{which}: Each event corresponds to the intensities plotted on a 
+#' vertical line at a given point along the x-axis. Events are scaled to the 
+#' 95\% quantile of the population it has been assigned to. Barcodes with no or 
+#' less than 50 event assignments will be skipped; it is strongly recoomended to 
+#' remove such populations or reconsider their separation cutoffs.
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
+#' 
+#' # view preliminary assignments
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
-#' plotEvents(x = re, which = "B3", n_events = 1000)
-#' re <- estCutoffs(x = re)
+#' plotEvents(x = re, which = "D1", n_events = 1000)
+#' 
+#' # apply deconvolution parameters
+#' re <- estCutoffs(re)
 #' re <- applyCutoffs(x = re)
-#' plotEvents(x = re, which = "B3", n_events = 1000)
+#' plotEvents(x = re, which = "D1", n_events = 500)
 #' 
 #' @references
 #' Zunder, E.R. et al. (2015).
@@ -70,19 +75,16 @@ setMethod(f="plotEvents",
             n_events <- 100
         }
         # ······································································
-
+        
         n_chs <- ncol(bc_key(x))
         bc_ids <- rownames(bc_key(x))
         ids <- sort(unique(bc_ids(x)))
         if ("all" %in% which) which <- ids
-
-        # get barcode labels: 
-        # channel name if barcodes are single-positive, 
-        # barcode ID and binary code elsewise 
+        
+        # get barcode labels: channel name if barcodes are single-positive, 
+        # barcode ID and binary code otherwise 
         if (sum(rowSums(bc_key(x)) == 1) == nrow(bc_key(x))) {
-            nms <- colnames(exprs(x))
-            ms <- as.numeric(gsub("[[:alpha:][:punct:]]", "", nms))
-            bc_labs <- paste(nms[ms %in% colnames(bc_key(x))])
+            bc_labs <- colnames(normed_bcs(x))
         } else {
             bc_labs <- paste0(bc_ids, ": ", 
                 apply(bc_key(x), 1, function(x) paste(x, collapse="")))
@@ -109,21 +111,21 @@ setMethod(f="plotEvents",
             inds <- bc_ids(x) == id
             n <- sum(inds)
             # store IDs with no or insufficient events assigned
-            if (sum(inds) < 50) {
-                skipped <- c(skipped, id)
+            if (n < 50) {
+                if (id != 0) skipped <- c(skipped, id)
                 next
             }
             # subsample events if more than 'n_events' assigned 
-            if (sum(inds) > n_events) 
+            if (n > n_events) 
                 inds <- sort(sample(which(inds), n_events))
             # use normalized barcode intensities
             ints <- normed_bcs(x)[inds, ]
-
+            
             df <- data.frame(
                 event=rep(1:(length(ints) / n_chs), each=n_chs),
                 intensity=c(t(ints)),
                 bc=rep(1:n_chs, (length(ints) / n_chs)))
-
+            
             p[[length(p) + 1]] <- ggplot(df) + 
                 geom_point(stroke=.5, size=1+100/sum(inds), aes_string(
                     x="event", y="intensity", col="as.factor(bc)", alpha=.8)) +
