@@ -9,6 +9,16 @@ setGeneric(name="normCytof",
     package="CATALYST", 
     def=function(x, y, ...) standardGeneric("normCytof"))
 
+<<<<<<< HEAD
+=======
+#' @rdname concatFCS
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="concatFCS", 
+    package="CATALYST", 
+    def=function(x, ...) standardGeneric("concatFCS"))
+
+>>>>>>> devel
 # ==============================================================================
 # Generics to access slots in a dbFrame
 # ------------------------------------------------------------------------------
@@ -28,7 +38,7 @@ setGeneric(name="bc_ids",
 
 #' @rdname dbFrame-methods
 #' @export
-setGeneric(name="deltas",      
+setGeneric(name="deltas",  
     package="CATALYST", 
     def=function(object) standardGeneric("deltas"))
 
@@ -128,12 +138,18 @@ setGeneric(name="concatFCS",
     package="CATALYST", 
     def=function(x, ...) standardGeneric("concatFCS"))
 
+<<<<<<< HEAD
 #' @rdname outFCS
 #' @param ... optional arguments.
 #' @export
 setGeneric(name="outFCS",      
     package="CATALYST", 
     def=function(x, out_path, ...) standardGeneric("outFCS"))
+=======
+# ==============================================================================
+# Generics for plotting
+# ------------------------------------------------------------------------------
+>>>>>>> devel
 
 #' @rdname plotYields
 #' @param ... optional arguments.
