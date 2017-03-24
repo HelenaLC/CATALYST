@@ -8,21 +8,6 @@
 #' @description 
 #' Compensates a mass spectrometry based experiment using a provided spillover
 #' matrix, assuming a linear spillover in the experiment.
-#' 
-#' If the spillover matrix does not contain all the same columns than the experiment,
-#' it will be adapted according to the following rules:
-#' - non metal columns present in the experiment but not in the psillover matrix will
-#'   be added such that they do neiter receive nor emit spillover
-#'   -> Exception: if the added metal has a mass equal to amass already present in the
-#'      spillover matrix, it will receive (but not emit) spillover according to the present
-#'      metal with the same mass.
-#'   -> If an added metal could potentially receive spillover, as it is the same metal type, has a
-#'      mass of +- 1 or +16 of a metal present in the experiment a warning will be issued,
-#'      as there could be a possible spillover interaction missed in the experiment, leading
-#'      potentially to faulty compensation.
-#'      
-#' - columns present in the spillover matrix but not in the experiment will be removed from
-#'   the spillover matrix.
 #'
 #' @param x       
 #' a \code{\link{flowFrame}} OR a character string specifying 
@@ -36,22 +21,42 @@
 #' Defaults to NULL. 
 #' 
 #' @details
-#' Compensates the input \code{\link{flowFrame}} OR, 
-#' if \code{x} is a character string, all FCS files in the specified location.
+#' If the spillover matrix (SM) does not contain the same set of columns as 
+#' the input experiment, it will be adapted according to the following rules:
+#' \enumerate{
+#' \item{columns present in the SM but not in the input data 
+#' will be removed from it}
+#' \item{non-metal columns present in the input but not in the SM 
+#' will be added such that they do neither receive nor cause spill}
+#' \item{metal columns that have the same mass as a channel present in the SM 
+#' will receive (but not emit) spillover according to that channel}
+#' \item{if an added channel could potentially receive spillover (as it has 
+#' +/-1M or +16M of, or is of the same metal type as another channel measured), 
+#' a warning will be issued as there could be spillover interactions that have
+#' been missed and may lead to faulty compensation}
+#' }
 #' 
 #' @return 
-#' If \code{out_path} is NULL (default), returns a \code{\link{flowFrame}} 
-#' containing the compensated measurement data. Else, compensated data 
-#' will be  written to the specified location as FCS 3.0 standard files. 
+#' Compensates the input \code{\link{flowFrame}} or, if \code{x} is a character 
+#' string, all FCS files in the specified location. If \code{out_path=NULL} (the 
+#' default), returns a \code{\link{flowFrame}} containing the compensated data. 
+#' Else, compensated data will be written to the specified location as FCS 3.0 
+#' standard files. 
 #' 
 #' @examples
-#' data(ss_beads)
+#' # get single-stained control samples
+#' fcsFile <- system.file("extdata/ss_exp.fcs", package="CATALYST")
+#' ss_exp <- flowCore::read.FCS(fcsFile)
+#' 
+#' # specify mass channels stained for
 #' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_beads, y = bc_ms)
+#' 
+#' # debarcode
+#' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
 #' spillMat <- computeSpillmat(x = re)
-#' compCytof(ss_beads, spillMat)
+#' compCytof(x = ss_exp, y = spillMat)
 #'
 #' @author 
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}

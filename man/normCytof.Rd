@@ -10,7 +10,7 @@
 normCytof(x, y, ...)
 
 \S4method{normCytof}{flowFrame}(x, y, out_path = NULL, remove_beads = TRUE,
-  norm_to = NULL, trim = 5)
+  norm_to = NULL, k = 500, trim = 5)
 
 \S4method{normCytof}{character}(x, y, out_path = NULL, remove_beads = TRUE,
   norm_to = NULL, trim = 5)
@@ -34,6 +34,8 @@ beads returned separately.}
 \item{norm_to}{a \code{\link{flowFrame}} or character of an FCS file from which baseline 
 values should be computed and to which the input data should be normalized.}
 
+\item{k}{integer width of the median window used for bead smoothing.}
+
 \item{trim}{a single non-negative numeric. A \emph{median} +/- ... \emph{mad} rule is
 applied to the preliminary population of bead events to remove bead-bead 
 doublets and low signal beads prior to estimating normalization factors.}
@@ -49,12 +51,16 @@ an implementation of Finck et al.'s normalization of mass cytometry data
 using bead standards with automated bead gating.
 }
 \examples{
+path <- system.file("extdata", package="CATALYST")
+fcsFiles <- list.files(path, "data_\\\\d+.fcs", full.names=TRUE)
+raw_data <- concatFCS(fcsFiles)
+normCytof(x = raw_data, y = "dvs")
 
 }
 \references{
 Finck, R. et al. (2013).
 Normalization of mass cytometry data with bead standards.
-\emph{Cytometry A} \bold{83A}, 483–494.
+\emph{Cytometry A} \bold{83A}, 483-494.
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
