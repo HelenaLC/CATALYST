@@ -9,6 +9,9 @@
 #' dbFrame-methods exprs bc_key bc_ids deltas normed_bcs mhl_dists 
 #' sep_cutoffs sep_cutoffs<- mhl_cutoff mhl_cutoff<- counts yields
 #' 
+#' @description
+#' Methods for replacing and accessing slots in a \code{\link{dbFrame}}.
+#' 
 #' @return
 #' \describe{
 #' \item{\code{exprs}}{extracts the raw data intensities.}
