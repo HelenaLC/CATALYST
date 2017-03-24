@@ -7,14 +7,27 @@
 #' 
 #' @title Debarcoding frame class
 #' @description 
-#' Class representing the data returned by and used throughout debarcoding.
+#' This class represents the data returned by and used throughout debarcoding.
 #' 
 #' @details 
+#' Objects of class \code{dbFrame} hold all data required for debarcoding:
+#' \enumerate{
+#' \item as the initial step of single-cell deconcolution, 
+#' \code{\link{assignPrelim}} will return a \code{dbFrame} containing the
+#' input measurement data, barcoding scheme, and preliminary event assignments.
+#' \item assignments will be made final by \code{\link{applyCutoffs}}.
+#' Optionally, population-specific separation cutoffs may be estimated 
+#' by running \code{\link{estCutoffs}} prior to this.
+#' \item \code{\link{plotYields}}, \code{\link{plotEvents}} and 
+#' \code{\link{plotMahal}} aim to guide selection of devoncolution parameters 
+#' and to give a sense of the resulting barcode assignment quality.
+#' }
 #' \code{show(dbFrame)} will display \itemize{
-#' \item the dimensionality of the measurement data and number of barcodes used
+#' \item the dimensionality of the measurement data and number of barcodes
 #' \item current assignments in order of decreasing population size
-#' \item separation cutoff estimates
-#' \item the average and per-population yield achieven upon debarcoding}
+#' \item current separation cutoffs
+#' \item the average and per-population yield 
+#'       that will be achieven upon debarcoding}
 #' 
 #' @slot exprs  
 #' a matrix containing raw intensities of the input flowFrame.
@@ -36,7 +49,7 @@
 #' numeric vector of distance separation cutoffs between positive and negative 
 #' barcode populations above which events will be unassigned.
 #' @slot mhl_cutoff
-#' non-negative numeric value specifying the Mahalanobis distance cutoffs
+#' non-negative and non-zero numeric value specifying the Mahalanobis distance 
 #' below which events will be unassigned.
 #' @slot counts
 #' matrix of dimension (# barcodes)x(101) where each row contains the number 
@@ -48,23 +61,22 @@
 #' a separation cutoff of 0, 0.01, ..., 1, respectively.
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' 
 #' @importFrom methods new
 #' @export
 
 # ------------------------------------------------------------------------------
 
-dbFrame <- setClass(Class="dbFrame", package="CATALYST",
-    slots=c(exprs="matrix",
-        bc_key="data.frame",
-        bc_ids="vector",
-        deltas="numeric",
-        normed_bcs ="matrix",
-        mhl_dists = "numeric",
-        sep_cutoffs="numeric",
-        mhl_cutoff="numeric",
-        counts="matrix",
-        yields="matrix"))
+dbFrame <- setClass(Class="dbFrame", package="CATALYST", slots=c(
+    exprs="matrix",
+    bc_key="data.frame",
+    bc_ids="vector",
+    deltas="numeric",
+    normed_bcs ="matrix",
+    mhl_dists = "numeric",
+    sep_cutoffs="numeric",
+    mhl_cutoff="numeric",
+    counts="matrix",
+    yields="matrix"))
 
 # ------------------------------------------------------------------------------
 
@@ -80,7 +92,7 @@ setValidity(Class="dbFrame",
         # number events x number barcode channels
         if (!all.equal(dim(object@normed_bcs), c(n, ncol(object@bc_key))))
             return(cat("'exprs' and 'normed_bcs' should contain",
-                       "the same number of events."))
+                "the same number of events."))
         # check that 'bc_ids', 'deltas' and 'mhl_dists' 
         # are of length number of events
         if (!all(c(length(object@bc_ids), length(object@deltas)) == n))
@@ -91,19 +103,10 @@ setValidity(Class="dbFrame",
                 "as many entries as numbers of rows in 'exprs'."))
         # check that all 'bc_ids" are 0 = "unassigned"
         # or occur as row names in the 'bc_key'
-        if ((valid <- sum(object@bc_ids %in% c(0, rownames(object@bc_key)))) != n)
+        if ((valid <- sum(object@bc_ids %in% 
+                c(0, rownames(object@bc_key)))) != n)
             return(cat(n-valid, "/", n, "'bc_ids' are invalid.\n",
-                       "'bc_ids' should be either 0 = \"unassigned\"\n",
-                       "or occur as rownames in the 'bc_key'."))
+                "'bc_ids' should be either 0 = \"unassigned\"\n",
+                "or occur as rownames in the 'bc_key'."))
         return(TRUE)
     })
-
-
-
-
-
-
-
-
-
-

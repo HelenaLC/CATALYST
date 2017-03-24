@@ -1,66 +1,53 @@
 # ==============================================================================
-# Example data for debarcoding
-# ------------------------------------------------------------------------------
-#' @rdname sample_ff
-#' @aliases sample_ff
-#' @title 20 sample experiment
-#'
-#' @description 
-#' A flowFrame obtained from a triple-staining experiment.
+# Estimate separation cutoffs
+#' @rdname data
+#' @name data
+#' @aliases raw_data sample_ff sample_key ss_exp mp_cells
+#' @title Example data sets
 #' 
-#' @details 
-#' Following a 6-choose-3 barcoding scheme, mass channels 
-#' 102, 104, 105, 106, 108, and 110 were used for labeling
-#' such that each of the 20 individual barcodes are positive 
-#' for exactly 3 of the 6 possible barcode channels.
-#'
-#' @docType data
-#' @keywords datasets
-#' @usage data(sample_ff)
-#' @format A flowFrame with 10000 cells and 64 observables.
-"sample_ff"
-
-# ==============================================================================
-# 6-choose-3 binary barcoding scheme
-# ------------------------------------------------------------------------------
-#' @rdname sample_key
-#' @aliases sample_key
-#' @title 6-choose-3 barcoding scheme
-#'
 #' @description 
-#' A data.frame with dimensions 20 x 6.
+#' \describe{
+#' \item{\code{raw_data}}{
+#' a \code{\link{flowSet}} with 3 experiments, each containing 2'500 raw 
+#' measurements with a variation of signal over time. Samples were mixed 
+#' with DVS beads capture by mass channels 140, 151, 153, 165 and 175.}
+#' \item{\code{sample_ff}}{
+#' a \code{\link{flowFrame}} following a 6-choose-3 barcoding scheme 
+#' where mass channels 102, 104, 105, 106, 108, and 110 were used for labeling 
+#' such that each of the 20 individual barcodes are positive for exactly 3 
+#' out of the 6 barcode channels.}
+#' \item{\code{sample_key}}{
+#' a \code{data.frame} of dimension 20 x 6 with sample names as row and 
+#' barcode masses as column names. Contains a binary code of length 6 for each 
+#' sample in \code{sample_ff}, e.g. 111000, as its unique identifier.}
+#' \item{\code{ss_exp}}{
+#' a \code{\link{flowFrame}} with 20'000 events. 
+#' Contains 36 single-antibody stained controls where beads were stained 
+#' with antibodies captured by mass channels 139, 141 through 156, and 
+#' 158 through 176, respectively, and pooled together.}
+#' \item{\code{mp_cells}}{a \code{\link{flowFrame}} with 5000 spill-affected
+#' multiplexed cells and 39 measurement parameters.}}
 #' 
-#' @details 
-#' A 6-choose-3 barcoding scheme, with mass channels 102, 104, 105, 106, 108, 
-#' and 110 used for labeling. Each of the 20 individual barcodes are positive 
-#' for exactly 3 of the 6 possible barcode channels. For each sample, 
-#' the barcoding scheme contains a binary code of length 6, e.g. 111000, 
-#' as a unique identifier.
-#'
-#' @docType data
-#' @keywords datasets
-#' @usage data(sample_key)
-#' @format A data.frame with 20 rows (samples) and 6 columns (barcodes).
-"sample_key"
-
-# ==============================================================================
-# Example data for compensation 
+#' @return 
+#' see descriptions above.
+#' 
+#' @examples
+#' ### example data for normalization:
+#'   # raw measurement data
+#'   data(raw_data)
+#'   
+#' ### example data for debarcoding:
+#'   # 20 barcoded samples
+#'     data(sample_ff)
+#'   # 6-choose-3 barcoding scheme
+#'     data(sample_key)
+#' 
+#' ### example data for compensation:
+#'   # single-stained control samples
+#'     data(ss_exp)
+#'   # multiplexed cells
+#'     data(mp_cells)
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 # ------------------------------------------------------------------------------
-#' @rdname ss_exp
-#' @aliases ss_exp
-#' @title Single-stained beads
-#'
-#' @description 
-#' A flowFrame obtained from a 36ab-panel single-staining experiment.
-#' 
-#' @details 36ab-panel: Beads were stained for antibodies captured by 
-#' mass channels 139, 141 through 156, and 158 through 176, respectively, 
-#' and pooled together. Here we sampled a fraction of all recorded events 
-#' to demonstrate the debarcoding and compensation work-flow, 
-#' at the cost of not necessarily arriving at satisfying results. 
-#'
-#' @docType data
-#' @keywords datasets
-#' @usage data(ss_exp)
-#' @format A flowFrame with 10000 cells and 61 observables.
-"ss_exp"
+NULL
