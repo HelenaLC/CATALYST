@@ -55,7 +55,7 @@ setMethod(f="plotMahal",
     es <- asinh(x@exprs[inds, ms %in% colnames(x@bc_key)] / cofactor)
     
     thms <- theme_classic() + theme(
-        plot.margin=unit(c(0,0,0,0), "null"),
+        plot.margin=unit(c(0, 0, 0, 0), "null"),
         axis.title=element_text(size=10), 
         axis.ticks = element_blank(),
         axis.text=element_blank(),
@@ -68,8 +68,10 @@ setMethod(f="plotMahal",
     for (i in 1:n) {
         for (j in i:n) {
             df <- data.frame(x=es[, i], y=es[, j], col=x@mhl_dists[inds])
+            df[df < 0] <- 0
             if (i == j) {
                 p[[length(p) + 1]] <- ggplot(df) + 
+                    scale_x_continuous(limits=c(0, max(df$x))) +
                     geom_histogram(aes_string(x="x"), bins=100,
                                    fill="black", color=NA) + 
                     thms + labs(x=" ", y=" ") + coord_fixed(1)
@@ -78,6 +80,8 @@ setMethod(f="plotMahal",
                     geom_point(aes_string(x="x", y="y", col="col"), size=1) +
                     guides(colour=guide_colourbar(title.position="top", 
                                                   title.hjust=.5)) +
+                    scale_x_continuous(limits=c(0, max(df$x))) +
+                    scale_y_continuous(limits=c(0, max(df$y))) +
                     scale_color_gradientn(
                         colours=rev(brewer.pal(11, "RdYlBu")),
                         limits=c(0, max), breaks=seq(0, max, 5),

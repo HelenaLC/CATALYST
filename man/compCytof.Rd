@@ -55,8 +55,8 @@ been missed and may lead to faulty compensation}
 }
 \examples{
 # get single-stained control samples
-fcsFile <- system.file("extdata/ss_exp.fcs", package="CATALYST")
-ss_exp <- flowCore::read.FCS(fcsFile)
+# get single-stained control samples
+data(ss_exp)
 
 # specify mass channels stained for
 bc_ms <- c(139, 141:156, 158:176)
