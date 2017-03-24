@@ -25,9 +25,14 @@
 #' squared population-wise median counts across all barcodes after compensation.
 #' 
 #' @examples
-#' data(ss_beads)
-#' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_beads, y = bc_ms)
+#' # get single-stained control samples
+#' fcsFile <- system.file("extdata/ss_exp.fcs", package="CATALYST")
+#' ss_exp <- flowCore::read.FCS(fcsFile)
+#' 
+#' # specify mass channels stained for
+#' bc_ms <- c(139, 141:157, 159:176)
+#' 
+#' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
 #' estTrim(x = re, min = 0.06, max = 0.14, step = 0.02)
@@ -46,10 +51,10 @@ setMethod(f="estTrim",
         
         ids <- as.numeric(rownames(x@bc_key))
         nms <- paste(colnames(x@exprs))
-        ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
+        ms <- gsub("[[:alpha:][:punct:]]", "", nms)
         bc_cols <- which(ms %in% ids)
         bc_range <- min(bc_cols) : max(bc_cols)
-        x@exprs <- x@exprs[, bc_range]
+        x@exprs <- exprs(x)[, bc_range]
         ms <- ms[bc_range]
         
         trim_vals <- seq(min, max, step)
@@ -57,11 +62,10 @@ setMethod(f="estTrim",
         for (trim in trim_vals) {
             sm <- computeSpillmat(x=x, method="mean", trim=trim)
             sm <- make_symetric(sm)
-            comped <- x@exprs %*% solve(sm)
-            for (id in ids) {
-                median <- apply(comped[x@bc_ids == id, ms != id], 2, median)
-                df <- rbind(df, data.frame(m=median, trim=trim))
-            }
+            comped <- exprs(x) %*% solve(sm)
+            for (id in ids) 
+                df <- rbind(df, data.frame(m=matrixStats::colMedians(
+                    comped[bc_ids(x) == id, ms != id]), trim=trim))
             rss <- rbind(rss, data.frame(
                 m=mean((df$m[df$trim == trim])^2), 
                 trim=trim))

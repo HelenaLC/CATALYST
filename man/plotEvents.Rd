@@ -42,11 +42,15 @@ Shows normalized barcode intensities for a given barcode.
 }
 \examples{
 data(sample_ff, sample_key)
+
+# view preliminary assignments
 re <- assignPrelim(x = sample_ff, y = sample_key)
-plotEvents(x = re, which = "B3", n_events = 1000)
-re <- estCutoffs(x = re)
+plotEvents(x = re, which = "D1", n_events = 1000)
+
+# apply deconvolution parameters
+re <- estCutoffs(re)
 re <- applyCutoffs(x = re)
-plotEvents(x = re, which = "B3", n_events = 1000)
+plotEvents(x = re, which = "D1", n_events = 500)
 
 }
 \references{
