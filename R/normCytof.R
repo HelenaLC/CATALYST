@@ -25,6 +25,7 @@
 #' @param norm_to 
 #' a \code{\link{flowFrame}} or character of an FCS file from which baseline 
 #' values should be computed and to which the input data should be normalized.
+#' @param k integer width of the median window used for bead smoothing.
 #' @param trim 
 #' a single non-negative numeric. A \emph{median} +/- ... \emph{mad} rule is
 #' applied to the preliminary population of bead events to remove bead-bead 
@@ -37,6 +38,10 @@
 #' location where output FCS files and plots have been generated.
 #' 
 #' @examples
+#' path <- system.file("extdata", package="CATALYST")
+#' fcsFiles <- list.files(path, "data_\\d+.fcs", full.names=TRUE)
+#' raw_data <- concatFCS(fcsFiles)
+#' normCytof(x = raw_data, y = "dvs")
 #'
 #' @references 
 #' Finck, R. et al. (2013).
@@ -45,6 +50,7 @@
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
+#' @import matrixStats
 #' @importFrom flowCore colnames exprs flowFrame flowSet read.FCS write.FCS
 #' @importFrom grDevices pdf dev.off
 #' @importFrom RColorBrewer brewer.pal
@@ -55,7 +61,10 @@
 setMethod(f="normCytof", 
     signature=signature(x="flowFrame"), 
     definition=function(x, y, out_path=NULL,
-        remove_beads=TRUE, norm_to=NULL, trim=5) {
+        remove_beads=TRUE, norm_to=NULL, k=500, trim=5) {
+    
+    # assure width of median window is odd
+    if (k %% 2 == 0) k <- k + 1
     
     es <- flowCore::exprs(x)
     es_t <- asinh(es/5)
@@ -63,9 +72,9 @@ setMethod(f="normCytof",
     ms <- gsub("[[:alpha:][:punct:]]", "", chs)
     
     # find time, length, DNA and bead channels
-    time_col <- grep("time", chs, TRUE)
-    length_col <- grep("length", chs, TRUE)
-    dna_cols <- grep("Ir191|Ir193", chs, TRUE)
+    time_col <- grep("time",        chs, ignore.case=TRUE)
+    lgth_col <- grep("length",      chs, ignore.case=TRUE)
+    dna_cols <- grep("Ir191|Ir193", chs, ignore.case=TRUE)
     bead_cols <- get_bead_cols(chs, y)
     bead_ms <- ms[bead_cols]
     n_beads <- length(bead_ms)
@@ -82,16 +91,16 @@ setMethod(f="normCytof",
     
     # get all events that should be removed later
     # including bead-bead and cell-bead doublets
-    min_bead_ints <- apply(es_t[bead_inds, bead_cols], 2, min)
-    remove <- apply(es_t[, bead_cols], 1, function(k) { 
-        above_min <- sapply(1:n_beads, function(i) sum(k[i] > min_bead_ints[i]))
+    min_bead_ints <- matrixStats::colMins(es_t[bead_inds, bead_cols])
+    remove <- apply(es_t[, bead_cols], 1, function(i) { 
+        above_min <- sapply(1:n_beads, function(j) sum(i[j] > min_bead_ints[j]))
         sum(above_min) == n_beads })
     
     # trim tails
-    ex <- sapply(bead_cols, function(k) 
-        abs(es_t[bead_inds, k] - median(es_t[bead_inds, k])) > 
-            trim*stats::mad(es_t[bead_inds, k]))
-    ex <- apply(ex, 1, any)
+    meds <- matrixStats::colMedians(es_t[bead_inds, bead_cols])
+    mads <- matrixStats::colMads(   es_t[bead_inds, bead_cols]) * trim
+    ex <- matrixStats::colAnys(
+        abs(t(es_t[bead_inds, bead_cols]) - meds) > mads)
     bead_inds[which(bead_inds)[ex]] <- FALSE
 
     # get slopes - baseline (global mean) versus smoothed bead intensitites
@@ -114,43 +123,47 @@ setMethod(f="normCytof",
         re <- estCutoffs(re, verbose=FALSE)
         re <- applyCutoffs(re, sep_cutoffs=.3)
         bead_inds2 <- bc_ids(re) == "is_bead"
-        ex <- sapply(bead_cols, function(k) 
-            abs(es2_t[bead_inds2, k] - median(es2_t[bead_inds2, k])) > 
-                trim*stats::mad(es2_t[bead_inds2, k]))
-        ex <- apply(ex, 1, any)
+        
+        meds <- matrixStats::colMedians(es2_t[bead_inds2, bead_cols])
+        mads <- matrixStats::colMads(   es2_t[bead_inds2, bead_cols]) * trim
+        ex <- matrixStats::colAnys(
+            abs(t(es2_t[bead_inds2, bead_cols]) - meds) > mads)
         bead_inds2[which(bead_inds2)[ex]] <- FALSE
+        
         bead_es <- es2[bead_inds2, bead_cols]
         bead_ts <- es2[bead_inds2, time_col]
     }
-    baseline <- apply(bead_es, 2, mean)
-    bead_slopes <- apply(bead_es*baseline, 1, sum) / apply(bead_es^2, 1, sum)
+    baseline <- colMeans(bead_es)
+    bead_slopes <- rowSums(bead_es*baseline) / rowSums(bead_es^2)
     slopes <- approx(bead_ts, bead_slopes, es[, time_col])$y
     
     # normalize and write FCS of normalized data
     normed_es <- cbind(
-        es[,  c(time_col, length_col)], 
-        es[, -c(time_col, length_col)]*slopes)
+        es[,  c(time_col, lgth_col)], 
+        es[, -c(time_col, lgth_col)]*slopes)
     outNormed(x, normed_es, remove_beads, remove, out_path)    
 
     # bead intensitites smoothed by conversion to local medians
     smoothed_beads <- data.frame(
         es[bead_inds, time_col], 
-        sapply(bead_cols, function(k) 
-            stats::runmed(es[bead_inds, k], 501, "constant")))
+        sapply(bead_cols, function(i) 
+            stats::runmed(es[bead_inds, i], k, "constant")))
 
     # normalize raw bead intensities via multiplication with slopes
     smoothed_normed_beads <- data.frame(
-        sapply(c(time_col, bead_cols), function(k) 
-            stats::runmed(normed_es[bead_inds, k], 501, "constant")))
+        sapply(c(time_col, bead_cols), function(i) 
+            stats::runmed(normed_es[bead_inds, i], k, "constant")))
     colnames(smoothed_beads) <- colnames(smoothed_normed_beads) <- 
         chs[c(time_col, bead_cols)]
-      
-    p1 <- paste0(format(round(sum(bead_inds)/nrow(es)*100,2),nsmall=2), "%")
-    p2 <- paste0(format(round(sum(remove)   /nrow(es)*100,2),nsmall=2), "%")
+    
+    p1 <- paste0(sprintf("%2.2f", sum(bead_inds)/nrow(es)*100), "%")
+    p2 <- paste0(sprintf("%2.2f", sum(remove)   /nrow(es)*100), "%")
     t1 <- paste("Beads used for normalization (singlets only):", p1)
-    t2 <- paste0("All events removed (including bead-/cell-bead doublets): ", p2, "\n")
-    ps <- c(plotBeads(es_t, bead_inds, bead_cols, dna_cols, TRUE, FALSE, TRUE),
-        plotBeads(es_t, remove, bead_cols, dna_cols, FALSE, TRUE, TRUE))
+    t2 <- paste0("All events removed ",
+        "(including bead-/cell-bead doublets): ", p2, "\n")
+    ps <- c(
+        plotBeads(es_t, bead_inds, bead_cols, dna_cols, TRUE, FALSE, TRUE),
+        plotBeads(es_t, remove,    bead_cols, dna_cols, FALSE, TRUE, TRUE))
     
     if (!is.null(out_path)) {
         pdf(file.path(out_path, "beads_gated.pdf"), 
