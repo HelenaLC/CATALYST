@@ -36,9 +36,14 @@ Estimates a trim value that will minimize the sum over squared
 popultion- and channel-wise squared medians upon compensation.
 }
 \examples{
-data(ss_beads)
-bc_ms <- c(139, 141:156, 158:176)
-re <- assignPrelim(x = ss_beads, y = bc_ms)
+# get single-stained control samples
+fcsFile <- system.file("extdata/ss_exp.fcs", package="CATALYST")
+ss_exp <- flowCore::read.FCS(fcsFile)
+
+# specify mass channels stained for
+bc_ms <- c(139, 141:157, 159:176)
+
+re <- assignPrelim(x = ss_exp, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
 estTrim(x = re, min = 0.06, max = 0.14, step = 0.02)
