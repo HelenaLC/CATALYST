@@ -3,19 +3,21 @@
 \docType{methods}
 \name{concatFCS}
 \alias{concatFCS}
-<<<<<<< HEAD
+\alias{concatFCS}
 \alias{concatFCS,character-method}
-=======
-\alias{concatFCS,flowSet-method}
 \alias{concatFCS,character-method}
 \alias{concatFCS,list-method}
->>>>>>> devel
 \title{FCS file concatination}
 \usage{
 concatFCS(x, ...)
 
-<<<<<<< HEAD
-\S4method{concatFCS}{character}(x, y = NULL)
+concatFCS(x, ...)
+
+\S4method{concatFCS}{character}(x, out_path = NULL)
+
+\S4method{concatFCS}{character}(x, out_path = NULL)
+
+\S4method{concatFCS}{list}(x, out_path = NULL)
 }
 \arguments{
 \item{x}{a character string specifying the location 
@@ -23,47 +25,24 @@ of the FCS files to be concatinated.}
 
 \item{...}{optional arguments.}
 
-\item{y}{an optional character string. If specified, an FCS file 
-=======
-\S4method{concatFCS}{flowSet}(x, out_path = NULL)
-
-\S4method{concatFCS}{character}(x, out_path = NULL)
-
-\S4method{concatFCS}{list}(x, out_path = NULL)
-}
-\arguments{
-\item{x}{can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
-a character specifying the location of the FCS files to be concatinated, 
-or a vector of FCS file names.}
+\item{out_path}{an optional character string. If specified, an FCS file 
+of the concatinated data will be written to this location. 
+If NULL (default), \code{concatFCS} will return a \code{\link{flowFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{out_path}{an optional character string. If specified, an FCS file 
->>>>>>> devel
-of the concatinated data will be written to this location. 
-If NULL (default), \code{concatFCS} will return a \code{\link{flowFrame}}.}
+\item{y}{can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
+a character specifying the location of the FCS files to be concatinated, 
+or a vector of FCS file names.}
 }
 \value{
-<<<<<<< HEAD
 Returns either a \code{\link{flowFrame}} or FCS files containing 
 the measured intensities of all provided FCS files. Files will be 
 linked together in the order of appearance in the specified location.
-=======
-a \code{\link{flowFrame}} containing measurement intensities 
-of all input data or a character of the FCS file name.
->>>>>>> devel
 }
 \description{
-Concatinates all FCS files in the specified location
+Concatinates all input data.
 }
-<<<<<<< HEAD
-=======
-\examples{
-data(raw_data)
-concatFCS(raw_data)
-
-}
->>>>>>> devel
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
