@@ -40,7 +40,7 @@ setMethod(f="estCutoffs",
         w <- diff(ds[[1]])[1]
         ds[[2]] <- ds[[1]][-1] - w/2
         ds[[3]] <- ds[[2]][-1] - w/2
-
+        
         if (verbose) message("Estimating separation cutoffs...")
         for (i in 1:n_bcs) {
             dy <- list()
@@ -52,7 +52,7 @@ setMethod(f="estCutoffs",
             lws <- mapply( function(u, v) { 
                 predict(stats::loess(v~u, span=.3), u) }, ds, dy)
             est <- ds[[1]][which(lws[[3]] > 0 & 
-                                     c(lws[[3]][-1] < 0, FALSE))[1]]
+                    c(lws[[3]][-1] < 0, FALSE))[1]]
             
             if (length(est) == 0 | is.na(est)) {
                 ests[i] <- 1 
@@ -60,6 +60,7 @@ setMethod(f="estCutoffs",
                 ests[i] <- est
             }
         }
+        names(ests) <- rownames(bc_key(x))
         sep_cutoffs(x) <- ests
         x
     })

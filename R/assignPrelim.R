@@ -9,7 +9,7 @@
 #' Assigns a preliminary barcode ID to each event.
 #'
 #' @param x 
-#' a \code{\link{flowFrame}}.
+#' a \code{\link{flowFrame}} or character of an FCS file name.
 #' @param y 
 #' the debarcoding scheme. A binary matrix with sample names as row names and 
 #' numeric masses as column names OR a vector of numeric masses corresponding to 
@@ -37,8 +37,9 @@
 #' assignPrelim(x = sample_ff, y = sample_key)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @import matrixStats
 #' @importFrom stats quantile
-#' @importFrom flowCore colnames exprs flowFrame
+#' @importFrom flowCore colnames exprs flowFrame read.FCS
 # ==============================================================================
 
 setMethod(f="assignPrelim",
@@ -107,14 +108,17 @@ setMethod(f="assignPrelim",
         }
         
         # normalize yields
-        norm_val <- apply(yields, 1, max)
+        norm_val <- matrixStats::rowMaxs(yields)
         norm_val[norm_val == 0] <- 1
-        yields <- t(sapply(1:n_bcs, function(x) yields[x, ] / norm_val[x]))
+        yields <- yields / norm_val
+        
+        rownames(counts) <- rownames(yields) <- ids
+        colnames(counts) <- colnames(yields) <- seps
         
         new(Class="dbFrame", 
-                 exprs=es, bc_key=y, bc_ids=bc_ids, 
-                 deltas=deltas, normed_bcs=normed_bcs,
-                 counts=counts, yields=yields)
+            exprs=es, bc_key=y, bc_ids=bc_ids, 
+            deltas=deltas, normed_bcs=normed_bcs,
+            counts=counts, yields=yields)
     })
 
 # ------------------------------------------------------------------------------
@@ -123,6 +127,36 @@ setMethod(f="assignPrelim",
 setMethod(f="assignPrelim",
     signature=signature(x="flowFrame", y="vector"),
     definition=function(x, y, cofactor=10, verbose=TRUE) {
+        n <- length(y)
+        y <- data.frame(matrix(diag(n), ncol=n, 
+            dimnames=list(y, y)), check.names=FALSE)
+        assignPrelim(x, y, cofactor, verbose)
+    })
+
+# ------------------------------------------------------------------------------
+
+#' @rdname assignPrelim
+setMethod(f="assignPrelim",
+    signature=signature(x="character", y="data.frame"),
+    definition=function(x, y, cofactor=10, verbose=TRUE) {
+        if (length(x) != 1) 
+            stop("'x' should be a single character or flowFrame.")
+        if (sum(flowCore::isFCSfile(x)) != 1) 
+            stop(x, " is not a valid FCS file.")
+        x <- flowCore::read.FCS(x)
+        assignPrelim(x, y, cofactor, verbose)
+    })
+
+# ------------------------------------------------------------------------------
+
+#' @rdname assignPrelim
+setMethod(f="assignPrelim",
+    signature=signature(x="character", y="vector"),
+    definition=function(x, y, cofactor=10, verbose=TRUE) {
+        if (length(x) != 1) 
+            stop("'x' should be a single character or flowFrame.")
+        if (sum(flowCore::isFCSfile(x)) != 1) 
+            stop(x, " is not a valid FCS file.")
         n <- length(y)
         y <- data.frame(matrix(diag(n), ncol=n, 
             dimnames=list(y, y)), check.names=FALSE)
