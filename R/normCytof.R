@@ -30,6 +30,8 @@
 #' a single non-negative numeric. A \emph{median} +/- ... \emph{mad} rule is
 #' applied to the preliminary population of bead events to remove bead-bead 
 #' doublets and low signal beads prior to estimating normalization factors.
+#' @param verbose  
+#' logical. Should extra information on progress be reported? Defaults to TRUE.
 #' 
 #' @return
 #' if \code{out_path=NULL} (the default) a \code{\link{flowFrame}} of the 
@@ -38,10 +40,9 @@
 #' location where output FCS files and plots have been generated.
 #' 
 #' @examples
-#' path <- system.file("extdata", package="CATALYST")
-#' fcsFiles <- list.files(path, "data_\\d+.fcs", full.names=TRUE)
-#' raw_data <- concatFCS(fcsFiles)
-#' normCytof(x = raw_data, y = "dvs")
+#' data(raw_data)
+#' ff <- concatFCS(raw_data)
+#' normCytof(x = ff, y = "dvs")
 #'
 #' @references 
 #' Finck, R. et al. (2013).
@@ -60,8 +61,8 @@
 
 setMethod(f="normCytof", 
     signature=signature(x="flowFrame"), 
-    definition=function(x, y, out_path=NULL,
-        remove_beads=TRUE, norm_to=NULL, k=500, trim=5) {
+    definition=function(x, y, out_path=NULL, remove_beads=TRUE, norm_to=NULL, 
+        k=500, trim=5, verbose=TRUE) {
     
     # assure width of median window is odd
     if (k %% 2 == 0) k <- k + 1
@@ -81,7 +82,7 @@ setMethod(f="normCytof",
     ms <- ms[!is.na(as.numeric(ms))]
 
     # identify bead singlets
-    message("Identifying beads...")
+    if (verbose) message("Identifying beads...")
     key <- data.frame(matrix(c(0, 0, rep(1, n_beads)), ncol=2+n_beads,
         dimnames=list("is_bead", c(191, 193, bead_ms))), check.names=FALSE)
     re <- assignPrelim(x, key, verbose=FALSE)
@@ -105,7 +106,7 @@ setMethod(f="normCytof",
 
     # get slopes - baseline (global mean) versus smoothed bead intensitites
     # and linearly interpolate slopes at non-bead events
-    message("Computing normalization factors...")
+    if (verbose) message("Computing normalization factors...")
     if (is.null(norm_to)) {
         bead_es <- es[bead_inds, bead_cols]
         bead_ts <- es[bead_inds, time_col]
@@ -137,11 +138,10 @@ setMethod(f="normCytof",
     bead_slopes <- rowSums(bead_es*baseline) / rowSums(bead_es^2)
     slopes <- approx(bead_ts, bead_slopes, es[, time_col])$y
     
-    # normalize and write FCS of normalized data
+    # normalize data
     normed_es <- cbind(
         es[,  c(time_col, lgth_col)], 
         es[, -c(time_col, lgth_col)]*slopes)
-    outNormed(x, normed_es, remove_beads, remove, out_path)    
 
     # bead intensitites smoothed by conversion to local medians
     smoothed_beads <- data.frame(
@@ -179,7 +179,6 @@ setMethod(f="normCytof",
             top=textGrob(paste(t1, t2, sep="\n"), just="right",
                 gp=gpar(fontface="bold", fontsize=15)))
     }
-     
     if (!is.null(out_path)) {
         pdf(file.path(out_path, "beads_before_vs_after.pdf"), 
             width=15, height=12.5)
@@ -194,6 +193,7 @@ setMethod(f="normCytof",
             rectGrob(gp=grid::gpar(fill="white", col="white")),
             plotSmoothed(smoothed_normed_beads, "Smoothed normalized beads"))
     }
+    outNormed(x, normed_es, remove_beads, remove, out_path)
     })
 
 # ------------------------------------------------------------------------------
