@@ -4,7 +4,7 @@
 #       - warning if some ID(s) is/are not valid and remove it/them
 # ------------------------------------------------------------------------------
 check_validity_which <- function(which, ids, fct) {
-
+    
     msg_events <- c(
         " Valid values for 'which' are IDs that occur as row names in the\n",
         " 'bc_key' slot of the supplied 'dbFrame', or 0 for unassigned events.")

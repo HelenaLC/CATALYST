@@ -20,6 +20,12 @@
 #' a character string. If specified, will be appended to the plot's name. 
 #' Defaults to NULL.
 #' 
+<<<<<<< HEAD
+=======
+#' @return plots all inter-barcode interactions for the population specified by 
+#' argument \code{which}. Events are colored by their Mahalanobis distance. 
+#' 
+>>>>>>> devel
 #' @examples
 #' data(sample_ff, sample_key)
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
@@ -40,6 +46,7 @@
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotMahal", 
+<<<<<<< HEAD
     signature=signature(x="dbFrame"), 
     definition=function(x, which, cofactor=50, out_path=NULL, name_ext=NULL) {
         
@@ -107,6 +114,68 @@ setMethod(f="plotMahal",
                 if (j == n) {
                     p[[length(p)]] <- p[[length(p)]] + xlab(colnames(es)[i])
                 }
+=======
+          signature=signature(x="dbFrame"), 
+          definition=function(x, which, cofactor=50, 
+              out_path=NULL, name_ext=NULL) {
+    
+    inds <- x@bc_ids == which
+    if (sum(inds) > 5e3) 
+        inds <- inds[sample(which(inds), 5e3)]
+    nms <- colnames(x@exprs)
+    ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
+    es <- asinh(x@exprs[inds, ms %in% colnames(x@bc_key)] / cofactor)
+    
+    thms <- theme_classic() + theme(
+        plot.margin=unit(c(0, 0, 0, 0), "null"),
+        axis.title=element_text(size=10), 
+        axis.ticks = element_blank(),
+        axis.text=element_blank(),
+        aspect.ratio=1)
+    
+    max <- ceiling(max(x@mhl_dists[inds])/5)*5
+    
+    n <- ncol(x@bc_key)
+    p <- list()
+    for (i in 1:n) {
+        for (j in i:n) {
+            df <- data.frame(x=es[, i], y=es[, j], col=x@mhl_dists[inds])
+            df[df < 0] <- 0
+            if (i == j) {
+                p[[length(p) + 1]] <- ggplot(df) + 
+                    scale_x_continuous(limits=c(0, max(df$x))) +
+                    geom_histogram(aes_string(x="x"), bins=100,
+                                   fill="black", color=NA) + 
+                    thms + labs(x=" ", y=" ") + coord_fixed(1)
+            } else {
+                p[[length(p) + 1]] <- ggplot(df) + labs(x=" ", y=" ") + thms +
+                    geom_point(aes_string(x="x", y="y", col="col"), size=1) +
+                    guides(colour=guide_colourbar(title.position="top", 
+                                                  title.hjust=.5)) +
+                    scale_x_continuous(limits=c(0, max(df$x))) +
+                    scale_y_continuous(limits=c(0, max(df$y))) +
+                    scale_color_gradientn(
+                        colours=rev(brewer.pal(11, "RdYlBu")),
+                        limits=c(0, max), breaks=seq(0, max, 5),
+                        name=paste0(which, ": ", 
+                                    paste(x@bc_key[which,], collapse="")))
+            }
+            if (i == 1 & j == 2) {
+                lgd <- get_legend(p[[length(p)]] + theme(
+                    legend.direction="horizontal",
+                    legend.title=element_text(face="bold"),
+                    legend.key.height=unit(1, "line"),
+                    legend.key.width=unit(4, "line"),
+                    legend.text=element_text(size=8), 
+                    legend.key=element_blank()))
+            }
+            p[[length(p)]] <- p[[length(p)]] + guides(colour=FALSE)
+            if (i == 1) {
+                p[[length(p)]] <- p[[length(p)]] + ylab(colnames(es)[j])
+            }
+            if (j == n) {
+                p[[length(p)]] <- p[[length(p)]] + xlab(colnames(es)[i])
+>>>>>>> devel
             }
         }
         
