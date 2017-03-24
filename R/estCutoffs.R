@@ -60,6 +60,7 @@ setMethod(f="estCutoffs",
                 ests[i] <- est
             }
         }
+        names(ests) <- rownames(bc_key(x))
         sep_cutoffs(x) <- ests
         x
     })
