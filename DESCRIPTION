@@ -16,6 +16,7 @@ Imports:
     grDevices,
     grid,
     gridExtra,
+    matrixStats,
     methods,
     RColorBrewer,
     stats,

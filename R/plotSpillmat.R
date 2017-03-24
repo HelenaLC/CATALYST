@@ -23,9 +23,14 @@
 #' Colours are ramped to the highest spillover value present
 #' 
 #' @examples
-#' data(ss_beads)
+#' # get single-stained control samples
+#' fcsFile <- system.file("extdata/ss_exp.fcs", package="CATALYST")
+#' ss_exp <- flowCore::read.FCS(fcsFile)
+#' 
+#' # specify mass channels stained for
 #' bc_ms <- c(139, 141:156, 158:176)
-#' re <- assignPrelim(x = ss_beads, y = bc_ms)
+#' 
+#' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
 #' spillMat <- computeSpillmat(x = re)
