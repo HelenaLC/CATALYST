@@ -37,6 +37,7 @@
 #' assignPrelim(x = sample_ff, y = sample_key)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @import matrixStats
 #' @importFrom stats quantile
 #' @importFrom flowCore colnames exprs flowFrame read.FCS
 # ==============================================================================
@@ -107,9 +108,12 @@ setMethod(f="assignPrelim",
         }
         
         # normalize yields
-        norm_val <- apply(yields, 1, max)
+        norm_val <- matrixStats::rowMaxs(yields)
         norm_val[norm_val == 0] <- 1
-        yields <- t(sapply(1:n_bcs, function(x) yields[x, ] / norm_val[x]))
+        yields <- yields / norm_val
+        
+        rownames(counts) <- rownames(yields) <- ids
+        colnames(counts) <- colnames(yields) <- seps
         
         new(Class="dbFrame", 
             exprs=es, bc_key=y, bc_ids=bc_ids, 
