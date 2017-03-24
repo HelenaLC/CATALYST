@@ -38,7 +38,7 @@ data(sample_ff, sample_key)
 re <- assignPrelim(x = sample_ff, y = sample_key)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
-plotMahal(x = re, which = "B4")
+plotMahal(x = re, which = "B3")
 
 }
 \references{
