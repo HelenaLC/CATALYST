@@ -6,25 +6,23 @@
 #' @title FCS file concatination
 #' 
 #' @description 
-#' Concatinates all FCS files in the specified location
+#' Concatinates all input data.
 #'
 #' @param x 
-
 #' a character string specifying the location 
 #' of the FCS files to be concatinated.
+#' 
 #' @param y
-
 #' can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
 #' a character specifying the location of the FCS files to be concatinated, 
 #' or a vector of FCS file names.
+#' 
 #' @param out_path
-
 #' an optional character string. If specified, an FCS file 
 #' of the concatinated data will be written to this location. 
 #' If NULL (default), \code{concatFCS} will return a \code{\link{flowFrame}}.
 #'
 #' @return 
-
 #' Returns either a \code{\link{flowFrame}} or FCS files containing 
 #' the measured intensities of all provided FCS files. Files will be 
 #' linked together in the order of appearance in the specified location.
