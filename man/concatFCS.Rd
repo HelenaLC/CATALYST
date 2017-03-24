@@ -3,16 +3,17 @@
 \docType{methods}
 \name{concatFCS}
 \alias{concatFCS}
-\alias{concatFCS,character-method}
+\alias{concatFCS,flowSet-method}
 \title{FCS file concatination}
 \usage{
 concatFCS(x, ...)
 
-\S4method{concatFCS}{character}(x, out_path = NULL)
+\S4method{concatFCS}{flowSet}(x, out_path = NULL)
 }
 \arguments{
-\item{x}{a character specifying the location of the FCS files to be concatinated
-or a vector of FCS file names}
+\item{x}{can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
+a character specifying the location of the FCS files to be concatinated, 
+or a vector of FCS file names.}
 
 \item{...}{optional arguments.}
 
@@ -29,6 +30,9 @@ linked together in the order of appearance in the specified location.
 Concatinates all FCS files in the specified location
 }
 \examples{
+path <- system.file("extdata", package="CATALYST")
+fcsFiles <- list.files(path, "data_\\\\d+.fcs", full.names=TRUE)
+concatFCS(fcsFiles)
 
 }
 \author{
