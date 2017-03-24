@@ -29,26 +29,29 @@ Defaults to NULL.}
 \item{name_ext}{a character string. If specified, will be appended to the plot's name. 
 Defaults to NULL.}
 }
+\value{
+plots intensities normalized by population for each barcode specified 
+by \code{which}: Each event corresponds to the intensities plotted on a 
+vertical line at a given point along the x-axis. Events are scaled to the 
+95\% quantile of the population it has been assigned to. Barcodes with no or 
+less than 50 event assignments will be skipped; it is strongly recoomended to 
+remove such populations or reconsider their separation cutoffs.
+}
 \description{
 Shows normalized barcode intensities for a given barcode.
 }
-\details{
-Displayed are intensities normalized by population: Each event is scaled to 
-the 95\% quantile of the population it has been assigned to. Barcodes with no 
-or less than 50 event assignments will be skipped; it is strongly recoomended 
-to remove such populations or reconsider their separation cutoffs.
-}
 \examples{
 data(sample_ff, sample_key)
-re <- assignPrelim(x = sample_ff, y = sample_key)
-plotEvents(x = re, which = "B3", n_events = 1000)
-re <- estCutoffs(x = re)
-re <- applyCutoffs(x = re)
-plotEvents(x = re, which = "B3", n_events = 1000)
 
-}
-\author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+# view preliminary assignments
+re <- assignPrelim(x = sample_ff, y = sample_key)
+plotEvents(x = re, which = "D1", n_events = 1000)
+
+# apply deconvolution parameters
+re <- estCutoffs(re)
+re <- applyCutoffs(x = re)
+plotEvents(x = re, which = "D1", n_events = 500)
+
 }
 \references{
 Zunder, E.R. et al. (2015).
@@ -56,4 +59,6 @@ Palladium-based mass tag cell barcoding with a doublet-filtering scheme
 and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
-
+\author{
+Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+}
