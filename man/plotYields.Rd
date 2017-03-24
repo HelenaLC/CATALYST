@@ -55,10 +55,12 @@ balances confidence in barcode assignment and cell yield.
 data(sample_ff, sample_key)
 re <- assignPrelim(x = sample_ff, y = sample_key)
 re <- estCutoffs(x = re)
-# all samples summary plot
+
+# all barcodes summary plot
 plotYields(x = re, which = 0)
+
 # plot for specific sample
-plotYields(x = re, which = "D1")
+plotYields(x = re, which = "C1")
 
 }
 \references{
