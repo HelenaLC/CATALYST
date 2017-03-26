@@ -27,8 +27,8 @@ assignPrelim(x, y, ...)
 \item{x}{a \code{\link{flowFrame}} or character of an FCS file name.}
 
 \item{y}{the debarcoding scheme. A binary matrix with sample names as row names and 
-numeric masses as column names OR a vector of numeric masses corresponding to 
-barcode channels. When the latter is supplied, \code{assignPrelim} will 
+numeric masses as column names OR a vector of numeric masses corresponding
+to barcode channels. When the latter is supplied, \code{assignPrelim} will 
 create a scheme of the appropriate format internally.}
 
 \item{...}{optional arguments.}
@@ -38,9 +38,9 @@ create a scheme of the appropriate format internally.}
 \item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
 }
 \value{
-Returns a \code{\link{dbFrame}} containing measured intensities, 
-the debarcoding key, a numeric verctor of barcode IDs and separations between 
-positive and negative barcode populations, and barcode intensities
+Returns a \code{\link{dbFrame}} containing measurement intensities,
+the debarcoding key, a numeric verctor of barcode IDs and separations
+between positive and negative barcode populations, and barcode intensities
 normalized by population.
 }
 \description{

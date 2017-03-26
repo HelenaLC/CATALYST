@@ -60,7 +60,7 @@ Since bead gating is automated here, normalization comes down to a single functi
 By default, we apply a $median\;\pm5\;mad$ rule to remove low- and high-signal events from the bead population used for estimating normalization factors. The extent to which bead populations are trimmed can be adjusted via `trim`. The population will become increasingly narrow and bead-bead doublets will be exluded as the `trim` value decreases. Notably, slight *over-trimming* will **not** affect normalization. It is therefore recommended to choose a `trim` value that is small enough to assure removal of doublets at the cost of a small bead population to normalize to.
 
 ```{r fig.width=17, fig.height=8.5}
-normCytof(x=ff, y="dvs")
+normCytof(x=ff, y="dvs", k=300)
 ```
 
 # Debarcoding
@@ -143,14 +143,14 @@ outFCS(x=re, out_path=tempdir())
 
 For each barcode, `plotYields` will show the distribution of barcode separations and yields upon debarcoding as a function of separation cutoffs. If available, the currently used separation cutoff as well as its resulting yield within the population is indicated in the plot's main title.
 
-```{r fig.width=7, fig.height=4}
+```{r fig.width=9, fig.height=5}
 plotYields(x=re, which="C1")
 ```
  
 Option `which=0` will render a summary plot of all barcodes. Here, the overall yield achieved by applying the current set of cutoff values will be shown. All yield functions should behave as described above: decline, stagnation, decline. Convergence to 0 yield at low cutoffs is a strong indicator that staining in this channel did not work, and excluding the channel entirely is sensible in this case. It is thus recommended to **always** view the all-barcodes yield plot to eliminate uninformative populations, since small populations may cause difficulties when computing spill estimates.
 
-```{r fig.width=7, fig.height=4}
-plotYields(x=re, which=0)
+```{r fig.width=9, fig.height=5}
+plotYields(x=re, which=0, legend=FALSE)
 ```
  
 ### `plotEvents`: Normalized intensities
@@ -159,7 +159,7 @@ Normalized intensities for a barcode can be viewed with `plotEvents`. Here, each
 
 ```{r fig.width=9, fig.height=5}
 # event plot for unassigned events
-plotEvents(x=re, which=0, n_events=2500)
+plotEvents(x=re, which=0, n_events=1000)
 ```
 
 ```{r fig.width=9, fig.height=5}
@@ -248,10 +248,10 @@ spillMat <- computeSpillmat(x=re)
 To optimize results achieved upon compensation, `estTrim` will estimate the SM for a range of trim values, and evaluate, for each barcode population, the sum over squared medians of each negative channel upon compensation. Along with an **optimal** trim value, the function will return a figure of population- and channel-wise median counts for each trim value. The returned value is the one that minimizes this sum. Nevertheless, it may be worth chosing a trim value that gives rise to compensated data that is centered around 0 at the cost of a higher sum of squared medians. It is thus recommended to view the diagnostic plot to check the selected value, and potentially choose another.
 For example, in the figure below, the minimal sum of squares is achieved with a trim value of 0.4 while 0.2 appears to be a better choice as populations are kept from highly positive or negative medians. 
 
-```{r fig.width=7, fig.height=4}
+```{r fig.width=8, fig.height=6}
 # estimate trim value minimizing sum of squared 
 # population- and channel-wise medians upon compensation
-trimVal <- estTrim(x=re, min=0.06, max=0.10)
+trimVal <- estTrim(x=re, min=0.04, max=0.12)
 ```
 
 \newpage

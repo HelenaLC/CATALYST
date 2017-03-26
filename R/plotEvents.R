@@ -16,18 +16,19 @@
 #' @param n_events 
 #' numeric. Specifies number of events to plot. Defaults to 100.
 #' @param out_path 
-#' a character string. If specified, outputs will be generated in this location. 
-#' Defaults to NULL.
+#' a character string. If specified, outputs will be generated 
+#' in this location. Defaults to NULL.
 #' @param name_ext 
 #' a character string. If specified, will be appended to the plot's name. 
 #' Defaults to NULL.
 #' 
-#' @return plots intensities normalized by population for each barcode specified 
+#' @return 
+#' plots intensities normalized by population for each barcode specified
 #' by \code{which}: Each event corresponds to the intensities plotted on a 
 #' vertical line at a given point along the x-axis. Events are scaled to the 
-#' 95\% quantile of the population it has been assigned to. Barcodes with no or 
-#' less than 50 event assignments will be skipped; it is strongly recoomended to 
-#' remove such populations or reconsider their separation cutoffs.
+#' 95\% quantile of the population it has been assigned to. Barcodes with 
+#' less than 50 event assignments will be skipped; it is strongly recoomended
+#' to remove such populations or reconsider their separation cutoffs.
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
@@ -77,23 +78,12 @@ setMethod(f="plotEvents",
         # ······································································
         
         n_chs <- ncol(bc_key(x))
-        bc_ids <- rownames(bc_key(x))
         ids <- sort(unique(bc_ids(x)))
-        if ("all" %in% which) which <- ids
-        
-        # get barcode labels: channel name if barcodes are single-positive, 
-        # barcode ID and binary code otherwise 
-        if (sum(rowSums(bc_key(x)) == 1) == nrow(bc_key(x))) {
-            bc_labs <- colnames(normed_bcs(x))
-        } else {
-            bc_labs <- paste0(bc_ids, ": ", 
-                apply(bc_key(x), 1, function(x) paste(x, collapse="")))
-        }
-        
-        if (0 %in% ids) {
+        if ("all" %in% which) 
+            which <- ids
+        bc_labs <- get_bc_labs(x)
+        if (0 %in% ids) 
             bc_labs <- c("Unassigned", bc_labs)
-            bc_ids <- c(0, bc_ids)
-        }
         
         # get colors for plotting:
         # interpolate if more than 11 barcodes, 
@@ -112,7 +102,7 @@ setMethod(f="plotEvents",
             n <- sum(inds)
             # store IDs with no or insufficient events assigned
             if (n < 50) {
-                if (id != 0) skipped <- c(skipped, id)
+                skipped <- c(skipped, id)
                 next
             }
             # subsample events if more than 'n_events' assigned 
@@ -137,37 +127,24 @@ setMethod(f="plotEvents",
                 expand_limits(x=c(0, nrow(ints)+1)) +
                 ylim(floor(4*min(ints))/4, ceiling(4*max(ints))/4) + 
                 xlab("Event number") + ylab("Normalized intensity") + 
-                ggtitle(bquote(bold(.(bc_labs[match(id, bc_ids)]))*
-                        scriptstyle(" ("*.(n)*" events)"))) +
+                ggtitle(bquote(bold(.(bc_labs[match(id, rownames(
+                    bc_key(x)))]))*scriptstyle(" ("*.(n)*" events)"))) +
                 theme_bw() + theme(legend.key=element_blank(),
                     panel.grid.major=element_line(color="lightgrey"),
                     panel.grid.minor=element_blank())
         }
         
         # ······································································
-        # throw informative warning about populations with 
-        # no or less than 50 event assignments
-        if (!is.null(skipped)) {
-            if (length(skipped) == 1) {
-                warning("Barcode ID ", paste(skipped), 
-                    " has no or less than 50 event assignments;",
-                    " no plot has been generated.\n ",
-                    " It is recommended to remove this population",
-                    " or reconsider its separation cutoff.")
-            } else {
-                warning("Barcodes IDs ", paste(skipped, collapse=", "), 
-                    " have no or less than 50 event assignments;",
-                    " their plots have not been generated.\n ",
-                    " It is recommended to remove these populations",
-                    " or reconsider their separation cutoffs.")
-            }
-        }
+        # throw warning about populations with less than 50 event assignments
+        if (!is.null(skipped))
+            warning("\nLess than 50 events assigned to Barcode ID(s) ", 
+                paste(skipped, collapse=", "), ".")
         # ······································································
         
         if (length(p) != 0) {
             if (!is.null(out_path)) {
-                pdf(file.path(out_path, paste0("event_plot", name_ext, ".pdf")), 
-                    width=10, height=5)
+                pdf(width=10, height=5, file=file.path(out_path, 
+                    paste0("event_plot", name_ext, ".pdf")))
                 for (i in 1:length(p)) plot(p[[i]])
                 dev.off()
             } else {

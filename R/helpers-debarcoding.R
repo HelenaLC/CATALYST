@@ -168,6 +168,20 @@ plot_yield <- function(id, x, seps, n_bcs, lgd, bc_labs) {
 }
 
 # ==============================================================================
+# get barcode labels: 
+# channel name if barcodes are single-positive, 
+# barcode ID and binary code otherwise 
+# ------------------------------------------------------------------------------
+get_bc_labs <- function(x) {
+    if (sum(rowSums(bc_key(x)) == 1) == nrow(bc_key(x))) {
+        colnames(normed_bcs(x))
+    } else {
+        paste0(rownames(bc_key(x)), ": ", 
+            apply(bc_key(x), 1, function(i) paste(i, collapse="")))
+    }
+}
+
+# ==============================================================================
 # retrieve legend from ggplot
 # ------------------------------------------------------------------------------
 get_legend <- function(p) {

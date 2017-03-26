@@ -23,10 +23,11 @@ normCytof(x, y, ...)
 
 \item{...}{optional arguments.}
 
-\item{out_path}{a character string. If specified, outputs will be generated in this location. 
-If NULL (the default), \code{normCytof} will return a \code{\link{flowFrame}}
-of the normalized data (if \code{remove=FALSE}) or a \code{\link{flowSet}} 
-containing normalized cells and beads (if \code{remove=TRUE}).}
+\item{out_path}{a character string. If specified, outputs will be generated 
+in this location. If NULL (the default), \code{normCytof} will return 
+a \code{\link{flowFrame}} of the normalized data (if \code{remove=FALSE}) 
+or a \code{\link{flowSet}} containing normalized cells and beads 
+(if \code{remove=TRUE}).}
 
 \item{remove_beads}{logical. If TRUE (the default) beads will be removed and normalized cells and
 beads returned separately.}

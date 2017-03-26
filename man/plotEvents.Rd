@@ -23,19 +23,19 @@ Defaults to "all".}
 
 \item{n_events}{numeric. Specifies number of events to plot. Defaults to 100.}
 
-\item{out_path}{a character string. If specified, outputs will be generated in this location. 
-Defaults to NULL.}
+\item{out_path}{a character string. If specified, outputs will be generated 
+in this location. Defaults to NULL.}
 
 \item{name_ext}{a character string. If specified, will be appended to the plot's name. 
 Defaults to NULL.}
 }
 \value{
-plots intensities normalized by population for each barcode specified 
+plots intensities normalized by population for each barcode specified
 by \code{which}: Each event corresponds to the intensities plotted on a 
 vertical line at a given point along the x-axis. Events are scaled to the 
-95\% quantile of the population it has been assigned to. Barcodes with no or 
-less than 50 event assignments will be skipped; it is strongly recoomended to 
-remove such populations or reconsider their separation cutoffs.
+95\% quantile of the population it has been assigned to. Barcodes with 
+less than 50 event assignments will be skipped; it is strongly recoomended
+to remove such populations or reconsider their separation cutoffs.
 }
 \description{
 Shows normalized barcode intensities for a given barcode.

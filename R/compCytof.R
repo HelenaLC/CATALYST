@@ -37,11 +37,11 @@
 #' }
 #' 
 #' @return 
-#' Compensates the input \code{\link{flowFrame}} or, if \code{x} is a character 
-#' string, all FCS files in the specified location. If \code{out_path=NULL} (the 
-#' default), returns a \code{\link{flowFrame}} containing the compensated data. 
-#' Else, compensated data will be written to the specified location as FCS 3.0 
-#' standard files. 
+#' Compensates the input \code{\link{flowFrame}} or, 
+#' if \code{x} is a character string, all FCS files in the specified location. 
+#' If \code{out_path=NULL} (the default), returns a \code{\link{flowFrame}} 
+#' containing the compensated data. Otherwise, compensated data will be written 
+#' to the specified location as FCS 3.0 standard files. 
 #' 
 #' @examples
 #' # get single-stained control samples
