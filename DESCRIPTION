@@ -7,7 +7,7 @@ Author: Helena Lucia Crowell <crowellh@student.ethz.ch>, Mark Robinson
 biocViews: MassSpectrometry, Preprocessing, StatisticalMethod, SingleCell
 Maintainer: Helena Lucia Crowell <crowellh@student.ethz.ch>
 Depends:
-    R (>= 3.3)
+    R (>= 3.4)
 Description: Tools for (pre)processing and analysis of cytometry data.
 Imports:
     flowCore,

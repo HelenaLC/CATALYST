@@ -14,14 +14,14 @@
 #' @param cofactor
 #' cofactor used for asinh transformation.
 #' @param out_path 
-#' a character string. If specified, outputs will be generated in this location. 
-#' Defaults to NULL.
+#' a character string. If specified, outputs will be generated 
+#' in this location. Defaults to NULL.
 #' @param name_ext 
 #' a character string. If specified, will be appended to the plot's name. 
 #' Defaults to NULL.
 #' 
-#' @return plots all inter-barcode interactions for the population specified by 
-#' argument \code{which}. Events are colored by their Mahalanobis distance. 
+#' @return plots all inter-barcode interactions for the population specified
+#' by argument \code{which}. Events are colored by their Mahalanobis distance. 
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
@@ -80,8 +80,9 @@ setMethod(f="plotMahal",
                             fill="black", color=NA) + 
                         thms + labs(x=" ", y=" ") + coord_fixed(1)
                 } else {
-                    p[[length(p) + 1]] <- ggplot(df) + labs(x=" ", y=" ") + thms +
-                        geom_point(aes_string(x="x", y="y", col="col"), size=1) +
+                    p[[length(p) + 1]] <- ggplot(df) + labs(x=" ", y=" ") +
+                        geom_point(aes_string(x="x", y="y", col="col"), 
+                            size=1) + thms +
                         guides(colour=guide_colourbar(title.position="top", 
                             title.hjust=.5)) +
                         scale_x_continuous(limits=c(0, max(df$x))) +
