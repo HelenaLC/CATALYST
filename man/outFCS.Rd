@@ -34,11 +34,11 @@ a character of the output path.
 Writes an FCS file for each sample from a dbFrame.
 }
 \details{
-Creates a separate FCS file for each barcode population. 
-If \code{out_nms} is NULL (default), files will be named after  
-the barcode population's ID in the \code{bc_key} slot of the input 
-\code{\link{dbFrame}}; unassigned events will be written to "unassigned.fcs". 
-No file is generated for populations with less than 10 event assignments.
+Creates a separate FCS file for each barcode population. If \code{out_nms} 
+is NULL (the default), files will be named after the barcode population's ID 
+in the \code{bc_key} slot of the input \code{\link{dbFrame}}; 
+unassigned events will be written to "unassigned.fcs", and no output 
+is generated for populations with less than 10 event assignments.
 }
 \examples{
 data(sample_ff, sample_key)

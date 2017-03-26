@@ -27,11 +27,11 @@ inherited from uncompensated FCS files and given extension "_comped".
 Defaults to NULL.}
 }
 \value{
-Compensates the input \code{\link{flowFrame}} or, if \code{x} is a character 
-string, all FCS files in the specified location. If \code{out_path=NULL} (the 
-default), returns a \code{\link{flowFrame}} containing the compensated data. 
-Else, compensated data will be written to the specified location as FCS 3.0 
-standard files.
+Compensates the input \code{\link{flowFrame}} or, 
+if \code{x} is a character string, all FCS files in the specified location. 
+If \code{out_path=NULL} (the default), returns a \code{\link{flowFrame}} 
+containing the compensated data. Otherwise, compensated data will be written 
+to the specified location as FCS 3.0 standard files.
 }
 \description{
 Compensates a mass spectrometry based experiment using a provided spillover
