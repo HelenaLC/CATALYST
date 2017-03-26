@@ -3,15 +3,14 @@
 # ------------------------------------------------------------------------------
 
 #' @rdname dbFrame-methods
-#' 
-#' @title Extraction and replacement methods for objects of class \code{dbFrame}
+#' @title 
+#' Extraction and replacement methods for objects of class \code{dbFrame}
 #' @aliases 
 #' dbFrame-methods exprs bc_key bc_ids deltas normed_bcs mhl_dists 
 #' sep_cutoffs sep_cutoffs<- mhl_cutoff mhl_cutoff<- counts yields
 #' 
 #' @description
 #' Methods for replacing and accessing slots in a \code{\link{dbFrame}}.
-#' 
 #' @return
 #' \describe{
 #' \item{\code{exprs}}{extracts the raw data intensities.}
@@ -32,10 +31,6 @@
 #' \item{\code{counts}}{extract the counts matrix (see \code{\link{dbFrame}}).}
 #' \item{\code{yields}}{extract the yields matrix (see \code{\link{dbFrame}}).}
 #' }
-#' 
-#' @examples 
-#' 
-#' 
 #' @param object a \code{\link{dbFrame}}.
 #' @param value the replacement value.
 #' 
@@ -189,5 +184,3 @@ setReplaceMethod(f="sep_cutoffs",
         stop("Replacement value must be a non-negative numeric with length one",
             "\n or same length as the number of rows in the 'bc_key'.")
     })
-
-
