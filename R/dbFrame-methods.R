@@ -173,6 +173,7 @@ setReplaceMethod(f="sep_cutoffs",
             stop("'Replacement value' must be of length one\n or same length",
                 " as the number of rows in the 'bc_key'.")
         object@sep_cutoffs <- value
+        names(object@sep_cutoffs) <- rownames(object@bc_key)
         return(object)
     })
 
