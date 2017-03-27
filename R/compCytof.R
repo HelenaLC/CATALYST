@@ -162,7 +162,7 @@ setMethod(f="compCytof",
         
         comped <- flowCore::compensate(x, sm)
         if (!is.null(out_path)) {
-            nm <- deparse(substitute(ss_exp))
+            nm <- deparse(substitute(x))
             suppressWarnings(flowCore::write.FCS(comped,
                 file.path(out_path, paste0(nm, "_comped.fcs"))))
         } else {
@@ -183,7 +183,7 @@ setMethod(f="compCytof",
             stop("No FCS files found in specified location.")
         ffs <- lapply(fcs, flowCore::read.FCS)
         if (is.null(out_path)) {
-            out_nms <- paste0(gsub(".fcs", "", fcs), "_comped.fcs")
+            out_nms <- gsub(".fcs$", "_comped.fcs", fcs)
             for (i in seq_along(ffs))
                 suppressWarnings(flowCore::write.FCS(
                     compCytof(ffs[[i]], y), out_nms[i]))
