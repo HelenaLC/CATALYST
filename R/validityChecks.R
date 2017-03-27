@@ -49,5 +49,5 @@ check_validity_which <- function(which, ids, fct) {
             }
         } 
     }
-    which
+    as.character(which)
 }
