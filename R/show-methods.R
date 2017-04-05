@@ -5,7 +5,7 @@
 setMethod(f="show",
     signature="dbFrame",
     definition=function(object) {
-        dims <- dim(eobjectprs(object))
+        dims <- dim(exprs(object))
         cat("dbFrame objectect with\n", 
             dims[1], " events, ", 
             dims[2], " observables and ",
