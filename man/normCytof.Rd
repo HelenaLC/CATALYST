@@ -13,7 +13,7 @@ normCytof(x, y, ...)
   norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
 
 \S4method{normCytof}{character}(x, y, out_path = NULL, remove_beads = TRUE,
-  norm_to = NULL, trim = 5)
+  norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{flowFrame}} or character of the FCS file to be normalized.}
@@ -56,7 +56,7 @@ using bead standards with automated bead gating.
 \examples{
 data(raw_data)
 ff <- concatFCS(raw_data)
-normCytof(x = ff, y = "dvs")
+normCytof(x = ff, y = "dvs", "/Users/HLC/Desktop", k=300)
 
 }
 \references{
