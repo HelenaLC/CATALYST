@@ -13,7 +13,8 @@ get_bead_cols <- function(channels, beads) {
         bead_ms <- beads
     }
     n_beads <- length(bead_ms)
-    if (length(bead_cols <- which(ms %in% bead_ms)) != n_beads)
+    bead_cols <- which(ms %in% bead_ms)
+    if (length(bead_cols) != n_beads)
         stop("Not all bead channels found.")
     return(bead_cols)
 }
@@ -88,7 +89,9 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
     chs <- colnames(es_t)
     n_beads <- length(bead_cols)
     
-    df <- data.frame(es_t[, c(bead_cols, dna_cols)], id=as.numeric(bead_inds))
+    df <- data.frame(
+        es_t[, c(bead_cols, dna_cols)], 
+        id=as.numeric(bead_inds))
     if (gate) {
         gates <- data.frame(t(sapply(bead_cols, function(k) c(
             min(df[bead_inds, chs[k]]), 
@@ -120,7 +123,7 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
     
     p <- list()
     if (hist) {
-        for (i in 1:n_beads) {
+        for (i in seq_len(n_beads)) {
             med <- median(es[bead_inds, bead_cols[i]])
             min <- min(es[bead_inds, bead_cols[i]])
             max <- max(es[bead_inds, bead_cols[i]])
@@ -150,7 +153,7 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
                 theme(axis.title.y=element_text(color="white"))
         }
     }
-    for (i in 1:n_beads) {
+    for (i in seq_len(n_beads)) {
         p[[length(p)+1]] <- ggplot(df, aes_string(col="as.factor(id)",
             x=chs[bead_cols[i]], y=chs[dna_cols[1]])) + theme_bw() + thms +
             scale_colour_manual(values=c("0"="black", "1"="navy")) +
@@ -233,7 +236,7 @@ plotSmoothed <- function(df, main) {
             panel.grid.major=element_line(color="grey"),
             panel.grid.minor=element_blank())
     
-    for (i in 2:n) 
+    for (i in seq_len(n)[-1]) 
         p <- p + geom_point(size=.5, alpha=.5, 
             aes_string(x=chs[1], y=chs[i], color=as.factor(chs[i]))) + 
         geom_hline(show.legend=FALSE, lty=3, size=.5,
