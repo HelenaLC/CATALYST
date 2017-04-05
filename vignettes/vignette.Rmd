@@ -251,7 +251,7 @@ For example, in the figure below, the minimal sum of squares is achieved with a 
 ```{r fig.width=8, fig.height=6}
 # estimate trim value minimizing sum of squared 
 # population- and channel-wise medians upon compensation
-trimVal <- estTrim(x=re, min=0.04, max=0.12)
+estTrim(x=re, min=0.05, max=0.11)
 ```
 
 \newpage
@@ -261,7 +261,7 @@ trimVal <- estTrim(x=re, min=0.04, max=0.12)
 `plotSpillmat` provides a visualization of estimated spill percentages as a heat map. Channels without a single-antibody stained control are annotated in grey, and colours are ramped to the highest spillover value present. Option `annotate=TRUE` (the default) will display spill values inside each bin, and the total amount of spill caused and received by each channel on the top and to the right, respectively.
 
 ```{r fig.width=7.5, fig.height=7.5} 
-spillMat <- computeSpillmat(x=re, trim=trimVal)
+spillMat <- computeSpillmat(x=re, trim=0.08)
 plotSpillmat(bc_ms=bc_ms, SM=spillMat) 
 ```
 
