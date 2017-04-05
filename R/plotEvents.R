@@ -137,7 +137,7 @@ setMethod(f="plotEvents",
         # ······································································
         # throw warning about populations with less than 50 event assignments
         if (!is.null(skipped))
-            warning("\nLess than 50 events assigned to Barcode ID(s) ", 
+            warning("Less than 50 events assigned to Barcode ID(s) ", 
                 paste(skipped, collapse=", "), ".")
         # ······································································
         
