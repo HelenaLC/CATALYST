@@ -92,7 +92,7 @@ setMethod(f="normCytof",
     # including bead-bead and cell-bead doublets
     min_bead_ints <- matrixStats::colMins(es_t[bead_inds, bead_cols])
     remove <- apply(es_t[, bead_cols], 1, function(i) { 
-        above_min <- sapply(1:n_beads, function(j) 
+        above_min <- sapply(seq_len(n_beads), function(j) 
             sum(i[j] > min_bead_ints[j]))
         sum(above_min) == n_beads })
     
@@ -152,12 +152,13 @@ setMethod(f="normCytof",
 #' @rdname normCytof
 setMethod(f="normCytof",
     signature=signature(x="character"),
-    definition=function(x, y, out_path=NULL,
-        remove_beads=TRUE, norm_to=NULL, trim=5) {
+    definition=function(x, y, out_path=NULL, remove_beads=TRUE, norm_to=NULL, 
+        k=500, trim=5, verbose=TRUE) {
         if (length(x) != 1) 
             stop("'x' should be a single character or flowFrame.")
         if (sum(flowCore::isFCSfile(x)) != 1) 
             stop(x, " is not a valid FCS file.")
         x <- flowCore::read.FCS(x)
-        normCytof(x, y, out_path=NULL, remove_beads=TRUE, norm_to=NULL, trim=5)
+        normCytof(x, y, out_path=NULL, remove_beads=TRUE, norm_to=NULL, 
+            k=500, trim=5, verbose=TRUE)
     })
