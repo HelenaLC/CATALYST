@@ -31,7 +31,7 @@
 #' \item{\code{counts}}{extract the counts matrix (see \code{\link{dbFrame}}).}
 #' \item{\code{yields}}{extract the yields matrix (see \code{\link{dbFrame}}).}
 #' }
-#' @param object a \code{\link{dbFrame}}.
+#' @param x,object a \code{\link{dbFrame}}.
 #' @param value the replacement value.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
@@ -50,57 +50,57 @@ setMethod(f="exprs",
 #' @rdname dbFrame-methods
 setMethod(f="bc_key",      
     signature="dbFrame", 
-    definition=function(object) return(object@bc_key))
+    definition=function(x) return(x@bc_key))
 
 #' @rdname dbFrame-methods
 setMethod(f="bc_ids",      
     signature="dbFrame", 
-    definition=function(object) return(object@bc_ids)) 
+    definition=function(x) return(x@bc_ids)) 
 
 #' @rdname dbFrame-methods
 setMethod(f="deltas",      
     signature="dbFrame", 
-    definition=function(object) return(object@deltas))
+    definition=function(x) return(x@deltas))
 
 #' @rdname dbFrame-methods
 setMethod(f="normed_bcs",  
     signature="dbFrame", 
-    definition=function(object) return(object@normed_bcs))
+    definition=function(x) return(x@normed_bcs))
 
 #' @rdname dbFrame-methods
 setMethod(f="mhl_dists",  
     signature="dbFrame", 
-    definition=function(object) return(object@mhl_dists))
+    definition=function(x) return(x@mhl_dists))
 
 #' @rdname dbFrame-methods
 setMethod(f="sep_cutoffs", 
     signature="dbFrame", 
-    definition=function(object) return(object@sep_cutoffs))
+    definition=function(x) return(x@sep_cutoffs))
 
 #' @rdname dbFrame-methods
 setMethod(f="mhl_cutoff",  
     signature="dbFrame", 
-    definition=function(object) return(object@mhl_cutoff))
+    definition=function(x) return(x@mhl_cutoff))
 
 #' @rdname dbFrame-methods
 #' @export
 setMethod(f="counts",
     signature="dbFrame",
-    definition=function(object) return(object@counts))
+    definition=function(x) return(x@counts))
 
 #' @rdname dbFrame-methods
 setMethod(f="yields",   
     signature="dbFrame", 
-    definition=function(object) return(object@yields))
+    definition=function(x) return(x@yields))
 
 # ==============================================================================
 # Replace method for slot 'bc_ids' (only used internally)
 # ------------------------------------------------------------------------------
 
 setReplaceMethod(f="bc_ids", 
-    signature=signature(object="dbFrame"), 
-    definition=function(object, value) {
-        valid_ids <- c(0, rownames(object@bc_key))
+    signature=signature(x="dbFrame"), 
+    definition=function(x, value) {
+        valid_ids <- c(0, rownames(bc_key(x)))
         if (!any(value %in% valid_ids)) {
             invalid <- value[!value %in% valid_ids]
             if (length(invalid) == 1) 
@@ -112,8 +112,8 @@ setReplaceMethod(f="bc_ids",
                     " are invalid.\n'bc_ids' should be either 0 = \"",
                     "unassigned\"\nor occur as rownames in the 'bc_key'.")
         }
-        object@bc_ids <- value
-        return(object)
+        x@bc_ids <- value
+        return(x)
     })
 
 # ==============================================================================
@@ -121,10 +121,10 @@ setReplaceMethod(f="bc_ids",
 # ------------------------------------------------------------------------------
 
 setReplaceMethod(f="mhl_dists", 
-    signature=signature(object="dbFrame", value="numeric"), 
-    definition=function(object, value) {
-        object@mhl_dists <- value
-        return(object)
+    signature=signature(x="dbFrame", value="numeric"), 
+    definition=function(x, value) {
+        x@mhl_dists <- value
+        return(x)
     })
 
 # ==============================================================================
@@ -134,23 +134,23 @@ setReplaceMethod(f="mhl_dists",
 #' @rdname dbFrame-methods
 #' @export
 setReplaceMethod(f="mhl_cutoff", 
-    signature=signature(object="dbFrame", value="numeric"), 
-    definition=function(object, value) {
+    signature=signature(x="dbFrame", value="numeric"), 
+    definition=function(x, value) {
         if (length(value) != 1)
             stop("Replacement value must be of length one.")
         if (any(value < 0)) 
             stop("Replacement value must be non-negative.")
         if (value == 0) 
             stop("Applying this cutoff will have all events unassigned.") 
-        object@mhl_cutoff <- value
-        return(object)
+        x@mhl_cutoff <- value
+        return(x)
     })
 
 #' @rdname dbFrame-methods
 #' @export
 setReplaceMethod(f="mhl_cutoff", 
-    signature=signature(object="dbFrame", value="ANY"), 
-    definition=function(object, value) {
+    signature=signature(x="dbFrame", value="ANY"), 
+    definition=function(x, value) {
         stop("Replacement value must be a non-negative numeric of length one.") 
     })
 
@@ -161,27 +161,27 @@ setReplaceMethod(f="mhl_cutoff",
 #' @rdname dbFrame-methods
 #' @export
 setReplaceMethod(f="sep_cutoffs", 
-    signature=signature(object="dbFrame", value="numeric"), 
-    definition=function(object, value) {
+    signature=signature(x="dbFrame", value="numeric"), 
+    definition=function(x, value) {
         if (any(value < 0))
             stop("Replacement value(s) must be non-negative.")
         if (length(value) == 1) {
-            object@sep_cutoffs <- rep(value, nrow(object@bc_key))
-            return(object)
+            x@sep_cutoffs <- rep(value, nrow(bc_key(x)))
+            return(x)
         }
-        if (length(value) != nrow(object@bc_key))
+        if (length(value) != nrow(x@bc_key))
             stop("'Replacement value' must be of length one\n or same length",
                 " as the number of rows in the 'bc_key'.")
-        object@sep_cutoffs <- value
-        names(object@sep_cutoffs) <- rownames(object@bc_key)
-        return(object)
+        x@sep_cutoffs <- value
+        names(x@sep_cutoffs) <- rownames(bc_key(x))
+        return(x)
     })
 
 #' @rdname dbFrame-methods
 #' @export
 setReplaceMethod(f="sep_cutoffs", 
-    signature=signature(object="dbFrame", value="ANY"), 
-    definition=function(object, value) {
+    signature=signature(x="dbFrame", value="ANY"), 
+    definition=function(x, value) {
         stop("Replacement value must be a non-negative numeric with length one",
             "\n or same length as the number of rows in the 'bc_key'.")
     })
