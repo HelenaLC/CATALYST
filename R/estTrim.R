@@ -21,24 +21,26 @@
 #' @return
 #' For each value along \code{seq(min, max, step)}, \code{estTrim} will call
 #' \code{\link{computeSpillmat}} with \code{method = "mean"} and the respective 
-#' trim parameter. Returned will be the value that minimizes the sum over 
-#' squared population-wise median counts across all barcodes after compensation.
+#' trim parameter. Returned will be an interactive plot displaying channel-wise 
+#' medians upon compensation, and the mean squared deviation from 0. Each point 
+#' is labeled with the respective interacting channels.
 #' 
 #' @examples
 #' # get single-stained control samples
 #' data(ss_exp)
 #' 
 #' # specify mass channels stained for
-#' bc_ms <- c(139, 141:157, 159:176)
+#' bc_ms <- c(139, 141:156, 158:176)
 #' 
 #' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
-#' estTrim(x = re, min = 0.06, max = 0.14, step = 0.02)
+#' estTrim(x = re, min = 0.02, max = 0.14, step = 0.02)
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2
 #' @importFrom graphics plot
+#' @importFrom plotly ggplotly
 #' @export
 
 # ------------------------------------------------------------------------------
@@ -48,49 +50,65 @@ setMethod(f="estTrim",
     definition=function(x, min = 0.05, max = 0.20, step = 0.01, 
         out_path = NULL, name_ext = NULL) {
         
-        ids <- as.numeric(rownames(x@bc_key))
-        nms <- paste(colnames(x@exprs))
+        trms <- seq(min, max, step)
+        ids <- as.numeric(rownames(bc_key(x)))
+        nms <- paste(colnames(exprs(x)))
         ms <- gsub("[[:alpha:][:punct:]]", "", nms)
         bc_cols <- which(ms %in% ids)
-        bc_range <- min(bc_cols) : max(bc_cols)
-        x@exprs <- exprs(x)[, bc_range]
-        ms <- ms[bc_range]
+        ms <- ms[bc_cols]
+        mets <- gsub("[[:digit:]]+Di", "", nms[bc_cols])
+        spill_cols <- get_spill_cols(as.numeric(ms), mets)
+        x@exprs <- exprs(x)[, bc_cols]
+
+        # compute spillover and compensation matrix,
+        # and compensate data for each trim value
+        sm <- lapply(trms, function(val) computeSpillmat(x, trim=val))
+        sm <- lapply(sm, make_symetric)
+        cm <- lapply(sm, solve)
+        comped <- lapply(cm, function(mat) exprs(x) %*% mat)
+
+        # compute channel-wise medians and mean squared error
+        # for each compensated data
+        medians <- lapply(comped, function(data) {
+            unlist(sapply(ids, function(id) {
+                cols <- spill_cols[[which(ms == id)]]
+                if (length(cols) == 1) {
+                    median(data[bc_ids(x) == id, cols])
+                } else {
+                    matrixStats::colMedians(data[
+                        bc_ids(x) == id, cols])
+                }
+            }))
+        })
+        mse <- sapply(medians, function(m) mean(m^2))
+        opt <- trms[which.min(mse)]
         
-        trim_vals <- seq(min, max, step)
-        df <- rss <- NULL
-        for (trim in trim_vals) {
-            sm <- computeSpillmat(x=x, method="mean", trim=trim)
-            sm <- make_symetric(sm)
-            comped <- exprs(x) %*% solve(sm)
-            for (id in ids) 
-                df <- rbind(df, data.frame(m=matrixStats::colMedians(
-                    comped[bc_ids(x) == id, ms != id]), trim=trim))
-            rss <- rbind(rss, data.frame(
-                m=mean((df$m[df$trim == trim])^2), 
-                trim=trim))
-        }
-        opt <- rss$trim[which.min(rss$m)]
+        nTrms <- length(trms)
+        ns <- lapply(spill_cols, length)
+        n <- sum(unlist(ns))
+        spillers <- sapply(seq_along(ns), 
+            function(i) rep(nms[bc_cols][i], ns[i]))
+        receivers <- lapply(spill_cols, function(i) nms[bc_cols][i])
         
-        p <- ggplot() + geom_vline(aes_string(xintercept=opt), lty=3) +
-            geom_jitter(data=df, aes_string(x="trim", y="m"), col="mediumblue", 
-                height=0, width=step/5, size=4, stroke=.5, alpha=.2) + 
-            geom_point(data=rss, aes_string(x="trim", y="m"), 
-                size=12, shape=16) +
-            annotate("text", x=rss$trim, y=rss$m, col="white", size=2, 
-                label=paste(round(rss$m, 4))) +
-            scale_x_continuous(breaks=trim_vals, labels=format(trim_vals, 2)) + 
-            xlab("Trim value") + ylab("Median counts") + theme_bw() +
-            theme(legend.key=element_blank(), 
-                panel.border=element_blank(),
-                panel.grid.minor=element_blank(),
-                panel.grid.major=element_line(size=.2, color="lightgrey"),
-                axis.text.x=element_text(vjust=.5, hjust=1))
+        df <- data.frame(
+            Spiller=rep(unlist(spillers), nTrms),
+            Receiver=rep(unlist(receivers), nTrms), 
+            m=unlist(medians), 
+            t=rep(trms, each=n), 
+            e=rep(mse, each=n))
         
+        xMin <- trms[1]-step
+        xMax <- trms[nTrms]+step
+        yMin <- floor(  min(df$m)/.5)*.5
+        yMax <- ceiling(max(df$m)/.5)*.5
+        rect <- data.frame(x1=xMin, x2=xMax, y1=yMax+.4, y2=yMax+.6)
+        text <- data.frame(x=trms, y=yMax+.5, e=round(mse, 4))
+            
+        p <- plot_estTrim(df, trms, xMin, xMax, yMin, yMax, rect, text)
         if (!is.null(out_path)) {
-            ggsave(file.path(out_path, 
-                paste0("estTrim", name_ext, ".pdf")), plot=p)
+            ggsave(file.path(out_path, paste0("estTrim", name_ext, ".pdf")), 
+                plot=p, width=nTrms, height=8)
         } else {
-            plot(p)
+            ggplotly(p, tooltip=c("group", "fill"))
         }
-        return(opt)
     })
