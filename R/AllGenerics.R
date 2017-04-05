@@ -25,55 +25,55 @@ setGeneric(name="concatFCS",
 #' @export
 setGeneric(name="bc_key", 
     package="CATALYST", 
-    def=function(object) standardGeneric("bc_key"))
+    def=function(x) standardGeneric("bc_key"))
 
 #' @rdname dbFrame-methods
 #' @export
 setGeneric(name="bc_ids",      
     package="CATALYST", 
-    def=function(object) standardGeneric("bc_ids"))
+    def=function(x) standardGeneric("bc_ids"))
 
 #' @rdname dbFrame-methods
 #' @export
 setGeneric(name="deltas",  
     package="CATALYST", 
-    def=function(object) standardGeneric("deltas"))
+    def=function(x) standardGeneric("deltas"))
 
 #' @rdname dbFrame-methods
 #' @export
 setGeneric(name="normed_bcs",  
     package="CATALYST", 
-    def=function(object) standardGeneric("normed_bcs"))
+    def=function(x) standardGeneric("normed_bcs"))
 
 #' @rdname dbFrame-methods
 #' @export
 setGeneric(name="mhl_dists",  
     package="CATALYST", 
-    def=function(object) standardGeneric("mhl_dists"))
+    def=function(x) standardGeneric("mhl_dists"))
 
 #' @rdname dbFrame-methods
 #' @export
 setGeneric(name="sep_cutoffs", 
     package="CATALYST", 
-    def=function(object) standardGeneric("sep_cutoffs"))
+    def=function(x) standardGeneric("sep_cutoffs"))
 
 #' @rdname dbFrame-methods
 #' @export
 setGeneric(name="mhl_cutoff",  
     package="CATALYST", 
-    def=function(object) standardGeneric("mhl_cutoff"))
+    def=function(x) standardGeneric("mhl_cutoff"))
 
 #' @rdname dbFrame-methods
 #' @export
 setGeneric(name="counts",
     package="CATALYST",
-    def=function(object) standardGeneric("counts"))
+    def=function(x) standardGeneric("counts"))
 
 #' @rdname dbFrame-methods
 #' @export
 setGeneric(name="yields",      
     package="CATALYST", 
-    def=function(object) standardGeneric("yields"))
+    def=function(x) standardGeneric("yields"))
 
 # ==============================================================================
 # Generics to replace slots in a dbFrame
@@ -81,27 +81,27 @@ setGeneric(name="yields",
 
 setGeneric(name="bc_ids<-",      
     package="CATALYST",
-    def=function(object, value) standardGeneric("bc_ids<-"))
+    def=function(x, value) standardGeneric("bc_ids<-"))
 
 setGeneric(name="mhl_dists<-",      
     package="CATALYST",
-    def=function(object, value) standardGeneric("mhl_dists<-"))
+    def=function(x, value) standardGeneric("mhl_dists<-"))
 
 setGeneric(name="sep_cutoffs<-", 
     package="CATALYST",
-    def=function(object, value) standardGeneric("sep_cutoffs<-"))
+    def=function(x, value) standardGeneric("sep_cutoffs<-"))
 
 setGeneric(name="mhl_cutoff<-",  
     package="CATALYST",
-    def=function(object, value) standardGeneric("mhl_cutoff<-"))
+    def=function(x, value) standardGeneric("mhl_cutoff<-"))
 
 setGeneric(name="counts<-",      
     package="CATALYST",
-    def=function(object, value) standardGeneric("counts<-"))
+    def=function(x, value) standardGeneric("counts<-"))
 
 setGeneric(name="yields<-",      
     package="CATALYST",
-    def=function(object, value) standardGeneric("yields<-"))
+    def=function(x, value) standardGeneric("yields<-"))
 
 # ==============================================================================
 # Generics for debarcoding
