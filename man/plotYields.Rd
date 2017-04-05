@@ -28,8 +28,8 @@ values and the resulting yield will be included in the plot title.}
 \item{legend}{logical. Specifies if a legend should be included. 
 This will only affect the summary plot (\code{which=0}).}
 
-\item{out_path}{a character string. If specified, outputs will be generated in this location. 
-Defaults to NULL.}
+\item{out_path}{a character string. If specified, outputs will be generated 
+in this location. Defaults to NULL.}
 
 \item{name_ext}{a character string. If specified, will be appended to the plot's name. 
 Defaults to NULL.}
@@ -45,11 +45,11 @@ Distribution of barcode separations and
 yields as a function of separation cutoffs.
 }
 \details{
-The overall yield that will be achieved upon application of the specified set
-of separation cutoffs is indicated in the summary plot. Respective separation 
-thresholds and their resulting yields are included in each barcode's plot. 
-The separation cutoff value should be chosen such that it appropriately 
-balances confidence in barcode assignment and cell yield.
+The overall yield that will be achieved upon application of the specified 
+set of separation cutoffs is indicated in the summary plot. Respective 
+separation thresholds and their resulting yields are included in each 
+barcode's plot. The separation cutoff value should be chosen such that
+it appropriately balances confidence in barcode assignment and cell yield.
 }
 \examples{
 data(sample_ff, sample_key)
