@@ -92,9 +92,10 @@ setMethod(f="normCytof",
     # including bead-bead and cell-bead doublets
     min_bead_ints <- matrixStats::colMins(es_t[bead_inds, bead_cols])
     remove <- apply(es_t[, bead_cols], 1, function(i) { 
-        above_min <- sapply(seq_len(n_beads), function(j) 
-            sum(i[j] > min_bead_ints[j]))
-        sum(above_min) == n_beads })
+        above_min <- vapply(seq_len(n_beads), 
+            function(j) sum(i[j] > min_bead_ints[j]), numeric(1))
+        sum(above_min) == n_beads 
+    })
     
     # trim tails
     bead_inds <- update_bead_inds(es_t, bead_inds, bead_cols, trim)
@@ -132,13 +133,17 @@ setMethod(f="normCytof",
 
     # bead intensitites smoothed by conversion to local medians
     smoothed_beads <- data.frame(
-        es[bead_inds, time_col], sapply(bead_cols, function(i) 
-            stats::runmed(es[bead_inds, i], k, "constant")))
+        es[bead_inds, time_col], 
+        vapply(bead_cols, function(i) 
+            stats::runmed(es[bead_inds, i], k, "constant"),
+            numeric(sum(bead_inds))))
 
     # normalize raw bead intensities via multiplication with slopes
     smoothed_normed_beads <- data.frame(
-        es[bead_inds, time_col], sapply(bead_cols, function(i) 
-            stats::runmed(normed_es[bead_inds, i], k, "constant")))
+        es[bead_inds, time_col], 
+        vapply(bead_cols, function(i) 
+            stats::runmed(normed_es[bead_inds, i], k, "constant"),
+            numeric(sum(bead_inds))))
     colnames(smoothed_beads) <- colnames(smoothed_normed_beads) <- 
         chs[c(time_col, bead_cols)]
     
