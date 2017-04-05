@@ -134,11 +134,11 @@ setMethod(f="compCytof",
             # get the channels that correspond to the old_masses 
             # that have an aditional metal with the same weight
             y_col <- sm_chs[inds]
-            names(y_col) <- sapply(old_ms[inds], as.character)
+            names(y_col) <- as.character(old_ms[inds])
             # get all columns that are part of the affected masses
             fil <- ms %in% old_ms[inds]
             sm_col <- nms[fil]
-            sm_col_ms <- sapply(ms[fil], as.character)
+            sm_col_ms <- as.character(ms[fil])
             # add the spillover
             sm[rownames(y), sm_col] <- y[, y_col[sm_col_ms]]
             for (m in unique(sm_col_ms)){
