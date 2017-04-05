@@ -75,7 +75,7 @@ setMethod(f="computeSpillmat",
         
         # find which columns of loaded FCS file 
         # correspond to masses listed in barcode key
-        bc_cols <- sapply(bc_ms, function(x) which(ms %in% x))
+        bc_cols <- vapply(bc_ms, function(x) which(ms == x), numeric(1))
         
         # for each barcode channel, get spillover candidate channels
         # (+/-1M, -16M and channels measuring isotopes)
