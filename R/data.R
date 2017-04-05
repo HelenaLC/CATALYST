@@ -34,7 +34,7 @@
 #' @examples
 #' ### example data for normalization:
 #'     # raw measurement data
-#'   data(raw_data)
+#'     data(raw_data)
 #'   
 #' ### example data for debarcoding:
 #'     # 20 barcoded samples
