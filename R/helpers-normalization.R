@@ -93,11 +93,12 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
         es_t[, c(bead_cols, dna_cols)], 
         id=as.numeric(bead_inds))
     if (gate) {
-        gates <- data.frame(t(sapply(bead_cols, function(k) c(
+        gates <- data.frame(t(vapply(bead_cols, function(k) c(
             min(df[bead_inds, chs[k]]), 
             max(df[bead_inds, chs[k]]), 
             min(df[bead_inds, chs[dna_cols[1]]]),
-            max(df[bead_inds, chs[dna_cols[1]]])))))
+            max(df[bead_inds, chs[dna_cols[1]]])),
+            numeric(4))))
         colnames(gates) <- c("xmin", "xmax", "ymin", "ymax")
     }
 

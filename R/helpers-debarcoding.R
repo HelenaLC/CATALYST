@@ -188,7 +188,7 @@ get_bc_labs <- function(x) {
 # ------------------------------------------------------------------------------
 get_legend <- function(p) {
     tmp <- ggplot_gtable(ggplot_build(p)) 
-    lgd <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box") 
+    lgd <- which(vapply(tmp$grobs, function(x) x$name, "") == "guide-box") 
     return(tmp$grobs[[lgd]]) 
 }
 
