@@ -43,7 +43,7 @@
 #' @examples
 #' data(raw_data)
 #' ff <- concatFCS(raw_data)
-#' normCytof(x = ff, y = "dvs", "/Users/HLC/Desktop", k=300)
+#' normCytof(x = ff, y = "dvs", k=300)
 #'
 #' @references 
 #' Finck, R. et al. (2013).
