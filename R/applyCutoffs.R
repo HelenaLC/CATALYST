@@ -26,7 +26,7 @@
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
 #' 
 #' # use global separation cutoff
-#' applyCutoffs(x = re, sep_cutoffs = 0.2)
+#' applyCutoffs(x = re, sep_cutoffs = 0.4)
 #' 
 #' # estimate population-specific cutoffs
 #' re <- estCutoffs(x = re)
