@@ -18,6 +18,7 @@ Imports:
     gridExtra,
     matrixStats,
     methods,
+    plotly,
     RColorBrewer,
     stats,
     utils
