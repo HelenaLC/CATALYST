@@ -67,8 +67,8 @@ setMethod(f="estTrim",
         cm <- lapply(sm, solve)
         comped <- lapply(cm, function(mat) exprs(x) %*% mat)
 
-        # compute channel-wise medians and mean squared error
-        # for each compensated data
+        # compute channel-wise medians and mean squared
+        # devation from zero for each compensated data
         medians <- lapply(comped, function(data) {
             unlist(sapply(ids, function(id) {
                 cols <- spill_cols[[which(ms == id)]]
@@ -81,7 +81,6 @@ setMethod(f="estTrim",
             }))
         })
         mse <- sapply(medians, function(m) mean(m^2))
-        opt <- trms[which.min(mse)]
         
         nTrms <- length(trms)
         ns <- lapply(spill_cols, length)
