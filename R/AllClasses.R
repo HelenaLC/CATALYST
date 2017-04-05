@@ -86,26 +86,26 @@ setValidity(Class="dbFrame",
         ms <- gsub("[[:alpha:][:punct:]]", "", colnames(object@exprs))
         # check that all barcode masses occur in the measurement data
         if (!all(colnames(object@bc_key) %in% ms))
-            return(cat("Invalid 'bc_key': Column names must be numeric",
+            return(message("Invalid 'bc_key': Column names must be numeric",
                 "\nand coherent with masses extracted from 'exprs'."))
         # check that 'normed_bcs' is of dimension
         # number events x number barcode channels
         if (!all.equal(dim(object@normed_bcs), c(n, ncol(object@bc_key))))
-            return(cat("'exprs' and 'normed_bcs' should contain",
+            return(message("'exprs' and 'normed_bcs' should contain ",
                 "the same number of events."))
         # check that 'bc_ids', 'deltas' and 'mhl_dists' 
         # are of length number of events
         if (!all(c(length(object@bc_ids), length(object@deltas)) == n))
-            return(cat("'bc_ids' and 'deltas' should have\n",
+            return(message("'bc_ids' and 'deltas' should have\n",
                 "as many entries as numbers of rows in 'exprs'."))
         if (!length(object@mhl_dists) %in% c(0, n))
-            return(cat("'mhl_dists' should have\n",
+            return(message("'mhl_dists' should have\n",
                 "as many entries as numbers of rows in 'exprs'."))
         # check that all 'bc_ids" are 0 = "unassigned"
         # or occur as row names in the 'bc_key'
         if ((valid <- sum(object@bc_ids %in% 
                 c(0, rownames(object@bc_key)))) != n)
-            return(cat(n-valid, "/", n, "'bc_ids' are invalid.\n",
+            return(message(n-valid, "/", n, " 'bc_ids' are invalid.\n",
                 "'bc_ids' should be either 0 = \"unassigned\"\n",
                 "or occur as rownames in the 'bc_key'."))
         return(TRUE)
