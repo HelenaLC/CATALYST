@@ -34,6 +34,22 @@
 #' @param x,object a \code{\link{dbFrame}}.
 #' @param value the replacement value.
 #' 
+#' @examples 
+#' data(sample_ff, sample_key)
+#' re <- assignPrelim(x = sample_ff, y = sample_key)
+#' 
+#' # set global cutoff parameter
+#' sep_cutoffs(re) <- 0.4
+#' re <- applyCutoffs(x = re)
+#' 
+#' # subset a specific population, e.g. A1: 111000
+#' a1 <- bc_ids(re) == "A1"
+#' head(exprs(sample_ff[a1, ]))
+#' 
+#' # subset unassigned events
+#' unassigned <- bc_ids(re) == 0
+#' head(exprs(sample_ff[unassigned, ]))
+#' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 
 # ==============================================================================
