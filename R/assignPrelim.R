@@ -58,7 +58,7 @@ setMethod(f="assignPrelim",
             stop("Invalid barcode channel(s) specified.")
         
         # find which columns of loaded FCS file correspond to barcode masses
-        bc_cols <- sapply(bc_ms, function(x) which(ms %in% x))
+        bc_cols <- vapply(bc_ms, function(x) which(ms == x), numeric(1))
         if (length(bc_cols) != length(bc_ms))
             stop("Not all barcode channels found.")
         
