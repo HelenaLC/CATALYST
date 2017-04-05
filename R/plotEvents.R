@@ -112,9 +112,9 @@ setMethod(f="plotEvents",
             ints <- normed_bcs(x)[inds, ]
             
             df <- data.frame(
-                event=rep(1:(length(ints) / n_chs), each=n_chs),
+                event=rep(seq_len(length(ints) / n_chs), each=n_chs),
                 intensity=c(t(ints)),
-                bc=rep(1:n_chs, (length(ints) / n_chs)))
+                bc=rep(seq_len(n_chs), (length(ints) / n_chs)))
             
             p[[length(p) + 1]] <- ggplot(df) + 
                 geom_point(stroke=.5, size=1+100/sum(inds), aes_string(
@@ -145,10 +145,10 @@ setMethod(f="plotEvents",
             if (!is.null(out_path)) {
                 pdf(width=10, height=5, file=file.path(out_path, 
                     paste0("event_plot", name_ext, ".pdf")))
-                for (i in 1:length(p)) plot(p[[i]])
+                for (i in seq_len(length(p))) plot(p[[i]])
                 dev.off()
             } else {
-                for (i in 1:length(p)) plot(p[[i]])
+                for (i in seq_len(length(p))) plot(p[[i]])
             }
         }
     })
