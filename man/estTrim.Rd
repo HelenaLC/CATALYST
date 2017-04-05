@@ -28,8 +28,9 @@ to the output plot's name. Defaults to NULL.}
 \value{
 For each value along \code{seq(min, max, step)}, \code{estTrim} will call
 \code{\link{computeSpillmat}} with \code{method = "mean"} and the respective 
-trim parameter. Returned will be the value that minimizes the sum over 
-squared population-wise median counts across all barcodes after compensation.
+trim parameter. Returned will be an interactive plot displaying channel-wise 
+medians upon compensation, and the mean squared deviation from 0. Each point 
+is labeled with the respective interacting channels.
 }
 \description{
 Estimates a trim value that will minimize the sum over squared
@@ -40,12 +41,12 @@ popultion- and channel-wise squared medians upon compensation.
 data(ss_exp)
 
 # specify mass channels stained for
-bc_ms <- c(139, 141:157, 159:176)
+bc_ms <- c(139, 141:156, 158:176)
 
 re <- assignPrelim(x = ss_exp, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
-estTrim(x = re, min = 0.06, max = 0.14, step = 0.02)
+estTrim(x = re, min = 0.02, max = 0.14, step = 0.02)
 
 }
 \author{
