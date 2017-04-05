@@ -38,10 +38,11 @@ make_symetric <- function(x) {
 # ------------------------------------------------------------------------------
 
 plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
+    opt <- trms[which.min(text$e)]
     ggplot(df, aes_string(x="t", y="m")) +
         geom_vline(aes(xintercept=opt), lty=2, size=.5) +
         geom_jitter(aes_string(fill="Spiller", group="Receiver"),
-            col="navy", height=0, width=step/5, size=2, alpha=.3) + 
+            col="navy", height=0, width=diff(trms)[1]/5, size=2, alpha=.3) + 
         geom_rect(fill="aliceblue", inherit.aes=FALSE, data=rect, 
             aes_string(xmin="x1", xmax="x2", ymin="y1", ymax="y2")) + 
         geom_text(size=3, col="blue", vjust=.5, data=text, 
