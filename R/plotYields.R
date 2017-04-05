@@ -81,7 +81,7 @@ setMethod(f="plotYields",
         for (id in which) {
             ps[[length(ps)+1]] <- plot_yield(
                 id, x, seps, n_bcs, legend, bc_labs)
-            if (length(sep_cutoffs(x)) != 0 & annotate) {
+            if (annotate && length(sep_cutoffs(x)) != 0) {
                 if (id == 0) {
                     p <- paste0(sprintf("%2.2f", sum(yields(x)[cbind(1:n_bcs,
                         match(sep_cutoffs(x), seps))])/n_bcs*100), "%")
@@ -105,3 +105,4 @@ setMethod(f="plotYields",
         if (!is.null(out_path))
             dev.off()
     })
+
