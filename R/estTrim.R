@@ -80,8 +80,8 @@ setMethod(f="estTrim",
                 }
             }))
         })
-        mse <- sapply(medians, function(m) mean(m^2))
-        
+        mse <- vapply(medians, function(m) mean(m^2), numeric(1))
+
         nTrms <- length(trms)
         ns <- lapply(spill_cols, length)
         n <- sum(unlist(ns))
