@@ -47,22 +47,22 @@ setMethod(f="outFCS",
     definition=function(x, out_path, out_nms=NULL, verbose=TRUE) {
         smpl_nms <- rownames(bc_key(x))
         if (is.null(out_nms)) {
-            out_nms <- rownames(x@bc_key)
+            out_nms <- rownames(bc_key(x))
         } else if (is.character(out_nms)) {
             if (is.null(dim(out_nms))) {
                 if (length(out_nms) != nrow(bc_key(x)))
-                    stop(paste("Only", length(out_nms), "file names provided
-                        but", nrow(bc_key(x)), "needed."))
+                    stop("Only ", length(out_nms), " file name(s)",
+                        " provided but ", nrow(bc_key(x)), " needed.")
                 out_nms <- out_nms
             } else {
                 nms_tbl <- utils::read.csv(out_nms, header=FALSE)
                 if (nrow(nms_tbl) != nrow(bc_key(x)))
-                    stop(paste("Only", nrow(nms_tbl), "file names provided
-                        but", nrow(bc_key(x)), "needed."))
+                    stop("Only ", nrow(nms_tbl), " file name(s)", 
+                        " provided but ", nrow(bc_key(x)), " needed.")
                 if (sum(smpl_nms %in% nms_tbl[, 1]) != nrow(bc_key(x))) 
-                    stop("Couldn't find a file name for all samples.
-                        Please make sure all sample IDs occur 
-                        in the provided naming scheme.")
+                    stop("Couldn't find a file name for all samples.",
+                        "\nPlease make sure all sample IDs occur ", 
+                        "in the provided naming scheme.")
                 out_nms <- paste0(nms_tbl[,2], "_", smpl_nms)
             }
         }
@@ -73,7 +73,7 @@ setMethod(f="outFCS",
                 skip <- c(skip, i) 
                 next
             }
-            ff <- new("flowFrame", exprs=x@exprs[bc_ids(x) == i, ])
+            ff <- new("flowFrame", exprs=exprs(x)[bc_ids(x) == i, ])
             if (i == 0) {
                 nm <- "Unassigned"
             } else {
@@ -85,23 +85,23 @@ setMethod(f="outFCS",
         }
         if (verbose) {
             if (length(skip) > 1) {
-                cat("o Samples", paste(skip, collapse=", "), 
-                    "contain less than 10 events\n",
-                    " (no FCS files have been generated for these barcodes)\n")
+                message("o Samples ", paste(skip, collapse=", "), 
+                    " contain less than 10 events\n ",
+                    " (no FCS files have been generated for these barcodes)")
             } else if (length(skip) == 1) {
-                cat("o Sample", skip, "contains less than 10 events\n",
-                    " (no FCS file has been generated for this barcode)\n")
+                message("o Sample ", skip, " contains less than 10 events\n",
+                    "  (no FCS file has been generated for this barcode)")
             }
             
             tmp <- smpl_nms[!smpl_nms %in% ids]
             if (length(tmp) > 1) {
-                cat("o No events assigned to samples", 
+                message("o No events assigned to samples ", 
                     paste(tmp, collapse=", "))
             } else if (length(tmp) == 1) {
-                cat("o No events assigned to sample", 
+                message("o No events assigned to sample ", 
                     paste(tmp, collapse=", "))
             }
         }
-        cat("\n***", length(ids), "FCS files created in\n")
+        message("*** ", length(ids), " FCS files created in")
         out_path
     })
