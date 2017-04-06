@@ -133,7 +133,8 @@ setGeneric(name="applyCutoffs",
 #' @export
 setGeneric(name="outFCS",      
     package="CATALYST", 
-    def=function(x, out_path, ...) standardGeneric("outFCS"))
+    def=function(x, out_path=tempdir(), ...) standardGeneric("outFCS"),
+    signature="x")
 
 # ==============================================================================
 # Generics for plotting
