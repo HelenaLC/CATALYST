@@ -33,7 +33,7 @@
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
-#' outFCS(x = re, out_path = file.path(tempdir()))
+#' outFCS(x = re)
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
@@ -42,9 +42,10 @@
 #' @export
 # ------------------------------------------------------------------------------
 
-setMethod(f="outFCS",       
-    signature=signature(x="dbFrame", out_path="character"), 
-    definition=function(x, out_path, out_nms=NULL, verbose=TRUE) {
+setMethod(f="outFCS", 
+    signature="dbFrame", 
+    definition=function(x, out_path=tempdir(), out_nms=NULL, verbose=TRUE) {
+        stopifnot(is.character(out_path), length(out_path) == 1L)
         smpl_nms <- rownames(bc_key(x))
         if (is.null(out_nms)) {
             out_nms <- rownames(bc_key(x))
