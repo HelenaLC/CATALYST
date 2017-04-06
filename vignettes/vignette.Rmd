@@ -134,7 +134,7 @@ re <- applyCutoffs(x=re)
 Once event assignments have been finalized, a separate FCS file can be written for each population by running `outFCS`. If option `out_nms=NULL` (the default), the respective population`s ID in the barcoding scheme will be used as file name. Alternatively, an ordered character vector or a 2 column CSV with sample IDs and the desired file names may be specified as a naming scheme.
 
 ```{r results='hide'}
-outFCS(x=re, out_path=tempdir())
+outFCS(x=re)
 ```
 
 ---
