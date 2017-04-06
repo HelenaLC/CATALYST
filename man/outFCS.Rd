@@ -3,12 +3,12 @@
 \docType{methods}
 \name{outFCS}
 \alias{outFCS}
-\alias{outFCS,dbFrame,character-method}
+\alias{outFCS,dbFrame-method}
 \title{Write population-wise FCS files}
 \usage{
-outFCS(x, out_path, ...)
+outFCS(x, out_path = tempdir(), ...)
 
-\S4method{outFCS}{dbFrame,character}(x, out_path, out_nms = NULL,
+\S4method{outFCS}{dbFrame}(x, out_path = tempdir(), out_nms = NULL,
   verbose = TRUE)
 }
 \arguments{
