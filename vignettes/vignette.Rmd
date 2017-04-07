@@ -1,0 +1,327 @@
+---
+title: "Cytometry dATa anALYSis Tools (CATALYST): Tools for preprocessing & analysis of cytometry data"
+date: "`r BiocStyle::doc_date()`"
+author:
+- name: Helena L Crowell
+  email: crowellh@student.ethz.ch
+- name: Mark D Robinson
+- name: Vito Zanotelli
+package: "`r pkg_ver('CATALYST')`"
+abstract: >
+    By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to (theoretically) 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed `r Rpackage("CATALYST")` (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm.
+bibliography: refs.bib
+csl: science.csl
+vignette: >
+  %\VignetteIndexEntry{"Cytometry dATa anALYSis Tools (CATALYST): Tools for preprocessing & analysis of cytometry data"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output: 
+  BiocStyle::html_document2
+---
+
+# Data examples
+
+- **Normalization:**  
+`raw_data` is a `flowSet` with 3 experiments, each containing 2'500 raw measurements with a variation of signal over time. Samples were mixed with DVS beads capture by mass channels 140, 151, 153, 165 and 175.
+- **Debarocoding:**  
+To demonstrate the debarcoding work-flow with `r Rpackage("CATALYST")`, we provide `sample_ff` which follows a 6-choose-3 barcoding scheme where mass channels 102, 104, 105, 106, 108, and 110 were used for labeling such that each of the 20 individual barcodes are positive for exactly 3 out of the 6 barcode channels. Accompanying this, `sample_key` contains a binary code of length 6 for each sample, e.g. 111000, as its unique identifier.
+- **Compensation:**  
+Alongside the multiplexed-stained cell sample `cells`, the package contains 36 single-antibody stained controls in `ss_exp` where beads were stained with antibodies captured by mass channels 139, 141 through 156, and 158 through 176, respectively, and pooled together. Note that, to decrease running time, we downsampled to a total of 10'000 events.
+
+# Normalization
+
+`r Rpackage("CATALYST")` provides an implementation of bead-based normalization as described by Finck et al. [@Finck13]. Here, identification of bead-singlets (used for normalization), as well as of bead-bead and cell-bead doublets (to be removed) is automated as follows: 
+
+1. beads are identified as events with their top signals in the bead channels
+1. cell-bead doublets are remove by applying a separation cutoff to the distance between the lowest bead and highest non-bead signal
+1. events passing all vertical gates defined by the lower bounds of bead signals are removed (these include bead-bead and bead-cell doublets)
+1. bead-bead doublets are removed by applying a default $median\;\pm5\;mad$ rule to events identified in step 2. The remaining bead events are used for normalization.
+
+## Normalization work-flow
+
+### `concatFCS`: Concatination of FCS files
+
+Multiple `flowFrame`s or FCS files can be concatenated via `concatFCS`, which takes either a `flowSet`, a list of `flowFrame`s, a character specifying the location of the FCS files to be concatinated, or a vector of FCS file names as input. If `out_path=NULL` (the default), the function will return a single `flowFrame` containing the measurement data of all files. Otherwise, an FCS 3.0 standard file of the concatenated data will be written to the specified location.
+
+```{r}
+library(CATALYST)
+data(raw_data)
+ff <- concatFCS(raw_data)
+```
+
+### `normCytof`: Normalization using bead standards
+
+Since bead gating is automated here, normalization comes down to a single function that takes a `flowFrame` as input and only requires specification of the `beads` to be used for normalization. Valid options are:
+
+- `"dvs"` for bead masses 140, 151, 153, 165, 175
+- `"beta"` for bead masses 139, 141, 159, 169, 175
+- or a custom numeric vector of bead masses
+
+By default, we apply a $median\;\pm5\;mad$ rule to remove low- and high-signal events from the bead population used for estimating normalization factors. The extent to which bead populations are trimmed can be adjusted via `trim`. The population will become increasingly narrow and bead-bead doublets will be exluded as the `trim` value decreases. Notably, slight *over-trimming* will **not** affect normalization. It is therefore recommended to choose a `trim` value that is small enough to assure removal of doublets at the cost of a small bead population to normalize to.
+
+```{r fig.width=17, fig.height=8.5}
+normCytof(x=ff, y="dvs", k=300)
+```
+
+# Debarcoding
+
+`r Rpackage("CATALYST")` provides an implementation of the single-cell deconvolution algorithm described by Zunder et al. [@Zunder15]. The package contains three functions for debarcoding and three visualizations that guide selection of thresholds and give a sense of barcode assignment quality.
+
+In summary, events are assigned to a sample when i) their positive and negative barcode populations are separated by a distance larger than a threshold value and ii) the combination of their positive barcode channels appears in the barcoding scheme. Depending on the supplied scheme, there are two possible ways of arriving at preliminary event assignments:
+
+1. **Doublet-filtering**:  
+Given a binary barcoding scheme with a coherent number $k$ of positive channels for all IDs, the $k$ highest channels are considered positive and $n-k$ channels negative. Separation of positive and negative events equates to the difference between the $k$th highest and $(n-k)$th lowest intensity value. If a numeric vector of masses is supplied, the barcoding scheme will be an identity matrix; the most intense channel is considered positive and its respective mass assigned as ID.   
+1. **Non-constant number of 1's**:  
+Given a non-uniform number of 1's in the binary codes, the highest separation between consecutive barcodes is looked at. In both, the doublet-filtering and the latter case, each event is assigned a binary code that, if matched with a code in the barcoding scheme supplied, dictates which row name will be assigned as ID. Cells whose positive barcodes are still very low or whose binary pattern of positive and negative barcodes doesn't occur in the barcoding scheme will be given ID 0 for *"unassigned"*.
+
+All data required for debarcoding are held in objects of class `dbFrame` (see Appendix), allowing for the following easy-to-use work-flow:
+
+1. as the initial step of single-cell deconcolution, `assignPrelim` will return a `dbFrame` containing the input measurement data, barcoding scheme, and preliminary event assignments.
+2. assignments will be made final by `applyCutoffs`. It is recommended to estimate, and possibly adjust, population-specific separation cutoffs by running `estCutoffs` prior to this.
+3. `plotYields`, `plotEvents` and `plotMahal` aim to guide selection of devoncolution parameters and to give a sense of the resulting barcode assignment quality.
+4. lastly, population-wise FCS files are written from the `dbFrame` with `outFCS`.
+
+## Debarcoding work-flow
+
+### `assignPrelim`: Assignment of preliminary IDs
+
+The debarcoding process commences by assigning each event a preliminary barcode ID. `assignPrelim` thereby takes either a binary barcoding scheme or a vector of numeric masses as input, and accordingly assigns each event the appropirate row name or mass as ID. FCS files are read into R with `read.FCS` of the `r Biocpkg("flowCore")` package, and are represented as an object of class `flowFrame`:
+
+```{r results='hide'}
+data(sample_ff)
+sample_ff
+```
+
+The debarcoding scheme should be a binary table with sample IDs as row and numeric barcode masses as column names:
+
+```{r}
+data(sample_key)
+sample_key
+```
+
+Provided with a `flowFrame` and a compatible barcoding scheme (barcode masses must occur in the parameters of the `flowFrame`), `assignPrelim` will return a `dbFrame` containing `exprs` from the input `flowFrame`, a numeric or character vector of event assignments in slot `bc_ids`, separations between barcode populations on the normalized scale in slot `deltas`, normalized barcode intensities in slot `normed_bcs`, and the `counts` and `yields` matrices. Measurement intensities are normalized by population such that each is scaled to the 95% quantile of asinh transformed measurement intensities of events assigned to the respective barcode population.
+
+```{r messages=FALSE} 
+re <- assignPrelim(x=sample_ff, y=sample_key, verbose=FALSE)
+re
+```
+
+### `estCutoffs`: Estimation of separation cutoffs
+
+As opposed to a single global cutoff, `estCutoffs` will estimate a sample-specific cutoff to deal with barcode population cell yields that decline in an asynchronous fashion. Thus, the choice of thresholds for the distance between negative and positive barcode populations can be *i) automated* and *ii) independent for each barcode*. Nevertheless, reviewing the yield plots (see below), checking and possibly refining separation cutoffs is advisable. 
+
+For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. The separation cutoff value should be chosen such that it appropriately balances confidence in barcode assignment and cell yield. We thus fit the yields function, its first and second derivative, and compute the first turning point, marking the on-set of the plateu regime, as an adequte cutoff estimate.
+
+```{r}
+re <- estCutoffs(x=re, verbose=FALSE)
+re
+```
+
+### `applyCutoffs`: Applying deconvolution parameters
+
+Once preliminary assignments have been made, `applyCutoffs` will apply the deconvolution parameters: Outliers are filtered by a Mahalanobis distance threshold, which takes into account each population's covariance, and doublets are removed by excluding events from a population if the separation between their positive and negative signals fall below a separation cutoff. These thresholds are held in the `sep_cutoffs` and `mhl_cutoff` slots of the `dbFrame`. By default, `applyCutoffs` will try to access the `sep_cutoffs` in the provided `dbFrame`, requiring having run `estCutoffs` prior to this. Alternatively, a numeric vector of cutoff values or a single, global value may be specified. In either case, it is highly recommended to thoroughly review the yields plot (see above), as the choice of separation cutoffs will determine debarcoding quality and cell yield.
+
+```{r results = 'hide'}
+# use global separation cutoff
+applyCutoffs(x=re, sep_cutoffs=0.35)
+
+# use population-specific cutoffs
+re <- applyCutoffs(x=re)
+```
+
+### `outFCS`: Output population-wise FCS files
+
+Once event assignments have been finalized, a separate FCS file can be written for each population by running `outFCS`. If option `out_nms=NULL` (the default), the respective population`s ID in the barcoding scheme will be used as file name. Alternatively, an ordered character vector or a 2 column CSV with sample IDs and the desired file names may be specified as a naming scheme.
+
+```{r results='hide'}
+outFCS(x=re)
+```
+
+---
+
+### `plotYields`: Selecting barcode separation cutoffs
+
+For each barcode, `plotYields` will show the distribution of barcode separations and yields upon debarcoding as a function of separation cutoffs. If available, the currently used separation cutoff as well as its resulting yield within the population is indicated in the plot's main title.
+
+```{r fig.width=9, fig.height=5}
+plotYields(x=re, which="C1")
+```
+ 
+Option `which=0` will render a summary plot of all barcodes. Here, the overall yield achieved by applying the current set of cutoff values will be shown. All yield functions should behave as described above: decline, stagnation, decline. Convergence to 0 yield at low cutoffs is a strong indicator that staining in this channel did not work, and excluding the channel entirely is sensible in this case. It is thus recommended to **always** view the all-barcodes yield plot to eliminate uninformative populations, since small populations may cause difficulties when computing spill estimates.
+
+```{r fig.width=9, fig.height=5}
+plotYields(x=re, which=0, legend=FALSE)
+```
+ 
+### `plotEvents`: Normalized intensities
+
+Normalized intensities for a barcode can be viewed with `plotEvents`. Here, each event corresponds to the intensities plotted on a vertical line at a given point along the x-axis. Option `which=0` will display unassigned events, and the number of events shown for a given sample may be varied via `n_events`. If `which="all"`, the function will render an event plot for all IDs (including 0) with events assigned.
+
+```{r fig.width=9, fig.height=5}
+# event plot for unassigned events
+plotEvents(x=re, which=0, n_events=1000)
+```
+
+```{r fig.width=9, fig.height=5}
+plotEvents(x=re, which="D1", n_events=500)
+```
+
+### `plotMahal`: All barcode biaxial plot
+
+Function `plotMahal` will plot all inter-barcode interactions for the population specified with argument `which`. Events are colored by their Mahalanobis distance. <span style="color:firebrick">*NOTE: For more than 7 barcodes (up to 128 samples) the function will render an error, as this visualization is infeasible and hardly informative. Using the default Mahalanobis cutoff value of 30 is recommended in such cases.*</span> 
+
+```{r warning=FALSE, fig.width=6, fig.height=6.5} 
+plotMahal(x=re, which="A5")
+```
+
+# Compensation
+
+`r Rpackage("CATALYST")` performs compensation via a two-step approach comprising: 
+
+i. identification of single positive populations via single-cell debarcoding (SCD) of single-stained beads (or cells)
+i. estimation of a spillover matrix (SM) from the populations identified, followed by compensation via multiplication of measurement intensities by its inverse, the compensation matrix (CM).
+
+As in conventional flow cytometry, we can model spillover linearly, with the channel stained for as predictor, and spill-effected channels as response. Thus, the intensity observed in a given channel $j$ are a linear combination of its real signal and contributions of other channels that spill into it. Let $s_{ij}$ denote the proportion of channel $j$ signal that is due to channel $i$, and $w_j$ the set of channels that spill into channel $j$. Then
+
+$$I_{j, observed}\; = I_{j, real} + \sum_{i\in w_j}{s_{ij}}$$
+
+In matrix notation, measurement intensities may be viewed as the convolution of real intensities and a spillover matrix with dimensions number of events times number of measurement parameters:
+
+$$I_{observed}\; = I_{real} \cdot SM$$
+
+Therefore, we can estimate the real signal, $I_{real}\;$, as:
+
+$$I_{real} = I_{observed}\; \cdot {SM}^{-1} = I_{observed}\; \cdot CM$$ 
+where $\text{SM}^{-1}$ is termed compensation matrix (CM).
+
+Because any signal not in a single stain experiment’s primary channel $j$ results from channel crosstalk, each spill entry $s_{ij}$ can be approximated by the slope of a linear regression with channel $j$ signal as the response, and channel $i$ signals as the predictors, where $i\in w_j$. To facilitate robust estimates, we calculate this as the slope of a line through the medians (or trimmed means) of stained and unstained populations, $m_j^+$ and $m_i^+$, respectively. The medians (or trimmed means) computed from events that are i) negative in the respective channels; and, ii) not assigned to interacting channels; and, iii) not unassigned, $m_j^-$ and $m_i^-$, respectively, are subtracted as to account for background according to:
+
+$$s_{ij} = \frac{m_j^+-m_j^-}{m_i^+-m_i^-}$$
+
+On the basis of their additive nature, spill values are estimated independently for every pair of interacting channels. The current framework exclusively takes into consideration interactions that are sensible from a chemical and physical point of view:
+
+- $M\pm1$ channels (*abundance sensitivity*)
+- the $M+16$ channel (*oxide formation*)
+- channels measuring isotopes (*isotopic impurities*) 
+
+Lastly, the SM’s diagonal entries $s_{ii}$ are set to 1 so that spill is relative to the total signal measured in a given channel. The list of mass channels that may contain isotopic contaminatons are shown below.
+
+Metal | Isotope masses                    |
+----- | --------------------------------- |
+La    | 138, 139                          |
+Pr    | 141                               |
+Nd    | 142, 143, 144, 145, 146, 148, 150 |
+Sm    | 144, 147, 148, 149, 150, 152, 154 |
+Eu    | 151, 153                          |
+Gd    | 152, 154, 155, 156, 157, 158, 160 |
+Dy    | 156, 158, 160, 161, 162, 163, 164 |
+Er    | 162, 164, 166, 167, 168, 170      |
+Tb    | 159                               |
+Ho    | 165                               |
+Yb    | 168, 170, 171, 172, 173, 174, 176 |
+Tm    | 169                               |
+Lu    | 175, 176                          |
+
+Table: List of isotopes available for each metal used in CyTOF. In addition to $M\pm1$ and $M+16$ channels, these mass channels are considered during estimation of spill to capture channel crosstalk that is due to isotopic contanimations [@isotopes].
+
+## Compensation work-flow
+
+### `computeSpillmat`: Estimation of the spillover matrix
+
+Given a flowFrame of single-stained beads (or cells) and a numeric vector specifying the masses stained for, `computeSpillmat` estimates the spillover matrix as described above. Spill values are affected my the `method` chosen for their estimation, that is `"median"` or `"mean"`, and, in the latter case, the specified `trim` percentage. The process of adjusting these options and reviewing the compensated data may iterative until compensation is satisfactory
+
+```{r} 
+# get single-stained control samples
+data(ss_exp)
+# specify mass channels stained for
+bc_ms <- c(139, 141:156, 158:176)
+# debarcode
+re <- assignPrelim(x=ss_exp, y=bc_ms, verbose=FALSE)
+re <- estCutoffs(x=re, verbose=FALSE)
+re <- applyCutoffs(x=re)
+# compute spillover matrix
+spillMat <- computeSpillmat(x=re)
+```
+
+### `estTrim`: Estimation of an optimal trim value
+
+To optimize results achieved upon compensation, `estTrim` will estimate the SM for a range of trim values, and evaluate, for each barcode population, the sum over squared medians of each negative channel upon compensation. Along with an **optimal** trim value, the function will return a figure of population- and channel-wise median counts for each trim value. The returned value is the one that minimizes this sum. Nevertheless, it may be worth chosing a trim value that gives rise to compensated data that is centered around 0 at the cost of a higher sum of squared medians. It is thus recommended to view the diagnostic plot to check the selected value, and potentially choose another.
+For example, in the figure below, the minimal sum of squares is achieved with a trim value of 0.4 while 0.2 appears to be a better choice as populations are kept from highly positive or negative medians. 
+
+```{r fig.width=8, fig.height=6}
+# estimate trim value minimizing sum of squared 
+# population- and channel-wise medians upon compensation
+estTrim(x=re, min=0.05, max=0.11)
+```
+
+\newpage
+
+### `plotSpillmat`: Spillover matrix heat map
+
+`plotSpillmat` provides a visualization of estimated spill percentages as a heat map. Channels without a single-antibody stained control are annotated in grey, and colours are ramped to the highest spillover value present. Option `annotate=TRUE` (the default) will display spill values inside each bin, and the total amount of spill caused and received by each channel on the top and to the right, respectively.
+
+```{r fig.width=7.5, fig.height=7.5} 
+spillMat <- computeSpillmat(x=re, trim=0.08)
+plotSpillmat(bc_ms=bc_ms, SM=spillMat) 
+```
+
+### `compCytof`: Compensation of mass cytometry data
+
+Assuming a linear spillover, `compCytof` compensates mass spectrometry based experiments using a provided spillover matrix. If the spillover matrix (SM) does not contain the same set of columns as the input experiment, it will be adapted according to the following rules:
+
+1. columns present in the SM but not in the input data will be removed from it
+1. non-metal columns present in the input but not in the SM will be added such that they do neither receive nor cause spill
+1. metal columns that have the same mass as a channel present in the SM will receive (but not emit) spillover according to that channel
+1. if an added channel could potentially receive spillover (as it has +/-1M or +16M of, or is of the same metal type as another channel measured), a warning will be issued as there could be spillover interactions that have been missed and may lead to faulty compensation
+
+If `out_path=NULL` (the default), the function will return a `flowFrame` of the compensated data. Else, compensated data will be written to the specified location as FCS 3.0 standard files. Multiple data sets may be corrected based on the same spill estimates if the input `x` is a character string specifying the location of the FCS files to be compensated.
+
+```{r}
+data(mp_cells)
+comped_cells <- compCytof(x=mp_cells, y=spillMat)
+```
+
+```{r echo=FALSE, message=FALSE, results='hide'}
+cf <- 20
+ss_t <- asinh(exprs(ss_exp)/cf)
+ss_comped_t <- asinh(exprs(compCytof(ss_exp, spillMat))/cf)
+cells_t <- asinh(exprs(mp_cells)/cf)
+comped_cells_t <- asinh(exprs(comped_cells)/cf)
+```
+
+```{r echo=FALSE, fig.width=9, fig.height=9}
+par(mfrow=c(2,2), pty="s")
+which <- c("La139Di", "Gd155Di")
+#which <- c("Yb171Di", "Yb172Di")
+which <- c("Er167Di", "Er168Di")
+cols <- colorRampPalette(rev(RColorBrewer::brewer.pal(10, "Spectral")))
+bw <- .25; n <- 64
+smoothScatter(ss_t[, which],           nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Single stains')
+smoothScatter(ss_comped_t[, which],    nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Compensated')
+smoothScatter(cells_t[, which],        nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Multiplexed cells')
+smoothScatter(comped_cells_t[, which], nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Compensated')
+```
+
+# Appendix
+
+## The `dbFrame` class
+
+Data returned by and used throughout debarcoding are stored in a debarcoding frame. An object of class `dbFrame` includes the following elements:
+
+- Event information, stored in a matrix, is passed from the input `flowFrame` specified in `assignPrelim` to the `exprs` slot.
+- The `bc_key` slot is a binary matrix with numeric masses as column names and sample names as row names. If supplied with a numeric vector of masses, `assignPrelim` will internally generate a concurrent representation.
+- `bc_ids` is a numeric or character vector of the ID assignments that have been made. If a given event's separation falls below its separation cutoff, or above the population's Mahalanobis distance cutoff, it will be give ID 0 for *"unassigned"*. Assignments can be manipulated with `bc_ids<-`.
+- The `deltas` slot contains for each event the separations between positive and nergative populations, that is, between the lowest positive and highest negative intesity.
+- `normed_bcs` are the barcode intensities normalized by population. Here, each event is scaled to the 95% quantile of the population it's been assigned to. `sep_cutoffs` are applied to these normalized intensities.
+- Slots `sep_cutoffs` and `mhl_cutoff` contain the devoncolution parameters. These can be specified by standard replacement via `sep_cutoffs<-` and `mhl_cutoff<-`.
+- `counts` and `yields` are matrices of dimension (# samples)x(101). Each row in the `counts` matrix contains the number of events within a sample for which positive and negative populations are separated by a distance between in [0,0.01), ..., [0.99,1], respectively. The percentage of events within a sample that will be obtained after applying a separation cutoff of 0, 0.01, ..., 1, respectively, is given in `yields`.
+
+For a brief overview, `show(dbFrame)` will display
+
+- the dimensionality of the measurement data and number of barcodes
+- current assignments in order of decreasing population size
+- current separation cutoffs (if available)
+- the average and per-population yield achieved upon debarcoding  
+  (if `sep_cutoffs` are specified)
+
+# References
