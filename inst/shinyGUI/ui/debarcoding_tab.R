@@ -5,13 +5,13 @@
 debarcoding_tab <- fluidPage(      
     tags$style(type="text/css", "a{color:steelblue; font-weight:bold}"),
     sidebarLayout(
-        mainPanel(width=8, 
+        mainPanel(width=9, 
             tabBox(width=12, 
                 tabPanel(icon("info-circle"), uiOutput("debarcoding_guide")),
                 tabPanel("Yield plot", uiOutput("yp_panel")),
                 tabPanel("Event plot", uiOutput("ep_panel")),
                 tabPanel("Mahal plot", uiOutput("mhl_panel")))),
-        sidebarPanel(width=4,
+        sidebarPanel(width=3,
             fileInput("fcs", "Upload FCS", accept=".fcs", width="100%"),
             uiOutput("debarcoding_sidebar_1"),
             uiOutput("debarcoding_sidebar_2"),
@@ -29,6 +29,7 @@ debarcoding_sidebar_1 <- tagList(
 
 # ··············································································
 
+inline75    <- "display:inline-block; width:75%"
 inline25    <- "display:inline-block; width:25%"
 inlineTop25 <- "display:inline-block; width:25%; vertical-align:top"
 
@@ -46,8 +47,9 @@ debarcoding_sidebar_2 <- tagList(
     div(uiOutput("input_globalCutoff"),  style=inline25),
     div(uiOutput("button_globalCutoff"), style=inlineTop25),
     # mhl cutoff slider
-    sliderInput("slider_mhlCutoff", "Mahalanobis distance threshold",
-        width="100%", min=5, max=100, value=30),
+    div(sliderInput("slider_mhlCutoff", "Mahalanobis distance threshold",
+        width="100%", min=5, max=100, value=30), style=inline75),
+    div(actionButton("button_mhlCutoff", "Apply", style=ylw_button), style=inlineTop25),
     hr(style="border-color:black"),
     # checkboxes for FCS file naming
     checkboxInput("box_IDsAsNms", "Use sample IDs as files names", value=TRUE),
