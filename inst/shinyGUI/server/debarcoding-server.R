@@ -1,7 +1,6 @@
 # ------------------------------------------------------------------------------
 # toggle checkboxes
 # ------------------------------------------------------------------------------
-
 observe({
     x <- input$box_csv
     if (is.null(x) || x == 0) return()
@@ -14,19 +13,23 @@ observe({
     updateCheckboxInput(session, "box_csv", value=FALSE)
 })
 
+# "Select single-positive channels"
 output$select_bcChs <- renderUI({
     x <- input$box_bcChs
     if (is.null(x) || x == 0) return()
-        selectInput("input_bcChs", NULL, choices=flowCore::colnames(vals$ff1), 
-            multiple=TRUE, selectize=FALSE, size=12)
+    selectInput("input_bcChs", NULL, choices=flowCore::colnames(vals$ff1), 
+        multiple=TRUE, selectize=FALSE, size=12)
 })
 
+# ------------------------------------------------------------------------------
+# toggle checkboxes
+# ------------------------------------------------------------------------------
 observe({
     x <- input$box_estCutoffs
     if (is.null(x) || x == 0) return()
     updateCheckboxInput(session, "box_adjustCutoff", value=FALSE)
     updateCheckboxInput(session, "box_globalCutoff", value=FALSE)
-    vals$re2 <- CATALYST::estCutoffs(x=vals$re1)
+    vals$re1 <- CATALYST::estCutoffs(x=vals$re0)
 })
 
 observe({
@@ -34,10 +37,6 @@ observe({
     if (is.null(x) || x == 0) return()
     updateCheckboxInput(session, "box_estCutoffs",   value=FALSE)
     updateCheckboxInput(session, "box_globalCutoff", value=FALSE)
-    # synchronize selectInput w/ yield plot
-    x <- input$yp_which
-    if (is.null(x) || x == 0) return()
-    updateSelectInput(session, "select_adjustCutoff", selected=input$yp_which)
 })
 
 observe({
@@ -48,35 +47,82 @@ observe({
 })
 
 # ------------------------------------------------------------------------------
-# event and mahal plot
+# "Adjust population-specific cutoffs"
 # ------------------------------------------------------------------------------
-
-output$plot_plotEvents <- renderPlot({
-    if (is.null(vals$re3) 
-        || is.null(input$ep_which) 
-        || is.null(input$n_events))
-        return()
-    CATALYST::plotEvents(
-        x=vals$re3, 
-        which=input$ep_which,
-        n_events=as.numeric(input$n_events))
+output$select_adjustCutoff <- renderUI({
+    x <- input$box_adjustCutoff
+    if (is.null(x) || x == 0) return()
+    selectInput("select_adjustCutoff", NULL, choices=vals$adj_choices)
 })
 
-output$plot_plotMahal <- renderPlot({
-    if (is.null(vals$re3) 
-        || is.null(input$mhl_which) 
-        || is.null(input$input_mhlCofactor))
-        return()
-    CATALYST::plotMahal(
-        x=vals$re3, 
-        which=input$mhl_which,
-        cofactor=input$input_mhlCofactor)
+# synchronize selectInput w/ yield plot
+observe({
+    x <- input$yp_which
+    if (is.null(x) || x == 0) return()
+    updateSelectInput(session, "select_adjustCutoff", selected=input$yp_which)
+})
+
+output$input_adjustCutoff <- renderUI({
+    x <- input$box_adjustCutoff
+    if (is.null(x) || x == 0) return()
+    selected <- vals$adj_choices == input$select_adjustCutoff
+    numericInput("input_adjustCutoff", NULL, 
+        value=sep_cutoffs(vals$re1)[selected], min=0, max=1, step=.01)
+})
+
+output$button_adjustCutoff <- renderUI({
+    x <- input$box_adjustCutoff
+    if (is.null(x) || x == 0) return()
+    actionButton("button_adjustCutoff", "Adjust", style=ylw_button)
+})
+
+observeEvent(input$button_adjustCutoff, {
+    selected <- vals$adj_choices == input$select_adjustCutoff
+    sep_cutoffs(vals$re1)[selected] <- input$input_adjustCutoff
+})
+
+# ------------------------------------------------------------------------------
+# "Enter global separation cutoff"
+# ------------------------------------------------------------------------------
+output$input_globalCutoff <- renderUI({
+    x <- input$box_globalCutoff
+    if (is.null(x) || x == 0) return()
+    numericInput("input_globalCutoff", NULL, NULL, min=0, max=1, step=.01)
+})
+
+observeEvent(input$button_globalCutoff, {
+    x <- input$input_globalCutoff
+    if (is.null(x)) return()
+    sep_cutoffs(vals$re1) <- x
+})
+
+# ------------------------------------------------------------------------------
+# yield, event and mahal plot
+# ------------------------------------------------------------------------------
+observe({
+    if (is.null(x <- vals$re2)) return()
+    output$plot_plotYields <- renderPlot(plotYields(x, input$yp_which))
+    output$plot_plotEvents <- renderPlot(plotEvents(x, input$ep_which, as.numeric(input$n_events)))
+    output$plot_plotMahal <- renderPlot(plotMahal(x, input$mhl_which, input$input_mhlCofactor))
+})
+
+# inputSelect choices for event and mahal plot
+observe({
+    if (is.null(vals$re2)) return()
+    vals$ids <- sort(unique(bc_ids(vals$re2)))
+    vals$ep_choices  <- vals$ids
+    vals$mhl_choices <- vals$ids[vals$ids != 0]
+})
+
+# summary table: IDs | Counts | Cutoffs | Yields
+output$table_summary <- DT::renderDataTable({ 
+    if (is.null(vals$re2)) return()
+    summary_tbl(vals$re2) 
 })
 
 # ------------------------------------------------------------------------------
 # next / previous buttons
 # ------------------------------------------------------------------------------
-
 observeEvent(input$yp_prev, { 
     x <- which(vals$yp_choices == input$yp_which)
     if (x == 1) return()
@@ -116,36 +162,23 @@ observeEvent(input$mhl_next, {
 # ------------------------------------------------------------------------------
 # synchronize plots
 # ------------------------------------------------------------------------------
-
 observe({
-    if (is.null(input$yp_which) 
-        || input$yp_which == 0) return() 
-    updateSelectInput(session, "ep_which",  selected=input$yp_which)
-    updateSelectInput(session, "mhl_which", selected=input$yp_which)
+    x <- input$yp_which
+    if (is.null(x) || x == 0) return() 
+    updateSelectInput(session, "ep_which",  selected=x)
+    updateSelectInput(session, "mhl_which", selected=x)
 })
 
 observe({
-    if (is.null(input$ep_which) || input$ep_which == 0) return() 
-    updateSelectInput(session, "yp_which",  selected=input$ep_which)
-    updateSelectInput(session, "mhl_which", selected=input$ep_which)
+    x <- input$ep_which
+    if (is.null(x) || x == 0) return() 
+    updateSelectInput(session, "yp_which",  selected=x)
+    updateSelectInput(session, "mhl_which", selected=x)
 })
 
 observe({
-    if (is.null(input$mhl_which)) return()
-    updateSelectInput(session, "yp_which",  selected=input$mhl_which)
-    updateSelectInput(session, "ep_which",  selected=input$mhl_which)
-})
-
-# inputSelect choices
-observe({
-    if (is.null(vals$re3)) return()
-    vals$ids <- sort(unique(bc_ids(vals$re3)))
-    vals$ep_choices  <- vals$ids
-    vals$mhl_choices <- vals$ids[vals$ids != 0]
-})
-
-# summary table: IDs | Counts | Cutoffs | Yields
-output$table_summary <- DT::renderDataTable({ 
-    if (is.null(vals$re3)) return()
-    summary_tbl(vals$re3) 
+    x <- input$mhl_which
+    if (is.null(x)) return()
+    updateSelectInput(session, "yp_which",  selected=x)
+    updateSelectInput(session, "ep_which",  selected=x)
 })

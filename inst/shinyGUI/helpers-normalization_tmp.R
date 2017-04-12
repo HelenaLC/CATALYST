@@ -191,17 +191,41 @@ plotScatter <- function(es, x, y, cf, n) {
         format(tcks, scientific=TRUE)))
     labs[3] <- 0
         
-    ggplot(df, aes_string(x=chs[1], y=chs[2])) + geom_point(alpha=.2, size=1) + 
+    ggplot(df, aes_string(x=chs[1], y=chs[2])) + 
+        geom_point(alpha=.1, size=2) + 
         coord_cartesian(xlim=c(min, max), ylim=c(min, max), expand=FALSE) +
         scale_x_continuous(breaks=asinh(tcks/cf), labels=labs) +
         scale_y_continuous(breaks=asinh(tcks/cf), labels=labs) +
         theme_classic() + theme(aspect.ratio=1,
             plot.margin=unit(c(.5,.5,.5,.5), "cm"),
             panel.grid.minor=element_blank(),
-            panel.grid.major=element_line(color="grey"),
+            panel.grid.major=element_line(color="lightgrey"),
             axis.ticks=element_line(size=.5),
-            axis.title=element_text(size=10),
-            axis.text=element_text(size=8, color="grey25"))
+            axis.title=element_text(size=12, face="bold"),
+            axis.text=element_text(size=10, color="grey25"))
+}
+
+getBaseline <- function(x, y, beads) {
+    beadCols <- get_bead_cols(flowCore::colnames(x), y)
+    colMeans(flowCore::exprs(x)[beads, beadCols])
+}
+
+normCytof <- function(x, y, beads, bl) {
+    chs <- flowCore::colnames(x)
+    timeCol <- grep("time", chs, ignore.case=TRUE)
+    lgthCol <- grep("length", chs, ignore.case=TRUE)
+    beadCols <- get_bead_cols(chs, y)
+    
+    es <- flowCore::exprs(x)
+    beadTs <- es[beads, timeCol]
+    beadEs <- es[beads, beadCols]
+    
+    beadSlopes <- rowSums(beadEs*bl) / rowSums(beadEs^2)
+    slopes <- approx(beadTs, beadSlopes, es[, timeCol])$y
+    
+    flowCore::exprs(x)[, -c(timeCol, lgthCol)] <- 
+        flowCore::exprs(x)[, -c(timeCol, lgthCol)] * slopes
+    return(x)
 }
 
 plotHist <- function(es, x, n) {
