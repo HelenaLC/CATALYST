@@ -166,19 +166,20 @@ setReplaceMethod(f="mhl_cutoff",
 #' @rdname dbFrame-methods
 #' @export
 setReplaceMethod(f="sep_cutoffs", 
-    signature=signature(object="dbFrame", value="numeric"), 
-    definition=function(object, value) {
+    signature=signature(x="dbFrame", value="numeric"), 
+    definition=function(x, value) {
         if (any(value < 0))
             stop("Replacement value(s) must be non-negative.")
         if (length(value) == 1) {
-            object@sep_cutoffs <- rep(value, nrow(object@bc_key))
-            return(object)
-        }
-        if (length(value) != nrow(object@bc_key))
+            x@sep_cutoffs <- rep(value, nrow(bc_key(x)))
+        } else if (length(value) == nrow(bc_key(x))) {
+            x@sep_cutoffs <- value
+        } else {
             stop("'Replacement value' must be of length one\n or same length",
                 " as the number of rows in the 'bc_key'.")
-        object@sep_cutoffs <- value
-        return(object)
+        }
+        names(x@sep_cutoffs) <- rownames(bc_key(x))
+        return(x)
     })
 
 #' @rdname dbFrame-methods
