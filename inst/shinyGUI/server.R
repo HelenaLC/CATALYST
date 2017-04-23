@@ -8,6 +8,7 @@ shinyServer(function(input, output, session) {
     
     source("helpers-normalization_tmp.R")
     library(shinyjs)
+    library(shinyBS)
     library(plotly)
     library(grid)
     library(gridExtra)
@@ -33,16 +34,16 @@ shinyServer(function(input, output, session) {
     
     vals <- reactiveValues(
 # ----- NORMALIZATION -----
-        ff_norm = NULL,     # input FCS for normalization
-        ffsNorm = list(),   # input flowFrame(s) to be normalized
-        ffsNormTo = NULL, # flowFrame(s) to use as baseline
+        ff_norm = NULL,         # input FCS for normalization
+        ffsNorm = list(),       # input flowFrame(s) to be normalized
+        ffsNormTo = list(NULL), # flowFrame(s) to use as baseline
         ffsNormed = list(NULL), # normalized flowFrame(s)
         beadInds = list(NULL),  # logical vector for each flowFrame
-        beads = NULL,       # beads for normalization
-        beadCols = NULL,    # bead columns
-        dnaCols = NULL,     # DNA columns
-        timeCol = NULL,     # time column
-        smpl = 1,           # index of currently selected sample
+        beads = NULL,    # beads for normalization
+        beadCols = NULL, # bead columns
+        dnaCols = NULL,  # DNA columns
+        timeCol = NULL,  # time column
+        smpl = 1,        # index of currently selected sample
 # ----- DEBARCODING -----
         ff1 = NULL, # input flowFrame for debarcoding
         key = NULL, # debarcoding scheme
@@ -57,76 +58,49 @@ shinyServer(function(input, output, session) {
         mhl_choices = NULL, # IDs with events assigned excluding 0
         nms = NULL,  # names to use for output FCS files
 # ----- COMPENSATION -----
-        ff2  = NULL, # input flowFrame for compensation
+        ffsComp = list(), # input flowFrame(s) for compensation
+        ffsComped = list(NULL),
         log  = NULL, # console output
         trm  = NULL, # trim value
+        sm0  = NULL, # original spillover matrix
         sm   = NULL, # spillover matrix
         ch1  = NULL, # scatter channel 1
         ch2  = NULL, # scatter channel 2
         cmp1 = NULL, # compensated flowFrame 1
         cmp2 = NULL) # compensated flowFrame 2
 
+
 # ==============================================================================
 # NORMALIZATION
 # ==============================================================================
     
-    output$select_customBeads <- renderUI({
-        if (input$select_beads == "custom") 
-            fluidRow(column(12,
-                div(style="display:inline-block; width:80%", 
-                    selectizeInput("input_customBeads", NULL, multiple=TRUE, 
-                        choices=setNames(as.list(flowCore::colnames(vals$ffNormTo)), 
-                            paste0(flowCore::parameters(vals$ffNormTo)$desc, 
-                                " [", flowCore::colnames(vals$ffNormTo), "]")))),
-                div(style="display:inline-block; vertical-align:top; width:19%", 
-                    actionButton("button_customBeads", "Gate", icon("object-ungroup"), width="100%"))
-            ))
-    })
-    
-    observeEvent(input$button_customBeads, {
-        if (is.null(input$input_customBeads)) return()
-        chs <- flowCore::colnames(vals$ffNormTo)
-        ms <- gsub("[[:alpha:][:punct:]]", "", chs)
-        beadMs <- gsub("[[:alpha:][:punct:]]", "", unlist(input$input_customBeads))
-        if (sum(beadMs %in% ms) != length(beadMs)) {
-            showNotification("Not all bead channels are valid.", 
-                             type="error", closeButton=FALSE)
-            return()
+    smpls <- reactive({
+        if (input$box_NormToCurrent == 1) {
+            input$fcsNorm$name
+        } else {
+            c(input$fcsNorm$name, input$fcsNormTo$name)
         }
-        vals$beads <- as.numeric(beadMs)
     })
+     
     observe({
-        x <- input$select_beads
-        if (is.null(x)) return()
-        if (x == "dvs" || x == "beta")
-            vals$beads <- input$select_beads
-    })
-     observe({
         if (is.null(vals$beads)) return()
-        chs <- flowCore::colnames(c(vals$ffsNorm, vals$ffsNormTo)[[vals$smpl]])
-        vals$beadCols <- get_bead_cols(chs, vals$beads)
+        chs <- flowCore::colnames(ffs()[[vals$smpl]])
+        vals$beadCols <- get_bead_cols(chs, isolate(vals$beads))
         vals$dnaCols  <- grep("Ir191|Ir193", chs, ignore.case=TRUE)
         vals$timeCol <- grep("time", chs, ignore.case=TRUE)
-        output$box4 <- renderUI(box4)
-        output$box_beadGating <- renderUI(
-            box_beadGating(c(input$fcsNorm$name, input$fcsNormTo$name)))
-        js$collapse("box_3")
     })
     
 # ==============================================================================
 # DEBARCODING
 # ==============================================================================
     
-    output$debarcoding_sidebar_1 <- renderUI({
-        if (is.null(input$fcs)) return()
-        vals$ff1 <- flowCore::read.FCS(input$fcs$datapath)
-        debarcoding_sidebar_1
+    output$debarcodingSidebar1 <- renderUI({
+        if (is.null(input$fcsDeba)) return()
+        vals$ff1 <- flowCore::read.FCS(input$fcsDeba$datapath)
+        debarcodingSidebar1
     })
-
-# ------------------------------------------------------------------------------
-# BUTTON: "Assign preliminary IDs"   
-# ------------------------------------------------------------------------------
     
+    # actionButton: Assign preliminary IDs
     observeEvent(input$button_assignPrelim, {
         if (is.null(input$csv) & is.null(input$input_bcChs)) {
             showNotification("Please upload a barcoding scheme or select 
@@ -159,30 +133,7 @@ shinyServer(function(input, output, session) {
         output$ep_panel <- renderUI(ep_panel(vals$ep_choices))
         output$mhl_panel <- renderUI(mhl_panel(vals$mhl_choices))
         
-        output$debarcoding_sidebar_2 <- renderUI ({ debarcoding_sidebar_2 })
-    })
-    
-    observeEvent(input$button_mhlCutoff, { 
-        vals$mhl <- input$slider_mhlCutoff 
-    })
-    
-    # apply cutoffs if deconvolution parameters change
-    observe({
-        if (is.null(vals$re1)) return()
-        vals$re2 <- CATALYST::applyCutoffs(vals$re1, vals$mhl)
-    })
-    
-    # estimate trim if dbFrame or sequence change
-    observe({
-        if (is.null(input$input_bcChs) || is.null(vals$re2)) return()
-        output$plot_estTrim <- renderPlotly({
-            CATALYST::estTrim(
-                x=vals$re2,
-                min=input$estTrim_min,
-                max=input$estTrim_max,
-                step=input$estTrim_step
-            )
-        })
+        output$debarcodingSidebar2 <- renderUI ({ debarcodingSidebar2 })
     })
     
 # ==============================================================================
@@ -192,65 +143,10 @@ shinyServer(function(input, output, session) {
 # ------------------------------------------------------------------------------
 # checkboxes "Enter trim value" & "Use medians"
 # ------------------------------------------------------------------------------
-    
-    observeEvent(input$button_estTrim, {
-        if (is.null(vals$re2)) return()
-        l <- length(seq(
-            min <- input$estTrim_min, 
-            max <- input$estTrim_max, 
-            step <- input$estTrim_step))
-        showNotification(h5(paste("Estimating spill for", l, "trim values...")), id="msg", 
-                         type="message", duration=NULL, closeButton=FALSE)
-        output$plot_estTrim <- renderPlotly({ 
-            CATALYST::estTrim(
-                x=vals$re2, 
-                min=min, 
-                max=max, 
-                step=step)
-        })
-        removeNotification(id="msg")
-    })
-    
-    observeEvent(input$button_enterTrim, {
-        if (is.null(input$input_enterTrim)) return()
-        showNotification(h5("Estimating spillover..."), id="msg", 
-                         type="message", duration=NULL, closeButton=FALSE)
-        vals$trm <- input$input_enterTrim
-        vals$sm  <- CATALYST::computeSpillmat(x=vals$re2, trim=vals$trm)
-        removeNotification(id="msg")
-    })
-    
-    observe({
-        if (is.null(input$fcs2))
-            return()
-        vals$ff2 <- flowCore::read.FCS(input$fcs2$datapath)    
-        output$compensation_sidebar_1 <- renderUI({ compensation_sidebar_1 })
-    })
-    
-    output$input_upldSM <- renderUI({
-        if (input$box_upldSM)
-            fileInput("input_SM", NULL, accept=".csv")
-    })
-    
-    observe({
-        if (!is.null(input$input_SM))
-            vals$sm <- as.matrix(read.csv(input$input_SM$datapath, check.names=FALSE, row.names=1))
-    })
-    
-    observe({
-        if (is.null(input$box_estSM) || 
-            input$box_estSM == 0 || 
-            is.null(vals$re2)) 
-            return()
-        showNotification(h5("Estimating spillover..."), id="msg", 
-            type="message", duration=NULL, closeButton=FALSE)
-        vals$sm <- CATALYST::computeSpillmat(x=vals$re2)
-        removeNotification(id="msg")
-    })
-    
+  
     output$text_compCytof <- renderUI({
-        if (is.null(input$box_estSM) ||
-            input$box_estSM == 0)
+        x <- input$box_estSM
+        if (is.null(x) || x == 0)
             return()
         tagList(
             textOutput("text_compCytof_1"), 
@@ -265,96 +161,12 @@ shinyServer(function(input, output, session) {
             fileInput("input_upldNms", NULL, accept=".csv"))
     })
 
+    # get naming sheet from fileInput
     observe({
-        if (is.null(input$input_upldNms) || input$box_upldNms == 0) return()
-        vals$nms <- read.csv(input$input_upldNms$datapath, header=FALSE)
-    })
-
-# ------------------------------------------------------------------------------
-# toggle checkboxes
-    
-    observe({
-        x <- input$box_upldSM
-        if (is.null(x) || x == 0) return()
-        updateCheckboxInput(session, "box_estSM", value=FALSE)
-    })
-    
-    observe({
-        x <- input$box_estSM
-        if (is.null(x) || x == 0) return()
-        updateCheckboxInput(session, "box_upldSM", value=FALSE)
-    })
-    
-    observe({
-        x <- input$box_IDsAsNms
-        if (is.null(x) || x == 0) return()
-        updateCheckboxInput(session, "box_upldNms", value=FALSE)
-    })
-    
-    observe({
-        x <- input$box_upldNms
-        if (is.null(x) || x == 0) return()
-        updateCheckboxInput(session, "box_IDsAsNms", value=FALSE)
-    })
-    
-# ------------------------------------------------------------------------------ 
-    
-    observe({
-        if (is.null(vals$ff1) || 
-            is.null(input$input_bcChs))
+        x <- input$input_upldNms
+        if (is.null(x) || x == 0) 
             return()
-        output$panel_estTrim      <- renderUI({ panel_estTrim      })
-        output$panel_plotSpillmat <- renderUI({ panel_plotSpillmat })
-        output$panel_scatters     <- renderUI({ 
-            panel_scatters(flowCore::colnames(vals$ff1),
-                input$input_bcChs[1], input$input_bcChs[2])
-        })
-    })
-    
-    observe({
-        if (is.null(vals$sm)) return()
-        output$text_compCytof_1 <- renderText(
-            "WARNING: Compensation is likely to be inaccurate. 
-            Spill values for the following interactions have not been estimated:")
-        output$text_compCytof_2 <- renderPrint(
-            cat(capture.output(
-                vals$cmp1 <- compCytof(x=vals$ff1, y=vals$sm), 
-                type="message")[-c(1:3)], sep="\n"))
-        vals$cmp2 <- CATALYST::compCytof(x=vals$ff2, y=vals$sm)
-        
-    })
-
-    output$plot_plotSpillmat <- renderPlot({
-        if (is.null(vals$sm)) return()
-        input$button_newSpill
-        CATALYST::plotSpillmat(bc_ms=vals$key, SM=isolate(vals$sm))
-    })
-    
-    output$compensation_sidebar_2 <- renderUI({
-        if (is.null(vals$cmp1) 
-            || is.null(vals$cmp2) 
-            || is.null(vals$sm)) 
-            return()
-        compensation_sidebar_2
-    })
-
-# ------------------------------------------------------------------------------
-# scatters
-# ------------------------------------------------------------------------------
-    
-    output$text_spill <- renderText({
-        input$button_view
-        paste0(sprintf("%.3f", 100*vals$sm[
-            isolate(input$input_scatterCh1),
-            isolate(input$input_scatterCh2)]), "%")
-    })
-    
-    # adjust spill
-    observeEvent(input$button_newSpill, {
-        if (is.null(input$input_newSpill)) 
-            return()
-        vals$sm[input$input_scatterCh1, 
-                input$input_scatterCh2] <- input$input_newSpill/100
+        vals$nms <- read.csv(x$datapath, header=FALSE)
     })
 
 # ------------------------------------------------------------------------------
@@ -397,10 +209,10 @@ shinyServer(function(input, output, session) {
                                           CATALYST::plotEvents(x=vals$re2, which=vals$ep_choices, out_path=tmpdir, n_events=as.numeric(input$n_events))
                                           zip(zipfile=file, contentType = "application/zip", files=paste0(c("summary_yield_plot", "yield_plot", "event_plot"), ".pdf")) })
     
-    output$dwnld_comped_1 <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs), "-comped.fcs") },
+    output$dwnld_comped_1 <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcsDeba), "-comped.fcs") },
                                              content  = function(file) { flowCore::write.FCS(vals$cmp1, file) })
     output$dwnld_comped_2 <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs2),"-comped.fcs") },
                                              content  = function(file) { flowCore::write.FCS(vals$cmp2, file) })
-    output$dwnld_spillMat <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcs), "-spillMat.csv") },
+    output$dwnld_spillMat <- downloadHandler(filename = function()     { file.path(gsub(".fcs", "", input$fcsDeba), "-spillMat.csv") },
                                              content  = function(file) { write.csv(vals$sm, file) })
 })

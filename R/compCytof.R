@@ -184,7 +184,6 @@ setMethod(f="compCytof",
         ffs <- lapply(fcs, flowCore::read.FCS)
         
         if (is.null(out_path)) {
-            out_nms <- gsub(".fcs$", "_comped.fcs", fcs)
             lapply(ffs, function(i) compCytof(i, y))
         } else {
             out_nms <- file.path(out_path, gsub(".fcs", 
