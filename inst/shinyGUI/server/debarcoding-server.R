@@ -1,6 +1,7 @@
 # ------------------------------------------------------------------------------
 # toggle checkboxes
 # ------------------------------------------------------------------------------
+
 observe({
     x <- input$box_csv
     if (is.null(x) || x == 0) return()
@@ -13,17 +14,29 @@ observe({
     updateCheckboxInput(session, "box_csv", value=FALSE)
 })
 
-# "Select single-positive channels"
+# ------------------------------------------------------------------------------
+# checkboxInput "Upload barcoding scheme (CSV)" & 
+#               "Select single-positive channels"
+# ------------------------------------------------------------------------------
+
+output$file_csv <- renderUI({
+    x <- input$box_csv
+    if (is.null(x) || x == 0) return()
+    fileInput(inputId="csv", label=NULL, accept=".csv")
+})
+
 output$select_bcChs <- renderUI({
     x <- input$box_bcChs
     if (is.null(x) || x == 0) return()
-    selectInput("input_bcChs", NULL, choices=flowCore::colnames(vals$ff1), 
-        multiple=TRUE, selectize=FALSE, size=12)
+    selectInput(inputId="input_bcChs", label=NULL, 
+                choices=flowCore::colnames(vals$ff1), 
+                multiple=TRUE, selectize=FALSE, size=12)
 })
 
 # ------------------------------------------------------------------------------
 # toggle checkboxes
 # ------------------------------------------------------------------------------
+
 observe({
     x <- input$box_estCutoffs
     if (is.null(x) || x == 0) return()
@@ -47,33 +60,43 @@ observe({
 })
 
 # ------------------------------------------------------------------------------
-# "Adjust population-specific cutoffs"
+# checkboxInput "Adjust population-specific cutoffs"
 # ------------------------------------------------------------------------------
-output$select_adjustCutoff <- renderUI({
+observe({
     x <- input$box_adjustCutoff
-    if (is.null(x) || x == 0) return()
-    selectInput("select_adjustCutoff", NULL, choices=vals$adj_choices)
+    toggle(id="select_adjustCutoff", condition=x)
+    toggle(id="input_adjustCutoff",  condition=x)
+    toggle(id="button_adjustCutoff", condition=x)
 })
+
+output$select_adjustCutoff <- renderUI(
+    selectInput(inputId="select_adjustCutoff", 
+                label=NULL, 
+                choices=vals$adj_choices))
+
+output$input_adjustCutoff <- renderUI({
+    selected <- vals$adj_choices == input$select_adjustCutoff
+    numericInput(inputId="input_adjustCutoff", 
+                 label=NULL,
+                 value=sep_cutoffs(vals$re1)[selected], 
+                 min=0, max=1, step=.01)
+})
+
+output$button_adjustCutoff <- renderUI(
+    tagList(shinyBS::bsButton(inputId="button_adjustCutoff", 
+                              label=NULL,
+                              icon=icon("share"),
+                              style="warning"),
+    shinyBS::bsTooltip(id="button_adjustCutoff",
+                       title="Adjust",
+                       placement="right"))
+)
 
 # synchronize selectInput w/ yield plot
 observe({
     x <- input$yp_which
     if (is.null(x) || x == 0) return()
-    updateSelectInput(session, "select_adjustCutoff", selected=input$yp_which)
-})
-
-output$input_adjustCutoff <- renderUI({
-    x <- input$box_adjustCutoff
-    if (is.null(x) || x == 0) return()
-    selected <- vals$adj_choices == input$select_adjustCutoff
-    numericInput("input_adjustCutoff", NULL, 
-        value=sep_cutoffs(vals$re1)[selected], min=0, max=1, step=.01)
-})
-
-output$button_adjustCutoff <- renderUI({
-    x <- input$box_adjustCutoff
-    if (is.null(x) || x == 0) return()
-    actionButton("button_adjustCutoff", "Adjust", style=ylw_button)
+    updateSelectInput(session, "select_adjustCutoff", selected=x)
 })
 
 observeEvent(input$button_adjustCutoff, {
@@ -82,25 +105,48 @@ observeEvent(input$button_adjustCutoff, {
 })
 
 # ------------------------------------------------------------------------------
-# "Enter global separation cutoff"
+# checkboxInput "Enter global separation cutoff"
 # ------------------------------------------------------------------------------
-output$input_globalCutoff <- renderUI({
+
+observe({
     x <- input$box_globalCutoff
-    if (is.null(x) || x == 0) return()
-    numericInput("input_globalCutoff", NULL, NULL, min=0, max=1, step=.01)
+    toggle(id="input_globalCutoff",  condition=x)
+    toggle(id="button_globalCutoff", condition=x)
 })
+
+output$input_globalCutoff <- renderUI(
+    numericInput(inputId="input_globalCutoff", label=NULL, 
+                 value=NULL, min=0, max=1, step=.01))
+
+output$button_globalCutoff <- renderUI(
+    actionButton("button_globalCutoff", "Apply", style=ylw_button))
 
 observeEvent(input$button_globalCutoff, {
     x <- input$input_globalCutoff
     if (is.null(x)) return()
-    sep_cutoffs(vals$re1) <- x
+    sep_cutoffs(vals$re1) <- as.numeric(x)
+})
+
+# sliderInput: Mahalanobis distance threshold
+observeEvent(input$button_mhlCutoff, { 
+    vals$mhl <- input$slider_mhlCutoff 
+})
+
+# apply cutoffs if deconvolution parameters change
+observe({
+    x <- vals$re1
+    if (is.null(x)) return()
+    vals$re2 <- CATALYST::applyCutoffs(x, vals$mhl)
 })
 
 # ------------------------------------------------------------------------------
 # yield, event and mahal plot
 # ------------------------------------------------------------------------------
+
 observe({
-    if (is.null(x <- vals$re2)) return()
+    x <- vals$re2
+    if (is.null(x)) return()
+    print(sep_cutoffs(x))
     output$plot_plotYields <- renderPlot(plotYields(x, input$yp_which))
     output$plot_plotEvents <- renderPlot(plotEvents(x, input$ep_which, as.numeric(input$n_events)))
     output$plot_plotMahal <- renderPlot(plotMahal(x, input$mhl_which, input$input_mhlCofactor))
