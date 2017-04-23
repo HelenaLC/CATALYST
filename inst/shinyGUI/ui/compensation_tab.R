@@ -1,13 +1,13 @@
-# ------------------------------------------------------------------------------
-# compensation tab 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# compensation tab
+# ==============================================================================
 
-compensation_tab <- fluidPage(
+compensationTab <- fluidPage(
     tags$head(tags$style("#text_compCytof_1 {color:firebrick}")),
     tags$head(tags$style("#text_compCytof_2 {font-size:x-small}")),
     sidebarLayout(position="left",
         mainPanel(
-            width=8,
+            width=9,
             tabBox(
                 width=12,
                 tabPanel(
@@ -23,34 +23,62 @@ compensation_tab <- fluidPage(
                     "Before vs. after scatters", 
                     uiOutput("panel_scatters")))),
         sidebarPanel(
-            width=4,
-            fileInput("fcs2", "Upload FCS", accept=".fcs"),
-            uiOutput("compensation_sidebar_1"),
-            uiOutput("compensation_sidebar_2"))))
+            width=3,
+            fileInput(inputId="fcsComp", 
+                      label="Upload FCS", 
+                      multiple=TRUE,
+                      accept=".fcs"),
+            uiOutput("compensationSidebar1"),
+            uiOutput("compensationSidebar2"))))
 
 # ------------------------------------------------------------------------------
+# 1st sidebar
+# ------------------------------------------------------------------------------
 
-compensation_sidebar_1 <- tagList(
-    checkboxInput("box_estSM", 
-        "Estimate spill from single-stained controls", value=TRUE),
-    checkboxInput("box_upldSM", 
-        "Upload spillover matrix (CSV)"),
-    uiOutput("input_upldSM"),
-    uiOutput("text_compCytof"), 
+compensationSidebar1 <- tagList(
+    checkboxInput(inputId="box_estSm", 
+                  label="Estimate spill from single-stained controls"),
+    uiOutput("enterTrim"),
+    checkboxInput(inputId="box_upldSm", 
+                  label="Upload spillover matrix (CSV)"),
+    uiOutput("inputSm"),
+    uiOutput("text_compCytof"))
+
+enterTrim <- tagList(
     h5(strong("Enter trim value for estimation of spill values")),
-    div(numericInput("input_enterTrim", NULL,
-        value=NULL, min=.01, max=.5, step=.01),  
-        style="display:inline-block; width:25%"),
-    div(actionButton("button_enterTrim", "Confirm", style=ylw_button), 
-        style="display:inline-block; width:25%; vertical-align:top"),
-    helpText("Note that a trim value of 0.5 is equal to using medians."))
+    div(style="display:inline-block; width:25%",
+        numericInput(inputId="input_enterTrim", 
+                     label=NULL,
+                     value=NULL, 
+                     min=.01, 
+                     max=.5, 
+                     step=.01)),
+    div(style="display:inline-block; width:25%; vertical-align:top",
+        shinyBS::bsButton(inputId="button_enterTrim",
+                          label=NULL,
+                          icon=icon("share"),
+                          style="success")),
+    shinyBS::bsTooltip(id="button_enterTrim",
+                       title="Estimate spill",
+                       placement="right",
+                       trigger="hover"),
+    helpText("Note that a trim value of 0.5 is equal to using medians.")
+)
 
 # ------------------------------------------------------------------------------
+# 2nd sidebar
+# ------------------------------------------------------------------------------
 
-compensation_sidebar_2 <- tagList(
+compensationSidebar2 <- tagList(
     hr(style="border-color:black"),
-    tags$style(dwnld_1), tags$style(dwnld_2),
-    downloadButton("dwnld_comped_1", "Compensated beads", class="dwnld_1"),
-    downloadButton("dwnld_comped_2", "Compensated cells", class="dwnld_1"),
-    downloadButton("dwnld_spillMat", "Spillover matrix",  class="dwnld_2"))
-
+    tags$style(dwnld_1), 
+    tags$style(dwnld_2),
+    downloadButton(outputId="dwnld_comped_1", 
+                   label="Compensated beads", 
+                   class="dwnld_1"),
+    downloadButton(outputId="dwnld_comped_2", 
+                   label="Compensated cells", 
+                   class="dwnld_1"),
+    downloadButton(outputId="dwnld_spillMat", 
+                   label="Spillover matrix",  
+                   class="dwnld_2"))
