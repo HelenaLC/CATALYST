@@ -32,4 +32,7 @@ dwnld_2 <- ".dwnld_2{width:100%;
                      border-width:1.25px; 
                      border-color:green; 
                      background-color:honeydew}"
-                 
+
+test <- ".test{width:50%; 
+               border-color:blue; 
+               background-color:green}"

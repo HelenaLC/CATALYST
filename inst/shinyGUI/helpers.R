@@ -68,17 +68,17 @@ scatter <- function(ff, which, cofactor=50, out_path=NULL, name_ext=NULL) {
 # get medians from rectangular brush
 # --------------------------------------------------------------------------------------------------
 
-text_info <- function(ff, cofactor, brush, ch1, ch2) {
+text_info <- function(ff, cf, brush, ch1, ch2) {
     if (is.null(brush)) {
-        paste("Brush points to\n check medians.")
+        paste("Brush points to\ncheck medians.")
     } else {
         selected <- brushedPoints(
-            df=data.frame(asinh(flowCore::exprs(ff) / cofactor)),
+            df=data.frame(asinh(flowCore::exprs(ff)/cf)),
             brush=brush, 
             xvar=ch1,
             yvar=ch2)
-        xmed <- sprintf("% .3f", median(selected[, ch1]))
-        ymed <- sprintf("% .3f", median(selected[, ch2]))
+        xmed <- sprintf("% .3f", median(sinh(selected[, ch1])*cf))
+        ymed <- sprintf("% .3f", median(sinh(selected[, ch2])*cf))
         paste0(sprintf("%5s", ch1), ": ", xmed, "\n", 
                sprintf("%5s", ch2), ": ", ymed)
     }
