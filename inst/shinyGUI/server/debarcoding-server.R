@@ -69,12 +69,27 @@ observe({
     toggle(id="button_adjustCutoff", condition=x)
 })
 
+output$adjustCutoffs <- renderUI({
+    if (input$box_adjustCutoffs == 0)
+        return()
+    tagList({
+        div(style="display:inline-block; vertical-align:top; width:40%",
+            uiOutput("select_adjustCutoff"))
+        div(style="display:inline-block; width:40%",
+            uiOutput("input_adjustCutoff"))
+        div(style="display:inline-block; vertical-align:top",
+            uiOutput("button_adjustCutoff"))
+    })
+})
+
 output$select_adjustCutoff <- renderUI(
     selectInput(inputId="select_adjustCutoff", 
                 label=NULL, 
                 choices=vals$adj_choices))
 
 output$input_adjustCutoff <- renderUI({
+    if (input$box_adjustCutoff == 0)
+        return()
     selected <- vals$adj_choices == input$select_adjustCutoff
     numericInput(inputId="input_adjustCutoff", 
                  label=NULL,
@@ -115,11 +130,19 @@ observe({
 })
 
 output$input_globalCutoff <- renderUI(
-    numericInput(inputId="input_globalCutoff", label=NULL, 
-                 value=NULL, min=0, max=1, step=.01))
+    numericInput(inputId="input_globalCutoff", 
+                 label=NULL, value=NULL, 
+                 min=0, max=1, step=.01))
 
 output$button_globalCutoff <- renderUI(
-    actionButton("button_globalCutoff", "Apply", style=ylw_button))
+    tagList(shinyBS::bsButton(inputId="button_globalCutoff", 
+                              label=NULL,
+                              icon=icon("share"),
+                              style="warning"),
+            shinyBS::bsTooltip(id="button_globalCutoff",
+                               title="Apply",
+                               placement="right"))
+)
 
 observeEvent(input$button_globalCutoff, {
     x <- input$input_globalCutoff
@@ -146,7 +169,6 @@ observe({
 observe({
     x <- vals$re2
     if (is.null(x)) return()
-    print(sep_cutoffs(x))
     output$plot_plotYields <- renderPlot(plotYields(x, input$yp_which))
     output$plot_plotEvents <- renderPlot(plotEvents(x, input$ep_which, as.numeric(input$n_events)))
     output$plot_plotMahal <- renderPlot(plotMahal(x, input$mhl_which, input$input_mhlCofactor))
