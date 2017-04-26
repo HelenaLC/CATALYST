@@ -1,14 +1,10 @@
-inline75    <- "display:inline-block; width:75%"
-inline25    <- "display:inline-block; width:25%"
-inlineTop25 <- "display:inline-block; width:25%; vertical-align:top"
-
 # ==============================================================================
 # debarcoding tab
 # ==============================================================================
 
 debarcodingTab <- fluidPage( 
-    shinyjs::useShinyjs(),
     tags$style(type="text/css", "a{color:steelblue; font-weight:bold}"),
+    shinyjs::useShinyjs(),
     sidebarLayout(
         mainPanel(
             width=9, 
@@ -30,8 +26,7 @@ debarcodingTab <- fluidPage(
                       width="100%"),
             uiOutput("debarcodingSidebar1"),
             uiOutput("debarcodingSidebar2"),
-            uiOutput("debarcodingSidebar3")
-        )
+            uiOutput("debarcodingSidebar3"))
     )
 )
 
@@ -65,18 +60,21 @@ debarcodingSidebar2 <- tagList(
     # population-specific cutoffs
     checkboxInput(inputId="box_adjustCutoff", 
                   label="Adjust population-specific cutoffs"),
-    div(style="display:inline-block; vertical-align:top; width:40%",
+    div(style="display:inline-block; width:25%",
         uiOutput("select_adjustCutoff")),
-    div(style="display:inline-block; width:40%",
+    div(style="display:inline-block; width:25%",
         uiOutput("input_adjustCutoff")),
-    div(uiOutput("button_adjustCutoff"), style=inlineTop),
+    div(style="display:inline-block; vertical-align:top",
+        uiOutput("button_adjustCutoff")),
     # global sparation cutoff
     checkboxInput(inputId="box_globalCutoff", 
                   label="Enter global separation cutoff"),
-    div(uiOutput("input_globalCutoff"),  style=inline25),
-    div(uiOutput("button_globalCutoff"), style=inlineTop25),
+    div(style="display:inline-block; width:25%",
+        uiOutput("input_globalCutoff")),
+    div(style="display:inline-block; vertical-align:top",
+        uiOutput("button_globalCutoff")),
     # mahalanobis distance cutoff
-    div(style="display:inline-block; vertical-align:middle; width:80%",
+    div(style="display:inline-block; vertical-align:middle; width:75%",
         sliderInput(inputId="slider_mhlCutoff", 
                     label="Mahalanobis distance threshold",
                     width="100%", min=10, max=100, value=30)),
@@ -97,19 +95,14 @@ debarcodingSidebar2 <- tagList(
                   label="Upload naming sheet (CSV)"),
     uiOutput("upldNms"),
     # download buttons
-    tags$style(dwnld_1), 
-    tags$style(dwnld_2),
+    tags$style(type="text/css", 
+               "#dwnld_fcs {display:inline-block; color:white; width:25%}"),
+    tags$style(type="text/css", 
+               "#dwnld_yep {display:inline-block; color:white; width:25%}"),
     downloadButton(outputId="dwnld_fcs", 
-                   label="Output FCS files"),
-                   #class="dwnld_1"), 
+                   label="FCS files",
+                   class="btn-success"), 
     downloadButton(outputId="dwnld_yep", 
-                   label="Get plots", 
-                   class="dwnld_2"),
-    downloadButton(outputId="test2", 
-                   label="test", 
-                   class="test"),
-    shinyBS::bsButton(inputId="test", 
-                      label="test",
-                      icon=icon("download"),
-                      style="success"))
+                   label="Plots", 
+                   class="btn-success"))
 
