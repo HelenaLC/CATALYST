@@ -7,9 +7,24 @@ observe({
     output$compensationSidebar1 <- renderUI({ compensationSidebar1 })
 })
 
+observeEvent(input$fcsComp, {
+    if (!is.null(input$input_bcChs) & !is.null(vals$re2)) {
+        updateCheckboxInput(session,
+                            inputId="box_estSm",
+                            value=TRUE)
+        # auto-estimate spillover matrix if possible
+        vals$sm <- CATALYST::computeSpillmat(x=vals$re2)
+    } else {
+        updateCheckboxInput(session,
+                            inputId="box_upldSm",
+                            value=TRUE)
+    }
+})
+
 # ------------------------------------------------------------------------------
 # toggle checkboxes
 # ------------------------------------------------------------------------------
+
 observe({
     x <- input$box_upldSm
     if (is.null(x) || x == 0) return()
@@ -44,7 +59,8 @@ output$enterTrim <- renderUI({
 })
 
 output$panel_estTrim <- renderUI({
-    if (input$box_estSm == 1 && !is.null(input$input_bcChs) && !is.null(vals$re2))
+    x <- input$box_estSm
+    if (!is.null(x) & x == 1 & !is.null(input$input_bcChs) & !is.null(vals$re2))
         panel_estTrim
 })
 
@@ -177,10 +193,9 @@ output$text_spill <- renderText({
 })
 
 # actionButton: Adjust spill of current interaction
+observe(toggleState(id="adjustSpill", condition=is.numeric(input$newSpill)))
 observeEvent(input$adjustSpill, {
-    x <- input$newSpill
-    if (!is.numeric(x)) return()
-    vals$sm[input$scatterCh1, input$scatterCh2] <- x/100
+    vals$sm[input$scatterCh1, input$scatterCh2] <- input$newSpill/100
 })
 
 # actionButtons revert current / all spill adjustments

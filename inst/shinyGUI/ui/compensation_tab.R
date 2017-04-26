@@ -49,7 +49,7 @@ enterTrim <- tagList(
     div(style="display:inline-block; width:25%",
         numericInput(inputId="input_enterTrim", 
                      label=NULL,
-                     value=NULL, 
+                     value=.08, 
                      min=.01, 
                      max=.5, 
                      step=.01)),
