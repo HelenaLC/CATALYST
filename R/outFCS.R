@@ -73,7 +73,7 @@ setMethod(f="outFCS",
                 skip <- c(skip, i) 
                 next
             }
-            ff <- new("flowFrame", exprs=x@exprs[bc_ids(x) == i, ])
+            ff <- new("flowFrame", exprs=exprs(x)[bc_ids(x) == i, ])
             if (i == 0) {
                 nm <- "Unassigned"
             } else {
