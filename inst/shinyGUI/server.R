@@ -38,6 +38,7 @@ shinyServer(function(input, output, session) {
         ffsNorm = list(),       # input flowFrame(s) to be normalized
         ffsNormTo = list(NULL), # flowFrame(s) to use as baseline
         ffsNormed = list(NULL), # normalized flowFrame(s)
+        beadGates = list(NULL), # list of bead gates
         beadInds = list(NULL),  # logical vector for each flowFrame
         beads = NULL,    # beads for normalization
         beadCols = NULL, # bead columns

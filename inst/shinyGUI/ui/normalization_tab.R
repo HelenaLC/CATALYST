@@ -15,19 +15,14 @@ normalizationTab <- fluidPage(
     # ----- styles -----
     tags$head(tags$style(HTML(".small-box{height:96px; 
                               margin-bottom:0px}"))),
-    tags$head(tags$style("#dwnld_normResults{height:34px; 
-                         width:100%; 
-                         border-width:1.25px; 
-                         border-color:green; 
-                         background-color:honeydew}")),
     tags$head(tags$style("#button_customBeads{height:34px}")),
-    tags$head(tags$style("#button_viewGating{height:34px}")),
     tags$head(tags$style("#plot_beadScatter1{float:left}")),
     tags$head(tags$style("#plot_beadScatter2{float:left}")),
     tags$head(tags$style("#plot_beadScatter3{float:left}")),
     tags$head(tags$style("#plot_beadScatter4{float:left}")),
     tags$head(tags$style("#plot_beadScatter5{float:left}")),
     tags$head(tags$style("#plot_smoothedBeads{height:100vh !important;}")),
+    tags$head(tags$style("#dwnld_normResults {color:white; width:100%}")),
     # -----
     fluidRow(
         column(3, 
@@ -114,22 +109,27 @@ box4 <- shinydashboard::box(
     id="box_4",
     width=12, 
     collapsible=TRUE,
-    valueBox(
-        value=textOutput("text_gatingYield"),
-        subtitle=textOutput("text_smplNm"),
-        icon=icon("percent"),
-        color="green", 
-        width=NULL
-    ),
+    div(style="display:inline-block; float:right; width:49%; margin-bottom:5px",
+        valueBox(
+            value=textOutput("howManyGated"), 
+            subtitle="samples gated",
+            icon=icon("hashtag"),
+            color="light-blue",
+            width=NULL)),
+    div(style="display:inline-block; float:left; width:49%; margin-bottom:5px",
+        valueBox(
+            value=textOutput("gatingYield"),
+            subtitle="gating yield",
+            icon=icon("percent"),
+            color="light-blue", 
+            width=NULL)),
     checkboxInput(
         inputId="box_removeBeads",
-        label="Should beads be removed?"
-    ),
+        label="Should beads be removed?"),
     downloadButton(
         outputId="dwnld_normResults", 
         label="Download results", 
-        style=dwnld_2
-    )
+        class="btn-success")
 )
 
 # ------------------------------------------------------------------------------
@@ -145,65 +145,81 @@ box_beadGating <- function(samples, selected) {
                   as only events falling in the intersection of all gates will get used for normalization."), 
         fluidPage(
             fluidRow(align="center",
-                     div(style=inlineTop34,
-                         actionButton(
-                             inputId="prevSmpl", 
-                             label=NULL,
-                             icon=icon("chevron-left"))),
-                     div(style=inlineTop,  
+                     # previous sample button
+                     div(style="display:inline-block; vertical-align:center",
+                         bsButton(inputId="prevSmpl", 
+                                  label=NULL,
+                                  icon=icon("chevron-left"),
+                                  style="default",
+                                  size="extra-small")),
+                     # sample selection
+                     div(style="display:inline-block",  
                          selectInput(
                              inputId="select_sample",
                              label=NULL,
                              choices=samples,
                              selected=samples[[selected]],
                              width="240px")),
-                     div(style=inlineTop34,
-                         actionButton(
-                             inputId="nextSmpl", 
-                             label=NULL,
-                             icon=icon("chevron-right"))),
-                     div(style=inline,    
+                     # next sample button
+                     div(style="display:inline-block; vertical-align:center",
+                         bsButton(inputId="nextSmpl", 
+                                  label=NULL,
+                                  icon=icon("chevron-right"),
+                                  style="default",
+                                  size="extra-small")),
+                     div(style="display:inline-block",    
                          h6(strong("Cofactor:"))),
-                     div(style=inline,    
+                     # transformation cofactor input
+                     div(style="display:inline-block",    
                          numericInput(inputId="input_cfGating", 
                                       label=NULL, 
                                       value=5, 
                                       min=1, 
                                       width="60px")),
-                     div(style=inline,    
+                     div(style="display:inline-block",    
                          h6(strong("Number of events:"))),
-                     div(style=inline,    
+                     # number of events input
+                     div(style="display:inline-block",    
                          numericInput(inputId="input_nGating", 
                                       label=NULL, 
-                                      value=25e3, 
+                                      value=20e3, 
                                       min=1e4, 
-                                      width="120px")),
-                     div(style=inlineTop, 
-                         actionButton(inputId="button_viewGating", 
-                                      label=NULL, 
-                                      icon=icon("eye")))
+                                      width="90px")),
+                     div(style=inlineTop,
+                         bsButton(inputId="button_viewGating", 
+                                  label=NULL,
+                                  icon=icon("share"),
+                                  style="success")),
+                     bsTooltip(id="button_viewGating", 
+                         title="View",
+                         placement="right", 
+                         trigger="hover"),
+                     div(style=inlineTop,
+                         bsButton(inputId="gateBeads", 
+                                  label=NULL,
+                                  icon=icon("object-ungroup"),
+                                  style="primary")),
+                     bsTooltip(id="gateBeads", 
+                               title="Gate",
+                               placement="right", 
+                               trigger="hover")
             ),
-            # ----- beads vs. dna scatters -----
-            fluidRow(align="center",
-                     plotOutput(outputId="plot_beadScatter1", 
-                                brush=brushOpts(id="gate1", resetOnNew=TRUE), 
-                                width="20%"),
-                     plotOutput(outputId="plot_beadScatter2", 
-                                brush=brushOpts(id="gate2", resetOnNew=TRUE), 
-                                width="20%"),
-                     plotOutput(outputId="plot_beadScatter3", 
-                                brush=brushOpts(id="gate3", resetOnNew=TRUE), 
-                                width="20%"),
-                     plotOutput(outputId="plot_beadScatter4",
-                                brush=brushOpts(id="gate4", resetOnNew=TRUE), 
-                                width="20%"),
-                     plotOutput(outputId="plot_beadScatter5", 
-                                brush=brushOpts(id="gate5", resetOnNew=TRUE), 
-                                width="20%")
+            # beads vs. dna scatters
+            fluidRow(
+                align="center",
+                plotOutput(outputId="plot_beadScatter1", width="20%",
+                           brush=brushOpts(id="beadGate1", resetOnNew=TRUE)),
+                plotOutput(outputId="plot_beadScatter2", width="20%",
+                           brush=brushOpts(id="beadGate2", resetOnNew=TRUE)),
+                plotOutput(outputId="plot_beadScatter3", width="20%",
+                           brush=brushOpts(id="beadGate3", resetOnNew=TRUE)),
+                plotOutput(outputId="plot_beadScatter4", width="20%",
+                           brush=brushOpts(id="beadGate4", resetOnNew=TRUE)),
+                plotOutput(outputId="plot_beadScatter5", width="20%",
+                           brush=brushOpts(id="beadGate5", resetOnNew=TRUE))
             )
-            # -----
         )
-        )
+    )
 }
 
 # ------------------------------------------------------------------------------
