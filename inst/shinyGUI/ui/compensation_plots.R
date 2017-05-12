@@ -135,7 +135,7 @@ panel_scatters <- function(samples, channels, x, y) {
             div(style=inlineTop,
                 bsButton(inputId="adjustSpill", 
                          label=NULL,
-                         icon=icon("share"), 
+                         icon=icon("reply"), 
                          style="success")),
             bsTooltip(id="adjustSpill", 
                       title="Adjust",
@@ -169,21 +169,19 @@ panel_scatters <- function(samples, channels, x, y) {
                 fluidPage( 
                     fluidRow(
                         align="center",
-                        tags$head(tags$style("#compScatter1{float:center}")),
-                        tags$head(tags$style("#compScatter2{float:center}")),
+                        tags$head(tags$style("#compScatter1{float:center; height:100vh !important;}")),
+                        tags$head(tags$style("#compScatter2{float:center; height:100vh !important;}")),
                         tags$head(tags$style("#text_info1 {width:200px; float:center; text-align:left; padding-left:20px}")),
                         tags$head(tags$style("#text_info2 {width:200px; float:center; text-align:left; padding-left:20px}")),
                         column(width=6, 
                                fluidRow(plotOutput("compScatter1", 
                                                    brush="rect1",
-                                                   width="600px", 
-                                                   height="600px")),
+                                                   width="100%")),
                                fluidRow(verbatimTextOutput("text_info1"))),
                         column(width=6, 
                                fluidRow(plotOutput("compScatter2", 
                                                    brush="rect2", 
-                                                   width="600px", 
-                                                   height="600px")),
+                                                   width="100%")),
                                fluidRow(verbatimTextOutput("text_info2")))
                     )
                 )
