@@ -86,6 +86,7 @@ observe({
    if (any(vapply(vals$ffsNormTo, is.null, logical(1))))
        return()
     vals$beadInds  <- vector(mode="list", length=length(ffs()))
+    vals$beadGates <- vector(mode="list", length=length(ffs()))
     vals$ffsNormed <- vector(mode="list", length=length(vals$ffsNorm))
     output$box3 <- renderUI(box3)
 })
@@ -108,7 +109,6 @@ observe({
 })
 
 # list of all input flowFrames
-
 ffs <- reactive({
     if (input$box_NormToCurrent == 1) {
         vals$ffsNorm
@@ -117,64 +117,73 @@ ffs <- reactive({
     } 
 })
 
-# next / previous buttons
+# next / previous sample buttons
+observe({
+    toggleState(id="prevSmpl", condition=vals$smpl != 1)
+    toggleState(id="nextSmpl", condition=vals$smpl != length(vals$beadInds))
+})
+
 observeEvent(input$prevSmpl, { 
-    n <- length(smpls())
-    if (vals$smpl == 1) return()
     updateSelectInput(session, "select_sample", selected=smpls()[vals$smpl-1]) 
 })
 
 observeEvent(input$nextSmpl, { 
-    n <- length(smpls())
-    if (vals$smpl == n) return()
     updateSelectInput(session, "select_sample", selected=smpls()[vals$smpl+1]) 
 })
 
-# bead gating
+# enable gating button only if all gates have been drawn
 observe({
-    # check that all gates have been drawn
-    if ((any(vapply(list(
-        input$gate1, input$gate2, input$gate3, input$gate4, input$gate5), 
-        is.null, logical(1)))))
-        return()
+    vals$beadGates[[vals$smpl]] <- list(
+        input$beadGate1, input$beadGate2, input$beadGate3, input$beadGate4, input$beadGate5)
+    test <- !(any(vapply(vals$beadGates[[vals$smpl]], is.null, logical(1))))
+    print(test)
+    toggleState(id="gateBeads", condition=test)
+})
 
-    es <- flowCore::exprs(ffs()[[vals$smpl]])
+# bead gating
+observeEvent(input$gateBeads, {
+    selected <- isolate(vals$smpl)
+    es <- flowCore::exprs(ffs()[[selected]])
     beadChs <- colnames(es)[isolate(vals$beadCols)]
     dnaCh <- colnames(es)[isolate(vals$dnaCols)][1]
     cf <- isolate(input$input_cfGating)
     
-    # geat indices of events falling in intersection of all gates
-    vals$beadInds[[vals$smpl]] <- 
-        brushedPoints(brush=input$gate1, allRows=TRUE, 
-                      df=data.frame(asinh(es/cf)), 
+    # get indices of events falling in intersection of all gates
+    vals$beadInds[[selected]] <- 
+        brushedPoints(brush=vals$beadGates[[selected]][[1]], 
+                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
                       xvar=beadChs[1], yvar=dnaCh)[, ncol(es)+1] &
-        brushedPoints(brush=input$gate2, allRows=TRUE,
-                      df=data.frame(asinh(es/cf)), 
+        brushedPoints(brush=vals$beadGates[[selected]][[2]], 
+                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
                       xvar=beadChs[2], yvar=dnaCh)[, ncol(es)+1] &
-        brushedPoints(brush=input$gate3, allRows=TRUE,
-                      df=data.frame(asinh(es/cf)), 
+        brushedPoints(brush=vals$beadGates[[selected]][[3]], 
+                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
                       xvar=beadChs[3], yvar=dnaCh)[, ncol(es)+1] &
-        brushedPoints(brush=input$gate4, allRows=TRUE,
-                      df=data.frame(asinh(es/cf)), 
+        brushedPoints(brush=vals$beadGates[[selected]][[4]], 
+                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
                       xvar=beadChs[4], yvar=dnaCh)[, ncol(es)+1] &
-        brushedPoints(brush=input$gate5, allRows=TRUE,
-                      df=data.frame(asinh(es/cf)), 
+        brushedPoints(brush=vals$beadGates[[selected]][[5]], 
+                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
                       xvar=beadChs[5], yvar=dnaCh)[, ncol(es)+1]
 })
 
-# gating yield valueBox
+# valueBox: x/n samples gated
+observe({
+    n <- length(vals$beadInds)
+    x <- n - sum(vapply(vals$beadInds, is.null, logical(1)))
+    output$howManyGated <- renderText(paste(x, "/", n))
+})
+
+# valueBox: gating yield
 observe({
     y <- vals$beadInds[[vals$smpl]]
     if (is.null(y)) { 
         yield <- "0.00"
-        smplNm <- "of events gated"
     } else {
         x <- ffs()[[vals$smpl]]
         yield <- sprintf("%2.2f", sum(y)/nrow(x)*100)
-        smplNm <- smpls()[vals$smpl]
     }
-    output$text_gatingYield <- renderText(yield)
-    output$text_smplNm <- renderText(smplNm)
+    output$gatingYield <- renderText(yield)
 })
 
 # normalization
@@ -182,13 +191,12 @@ observe({
     # check that all samples have been gated
     if (any(vapply(vals$beadInds, is.null, logical(1))))
         return()
-    print(sum(vals$beadInds[[2]]))
     n1 <- length(vals$ffsNorm)
     n2 <- length(vals$ffsNormTo)
     if (input$box_NormToCurrent == 1) {
         inds <- which(unlist(vals$beadInds[1:n1]))
     } else {
-        inds <- which(unlist(vals$beadInds[(n1+1):n2]))
+        inds <- which(unlist(vals$beadInds[(n1+1):(n1+n2)]))
     }
 
     # get baseline values from ffsNormTo and normalize ffsNorm
@@ -232,6 +240,9 @@ observe({
             stats::runmed(normedEs[, i], 501, "constant"),
         numeric(sum(vals$beadInds[[vals$smpl]]))))
     
+    colnames(smoothedBeads) <- colnames(smoothedBeadsNormed) <- 
+        colnames(es)[c(vals$timeCol, vals$beadCols)]
+    
     output$plot_smoothedBeads <- renderPlot(
         outPlots2(smoothedBeads, smoothedBeadsNormed, NULL))
 })
@@ -248,7 +259,7 @@ observe({
     es <- flowCore::exprs(ffs()[[vals$smpl]])
     cf <- isolate(input$input_cfGating)
     n  <- isolate(input$input_nGating)
-    
+
     output$plot_beadScatter1 <- renderPlot(
         plotScatter(es=es, x=beadChs[1], y=dnaCh, cf=cf, n=n))
     output$plot_beadScatter2 <- renderPlot(
@@ -299,6 +310,9 @@ output$dwnld_normResults <- downloadHandler(
             vapply(vals$beadCols, function(i)
                 stats::runmed(esN[, i], 501, "constant"), 
                 nBeads))
+        
+        colnames(smoothedBeads) <- colnames(smoothedBeadsNormed) <- 
+            colnames(es)[c(vals$timeCol, vals$beadCols)]
         
         outPlots2(smoothedBeads, smoothedBeadsNormed, out_path=dir)
         
