@@ -1,5 +1,5 @@
 # ==============================================================================
-# Plot events
+# flowFrames from dbFrame
 # ------------------------------------------------------------------------------
 #' @rdname outFrames
 #' @title Population-wise \code{flowFrame}s from a \code{dbFrame}
@@ -61,10 +61,10 @@ setMethod(f="outFrames",
                     for unassigned events.")
             ids <- which
         }
-
+        
         n <- length(ids)
         ffs <- vector("list", n)
-
+        
         for (i in seq_along(ids)) {
             inds <- bc_ids(x) == ids[i]
             if (sum(inds) < 2) 
@@ -89,8 +89,8 @@ setMethod(f="outFrames",
                     " have less than 2 event assignments 
                     and have been skipped.")
             }
-
-        }
+            
+            }
         
         if (return == "flowSet") {
             set <- as(ffs, "flowSet")
