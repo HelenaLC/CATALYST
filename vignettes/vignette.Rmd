@@ -6,6 +6,8 @@ author:
   email: crowellh@student.ethz.ch
 - name: Mark D Robinson
 - name: Vito Zanotelli
+- name: Stéphane Chevrier
+- name: Bernd Bodenmiller
 package: "`r pkg_ver('CATALYST')`"
 abstract: >
     By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to (theoretically) 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed `r Rpackage("CATALYST")` (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm.
