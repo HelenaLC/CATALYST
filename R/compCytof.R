@@ -195,4 +195,9 @@ setMethod(f="compCytof",
         }
     })
 
-
+#' @rdname compCytof
+setMethod(f="compCytof",
+    signature=signature(x="ANY", y="data.frame"),
+    definition=function(x, y, out_path=NULL) {
+        compCytof(x, as.matrix(y), out_path)
+    })
