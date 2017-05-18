@@ -23,18 +23,18 @@
 #' logical. Specifies if a legend should be included. 
 #' This will only affect the summary plot (\code{which=0}).
 #' @param out_path 
-#' a character string. If specified, outputs will be generated in this location. 
-#' Defaults to NULL.
+#' a character string. If specified, outputs will be generated 
+#' in this location. Defaults to NULL.
 #' @param name_ext 
 #' a character string. If specified, will be appended to the plot's name. 
 #' Defaults to NULL.
 #'
 #' @details
-#' The overall yield that will be achieved upon application of the specified set
-#' of separation cutoffs is indicated in the summary plot. Respective separation 
-#' thresholds and their resulting yields are included in each barcode's plot. 
-#' The separation cutoff value should be chosen such that it appropriately 
-#' balances confidence in barcode assignment and cell yield.
+#' The overall yield that will be achieved upon application of the specified 
+#' set of separation cutoffs is indicated in the summary plot. Respective 
+#' separation thresholds and their resulting yields are included in each 
+#' barcode's plot. The separation cutoff value should be chosen such that
+#' it appropriately balances confidence in barcode assignment and cell yield.
 #' 
 #' @return plots the distribution of barcode separations and yields upon 
 #' debarcoding as a function of separation cutoffs. If available, currently 
@@ -75,27 +75,18 @@ setMethod(f="plotYields",
         which <- check_validity_which(which, ids, "yields")
         n_bcs <- nrow(bc_key(x))
         seps <- seq(0, 1, .01)
-        
-        # get barcode labels: 
-        # channel name if barcodes are single-positive, 
-        # barcode ID and binary code otherwise 
-        if (sum(rowSums(bc_key(x)) == 1) == n_bcs) {
-            bc_labs <- colnames(normed_bcs(x))
-        } else {
-            bc_labs <- paste0(rownames(bc_key(x)), ": ", 
-                apply(bc_key(x), 1, function(x) paste(x, collapse="")))
-        }
+        bc_labs <- get_bc_labs(x)
 
         ps <- list()
         for (id in which) {
             ps[[length(ps)+1]] <- plot_yield(
                 id, x, seps, n_bcs, legend, bc_labs)
-            if (length(sep_cutoffs(x)) != 0 & annotate) {
+            if (annotate && length(sep_cutoffs(x)) != 0) {
                 if (id == 0) {
-                    yield <- paste0(sprintf("%2.2f", sum(yields(x)[cbind(
-                        1:n_bcs, match(sep_cutoffs(x), seps))])/n_bcs*100), "%")
+                    p <- paste0(sprintf("%2.2f", sum(yields(x)[cbind(1:n_bcs,
+                        match(sep_cutoffs(x), seps))])/n_bcs*100), "%")
                     ps[[length(ps)]] <- ps[[length(ps)]] + 
-                        ggtitle(bquote(bold(.(yield))*" overall yield")) 
+                        ggtitle(bquote(bold(.(p))*" overall yield")) 
                 } else {
                     p <- paste0(sprintf("%2.2f", yields(x)
                         [id, seps %in% sep_cutoffs(x)[id]]*100), "%")
@@ -114,3 +105,4 @@ setMethod(f="plotYields",
         if (!is.null(out_path))
             dev.off()
     })
+

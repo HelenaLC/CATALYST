@@ -42,7 +42,7 @@ setMethod(f="estCutoffs",
         ds[[3]] <- ds[[2]][-1] - w/2
         
         if (verbose) message("Estimating separation cutoffs...")
-        for (i in 1:n_bcs) {
+        for (i in seq_len(n_bcs)) {
             dy <- list()
             dy[[1]] <- yields(x)[i, ]
             dy[[2]] <- diff(dy[[1]]) / w
