@@ -70,10 +70,10 @@ setMethod(f="compCytof",
     definition=function(x, y, out_path=NULL) {
         
         # check validity of input spillover matrix
-        # if (any(y < 0))
-        #     stop("\nThe supplied spillover matrix is invalid ",
-        #         "as it contains negative entries.\n",
-        #         "Valid spillvalues are non-negative and mustn't exceed 1.")
+        if (any(y < 0))
+            stop("\nThe supplied spillover matrix is invalid ",
+                "as it contains negative entries.\n",
+                "Valid spillvalues are non-negative and mustn't exceed 1.")
         if (any(y > 1))
             stop("\nThe supplied spillover matrix is invalid ",
                 "as it contains entries greater than 1.\n",
