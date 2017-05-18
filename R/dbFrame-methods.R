@@ -182,17 +182,6 @@ setReplaceMethod(f="sep_cutoffs",
         if (any(value < 0))
             stop("Replacement value(s) must be non-negative.")
         if (length(value) == 1) {
-<<<<<<< HEAD
-            object@sep_cutoffs <- rep(value, nrow(bc_key(object)))
-        } else if (length(value) == nrow(bc_key(object))) {
-            object@sep_cutoffs <- value
-        } else {
-            stop("Replacement value must be of length one\n or same length",
-                " as the number of rows in the 'bc_key'.")
-        }
-        names(object@sep_cutoffs) <- rownames(bc_key(object))
-        return(object)
-=======
             x@sep_cutoffs <- rep(value, nrow(bc_key(x)))
         } else if (length(value) == nrow(bc_key(x))) {
             x@sep_cutoffs <- value
@@ -202,7 +191,6 @@ setReplaceMethod(f="sep_cutoffs",
         }
         names(x@sep_cutoffs) <- rownames(bc_key(x))
         return(x)
->>>>>>> shiny
     })
 
 #' @rdname dbFrame-methods
