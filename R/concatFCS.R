@@ -6,16 +6,17 @@
 #' @title FCS file concatination
 #' 
 #' @description 
-#' Concatinates all FCS files in the specified location
+#' Concatinates all input data.
 #'
 #' @param x 
 #' can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
 #' a character specifying the location of the FCS files to be concatinated, 
 #' or a vector of FCS file names.
+#' 
 #' @param out_path
 #' an optional character string. If specified, an FCS file 
 #' of the concatinated data will be written to this location. 
-#' If NULL (default), \code{concatFCS} will return a \code{\link{flowFrame}}.
+#' If NULL (default), a \code{\link{flowFrame}} will be returned.
 #'
 #' @return 
 #' a \code{\link{flowFrame}} containing measurement intensities 
@@ -31,31 +32,31 @@
 #' @export
 
 # ------------------------------------------------------------------------------
- 
+
 setMethod(f="concatFCS",
     signature=signature(x="flowSet"),
     definition=function(x, out_path=NULL) {
         
         chs <- flowCore::colnames(x)
-        exprs <- flowCore::fsApply(x, flowCore::exprs)
-        n <- c(flowCore::fsApply(x, nrow))
-        time_col <- grep("time", chs, TRUE)
-        
-        ts <- exprs[, time_col]
-        for (i in 2:length(x)) {
-            inds <- (sum(n[1:(i-1)])+1):sum(n[1:i])
-            ts[inds] <- ts[inds] + max(ts[1:sum(n[1:(i-1)])])
-        }
-        exprs[, time_col] <- ts
+        es <- flowCore::fsApply(x, flowCore::exprs)
+        n <- flowCore::fsApply(x, nrow)
+        t <- grep("time", chs, TRUE)
 
-        ff <- new("flowFrame", exprs=exprs, description=list())
+        start <- c(1, cumsum(n)+1)
+        end <- start[-1]-1
+        for (i in seq_along(x)[-1]) {
+            inds <- start[i]:end[i]
+            es[inds, t] <- es[inds, t] + es[end[i-1], t]
+        }
+        
+        ff <- new("flowFrame", exprs=es, description=list())
         flowCore::parameters(ff)$desc <- flowCore::parameters(x[[1]])$desc
         
         nm <- gsub("_\\d+.fcs", "_concat.fcs", 
             flowCore::description(x[[1]])$ORIGINALGUID, TRUE)
         flowCore::description(ff)[c("GUID", "ORIGINALGUID")] <- 
             flowCore::identifier(ff) <- nm
-
+        
         if (is.null(out_path)) 
             return(ff)
         suppressWarnings(flowCore::write.FCS(ff, file.path(out_path, nm)))
@@ -94,4 +95,3 @@ setMethod(f="concatFCS",
             stop("Only a single flowFrame has been provided.")
         concatFCS(as(x, "flowSet"), out_path)
     })
-

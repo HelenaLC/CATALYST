@@ -33,19 +33,19 @@
 #' 
 #' @examples
 #' ### example data for normalization:
-#'   # raw measurement data
-#'   data(raw_data)
+#'     # raw measurement data
+#'     data(raw_data)
 #'   
 #' ### example data for debarcoding:
-#'   # 20 barcoded samples
+#'     # 20 barcoded samples
 #'     data(sample_ff)
-#'   # 6-choose-3 barcoding scheme
+#'     # 6-choose-3 barcoding scheme
 #'     data(sample_key)
 #' 
 #' ### example data for compensation:
-#'   # single-stained control samples
+#'     # single-stained control samples
 #'     data(ss_exp)
-#'   # multiplexed cells
+#'     # multiplexed cells
 #'     data(mp_cells)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
