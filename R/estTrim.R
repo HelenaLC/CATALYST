@@ -91,7 +91,7 @@ setMethod(f="estTrim",
                 }
             }))
         })
-        mse <- vapply(medians, function(m) mean(m^2), numeric(1))
+        err <- vapply(medians, function(m) mean(abs(m^3)), numeric(1))
 
         nTrms <- length(trms)
         ns <- lapply(spill_cols, length)
@@ -105,14 +105,14 @@ setMethod(f="estTrim",
             Receiver=rep(unlist(receivers), nTrms), 
             m=unlist(medians), 
             t=rep(trms, each=n), 
-            e=rep(mse, each=n))
+            e=rep(err, each=n))
         
         xMin <- trms[1]-step
         xMax <- trms[nTrms]+step
         yMin <- floor(  min(df$m)/.5)*.5
         yMax <- ceiling(max(df$m)/.5)*.5
         rect <- data.frame(x1=xMin, x2=xMax, y1=yMax+.4, y2=yMax+.6)
-        text <- data.frame(x=trms, y=yMax+.5, e=round(mse, 4))
+        text <- data.frame(x=trms, y=yMax+.5, e=round(err, 4))
             
         p <- plot_estTrim(df, trms, xMin, xMax, yMin, yMax, rect, text)
         if (!is.null(out_path)) {
