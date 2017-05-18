@@ -40,54 +40,54 @@
 \alias{sep_cutoffs<-,dbFrame,ANY-method}
 \title{Extraction and replacement methods for objects of class \code{dbFrame}}
 \usage{
-bc_key(object)
+bc_key(x)
 
-bc_ids(object)
+bc_ids(x)
 
-deltas(object)
+deltas(x)
 
-normed_bcs(object)
+normed_bcs(x)
 
-mhl_dists(object)
+mhl_dists(x)
 
-sep_cutoffs(object)
+sep_cutoffs(x)
 
-mhl_cutoff(object)
+mhl_cutoff(x)
 
-counts(object)
+counts(x)
 
-yields(object)
+yields(x)
 
 \S4method{exprs}{dbFrame}(object)
 
-\S4method{bc_key}{dbFrame}(object)
+\S4method{bc_key}{dbFrame}(x)
 
-\S4method{bc_ids}{dbFrame}(object)
+\S4method{bc_ids}{dbFrame}(x)
 
-\S4method{deltas}{dbFrame}(object)
+\S4method{deltas}{dbFrame}(x)
 
-\S4method{normed_bcs}{dbFrame}(object)
+\S4method{normed_bcs}{dbFrame}(x)
 
-\S4method{mhl_dists}{dbFrame}(object)
+\S4method{mhl_dists}{dbFrame}(x)
 
-\S4method{sep_cutoffs}{dbFrame}(object)
+\S4method{sep_cutoffs}{dbFrame}(x)
 
-\S4method{mhl_cutoff}{dbFrame}(object)
+\S4method{mhl_cutoff}{dbFrame}(x)
 
-\S4method{counts}{dbFrame}(object)
+\S4method{counts}{dbFrame}(x)
 
-\S4method{yields}{dbFrame}(object)
+\S4method{yields}{dbFrame}(x)
 
-\S4method{mhl_cutoff}{dbFrame,numeric}(object) <- value
+\S4method{mhl_cutoff}{dbFrame,numeric}(x) <- value
 
-\S4method{mhl_cutoff}{dbFrame,ANY}(object) <- value
+\S4method{mhl_cutoff}{dbFrame,ANY}(x) <- value
 
-\S4method{sep_cutoffs}{dbFrame,numeric}(object) <- value
+\S4method{sep_cutoffs}{dbFrame,numeric}(x) <- value
 
-\S4method{sep_cutoffs}{dbFrame,ANY}(object) <- value
+\S4method{sep_cutoffs}{dbFrame,ANY}(x) <- value
 }
 \arguments{
-\item{object}{a \code{\link{dbFrame}}.}
+\item{x, object}{a \code{\link{dbFrame}}.}
 
 \item{value}{the replacement value.}
 }
@@ -116,7 +116,20 @@ Replacement value must be a single non-negative and non-zero numeric.}
 Methods for replacing and accessing slots in a \code{\link{dbFrame}}.
 }
 \examples{
+data(sample_ff, sample_key)
+re <- assignPrelim(x = sample_ff, y = sample_key)
 
+# set global cutoff parameter
+sep_cutoffs(re) <- 0.4
+re <- applyCutoffs(x = re)
+
+# subset a specific population, e.g. A1: 111000
+a1 <- bc_ids(re) == "A1"
+head(exprs(sample_ff[a1, ]))
+
+# subset unassigned events
+unassigned <- bc_ids(re) == 0
+head(exprs(sample_ff[unassigned, ]))
 
 }
 \author{

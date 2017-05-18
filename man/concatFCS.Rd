@@ -25,14 +25,14 @@ or a vector of FCS file names.}
 
 \item{out_path}{an optional character string. If specified, an FCS file 
 of the concatinated data will be written to this location. 
-If NULL (default), \code{concatFCS} will return a \code{\link{flowFrame}}.}
+If NULL (default), a \code{\link{flowFrame}} will be returned.}
 }
 \value{
 a \code{\link{flowFrame}} containing measurement intensities 
 of all input data or a character of the FCS file name.
 }
 \description{
-Concatinates all FCS files in the specified location
+Concatinates all input data.
 }
 \examples{
 data(raw_data)

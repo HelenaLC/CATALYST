@@ -13,8 +13,7 @@ get_bead_cols <- function(channels, beads) {
         bead_ms <- beads
     }
     n_beads <- length(bead_ms)
-    bead_cols <- which(ms %in% bead_ms)
-    if (length(bead_cols) != n_beads)
+    if (length(bead_cols <- which(ms %in% bead_ms)) != n_beads)
         stop("Not all bead channels found.")
     return(bead_cols)
 }
@@ -27,7 +26,7 @@ get_bead_inds <- function(x, y) {
     re <- assignPrelim(x, y, verbose=FALSE)
     re <- estCutoffs(re, verbose=FALSE)
     re <- applyCutoffs(re)
-    bc_ids(re) == "is_bead"
+    bc_ids(re) == "bead"
 }
 
 update_bead_inds <- function(data, bead_inds, bead_cols, trim) {
@@ -89,16 +88,13 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
     chs <- colnames(es_t)
     n_beads <- length(bead_cols)
     
-    df <- data.frame(
-        es_t[, c(bead_cols, dna_cols)], 
-        id=as.numeric(bead_inds))
+    df <- data.frame(es_t[, c(bead_cols, dna_cols)], id=as.numeric(bead_inds))
     if (gate) {
-        gates <- data.frame(t(vapply(bead_cols, function(k) 
-            c(min(df[bead_inds, chs[k]]), 
-                max(df[bead_inds, chs[k]]), 
-                min(df[bead_inds, chs[dna_cols[1]]]),
-                max(df[bead_inds, chs[dna_cols[1]]])),
-            numeric(4))))
+        gates <- data.frame(t(sapply(bead_cols, function(k) c(
+            min(df[bead_inds, chs[k]]), 
+            max(df[bead_inds, chs[k]]), 
+            min(df[bead_inds, chs[dna_cols[1]]]),
+            max(df[bead_inds, chs[dna_cols[1]]])))))
         colnames(gates) <- c("xmin", "xmax", "ymin", "ymax")
     }
 
@@ -124,7 +120,7 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
     
     p <- list()
     if (hist) {
-        for (i in seq_len(n_beads)) {
+        for (i in 1:n_beads) {
             med <- median(es[bead_inds, bead_cols[i]])
             min <- min(es[bead_inds, bead_cols[i]])
             max <- max(es[bead_inds, bead_cols[i]])
@@ -154,7 +150,7 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
                 theme(axis.title.y=element_text(color="white"))
         }
     }
-    for (i in seq_len(n_beads)) {
+    for (i in 1:n_beads) {
         p[[length(p)+1]] <- ggplot(df, aes_string(col="as.factor(id)",
             x=chs[bead_cols[i]], y=chs[dna_cols[1]])) + theme_bw() + thms +
             scale_colour_manual(values=c("0"="black", "1"="navy")) +
@@ -175,12 +171,94 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
     return(p)
 }
 
+plotScatter <- function(es, x, y, cf, n) {
+    # downsample for plotting
+    if (nrow(es) > n) {
+        set.seed(88)
+        es <- es[sample(nrow(es), n), ]
+    }
+    
+    # get channel names and transform
+    df <- data.frame(asinh(es[, c(x, y)]/cf))
+    chs <- colnames(df)
+    
+    # get axis limits and labels
+    max <- max(apply(df, 2, function(i) ceiling(max(i)*2)/2))
+    min <- max(apply(df, 2, function(i) floor(  min(i)*2)/2))
+
+    tcks <- c(-1e2,-10,0,10,1e2,1e3,1e4,1e5)
+    labs <- parse(text=gsub("[[:digit:]]*e", " 10^", 
+        format(tcks, scientific=TRUE)))
+    labs[3] <- 0
+        
+    ggplot(df, aes_string(x=chs[1], y=chs[2])) + 
+        geom_point(alpha=.1, size=2) + 
+        coord_cartesian(xlim=c(min, max), ylim=c(min, max), expand=FALSE) +
+        scale_x_continuous(breaks=asinh(tcks/cf), labels=labs) +
+        scale_y_continuous(breaks=asinh(tcks/cf), labels=labs) +
+        theme_classic() + theme(aspect.ratio=1,
+            plot.margin=unit(c(.5,.5,.5,.5), "cm"),
+            panel.grid.minor=element_blank(),
+            panel.grid.major=element_line(color="lightgrey"),
+            axis.ticks=element_line(size=.5),
+            axis.title=element_text(size=12, face="bold"),
+            axis.text=element_text(size=10, color="grey25"))
+}
+
+getBaseline <- function(x, y, beads) {
+    beadCols <- get_bead_cols(flowCore::colnames(x), y)
+    colMeans(flowCore::exprs(x)[beads, beadCols])
+}
+
+normCytof <- function(x, y, beads, bl) {
+    chs <- flowCore::colnames(x)
+    timeCol <- grep("time", chs, ignore.case=TRUE)
+    lgthCol <- grep("length", chs, ignore.case=TRUE)
+    beadCols <- get_bead_cols(chs, y)
+    
+    es <- flowCore::exprs(x)
+    beadTs <- es[beads, timeCol]
+    beadEs <- es[beads, beadCols]
+    
+    beadSlopes <- rowSums(beadEs*bl) / rowSums(beadEs^2)
+    slopes <- approx(beadTs, beadSlopes, es[, timeCol])$y
+    
+    flowCore::exprs(x)[, -c(timeCol, lgthCol)] <- 
+        flowCore::exprs(x)[, -c(timeCol, lgthCol)] * slopes
+    return(x)
+}
+
+plotHist <- function(es, x, n) {
+    # downsample for plotting
+    if (nrow(es) > n)
+        es <- es[sample(nrow(es), n), ]
+    es <- data.frame(es)
+    
+    # get axis limits and labels
+    max <- ceiling(max(df[, x])*2)/2
+    min <- floor(  min(df[, x])*2)/2
+    
+    ggplot(df) + 
+        geom_histogram(aes_string(x=colnames(es)[x], y="..ncount.."),
+            binwidth=.1, size=.025, fill="navy", col="blue") +
+        coord_cartesian(xlim=c(min, max)) + theme_classic() +
+        scale_x_continuous(limits=c(min, max)) +
+        scale_y_continuous(breaks=c(0, .5, 1)) + 
+        labs(x=NULL, y="Normalized counts") + 
+        theme(aspect.ratio=.5, 
+            panel.grid.minor=element_blank(),
+            panel.grid.major=element_line(color="grey", size=.25),
+            axis.ticks.x=element_line(size=0), 
+            axis.ticks.y=element_line(size=.5),
+            axis.title=element_text(size=10), 
+            axis.text.y=element_text(size=8),
+            axis.text.x=element_text(color="white")) 
+}
+
 # ==============================================================================
 # plot bead singlets with marginal histograms and all events removed
 # ------------------------------------------------------------------------------
-outPlots <- function(es_t, bead_inds, remove, bead_cols, dna_cols,
-    smoothed_beads, smoothed_normed_beads, out_path) {
-    
+outPlots1 <- function(es_t, bead_inds, remove, bead_cols, dna_cols, out_path) {
     n <- nrow(es_t)
     n_beads <- length(bead_cols)
     
@@ -207,6 +285,9 @@ outPlots <- function(es_t, bead_inds, remove, bead_cols, dna_cols,
             top=textGrob(paste(t1, t2, sep="\n"), just="right",
                 gp=gpar(fontface="bold", fontsize=15)))
     }
+}
+
+outPlots2 <- function(smoothed_beads, smoothed_normed_beads, out_path) {
     if (!is.null(out_path)) {
         pdf(file.path(out_path, "beads_before_vs_after.pdf"), 
             width=15, height=12.5)
@@ -237,7 +318,7 @@ plotSmoothed <- function(df, main) {
             panel.grid.major=element_line(color="grey"),
             panel.grid.minor=element_blank())
     
-    for (i in seq_len(n)[-1]) 
+    for (i in 2:n) 
         p <- p + geom_point(size=.5, alpha=.5, 
             aes_string(x=chs[1], y=chs[i], color=as.factor(chs[i]))) + 
         geom_hline(show.legend=FALSE, lty=3, size=.5,
