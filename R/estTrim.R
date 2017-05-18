@@ -13,6 +13,14 @@
 #' @param min,max,step 
 #'                 specifies sequence of trim values for which 
 #'                 compensation should be evaluated.
+#' @param method 
+#' function to be used for computing spillover estimates. 
+#' Defaults to \code{mean}.
+#' @param interactions
+#' \code{"default"} or \code{"all"}. Specifies which interactions spillover 
+#' should be estimated for. The default exclusively takes into consideration 
+#' interactions that are sensible from a chemical and physical point of view
+#' (see \code{\link{computeSpillmat}} for more details).
 #' @param out_path specifies in which location output plot is to be generated. 
 #'                 Defaults to NULL.
 #' @param name_ext a character string. If specified, will be appended 
@@ -47,7 +55,9 @@
 
 setMethod(f="estTrim", 
     signature=signature(x="dbFrame"), 
-    definition=function(x, min = 0.05, max = 0.20, step = 0.01, 
+    definition=function(x, 
+        min = 0.05, max = 0.20, step = 0.01, 
+        method = "default", interactions = "default",
         out_path = NULL, name_ext = NULL) {
         
         trms <- seq(min, max, step)
@@ -62,7 +72,8 @@ setMethod(f="estTrim",
 
         # compute spillover and compensation matrix,
         # and compensate data for each trim value
-        sm <- lapply(trms, function(val) computeSpillmat(x, trim=val))
+        sm <- lapply(trms, function(val) 
+            computeSpillmat(x, method, interactions, trim))
         sm <- lapply(sm, make_symetric)
         cm <- lapply(sm, solve)
         comped <- lapply(cm, function(mat) exprs(x) %*% mat)
@@ -105,7 +116,8 @@ setMethod(f="estTrim",
             
         p <- plot_estTrim(df, trms, xMin, xMax, yMin, yMax, rect, text)
         if (!is.null(out_path)) {
-            ggsave(file.path(out_path, paste0("estTrim", name_ext, ".pdf")), 
+            ggsave(file.path(out_path, paste0("estTrim", "method=", method, 
+                "_interaction=", interactions, "_", name_ext, ".pdf")), 
                 plot=p, width=nTrms, height=8)
         } else {
             ggplotly(p, tooltip=c("group", "fill"))

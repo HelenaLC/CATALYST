@@ -13,10 +13,18 @@
 #' a \code{\link{dbFrame}}.
 #' @param method 
 #' function to be used for computing spillover estimates. 
-#' Defaults to \code{mean}.
+#' Defaults to \code{mean(..., trim)}.
+#' @param interactions
+#' \code{"default"} or \code{"all"}. Specifies which interactions spillover 
+#' should be estimated for. The default exclusively takes into consideration 
+#' interactions that are sensible from a chemical and physical point of view
+#' (see below for more details).
 #' @param trim
-#' trim value used for estimation of spill values. Note that
-#' \code{trim = 0.5} is equivalent to \code{method = "median"}.
+#' trim value used for estimation of spill values. 
+#' Note that \code{trim = 0.5} is equivalent to using medians.
+#' @param th
+#' a single non-negative numeric. Specifies a threshold value below which spill
+#' estimates will be set to 0. Applies only if \code{interaction="all"}.
 #'
 #' @return 
 #' Returns a square compensation matrix with dimensions and dimension names 
@@ -24,10 +32,12 @@
 #' is thence computed as the ratio of a positive barcode population's median 
 #' or (trimmed) mean intensity in affected and spilling channel. Furthermore, 
 #' on the basis of their additive nature, spillover values are computed 
-#' independently for each interacting pair of channels. The current framework 
-#' considers only potential (not all possible) interactions, that is,
+#' independently for each interacting pair of channels. 
+#' \code{interactions="default"} considers only expected interactions, that is, 
 #' M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16M 
-#' (oxide formation). By default, diagonal entries are set to 1.
+#' (oxide formation). By default, diagonal entries are set to 1. 
+#' \code{interaction="all"} will estimate spill for all n x n - n interactions,
+#' where n denotes the number of single-color controls (= \code{nrow(bc_key(re))}).
 #' 
 #' @examples
 #' # get single-stained control samples
@@ -49,23 +59,17 @@
 setMethod(f="computeSpillmat", 
     signature=signature(x="dbFrame"), 
     
-    definition=function(x, method="mean", trim=.08) {
-        
-        if (method == "mean") {
-            method=function(...) mean(..., trim=trim) 
-        } else if (method == "median") {
-            method=function(...) median(...)
-        }
+    definition=function(x, method="default", interactions="default", 
+        trim = .08, th = 10e-6) {
         
         if (sum(rowSums(bc_key(x)) == 1) != ncol(bc_key(x))) 
-            stop("Cannot compute compensation matrix 
+            stop("Cannot compute spillover matrix 
                 from non single-staining experiment.")
         
         # get no. of channels, masses and metals
         chs <- colnames(exprs(x))
         n_chs <- length(chs)
-        tmp <- gregexpr("[0-9]+", chs)
-        ms <- as.numeric(regmatches(chs, tmp))
+        ms <- as.numeric(regmatches(chs, gregexpr("[0-9]+", chs)))
         mets <- gsub("[[:digit:]]+Di", "", chs)
         
         # get barcode IDs and barcodes masses
@@ -77,9 +81,14 @@ setMethod(f="computeSpillmat",
         # correspond to masses listed in barcode key
         bc_cols <- vapply(bc_ms, function(x) which(ms == x), numeric(1))
         
-        # for each barcode channel, get spillover candidate channels
-        # (+/-1M, -16M and channels measuring isotopes)
-        spill_cols <- get_spill_cols(ms, mets)
+        if (interactions == "default") {
+            # for each channel, get spillover candidate channels
+            # (+/-1M, -16M and channels measuring isotopes)
+            spill_cols <- get_spill_cols(ms, mets)
+        } else if (interactions == "all") {
+            # consider all channels
+            spill_cols <- lapply(ms, function(i) which(ms != i & !is.na(ms)))
+        }
         
         # compute and return compensation matrix
         SM <- diag(n_chs)
@@ -88,19 +97,31 @@ setMethod(f="computeSpillmat",
             pos <- bc_ids(x) == i
             neg <- !bc_ids(x) %in% c(0, i, ms[spill_cols[[j]]])
             if (sum(pos) != 0) {
-                if (sum(neg) == 0) {
-                    for (k in spill_cols[[j]]) {
-                        spill <-
-                            method(exprs(x)[pos, k])/method(exprs(x)[pos, j])
-                        if (is.na(spill)) spill <- 0
-                        SM[j, k] <- spill
+                receiver <- exprs(x)[pos, k]
+                spiller  <- exprs(x)[pos, j]
+                if (method == "default") {
+                    if (sum(neg) == 0) {
+                        for (k in spill_cols[[j]]) {
+                            spill <- 
+                                mean(receiver, trim) / mean(spiller, trim)
+                            if (is.na(spill)) spill <- 0
+                            SM[j, k] <- spill
+                        }
+                    } else {
+                        for (k in spill_cols[[j]]) {
+                            spill <- 
+                                (mean(receiver, trim) - 
+                                        mean(exprs(x)[neg, k], trim)) /
+                                (mean(spiller,  trim) -
+                                        mean(exprs(x)[neg, j], trim))
+                            if (is.na(spill) | spill < 0) spill <- 0
+                            SM[j, k] <- spill
+                        }
                     }
-                } else {
+                } else if (method == "experimental") {
                     for (k in spill_cols[[j]]) {
-                        spill <-
-                            (method(exprs(x)[pos, k])-method(exprs(x)[neg, k]))/
-                            (method(exprs(x)[pos, j])-method(exprs(x)[neg, j]))
-                        if (is.na(spill) | spill < 0) spill <- 0
+                        spill <- mean(receiver / spiller, trim)
+                        if (is.na(spill)) spill <- 0
                         SM[j, k] <- spill
                     }
                 }
