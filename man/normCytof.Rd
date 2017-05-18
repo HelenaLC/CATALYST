@@ -13,7 +13,7 @@ normCytof(x, y, ...)
   norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
 
 \S4method{normCytof}{character}(x, y, out_path = NULL, remove_beads = TRUE,
-  norm_to = NULL, trim = 5)
+  norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{flowFrame}} or character of the FCS file to be normalized.}
@@ -23,10 +23,11 @@ normCytof(x, y, ...)
 
 \item{...}{optional arguments.}
 
-\item{out_path}{a character string. If specified, outputs will be generated in this location. 
-If NULL (the default), \code{normCytof} will return a \code{\link{flowFrame}}
-of the normalized data (if \code{remove=FALSE}) or a \code{\link{flowSet}} 
-containing normalized cells and beads (if \code{remove=TRUE}).}
+\item{out_path}{a character string. If specified, outputs will be generated 
+in this location. If NULL (the default), \code{normCytof} will return 
+a \code{\link{flowFrame}} of the normalized data (if \code{remove=FALSE}) 
+or a \code{\link{flowSet}} containing normalized cells and beads 
+(if \code{remove=TRUE}).}
 
 \item{remove_beads}{logical. If TRUE (the default) beads will be removed and normalized cells and
 beads returned separately.}
@@ -55,7 +56,7 @@ using bead standards with automated bead gating.
 \examples{
 data(raw_data)
 ff <- concatFCS(raw_data)
-normCytof(x = ff, y = "dvs")
+normCytof(x = ff, y = "dvs", k=300)
 
 }
 \references{

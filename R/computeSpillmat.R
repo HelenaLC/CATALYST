@@ -57,25 +57,25 @@ setMethod(f="computeSpillmat",
             method=function(...) median(...)
         }
         
-        if (sum(rowSums(x@bc_key) == 1) != ncol(x@bc_key)) 
+        if (sum(rowSums(bc_key(x)) == 1) != ncol(bc_key(x))) 
             stop("Cannot compute compensation matrix 
                 from non single-staining experiment.")
         
         # get no. of channels, masses and metals
-        chs <- colnames(x@exprs)
+        chs <- colnames(exprs(x))
         n_chs <- length(chs)
         tmp <- gregexpr("[0-9]+", chs)
         ms <- as.numeric(regmatches(chs, tmp))
         mets <- gsub("[[:digit:]]+Di", "", chs)
         
         # get barcode IDs and barcodes masses
-        ids <- unique(x@bc_ids)
+        ids <- unique(bc_ids(x))
         ids <- sort(ids[which(ids != 0)])
-        bc_ms <- as.numeric(rownames(x@bc_key))
+        bc_ms <- as.numeric(rownames(bc_key(x)))
         
         # find which columns of loaded FCS file 
         # correspond to masses listed in barcode key
-        bc_cols <- sapply(bc_ms, function(x) which(ms %in% x))
+        bc_cols <- vapply(bc_ms, function(x) which(ms == x), numeric(1))
         
         # for each barcode channel, get spillover candidate channels
         # (+/-1M, -16M and channels measuring isotopes)
@@ -85,21 +85,21 @@ setMethod(f="computeSpillmat",
         SM <- diag(n_chs)
         for (i in ids) {
             j <- bc_cols[ids == i]
-            pos <- x@bc_ids == i
-            neg <- !x@bc_ids %in% c(0, i, ms[spill_cols[[j]]])
+            pos <- bc_ids(x) == i
+            neg <- !bc_ids(x) %in% c(0, i, ms[spill_cols[[j]]])
             if (sum(pos) != 0) {
                 if (sum(neg) == 0) {
                     for (k in spill_cols[[j]]) {
                         spill <-
-                            method(x@exprs[pos, k]) / method(x@exprs[pos, j])
+                            method(exprs(x)[pos, k])/method(exprs(x)[pos, j])
                         if (is.na(spill)) spill <- 0
                         SM[j, k] <- spill
                     }
                 } else {
                     for (k in spill_cols[[j]]) {
                         spill <-
-                            (method(x@exprs[pos, k])-method(x@exprs[neg, k]))/
-                            (method(x@exprs[pos, j])-method(x@exprs[neg, j]))
+                            (method(exprs(x)[pos, k])-method(exprs(x)[neg, k]))/
+                            (method(exprs(x)[pos, j])-method(exprs(x)[neg, j]))
                         if (is.na(spill) | spill < 0) spill <- 0
                         SM[j, k] <- spill
                     }

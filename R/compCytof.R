@@ -37,11 +37,11 @@
 #' }
 #' 
 #' @return 
-#' Compensates the input \code{\link{flowFrame}} or, if \code{x} is a character 
-#' string, all FCS files in the specified location. If \code{out_path=NULL} (the 
-#' default), returns a \code{\link{flowFrame}} containing the compensated data. 
-#' Else, compensated data will be written to the specified location as FCS 3.0 
-#' standard files. 
+#' Compensates the input \code{\link{flowFrame}} or, 
+#' if \code{x} is a character string, all FCS files in the specified location. 
+#' If \code{out_path=NULL} (the default), returns a \code{\link{flowFrame}} 
+#' containing the compensated data. Otherwise, compensated data will be written 
+#' to the specified location as FCS 3.0 standard files. 
 #' 
 #' @examples
 #' # get single-stained control samples
@@ -70,10 +70,10 @@ setMethod(f="compCytof",
     definition=function(x, y, out_path=NULL) {
         
         # check validity of input spillover matrix
-        if (any(y < 0))
-            stop("\nThe supplied spillover matrix is invalid ",
-                "as it contains negative entries.\n",
-                "Valid spillvalues are non-negative and mustn't exceed 1.")
+        # if (any(y < 0))
+        #     stop("\nThe supplied spillover matrix is invalid ",
+        #         "as it contains negative entries.\n",
+        #         "Valid spillvalues are non-negative and mustn't exceed 1.")
         if (any(y > 1))
             stop("\nThe supplied spillover matrix is invalid ",
                 "as it contains entries greater than 1.\n",
@@ -98,13 +98,13 @@ setMethod(f="compCytof",
             ms <- ms[o]
             nms <- c(sm_chs, add)[o]
             # get the potential spillover interactions 
-            all_mets = gsub("[[:digit:]]+Di", "", nms)
+            all_mets <- gsub("[[:digit:]]+Di", "", nms)
             spill_cols <- get_spill_cols(ms, all_mets)
             
             first = TRUE
             for (i in seq_along(new_ms)) {
                 idx <- which(ms == new_ms[i] & all_mets == new_mets[i])
-                if ( length(idx) > 0) {
+                if (length(idx) > 0) {
                     if (first) {
                         message("WARNING: ",
                             "Compensation is likely to be inaccurate.\n",
@@ -112,10 +112,10 @@ setMethod(f="compCytof",
                             "Spill values for the following interactions\n",
                             "         ",
                             "have not been estimated:")
-                        first = FALSE
+                        first=FALSE
                     }
-                    cat(nms[idx], "->", 
-                        paste(nms[spill_cols[[idx]]], collapse=", "), "\n")
+                    message(nms[idx], " -> ", paste(
+                        nms[spill_cols[[idx]]], collapse=", "))
                 }
             }
         }
@@ -123,31 +123,30 @@ setMethod(f="compCytof",
         # add them into the matrix
         sm <- diag(length(nms))
         rownames(sm) <- colnames(sm) <- nms
-        sl_sm_cols = sm_cols[sm_cols %in% ff_chs]
+        sl_sm_cols <- sm_cols[sm_cols %in% ff_chs]
         sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
         
-        if (length(add) != 0) {
-            if (any(ind <- old_ms %in% new_ms)) {
-                # check if any new masses were already present in the old masses
-                # and add them to receive spillover according to the old masses
-                
-                # get the channels that correspond to the old_masses 
-                # that have an aditional metal with the same weight
-                y_col <- sm_chs[ind]
-                names(y_col) <- sapply(old_ms[ind], as.character)
-                # get all columns that are part of the affected masses
-                fil = ms %in% old_ms[ind]
-                sm_col <- nms[fil]
-                sm_col_ms <-sapply(ms[fil], as.character)
-                # add the spillover
-                sm[rownames(y), sm_col] <- y[,y_col[sm_col_ms]]
-                for (m in unique(sm_col_ms)){
-                    mfil = ms == m
-                    # set the spillover between channels of the same mass to 0
-                    # other wise the linear system can get singular.
-                    # the diagonal elements will be set to 1 lateron again
-                    sm[mfil,mfil] <- 0
-                }
+        test <- (length(add) != 0) && (any(inds <- old_ms %in% new_ms))
+        if (test) {
+            # check if any new masses were already present in the old masses
+            # and add them to receive spillover according to the old masses
+            
+            # get the channels that correspond to the old_masses 
+            # that have an aditional metal with the same weight
+            y_col <- sm_chs[inds]
+            names(y_col) <- as.character(old_ms[inds])
+            # get all columns that are part of the affected masses
+            fil <- ms %in% old_ms[inds]
+            sm_col <- nms[fil]
+            sm_col_ms <- as.character(ms[fil])
+            # add the spillover
+            sm[rownames(y), sm_col] <- y[, y_col[sm_col_ms]]
+            for (m in unique(sm_col_ms)){
+                mfil <- ms == m
+                # set the spillover between channels of the same mass to 0
+                # otherwise the linear system can get singular
+                # diagonal elements will be set to 1 again later on
+                sm[mfil, mfil] <- 0
             }
         }
         
@@ -157,12 +156,12 @@ setMethod(f="compCytof",
         if (length(ex) != 0)
             sm <- sm[!rownames(sm) %in% ex, !colnames(sm) %in% ex]
         
-        # make sure the diagonal is all 1
+        # assure diagonal is all 1
         diag(sm) <- 1
         
         comped <- flowCore::compensate(x, sm)
         if (!is.null(out_path)) {
-            nm <- deparse(substitute(ss_exp))
+            nm <- flowCore::identifier(x)
             suppressWarnings(flowCore::write.FCS(comped,
                 file.path(out_path, paste0(nm, "_comped.fcs"))))
         } else {
@@ -176,19 +175,19 @@ setMethod(f="compCytof",
 setMethod(f="compCytof",
     signature=signature(x="character", y="matrix"),
     definition=function(x, y, out_path=NULL) {
+        
         if (!file.exists(x))
-            stop("x is not a flowFrame nor a valid file/folder path.")
-        fcs <- list.files(path=x, pattern=".fcs", full.names=TRUE)
+            stop("x is neither a flowFrame nor a valid file/folder path.")
+        fcs <- list.files(x, ".fcs", full.names=TRUE)
         if (length(fcs) == 0)
             stop("No FCS files found in specified location.")
         ffs <- lapply(fcs, flowCore::read.FCS)
+        
         if (is.null(out_path)) {
-            out_nms <- paste0(gsub(".fcs", "", fcs), "_comped.fcs")
-            for (i in seq_along(ffs))
-                suppressWarnings(flowCore::write.FCS(
-                    compCytof(ffs[[i]], y), out_nms[i]))
+            lapply(ffs, function(i) compCytof(i, y))
         } else {
-            out_nms <- file.path(out_path, list.files(path=x, pattern=".fcs"))
+            out_nms <- file.path(out_path, gsub(".fcs", 
+                "_comped.fcs", list.files(x, ".fcs")))
             for (i in seq_along(ffs))
                 suppressWarnings(flowCore::write.FCS(
                     compCytof(ffs[[i]], y), out_nms[i]))
