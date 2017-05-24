@@ -13,6 +13,15 @@
 #' @param min,max,step 
 #'                 specifies sequence of trim values for which 
 #'                 compensation should be evaluated.
+#' @param method 
+#' function to be used for computing spillover estimates. 
+#' Valid options are \code{"default"} or \code{"classic"} 
+#' (see \code{\link{computeSpillmat}} for details)
+#' @param interactions
+#' \code{"default"} or \code{"all"}. Specifies which interactions spillover 
+#' should be estimated for. The default exclusively takes into consideration 
+#' interactions that are sensible from a chemical and physical point of view
+#' (see \code{\link{computeSpillmat}} for more detail).
 #' @param out_path specifies in which location output plot is to be generated. 
 #'                 Defaults to NULL.
 #' @param name_ext a character string. If specified, will be appended 
@@ -47,7 +56,9 @@
 
 setMethod(f="estTrim", 
     signature=signature(x="dbFrame"), 
-    definition=function(x, min = 0.05, max = 0.20, step = 0.01, 
+    definition=function(x, 
+        min = 0.05, max = 0.20, step = 0.01, 
+        method = "default", interactions = "default",
         out_path = NULL, name_ext = NULL) {
         
         trms <- seq(min, max, step)
@@ -59,14 +70,15 @@ setMethod(f="estTrim",
         mets <- gsub("[[:digit:]]+Di", "", nms[bc_cols])
         spill_cols <- get_spill_cols(as.numeric(ms), mets)
         x@exprs <- exprs(x)[, bc_cols]
-
+        
         # compute spillover and compensation matrix,
         # and compensate data for each trim value
-        sm <- lapply(trms, function(val) computeSpillmat(x, trim=val))
+        sm <- lapply(trms, function(trm) 
+            computeSpillmat(x, method, interactions, trm))
         sm <- lapply(sm, make_symetric)
         cm <- lapply(sm, solve)
         comped <- lapply(cm, function(mat) exprs(x) %*% mat)
-
+        
         # compute channel-wise medians and mean squared
         # devation from zero for each compensated data
         medians <- lapply(comped, function(data) {
@@ -80,8 +92,8 @@ setMethod(f="estTrim",
                 }
             }))
         })
-        mse <- vapply(medians, function(m) mean(m^2), numeric(1))
-
+        err <- vapply(medians, function(m) mean(abs(m^3)), numeric(1))
+        
         nTrms <- length(trms)
         ns <- lapply(spill_cols, length)
         n <- sum(unlist(ns))
@@ -94,18 +106,18 @@ setMethod(f="estTrim",
             Receiver=rep(unlist(receivers), nTrms), 
             m=unlist(medians), 
             t=rep(trms, each=n), 
-            e=rep(mse, each=n))
+            e=rep(err, each=n))
         
         xMin <- trms[1]-step
         xMax <- trms[nTrms]+step
         yMin <- floor(  min(df$m)/.5)*.5
         yMax <- ceiling(max(df$m)/.5)*.5
         rect <- data.frame(x1=xMin, x2=xMax, y1=yMax+.4, y2=yMax+.6)
-        text <- data.frame(x=trms, y=yMax+.5, e=round(mse, 4))
-            
+        text <- data.frame(x=trms, y=yMax+.5, e=round(err, 4))
+        
         p <- plot_estTrim(df, trms, xMin, xMax, yMin, yMax, rect, text)
         if (!is.null(out_path)) {
-            ggsave(file.path(out_path, paste0("estTrim", name_ext, ".pdf")), 
+            ggsave(file.path(out_path, paste0("estTrim", "_", name_ext, ".pdf")), 
                 plot=p, width=nTrms, height=8)
         } else {
             ggplotly(p, tooltip=c("group", "fill"))
