@@ -13,7 +13,7 @@
 #' a \code{\link{dbFrame}}.
 #' @param method 
 #' function to be used for computing spillover estimates. 
-#' Defaults to the median of the raw signal ratio between negative and positive.
+#' (see below for details)
 #' @param interactions
 #' \code{"default"} or \code{"all"}. Specifies which interactions spillover 
 #' should be estimated for. The default exclusively takes into consideration 
@@ -24,18 +24,28 @@
 #' Note that \code{trim = 0.5} is equivalent to using medians.
 #' @param th
 #' a single non-negative numeric. Specifies a threshold value below which spill
-#' estimates will be set to 0. Applies only if \code{interaction="all"}.
+#' estimates will be set to 0. Applies only if \code{interactions="all"}.
 #'
 #' @return 
 #' Returns a square compensation matrix with dimensions and dimension names 
-#' matching those of the input flowFrame. Spillover is assumed to be linear and 
-#' is thence computed as the ratio of a positive barcode population's median 
-#' or (trimmed) mean intensity in affected and spilling channel. Furthermore, 
-#' on the basis of their additive nature, spillover values are computed 
+#' matching those of the input flowFrame. Spillover is assumed to be linear,
+#' and, on the basis of their additive nature, spillover values are computed 
 #' independently for each interacting pair of channels. 
+#' 
+#' The default method estimates the spillover as the median ratio between 
+#' the unstained spillover receiving and the stained spillover emitting 
+#' channel in the corresponding single stained populations. 
+#' 
+#' \code{method = "classic"} will compute the slope of a line through 
+#' the medians (or trimmed means) of stained and unstained populations. 
+#' The medians (or trimmed means) computed from events that are i) negative 
+#' in the respective channels; and, ii) not assigned to interacting channels; 
+#' and, iii) not unassigned are subtracted as to account for background.
+#' 
 #' \code{interactions="default"} considers only expected interactions, that is, 
 #' M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16M 
 #' (oxide formation). By default, diagonal entries are set to 1. 
+#' 
 #' \code{interaction="all"} will estimate spill for all n x n - n interactions,
 #' where n denotes the number of single-color controls (= \code{nrow(bc_key(re))}).
 #' 
@@ -60,7 +70,7 @@ setMethod(f="computeSpillmat",
     signature=signature(x="dbFrame"), 
     
     definition=function(x, method="default", interactions="default", 
-        trim = .08, th = 10e-6) {
+        trim = .5, th = 10e-6) {
         
         if (sum(rowSums(bc_key(x)) == 1) != ncol(bc_key(x))) 
             stop("Cannot compute spillover matrix 
@@ -137,6 +147,6 @@ setMethod(f="computeSpillmat",
             }
         }
         colnames(SM) <- rownames(SM) <- chs
-        SM[SM < th] <- 0
+        if (interactions == "all") SM[SM < th] <- 0
         SM[bc_cols, !is.na(ms)]
     })
