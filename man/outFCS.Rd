@@ -45,7 +45,7 @@ data(sample_ff, sample_key)
 re <- assignPrelim(x = sample_ff, y = sample_key)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
-outFCS(x = re, out_path = file.path(tempdir()))
+outFCS(x = re)
 
 }
 \author{
