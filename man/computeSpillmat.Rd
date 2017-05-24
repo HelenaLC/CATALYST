@@ -28,7 +28,7 @@ interactions that are sensible from a chemical and physical point of view
 Note that \code{trim = 0.5} is equivalent to using medians.}
 
 \item{th}{a single non-negative numeric. Specifies a threshold value below which spill
-estimates will be set to 0. Applies only if \code{interactions="all"}.}
+estimates will be set to 0. Applies only if \code{interaction="all"}.}
 }
 \value{
 Returns a square compensation matrix with dimensions and dimension names 
@@ -47,11 +47,12 @@ in the respective channels; and, ii) not assigned to interacting channels;
 and, iii) not unassigned are subtracted as to account for background.
 
 \code{interactions="default"} considers only expected interactions, that is, 
-M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16M 
+M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16 
 (oxide formation). By default, diagonal entries are set to 1. 
 
-\code{interaction="all"} will estimate spill for all n x n - n interactions,
-where n denotes the number of single-color controls (= \code{nrow(bc_key(re))}).
+\code{interaction="all"} will estimate spill for all n x n - n 
+interactions, where n denotes the number of single-color controls 
+(= \code{nrow(bc_key(re))}).
 }
 \description{
 Computes the spillover matrix based on 

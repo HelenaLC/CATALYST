@@ -43,7 +43,7 @@
 #' and, iii) not unassigned are subtracted as to account for background.
 #' 
 #' \code{interactions="default"} considers only expected interactions, that is, 
-#' M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16M 
+#' M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16 
 #' (oxide formation). By default, diagonal entries are set to 1. 
 #' 
 #' \code{interaction="all"} will estimate spill for all n x n - n 
