@@ -1,5 +1,15 @@
+=====================================
+	*** Version 1.1.2 ***
+—————————————————————————————————————
 
-*** Version 0.99.0 ***
-______________________
++ computeSpillmat(), estTrim(): options “method” and “interactions”
+  allowing specification of how spillover should be estimated and 
+  which interactions to consider, respectively
 
-o first official submit for release as part of Bioconductor 3.5
+o S. Chevrier and B. Bodenmiller added as authors
+
+=====================================
+	*** Version 1.1.1 ***
+—————————————————————————————————————
+
+o first official release as part of Bioconductor 3.5

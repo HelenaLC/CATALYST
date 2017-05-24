@@ -183,12 +183,12 @@ setReplaceMethod(f="sep_cutoffs",
             stop("Replacement value(s) must be non-negative.")
         if (length(value) == 1) {
             x@sep_cutoffs <- rep(value, nrow(bc_key(x)))
-            return(x)
-        }
-        if (length(value) != nrow(x@bc_key))
+        } else if (length(value) == nrow(bc_key(x))) {
+            x@sep_cutoffs <- value
+        } else {
             stop("'Replacement value' must be of length one\n or same length",
                 " as the number of rows in the 'bc_key'.")
-        x@sep_cutoffs <- value
+        }
         names(x@sep_cutoffs) <- rownames(bc_key(x))
         return(x)
     })
