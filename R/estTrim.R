@@ -15,21 +15,13 @@
 #'                 compensation should be evaluated.
 #' @param method 
 #' function to be used for computing spillover estimates. 
-<<<<<<< HEAD
-#' Defaults to \code{mean}.
-=======
 #' Valid options are \code{"default"} or \code{"classic"} 
 #' (see \code{\link{computeSpillmat}} for details)
->>>>>>> shiny
 #' @param interactions
 #' \code{"default"} or \code{"all"}. Specifies which interactions spillover 
 #' should be estimated for. The default exclusively takes into consideration 
 #' interactions that are sensible from a chemical and physical point of view
-<<<<<<< HEAD
-#' (see \code{\link{computeSpillmat}} for more details).
-=======
 #' (see \code{\link{computeSpillmat}} for more detail).
->>>>>>> shiny
 #' @param out_path specifies in which location output plot is to be generated. 
 #'                 Defaults to NULL.
 #' @param name_ext a character string. If specified, will be appended 
@@ -81,13 +73,8 @@ setMethod(f="estTrim",
         
         # compute spillover and compensation matrix,
         # and compensate data for each trim value
-<<<<<<< HEAD
-        sm <- lapply(trms, function(val) 
-            computeSpillmat(x, method, interactions, trim))
-=======
         sm <- lapply(trms, function(trm) 
             computeSpillmat(x, method, interactions, trm))
->>>>>>> shiny
         sm <- lapply(sm, make_symetric)
         cm <- lapply(sm, solve)
         comped <- lapply(cm, function(mat) exprs(x) %*% mat)
@@ -106,11 +93,7 @@ setMethod(f="estTrim",
             }))
         })
         err <- vapply(medians, function(m) mean(abs(m^3)), numeric(1))
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> shiny
         nTrms <- length(trms)
         ns <- lapply(spill_cols, length)
         n <- sum(unlist(ns))
@@ -131,19 +114,11 @@ setMethod(f="estTrim",
         yMax <- ceiling(max(df$m)/.5)*.5
         rect <- data.frame(x1=xMin, x2=xMax, y1=yMax+.4, y2=yMax+.6)
         text <- data.frame(x=trms, y=yMax+.5, e=round(err, 4))
-<<<<<<< HEAD
-            
-        p <- plot_estTrim(df, trms, xMin, xMax, yMin, yMax, rect, text)
-        if (!is.null(out_path)) {
-            ggsave(file.path(out_path, paste0("estTrim", "method=", method, 
-                "_interaction=", interactions, "_", name_ext, ".pdf")), 
-=======
-        
+
         p <- plot_estTrim(df, trms, xMin, xMax, yMin, yMax, rect, text)
         if (!is.null(out_path)) {
             ggsave(file.path(out_path, 
                 paste0("estTrim", "_", name_ext, ".pdf")), 
->>>>>>> shiny
                 plot=p, width=nTrms, height=8)
         } else {
             ggplotly(p, tooltip=c("group", "fill"))
