@@ -13,11 +13,7 @@
 #' a \code{\link{dbFrame}}.
 #' @param method 
 #' function to be used for computing spillover estimates. 
-<<<<<<< HEAD
-#' Defaults to \code{mean(..., trim)}.
-=======
 #' (see below for details)
->>>>>>> shiny
 #' @param interactions
 #' \code{"default"} or \code{"all"}. Specifies which interactions spillover 
 #' should be estimated for. The default exclusively takes into consideration 
@@ -28,23 +24,7 @@
 #' Note that \code{trim = 0.5} is equivalent to using medians.
 #' @param th
 #' a single non-negative numeric. Specifies a threshold value below which spill
-<<<<<<< HEAD
 #' estimates will be set to 0. Applies only if \code{interaction="all"}.
-#'
-#' @return 
-#' Returns a square compensation matrix with dimensions and dimension names 
-#' matching those of the input flowFrame. Spillover is assumed to be linear and 
-#' is thence computed as the ratio of a positive barcode population's median 
-#' or (trimmed) mean intensity in affected and spilling channel. Furthermore, 
-#' on the basis of their additive nature, spillover values are computed 
-#' independently for each interacting pair of channels. 
-#' \code{interactions="default"} considers only expected interactions, that is, 
-#' M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16M 
-#' (oxide formation). By default, diagonal entries are set to 1. 
-#' \code{interaction="all"} will estimate spill for all n x n - n interactions,
-#' where n denotes the number of single-color controls (= \code{nrow(bc_key(re))}).
-=======
-#' estimates will be set to 0. Applies only if \code{interactions="all"}.
 #'
 #' @return 
 #' Returns a square compensation matrix with dimensions and dimension names 
@@ -69,7 +49,6 @@
 #' \code{interaction="all"} will estimate spill for all n x n - n 
 #' interactions, where n denotes the number of single-color controls 
 #' (= \code{nrow(bc_key(re))}).
->>>>>>> shiny
 #' 
 #' @examples
 #' # get single-stained control samples
@@ -92,11 +71,7 @@ setMethod(f="computeSpillmat",
     signature=signature(x="dbFrame"), 
     
     definition=function(x, method="default", interactions="default", 
-<<<<<<< HEAD
-        trim = .08, th = 10e-6) {
-=======
         trim = .5, th = 10e-6) {
->>>>>>> shiny
         
         if (sum(rowSums(bc_key(x)) == 1) != ncol(bc_key(x))) 
             stop("Cannot compute spillover matrix 
@@ -143,50 +118,29 @@ setMethod(f="computeSpillmat",
             pos <- bc_ids(x) == i
             neg <- !bc_ids(x) %in% c(0, i, ms[spill_cols[[j]]])
             if (sum(pos) != 0) {
-<<<<<<< HEAD
-                receiver <- exprs(x)[pos, k]
-                spiller  <- exprs(x)[pos, j]
-=======
->>>>>>> shiny
                 if (method == "default") {
                     if (sum(neg) == 0) {
                         for (k in spill_cols[[j]]) {
                             spill <- 
-<<<<<<< HEAD
-                                mean(receiver, trim) / mean(spiller, trim)
-=======
                                 mean(exprs(x)[pos, k], trim)/
                                 mean(exprs(x)[pos, j], trim)
->>>>>>> shiny
                             if (is.na(spill)) spill <- 0
                             SM[j, k] <- spill
                         }
                     } else {
                         for (k in spill_cols[[j]]) {
                             spill <- 
-<<<<<<< HEAD
-                                (mean(receiver, trim) - 
-                                        mean(exprs(x)[neg, k], trim)) /
-                                (mean(spiller,  trim) -
-=======
                                 (mean(exprs(x)[pos, k], trim)- 
                                         mean(exprs(x)[neg, k], trim))/
                                 (mean(exprs(x)[pos, j],  trim)-
->>>>>>> shiny
                                         mean(exprs(x)[neg, j], trim))
                             if (is.na(spill) | spill < 0) spill <- 0
                             SM[j, k] <- spill
                         }
                     }
-<<<<<<< HEAD
-                } else if (method == "experimental") {
-                    for (k in spill_cols[[j]]) {
-                        spill <- mean(receiver / spiller, trim)
-=======
                 } else if (method == "classic") {
                     for (k in spill_cols[[j]]) {
                         spill <- mean(exprs(x)[pos, k]/exprs(x)[pos, j], trim)
->>>>>>> shiny
                         if (is.na(spill)) spill <- 0
                         SM[j, k] <- spill
                     }
