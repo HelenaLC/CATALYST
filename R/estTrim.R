@@ -117,7 +117,8 @@ setMethod(f="estTrim",
         
         p <- plot_estTrim(df, trms, xMin, xMax, yMin, yMax, rect, text)
         if (!is.null(out_path)) {
-            ggsave(file.path(out_path, paste0("estTrim", "_", name_ext, ".pdf")), 
+            ggsave(file.path(out_path, 
+                paste0("estTrim", "_", name_ext, ".pdf")), 
                 plot=p, width=nTrms, height=8)
         } else {
             ggplotly(p, tooltip=c("group", "fill"))

@@ -46,8 +46,9 @@
 #' M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16M 
 #' (oxide formation). By default, diagonal entries are set to 1. 
 #' 
-#' \code{interaction="all"} will estimate spill for all n x n - n interactions,
-#' where n denotes the number of single-color controls (= \code{nrow(bc_key(re))}).
+#' \code{interaction="all"} will estimate spill for all n x n - n 
+#' interactions, where n denotes the number of single-color controls 
+#' (= \code{nrow(bc_key(re))}).
 #' 
 #' @examples
 #' # get single-stained control samples
