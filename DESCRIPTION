@@ -1,12 +1,12 @@
 Package: CATALYST
 Type: Package
 Title: Cytometry dATa anALYSis Tools
-Version: 1.1.1
+Version: 1.1.2
 Author: Helena Lucia Crowell <crowellh@student.ethz.ch>, Mark D Robinson <mark.robinson@imls.uzh.ch>, Vito RT Zanotelli <vito.zanotelli@uzh.ch>, St\u00E9phane Chevrier, Bernd Bodenmiller
 biocViews: MassSpectrometry, Preprocessing, StatisticalMethod, SingleCell, Normalization
 Maintainer: Helena Lucia Crowell <crowellh@student.ethz.ch>
 Depends:
-    R (>= 3.4)
+    R (>= 3.5)
 Description: Mass cytometry (CyTOF) uses heavy metal isotopes rather than fluorescent tags as reporters to label antibodies, thereby substantially decreasing spectral overlap and allowing for examination of over 50 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed CATALYST (Cytometry dATa anALYSis Tools) to provide a pipeline for preprocessing of cytometry data, including i) normalization using bead standards, ii) single-cell deconvolution, and iii) bead-based compensation.
 Imports:
     flowCore,
