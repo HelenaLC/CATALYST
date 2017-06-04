@@ -2,9 +2,9 @@
 	*** Version 1.1.2 ***
 —————————————————————————————————————
 
-+ computeSpillmat(), estTrim(): options “method” and “interactions”
-  allowing specification of how spillover should be estimated and 
-  which interactions to consider, respectively
++ in computeSpillmat(), estTrim(): options “method” and “interactions”
+  allowing specification of how spillover should be estimated 
+  and which interactions to consider, respectively
 
 o S. Chevrier and B. Bodenmiller added as authors
 
