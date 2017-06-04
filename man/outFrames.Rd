@@ -40,7 +40,7 @@ data(sample_ff, sample_key)
 re <- assignPrelim(x = sample_ff, y = sample_key)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
-outFfs(x = re, return = "list", which = c("B1", "D4"))
+outFrames(x = re, return = "list", which = c("B1", "D4"))
 
 }
 \author{
