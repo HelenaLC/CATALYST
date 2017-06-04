@@ -29,7 +29,7 @@
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
-#' outFfs(x = re, return = "list", which = c("B1", "D4"))
+#' outFrames(x = re, return = "list", which = c("B1", "D4"))
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom flowCore flowFrame flowSet
@@ -95,7 +95,7 @@ setMethod(f="outFrames",
         if (return == "flowSet") {
             set <- as(ffs, "flowSet")
             flowCore::sampleNames(set) <- sapply(ffs, 
-                function(i) description(i)$GUID)
+                function(i) flowCore::description(i)$GUID)
             set
         } else {
             ffs
