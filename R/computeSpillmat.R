@@ -119,6 +119,12 @@ setMethod(f="computeSpillmat",
             neg <- !bc_ids(x) %in% c(0, i, ms[spill_cols[[j]]])
             if (sum(pos) != 0) {
                 if (method == "default") {
+                    for (k in spill_cols[[j]]) {
+                        spill <- mean(exprs(x)[pos, k]/exprs(x)[pos, j], trim)
+                        if (is.na(spill)) spill <- 0
+                        SM[j, k] <- spill
+                    }
+                } else if (method == "classic") {
                     if (sum(neg) == 0) {
                         for (k in spill_cols[[j]]) {
                             spill <- 
@@ -137,12 +143,6 @@ setMethod(f="computeSpillmat",
                             if (is.na(spill) | spill < 0) spill <- 0
                             SM[j, k] <- spill
                         }
-                    }
-                } else if (method == "classic") {
-                    for (k in spill_cols[[j]]) {
-                        spill <- mean(exprs(x)[pos, k]/exprs(x)[pos, j], trim)
-                        if (is.na(spill)) spill <- 0
-                        SM[j, k] <- spill
                     }
                 }
             }
