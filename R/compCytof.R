@@ -178,7 +178,7 @@ setMethod(f="compCytof",
         
         if (!file.exists(x))
             stop("x is neither a flowFrame nor a valid file/folder path.")
-        fcs <- list.files(x, ".fcs", full.names=TRUE)
+        fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
         if (length(fcs) == 0)
             stop("No FCS files found in specified location.")
         ffs <- lapply(fcs, flowCore::read.FCS)
@@ -186,8 +186,7 @@ setMethod(f="compCytof",
         if (is.null(out_path)) {
             lapply(ffs, function(i) compCytof(i, y))
         } else {
-            out_nms <- file.path(out_path, gsub(".fcs", 
-                "_comped.fcs", list.files(x, ".fcs")))
+            out_nms <- gsub(x, out_path, gsub(".fcs", "_comped.fcs", fcs))
             for (i in seq_along(ffs))
                 suppressWarnings(flowCore::write.FCS(
                     compCytof(ffs[[i]], y), out_nms[i]))
