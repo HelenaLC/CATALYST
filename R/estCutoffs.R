@@ -25,6 +25,7 @@
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats loess
+#' @importFrom drc drm LL.4
 
 # ------------------------------------------------------------------------------
 
@@ -32,34 +33,29 @@ setMethod(f="estCutoffs",
     signature=signature(x="dbFrame"), 
     definition=function(x, verbose=TRUE) {
         
+        cutoffs <- seq(0, 1, .01)
         n_bcs <- nrow(bc_key(x))
         ests <- numeric(n_bcs)
         
-        ds <- list ()
-        ds[[1]] <- seq(0, 1, .01)
-        w <- diff(ds[[1]])[1]
-        ds[[2]] <- ds[[1]][-1] - w/2
-        ds[[3]] <- ds[[2]][-1] - w/2
-        
-        if (verbose) message("Estimating separation cutoffs...")
+        # f0 <- function(x, b, c, d, e) c+(d-c)/(1+exp(b*(log(x)-log(e))))
+        # f1 <- function(x, b, c, d, e) b*e^b*x^(b-1)*(c-d)/(x^b+e^b)^2
+        # f2 <- function(x, b, c, d, e) b*e^b*x^(b-2)*((b-1)*e^b-(b+1)*x^b)*(c-d)/(x^b+e^b)^3
+        # f3 <- function(x, b, c, d, e) (b*e^b*x^(b-3)*(b^2+3*b+2)*x^(2*b)-4*(b^2-1)*e^b*x^b+(b^2-3*b+2)*e^(2*b)*(c-d))/(x^b+e^b)^4
+        null <- function(b, c, d, e) 
+            ((2*e^b*b^2-sqrt(3)*sqrt(b^4*e^(2*b)-b^2*e^(2*b))-2*e^b)/(b^2+3*b+2))^(1/b)
         for (i in seq_len(n_bcs)) {
-            dy <- list()
-            dy[[1]] <- yields(x)[i, ]
-            dy[[2]] <- diff(dy[[1]]) / w
-            dy[[3]] <- diff(dy[[2]]) / w
-            names(dy) <- paste0("dy", 0:2)
-            
-            lws <- mapply( function(u, v) { 
-                predict(stats::loess(v~u, span=.3), u) }, ds, dy)
-            est <- ds[[1]][which(lws[[3]] > 0 & 
-                    c(lws[[3]][-1] < 0, FALSE))[1]]
-            
-            if (length(est) == 0 | is.na(est)) {
-                ests[i] <- 1 
-            } else {
-                ests[i] <- est
-            }
+            df <- data.frame(cutoff=cutoffs, yield=as.vector(yields(re)[i, ]))
+            fit <- drc::drm(yield~cutoff, data=df, fct=drc::LL.4())
+            b <- fit$coefficients[1]
+            c <- fit$coefficients[2]
+            d <- fit$coefficients[3]
+            e <- fit$coefficients[4]
+            # ind <- which(diff(sign(diff(f2(cutoffs, b, c, d, e)))) == 2)+1
+            # if (length(tmp) == 0) tmp <- 1
+            # ests[i] <- cutoffs[ind]
+            ests[i] <- round(null(b, c, d, e)*100)/100
         }
+        
         names(ests) <- rownames(bc_key(x))
         sep_cutoffs(x) <- ests
         x
