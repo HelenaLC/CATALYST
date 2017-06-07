@@ -186,7 +186,8 @@ setMethod(f="compCytof",
         if (is.null(out_path)) {
             lapply(ffs, function(i) compCytof(i, y))
         } else {
-            out_nms <- gsub(x, out_path, gsub(".fcs", "_comped.fcs", fcs))
+            out_nms <- gsub(x, out_path, 
+                gsub(".fcs", "_comped.fcs", ignore.case=TRUE, fcs))
             for (i in seq_along(ffs))
                 suppressWarnings(flowCore::write.FCS(
                     compCytof(ffs[[i]], y), out_nms[i]))
