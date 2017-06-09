@@ -1,5 +1,18 @@
+=====================================
+	*** Version 1.1.2 ***
+—————————————————————————————————————
 
-*** Version 0.99.0 ***
-______________________
+o estCutoffs():
+  estimation of separation cutoffs using 4-parameter log-logistic regression
 
-o first official submit for release as part of Bioconductor 3.5
+o computeSpillmat(), estTrim(): 
+  options “method” and “interactions” allowing specification of
+  how spillover should be estimated and which interactions to consider
+
+o S. Chevrier and B. Bodenmiller added as authors
+
+=====================================
+	*** Version 1.1.1 ***
+—————————————————————————————————————
+
+o first official release as part of Bioconductor 3.5

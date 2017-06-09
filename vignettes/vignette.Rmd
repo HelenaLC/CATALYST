@@ -5,7 +5,11 @@ author:
 - name: Helena L Crowell
   email: crowellh@student.ethz.ch
 - name: Mark D Robinson
+<<<<<<< HEAD
 - name: Vito Zanotelli
+=======
+- name: Vito RT Zanotelli
+>>>>>>> master
 - name: Stéphane Chevrier
 - name: Bernd Bodenmiller
 package: "`r pkg_ver('CATALYST')`"
