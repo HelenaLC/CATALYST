@@ -5,6 +5,10 @@
 \alias{compCytof}
 \alias{compCytof,flowFrame,matrix-method}
 \alias{compCytof,character,matrix-method}
+<<<<<<< HEAD
+=======
+\alias{compCytof,ANY,data.frame-method}
+>>>>>>> master
 \title{Compensate CyTOF experiment}
 \usage{
 compCytof(x, y, ...)
@@ -12,6 +16,11 @@ compCytof(x, y, ...)
 \S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL)
 
 \S4method{compCytof}{character,matrix}(x, y, out_path = NULL)
+<<<<<<< HEAD
+=======
+
+\S4method{compCytof}{ANY,data.frame}(x, y, out_path = NULL)
+>>>>>>> master
 }
 \arguments{
 \item{x}{a \code{\link{flowFrame}} OR a character string specifying 

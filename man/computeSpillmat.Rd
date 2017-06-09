@@ -8,7 +8,12 @@
 \usage{
 computeSpillmat(x, ...)
 
+<<<<<<< HEAD
 \S4method{computeSpillmat}{dbFrame}(x, method = "mean", trim = 0.08)
+=======
+\S4method{computeSpillmat}{dbFrame}(x, method = "default",
+  interactions = "default", trim = 0.5, th = 1e-05)
+>>>>>>> master
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
@@ -16,6 +21,7 @@ computeSpillmat(x, ...)
 \item{...}{optional arguments.}
 
 \item{method}{function to be used for computing spillover estimates. 
+<<<<<<< HEAD
 Defaults to \code{mean}.}
 
 \item{trim}{trim value used for estimation of spill values. Note that
@@ -31,6 +37,44 @@ independently for each interacting pair of channels. The current framework
 considers only potential (not all possible) interactions, that is,
 M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16M 
 (oxide formation). By default, diagonal entries are set to 1.
+=======
+(see below for details)}
+
+\item{interactions}{\code{"default"} or \code{"all"}. Specifies which interactions spillover 
+should be estimated for. The default exclusively takes into consideration 
+interactions that are sensible from a chemical and physical point of view
+(see below for more details).}
+
+\item{trim}{trim value used for estimation of spill values. 
+Note that \code{trim = 0.5} is equivalent to using medians.}
+
+\item{th}{a single non-negative numeric. Specifies a threshold value below which spill
+estimates will be set to 0. Applies only if \code{interaction="all"}.}
+}
+\value{
+Returns a square compensation matrix with dimensions and dimension names 
+matching those of the input flowFrame. Spillover is assumed to be linear,
+and, on the basis of their additive nature, spillover values are computed 
+independently for each interacting pair of channels. 
+
+The default method estimates the spillover as the median ratio between 
+the unstained spillover receiving and the stained spillover emitting 
+channel in the corresponding single stained populations. 
+
+\code{method = "classic"} will compute the slope of a line through 
+the medians (or trimmed means) of stained and unstained populations. 
+The medians (or trimmed means) computed from events that are i) negative 
+in the respective channels; and, ii) not assigned to interacting channels; 
+and, iii) not unassigned are subtracted as to account for background.
+
+\code{interactions="default"} considers only expected interactions, that is, 
+M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16 
+(oxide formation). By default, diagonal entries are set to 1. 
+
+\code{interaction="all"} will estimate spill for all n x n - n 
+interactions, where n denotes the number of single-color controls 
+(= \code{nrow(bc_key(re))}).
+>>>>>>> master
 }
 \description{
 Computes the spillover matrix based on 

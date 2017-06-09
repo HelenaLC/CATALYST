@@ -82,7 +82,8 @@ setMethod(f="plotEvents",
         if ("all" %in% which) 
             which <- ids
         bc_labs <- get_bc_labs(x)
-        if (0 %in% ids) 
+
+        if ("0" %in% ids) 
             bc_labs <- c("Unassigned", bc_labs)
         
         # get colors for plotting:
@@ -127,8 +128,8 @@ setMethod(f="plotEvents",
                 expand_limits(x=c(0, nrow(ints)+1)) +
                 ylim(floor(4*min(ints))/4, ceiling(4*max(ints))/4) + 
                 xlab("Event number") + ylab("Normalized intensity") + 
-                ggtitle(bquote(bold(.(bc_labs[match(id, rownames(
-                    bc_key(x)))]))*scriptstyle(" ("*.(n)*" events)"))) +
+                ggtitle(bquote(bold(.(bc_labs[match(id, c("0", rownames(
+                    bc_key(x))))]))*scriptstyle(" ("*.(n)*" events)"))) +
                 theme_bw() + theme(legend.key=element_blank(),
                     panel.grid.major=element_line(color="lightgrey"),
                     panel.grid.minor=element_blank())
