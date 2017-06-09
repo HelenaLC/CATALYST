@@ -70,10 +70,10 @@ setMethod(f="compCytof",
     definition=function(x, y, out_path=NULL) {
         
         # check validity of input spillover matrix
-        # if (any(y < 0))
-        #     stop("\nThe supplied spillover matrix is invalid ",
-        #         "as it contains negative entries.\n",
-        #         "Valid spillvalues are non-negative and mustn't exceed 1.")
+        if (any(y < 0))
+            stop("\nThe supplied spillover matrix is invalid ",
+                "as it contains negative entries.\n",
+                "Valid spillvalues are non-negative and mustn't exceed 1.")
         if (any(y > 1))
             stop("\nThe supplied spillover matrix is invalid ",
                 "as it contains entries greater than 1.\n",
@@ -178,19 +178,25 @@ setMethod(f="compCytof",
         
         if (!file.exists(x))
             stop("x is neither a flowFrame nor a valid file/folder path.")
-        fcs <- list.files(x, ".fcs", full.names=TRUE)
+        fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
         if (length(fcs) == 0)
             stop("No FCS files found in specified location.")
         ffs <- lapply(fcs, flowCore::read.FCS)
         
         if (is.null(out_path)) {
-            out_nms <- gsub(".fcs$", "_comped.fcs", fcs)
             lapply(ffs, function(i) compCytof(i, y))
         } else {
-            out_nms <- file.path(out_path, gsub(".fcs", 
-                "_comped.fcs", list.files(x, ".fcs")))
+            out_nms <- gsub(x, out_path, 
+                gsub(".fcs", "_comped.fcs", ignore.case=TRUE, fcs))
             for (i in seq_along(ffs))
                 suppressWarnings(flowCore::write.FCS(
                     compCytof(ffs[[i]], y), out_nms[i]))
         }
+    })
+
+#' @rdname compCytof
+setMethod(f="compCytof",
+    signature=signature(x="ANY", y="data.frame"),
+    definition=function(x, y, out_path=NULL) {
+        compCytof(x, as.matrix(y), out_path)
     })

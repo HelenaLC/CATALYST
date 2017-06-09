@@ -128,6 +128,13 @@ setGeneric(name="applyCutoffs",
     package="CATALYST",
     def=function(x, ...) standardGeneric("applyCutoffs"))
 
+#' @rdname outFrames
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="outFrames",      
+    package="CATALYST", 
+    def=function(x, ...) standardGeneric("outFrames"))
+
 #' @rdname outFCS
 #' @param ... optional arguments.
 #' @export
