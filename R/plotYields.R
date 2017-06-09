@@ -76,7 +76,7 @@ setMethod(f="plotYields",
         n_bcs <- nrow(bc_key(x))
         seps <- seq(0, 1, .01)
         bc_labs <- get_bc_labs(x)
-
+        
         ps <- list()
         for (id in which) {
             ps[[length(ps)+1]] <- plot_yield(
@@ -92,12 +92,15 @@ setMethod(f="plotYields",
                         [id, seps %in% sep_cutoffs(x)[id]]*100), "%")
                     ps[[length(ps)]] <- ps[[length(ps)]] + ggtitle(
                         bquote(bold(.(bc_labs[ids == id]))*scriptstyle(
-                        " (separation cutoff "*.(sep_cutoffs(x)[id])
-                        *" with "*.(p)*" yield)")))
+                            " (separation cutoff "*.(sep_cutoffs(x)[id])
+                            *" with "*.(p)*" yield)")))
                 }
+            } else if (id != 0) {
+                ps[[length(ps)]] <- ps[[length(ps)]] + 
+                    ggtitle(bquote(bold(.(bc_labs[ids == id]))))
             }
         }
-
+        
         if (!is.null(out_path))
             pdf(file.path(out_path, paste0("yield_plot", name_ext, ".pdf")),
                 height=6, width=12)
@@ -105,4 +108,3 @@ setMethod(f="plotYields",
         if (!is.null(out_path))
             dev.off()
     })
-
