@@ -96,4 +96,3 @@ plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
     p$layout$clip[p$layout$name == "panel"] <- "off"
     grid::grid.draw(p)
 }
-
