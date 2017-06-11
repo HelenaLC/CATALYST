@@ -114,6 +114,37 @@ As opposed to a single global cutoff, `estCutoffs` will estimate a sample-specif
 
 For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. The separation cutoff value should be chosen such that it appropriately balances confidence in barcode assignment and cell yield. We thus fit the yields function, its first and second derivative, and compute the first turning point, marking the on-set of the plateu regime, as an adequte cutoff estimate.
 
+```{r echo=FALSE, fig.width=5}
+library(ggplot2)
+f0 <- function(x, b, c, d, e) c+(d-c)/(1+exp(b*(log(x)-log(e))))
+f1 <- function(x, b, c, d, e) b*e^b*x^(b-1)*(c-d)/(x^b+e^b)^2
+f2 <- function(x, b, c, d, e) b*e^b*x^(b-2)*((b-1)*e^b-(b+1)*x^b)*(c-d)/(x^b+e^b)^3
+f3 <- function(x, b, c, d, e) (b*(c-d)*e^b*x^(-3+b)*((2-3*b+b^2)*e^(2*b)-4*(-1+b^2)*e^b*x^b+(2+3*b+b^2)*x^(2*b)))/(e^b+x^b)^4
+f4 <- function(x, b, c, d, e) (b*(c-d)*e^b*x^(-4+b)*((-6+11*b-6*b^2+b^3)*e^(3*b)+(-18+11*b+18*b^2-11*b^3)*e^(2*b)*x^b+(-18-11*b+18*b^2+11*b^3)*e^b*x^(2*b)-(6+11*b+6*b^2+b^3)*x^(3*b)))/(e^b+x^b)^5
+x <- seq(0,100,.01); b <- 25; c <- 0; d <- 1; e <- 50
+df <- data.frame(x, f0(x, b, c, d, e),
+    f1(x, b, c, d, e)*(1/max(abs(f1(x, b, c, d, e)))),
+    f2(x, b, c, d, e)*(1/max(abs(f2(x, b, c, d, e)))),
+    f3(x, b, c, d, e)*(1/max(abs(f3(x, b, c, d, e)))),
+    f4(x, b, c, d, e)*(1/max(abs(f4(x, b, c, d, e)))))
+colnames(df) <- c("x", "f(x)", "f'(x)", "f''(x)", "f'''(x)", "f''''(x)")
+df <- reshape2::melt(df, id.var="x")
+root <- which(diff(sign(diff(f4(x, b, c, d, e)))) == 2) + 1
+ggplot(df, aes(x=x, y=value)) + 
+    ggtitle("The four-parameter log-logistic function") +
+    geom_hline(yintercept=0, lty=1, size=.25, color="grey") +
+    geom_vline(xintercept=50, lty=1, size=.25, color="grey") +
+    geom_vline(xintercept=x[root[1]], lty=2, size=.5, color="red3") +
+    facet_grid(variable~.) + geom_line(size=.5) + 
+    scale_x_continuous(limits=c(0,100), breaks=NULL) +
+    scale_y_continuous(limits=c(-1,1), breaks=0) +
+    labs(x=NULL, y=NULL) + theme_classic() + theme(
+        axis.text=element_text(size=8),
+        aspect.ratio=1/4, plot.title=element_text(hjust=.5, size=10),
+        strip.text.y=element_text(angle=0, size=8),
+        strip.background=element_rect(color="white"))
+```
+
 ```{r}
 re <- estCutoffs(x=re, verbose=FALSE)
 re
