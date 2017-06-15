@@ -29,7 +29,7 @@ get_spill_cols <- function(ms, mets) {
 make_symetric <- function(x) {
     sm <- diag(ncol(x))
     rownames(sm) <- colnames(sm) <- colnames(x)
-    sm[rownames(x), colnames(x)] <- x 
+    sm[rownames(x), colnames(x)] <- as.matrix(x)
     sm
 }
 
