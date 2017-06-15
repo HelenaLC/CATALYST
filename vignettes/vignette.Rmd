@@ -114,7 +114,7 @@ As opposed to a single global cutoff, `estCutoffs` will estimate a sample-specif
 
 For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. The separation cutoff value should be chosen such that it appropriately balances confidence in barcode assignment and cell yield.
 
-To this end, we fit a three-paramter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@drc]. As an adequte cutoff estimate, we compute the first minimum of the forth derivatve, which marks the and of the plateu regime and on-set of yield decline (see figure below).
+To this end, we fit a three-parameter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@drc]. As an adequate cutoff estimate, we compute the first minimum of the forth derivative, which approximately marks the end of the plateu regime and on-set of yield decline (see figure below).
 
 ```{r echo=FALSE, fig.width=5}
 library(ggplot2)
