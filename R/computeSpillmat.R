@@ -3,17 +3,17 @@
 # ------------------------------------------------------------------------------
 
 #' @rdname computeSpillmat
-#' @title Compute spillover matrx
+#' @title Compute spillover matrix
 #' 
 #' @description 
-#' Computes the spillover matrix based on 
-#' a priori identified single-positive popultions.
+#' Computes a spillover matrix from a priori 
+#' identified single-positive populations.
 #'
 #' @param x 
 #' a \code{\link{dbFrame}}.
 #' @param method 
-#' function to be used for computing spillover estimates. 
-#' (see below for details)
+#' function to be used for computing spillover estimates
+#' (see below for details).
 #' @param interactions
 #' \code{"default"} or \code{"all"}. Specifies which interactions spillover 
 #' should be estimated for. The default exclusively takes into consideration 
@@ -26,7 +26,7 @@
 #' a single non-negative numeric. Specifies a threshold value below which spill
 #' estimates will be set to 0. Applies only if \code{interaction="all"}.
 #'
-#' @return 
+#' @return
 #' Returns a square compensation matrix with dimensions and dimension names 
 #' matching those of the input flowFrame. Spillover is assumed to be linear,
 #' and, on the basis of their additive nature, spillover values are computed 
@@ -54,10 +54,9 @@
 #' @examples
 #' # get single-stained control samples
 #' data(ss_exp)
-#' 
 #' # specify mass channels stained for
 #' bc_ms <- c(139, 141:156, 158:176)
-#' 
+#' # debarcode single-positive populations
 #' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
