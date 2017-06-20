@@ -2,7 +2,7 @@ Package: CATALYST
 Type: Package
 Title: Cytometry dATa anALYSis Tools
 Version: 1.1.2
-Author: Helena Lucia Crowell <crowellh@student.ethz.ch>, Mark D Robinson <mark.robinson@imls.uzh.ch>, Vito RT Zanotelli <vito.zanotelli@uzh.ch>, St\u00E9phane Chevrier, Bernd Bodenmiller
+Author: Helena Lucia Crowell <crowellh@student.ethz.ch>, Mark D Robinson <mark.robinson@imls.uzh.ch>, Vito RT Zanotelli <vito.zanotelli@uzh.ch>, Stéphane Chevrier, Bernd Bodenmiller
 biocViews: MassSpectrometry, Preprocessing, StatisticalMethod, SingleCell, Normalization
 Maintainer: Helena Lucia Crowell <crowellh@student.ethz.ch>
 Depends: R (>= 3.4)
@@ -21,8 +21,9 @@ Imports:
     RColorBrewer,
     stats,
     utils
-License: GPL (>=2)
-LazyData: TRUE
+Suggests: BiocStyle, knitr, rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
-Suggests: BiocStyle, knitr, rmarkdown
+License: GPL (>=2)
+LazyData: TRUE
+Encoding: UTF-8
