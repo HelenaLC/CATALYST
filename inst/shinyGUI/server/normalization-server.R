@@ -1,9 +1,16 @@
-# read input FCS files, render box #2
-observe({
-    x <- input$fcsNorm
-    if (is.null(x)) return()
-    for (i in seq_len(nrow(x)))
-        vals$ffsNorm[[i]] <- flowCore::read.FCS(x[[i, "datapath"]])
+# read input FCS, render box #2
+observeEvent(input$fcsNorm, {
+    # initialize reactive values:
+    # list of flowFrame(s) to be normalized,
+    # and list of normalized flowFrame(s)
+    n <- nrow(input$fcsNorm)
+    vals$ffsNorm <- vector("list", n)
+    for (i in seq_len(n))
+        vals$ffsNorm[[i]] <- flowCore::read.FCS(
+            filename=input$fcsNorm[[i, "datapath"]],
+            transformation=FALSE,
+            truncate_max_range=FALSE)
+    vals$ffsNormed <- vector("list", n)
     output$box2 <- renderUI(box2)
     js$collapse("box_1")
 })
@@ -14,10 +21,12 @@ observe({
     if (is.null(x) || x == 0) 
         return()
     updateCheckboxInput(session, "box_uploadNormTo", value=FALSE)
+    # initialize reactive value:
+    # list of flowFrame(s) to use as baseline
     if (length(vals$ffsNorm) == 1) {
-        vals$ffsNormTo <- vals$ffsNorm
+        vals$ffsNormTo <- vals$ffsNorm[[1]]
     } else {
-        vals$ffsNormTo <- list(CATALYST::concatFCS(vals$ffsNorm))
+        vals$ffsNormTo <- CATALYST::concatFCS(vals$ffsNorm)
     }
     js$collapse("box_2")
 })
@@ -41,13 +50,12 @@ output$input_NormTo <- renderUI({
 observe({
     x <- input$fcsNormTo
     if (is.null(x)) return()
-    if (nrow(x) > 1) {
-        vals$ffsNormTo <- vector(mode="list", length=nrow(x))
-        for (i in seq_len(nrow(x)))
-            vals$ffsNormTo[[i]] <- flowCore::read.FCS(x[[i, "datapath"]])
-    } else {
-        vals$ffsNormTo <- list(flowCore::read.FCS(input$fcsNormTo$datapath))
-    }
+    # initialize reactive value:
+    # flowFrame to use as baseline
+    vals$ffsNormTo <- flowCore::read.FCS(
+        filename=input$fcsNormTo$datapath,
+        transformation=FALSE,
+        truncate_max_range=FALSE)
     js$collapse("box_2")
 })
 
@@ -62,42 +70,65 @@ observe({
 # selectInput and actionButton for custom beads
 output$select_customBeads <- renderUI({
     if (input$select_beads == "custom") 
-        selectInput_customBeads(vals$ffsNormTo[[1]])
+        selectInput_customBeads(vals$ffsNormTo)
 })
 
 observeEvent(input$button_customBeads, {
     x <- input$input_customBeads
     if (is.null(x)) return()
+    # check validity of input bead masses
     chs <- flowCore::colnames(vals$ffsNormTo)
     ms <- gsub("[[:alpha:][:punct:]]", "", chs)
     beadMs <- gsub("[[:alpha:][:punct:]]", "", unlist(x))
-    if (sum(beadMs %in% ms) != length(beadMs)) {
-        showNotification(ui="Not all bead channels are valid.", 
-                         type="error", 
-                         closeButton=FALSE)
+    valid <- beadMs %in% ms
+    if (sum(valid) != length(beadMs)) {
+        showNotification(type="error", closeButton=FALSE,
+            ui=paste0("Bead masses ", beadMs[!valid], " are invalid.")) 
         return()
     }
     vals$beads <- as.numeric(beadMs)
 })
 
-# initialize logical vector of bead indices for each sample
-# and list for normalized flowFrame(s), render box #3
+# get bead, DNA and time column indices
 observe({
-   if (any(vapply(vals$ffsNormTo, is.null, logical(1))))
-       return()
-    vals$beadInds  <- vector(mode="list", length=length(ffs()))
-    vals$beadGates <- vector(mode="list", length=length(ffs()))
-    vals$ffsNormed <- vector(mode="list", length=length(vals$ffsNorm))
+    if (is.null(vals$beads)) return()
+    chs <- flowCore::colnames(ffs()[[vals$smpl]])
+    vals$beadCols <- get_bead_cols(chs, isolate(vals$beads))
+    vals$dnaCol <- grep("Ir191|Ir193", chs, ignore.case=TRUE)[1]
+    vals$timeCol <- grep("time", chs, ignore.case=TRUE)
+})
+
+# initialize reactive values:
+# logical vector of bead indices for each sample
+# and gates, render box #3
+observe({
+   if (is.null(vals$ffsNormTo)) return()
+    vals$beadInds  <- vector("list", length(ffs()))
+    vals$beadGates <- vector("list", length(ffs()))
     output$box3 <- renderUI(box3)
 })
 
 # when beads have been selected,
 # render gating panel and box #4
 observe({
-    if (is.null(vals$beads)) return()
+    x <- vals$beadCols
+    if (is.null(x)) return()
+    n <- length(x)
+    w <- paste0(100/n, "%")
     output$box4 <- renderUI(box4)
     output$box_beadGating <- renderUI(
-        box_beadGating(samples=smpls(), selected=1))
+        box_beadGating(samples=smplNmsNorm(), selected=1))
+    output$beadScatters <- renderUI({
+        plotList <- lapply(seq_len(n), function(i) {
+            plotOutput(
+                outputId=paste0("beadScatter", i), 
+                width=w,
+                brush=brushOpts(
+                    id=paste0("beadGate", i), 
+                    resetOnNew=TRUE))
+        })
+        do.call(tagList, plotList)
+    })
     js$collapse("box_3")
 })
 
@@ -105,7 +136,7 @@ observe({
 observe({
     x <- input$select_sample
     if (is.null(x)) return()
-    vals$smpl <- which(smpls() == x)
+    vals$smpl <- which(smplNmsNorm() == x)
 })
 
 # list of all input flowFrames
@@ -124,18 +155,24 @@ observe({
 })
 
 observeEvent(input$prevSmpl, { 
-    updateSelectInput(session, "select_sample", selected=smpls()[vals$smpl-1]) 
+    updateSelectInput(session, "select_sample", 
+        selected=smplNmsNorm()[vals$smpl-1]) 
 })
 
 observeEvent(input$nextSmpl, { 
-    updateSelectInput(session, "select_sample", selected=smpls()[vals$smpl+1]) 
+    updateSelectInput(session, "select_sample", 
+        selected=smplNmsNorm()[vals$smpl+1]) 
 })
 
 # enable gating button only if all gates have been drawn
 observe({
-    vals$beadGates[[vals$smpl]] <- list(
-        input$beadGate1, input$beadGate2, input$beadGate3, input$beadGate4, input$beadGate5)
-    test <- !(any(vapply(vals$beadGates[[vals$smpl]], is.null, logical(1))))
+    x <- vals$beads
+    if (is.null(x)) return()
+    selected <- isolate(vals$smpl)
+    n <- length(vals$beadCols)
+    vals$beadGates[[selected]] <- lapply(seq_len(n), 
+        function(i) input[[paste0("beadGate", i)]])
+    test <- !(any(vapply(vals$beadGates[[selected]], is.null, logical(1))))
     toggleState(id="gateBeads", condition=test)
 })
 
@@ -148,22 +185,13 @@ observeEvent(input$gateBeads, {
     cf <- isolate(input$input_cfGating)
     
     # get indices of events falling in intersection of all gates
-    vals$beadInds[[selected]] <- 
-        brushedPoints(brush=vals$beadGates[[selected]][[1]], 
-                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
-                      xvar=beadChs[1], yvar=dnaCh)[, ncol(es)+1] &
-        brushedPoints(brush=vals$beadGates[[selected]][[2]], 
-                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
-                      xvar=beadChs[2], yvar=dnaCh)[, ncol(es)+1] &
-        brushedPoints(brush=vals$beadGates[[selected]][[3]], 
-                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
-                      xvar=beadChs[3], yvar=dnaCh)[, ncol(es)+1] &
-        brushedPoints(brush=vals$beadGates[[selected]][[4]], 
-                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
-                      xvar=beadChs[4], yvar=dnaCh)[, ncol(es)+1] &
-        brushedPoints(brush=vals$beadGates[[selected]][[5]], 
-                      allRows=TRUE, df=data.frame(asinh(es/cf)), 
-                      xvar=beadChs[5], yvar=dnaCh)[, ncol(es)+1]
+    gated <- lapply(seq_len(length(beadChs)), function(i)
+        brushedPoints(brush=vals$beadGates[[selected]][[i]], 
+            allRows=TRUE, df=data.frame(asinh(es/cf)), 
+            xvar=beadChs[i], yvar=dnaCh)[, ncol(es)+1])
+    gated <- do.call(cbind, gated)
+    vals$beadInds[[selected]] <- apply(gated, 1, function(i)
+        sum(i) == length(i))
 })
 
 # valueBox: x/n samples gated
@@ -185,7 +213,9 @@ observe({
     output$gatingYield <- renderText(yield)
 })
 
+# ------------------------------------------------------------------------------
 # normalization
+# ------------------------------------------------------------------------------
 observe({
     # check that all samples have been gated
     if (any(vapply(vals$beadInds, is.null, logical(1))))
@@ -250,25 +280,18 @@ observe({
 # bead vs. dna scatters
 # ------------------------------------------------------------------------------
 observe({
-    beadChs <- vals$beadCols
-    dnaCh   <- vals$dnaCols[1]
-    if (is.null(beadChs) || is.null(dnaCh)) 
+    if (is.null(vals$beadCols) || is.null(vals$dnaCol)) 
         return()
     (input$button_viewGating)
     es <- flowCore::exprs(ffs()[[vals$smpl]])
     cf <- isolate(input$input_cfGating)
     n  <- isolate(input$input_nGating)
-
-    output$plot_beadScatter1 <- renderPlot(
-        plotScatter(es=es, x=beadChs[1], y=dnaCh, cf=cf, n=n))
-    output$plot_beadScatter2 <- renderPlot(
-        plotScatter(es=es, x=beadChs[2], y=dnaCh, cf=cf, n=n))
-    output$plot_beadScatter3 <- renderPlot(
-        plotScatter(es=es, x=beadChs[3], y=dnaCh, cf=cf, n=n))
-    output$plot_beadScatter4 <- renderPlot(
-        plotScatter(es=es, x=beadChs[4], y=dnaCh, cf=cf, n=n))
-    output$plot_beadScatter5 <- renderPlot(
-        plotScatter(es=es, x=beadChs[5], y=dnaCh, cf=cf, n=n))
+    nBeads <- length(vals$beadCols)
+    for (i in seq_len(nBeads)) {
+        plotId <- paste0("beadScatter", i)
+        output[[plotId]] <- renderPlot(
+            plotScatter(es=es, x=vals$beadCols[i], y=vals$dnaCol, cf=cf, n=n))
+    }
 })
 
 # ------------------------------------------------------------------------------
