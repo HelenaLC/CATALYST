@@ -71,14 +71,13 @@ enterTrim <- tagList(
 
 compensationSidebar2 <- tagList(
     hr(style="border-color:black"),
-    tags$style(dwnld_1), 
-    tags$style(dwnld_2),
-    downloadButton(outputId="dwnld_comped_1", 
-                   label="Compensated beads", 
-                   class="dwnld_1"),
-    downloadButton(outputId="dwnld_comped_2", 
-                   label="Compensated cells", 
-                   class="dwnld_1"),
+    tags$style(type="text/css", 
+        "#dwnld_fcs {display:inline-block; color:white; width:49%; float:left}"),
+    tags$style(type="text/css", 
+        "#dwnld_yep {display:inline-block; color:white; width:49%; float:right}"),
+    downloadButton(outputId="dwnld_comped", 
+        label="Compensated data",
+        class="btn-success"), 
     downloadButton(outputId="dwnld_spillMat", 
-                   label="Spillover matrix",  
-                   class="dwnld_2"))
+        label="Spillover matrix", 
+        class="btn-success"))
