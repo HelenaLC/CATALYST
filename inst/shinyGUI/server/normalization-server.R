@@ -59,6 +59,15 @@ observe({
     js$collapse("box_2")
 })
 
+############################## is this necessary???
+smplNmsNorm <- reactive({
+    if (input$box_NormToCurrent == 1) {
+        input$fcsNorm$name
+    } else {
+        c(input$fcsNorm$name, input$fcsNormTo$name)
+    }
+})
+
 # use DVS or Beta beads
 observe({
     x <- input$select_beads
