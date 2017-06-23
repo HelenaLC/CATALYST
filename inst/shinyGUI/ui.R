@@ -11,17 +11,26 @@ header$children[[3]]$children <- tagList(
 
 sidebar <- dashboardSidebar(
     sidebarMenu(
-        menuItem(text="Normalization", 
-                 tabName="normalization", 
-                 icon=icon("balance-scale")),
-        
-        menuItem(text="Debarcoding",   
-                 tabName="debarcoding",   
-                 icon=icon("barcode")),
-        
-        menuItem(text="Compensation",  
-                 tabName="compensation",  
-                 icon=icon("cogs"))
+        menuItem(
+            text="Normalization", 
+            tabName="normalization", 
+            icon=icon("balance-scale")),
+        menuSubItem(
+            text="Bead gating", 
+            tabName=NULL, 
+            icon=icon("angle-double-right")),
+        menuSubItem(
+            text="Bead removal",
+            tabName=NULL,
+            icon=icon("angle-double-right")),
+        menuItem(
+            text="Debarcoding",   
+            tabName="debarcoding",   
+            icon=icon("barcode")),
+        menuItem(
+            text="Compensation",  
+            tabName="compensation",  
+            icon=icon("cogs"))
     )
 )
 
