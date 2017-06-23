@@ -5,7 +5,7 @@ library(magrittr)
 options(shiny.maxRequestSize=500*1024^2)
 
 shinyServer(function(input, output, session) {
-    
+
     source("helpers-normalization_tmp.R")
     library(shinyjs)
     library(shinyBS)
@@ -18,8 +18,8 @@ shinyServer(function(input, output, session) {
 
 # guides 
     source("ui/guides.R")
-    output$debarcoding_guide   <- renderUI(debarcoding_guide)
-    output$compensation_guide  <- renderUI(compensation_guide)
+    output$debarcoding_guide  <- renderUI(debarcoding_guide)
+    output$compensation_guide <- renderUI(compensation_guide)
     
 # server files -----
     source("server/normalization-server.R", local=TRUE)
@@ -63,19 +63,6 @@ shinyServer(function(input, output, session) {
         cmp1 = NULL, # compensated flowFrame 1
         cmp2 = NULL) # compensated flowFrame 2
 
-
-# ==============================================================================
-# NORMALIZATION
-# ==============================================================================
-    
-    smplNmsNorm <- reactive({
-        if (input$box_NormToCurrent == 1) {
-            input$fcsNorm$name
-        } else {
-            c(input$fcsNorm$name, input$fcsNormTo$name)
-        }
-    })
-     
 # ==============================================================================
 # COMPENSATION
 # ==============================================================================
@@ -113,35 +100,43 @@ shinyServer(function(input, output, session) {
 # download buttons
 # ------------------------------------------------------------------------------
     
-    output$dwnld_fcs  <- downloadHandler(filename = function()     { "fcs.zip" },
-                                         content  = function(file) { tmpdir <- tempdir(); setwd(tmpdir)
-                                         inds <- c(0, rownames(bc_key(vals$reApplyCutoffs))) %in% sort(unique(bc_ids(vals$reApplyCutoffs)))
-                                         if (input$box_IDsAsNms) {
-                                             CATALYST::outFCS(x=vals$reApplyCutoffs, out_path=tmpdir) 
-                                             file_nms <- c("Unassigned", rownames(bc_key(vals$reApplyCutoffs)))[inds]
-                                         } else if (input$box_upldNms) {
-                                             if (is.null(input$input_upldNms)) {
-                                                 showNotification("Please upload a naming.",
-                                                                  type="error", closeButton=FALSE)
-                                                 return()
-                                             } else if (nrow(vals$nms) < nrow(bc_key(vals$reApplyCutoffs))) {
-                                                 showNotification(paste("Only", nrow(vals$nms), 
-                                                                  "file names provided but", 
-                                                                  nrow(bc_key(vals$reApplyCutoffs)), "needed."),
-                                                                  type="error", closeButton=FALSE)
-                                                 return()
-                                             } else if (sum(vals$nms[, 1] %in% rownames(bc_key(vals$reApplyCutoffs))) != nrow(bc_key(vals$reApplyCutoffs))) {
-                                                 showNotification("Couldn't find a file name for all samples.\n
-                                                                  Please make sure all sample IDs occur\n
-                                                                  in the provided naming scheme.",
-                                                                  type="error", closeButton=FALSE)
-                                                 return()
-                                             }
-                                             CATALYST::outFCS(x=vals$reApplyCutoffs, out_path=tmpdir, out_nms=paste0(vals$nms[, 2], "_", rownames(bc_key(vals$reApplyCutoffs))))
-                                             file_nms <- c("Unassigned", paste0(vals$nms[, 2], "_", rownames(bc_key(vals$reApplyCutoffs))))[inds]
-                                         }
-                                         zip(zipfile=file, files=paste0(file_nms, ".fcs")) }, 
-                                         contentType = "application/zip")
+    output$dwnld_fcs <- downloadHandler(
+        filename=function() { "fcs.zip" },
+        content =function(file) { 
+            tmpdir <- tempdir()
+            setwd(tmpdir)
+            inds <- c(0, rownames(bc_key(vals$reApplyCutoffs))) %in% 
+                sort(unique(bc_ids(vals$reApplyCutoffs)))
+            if (input$box_IDsAsNms) {
+                CATALYST::outFCS(x=vals$reApplyCutoffs, out_path=tmpdir) 
+                file_nms <- c("Unassigned", rownames(bc_key(vals$reApplyCutoffs)))[inds]
+            } else if (input$box_upldNms) {
+                if (is.null(input$input_upldNms)) {
+                    showNotification("Please upload a naming.",
+                        type="error", closeButton=FALSE)
+                    return()
+                } else if (nrow(vals$nms) < nrow(bc_key(vals$reApplyCutoffs))) {
+                    showNotification(paste("Only", nrow(vals$nms), 
+                        "file names provided but", 
+                        nrow(bc_key(vals$reApplyCutoffs)), "needed."),
+                        type="error", closeButton=FALSE)
+                    return()
+                } else if (sum(vals$nms[, 1] %in% rownames(bc_key(vals$reApplyCutoffs))) != nrow(bc_key(vals$reApplyCutoffs))) {
+                    showNotification(
+                        "Couldn't find a file name for all samples.\n
+                        Please make sure all sample IDs occur\n
+                        in the provided naming scheme.",
+                        type="error", closeButton=FALSE)
+                    return()
+                }
+                CATALYST::outFCS(
+                    x=vals$reApplyCutoffs, 
+                    out_path=tmpdir, 
+                    out_nms=paste0(vals$nms[, 2], "_", rownames(bc_key(vals$reApplyCutoffs))))
+                file_nms <- c("Unassigned", paste0(vals$nms[, 2], "_", rownames(bc_key(vals$reApplyCutoffs))))[inds]
+            }
+            zip(zipfile=file, files=paste0(file_nms, ".fcs")) }, 
+        contentType = "application/zip")                        
     
     output$dwnld_yep <- downloadHandler(
         filename=function() { "yield_event_plots.zip" },
