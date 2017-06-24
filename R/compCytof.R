@@ -78,6 +78,7 @@ setMethod(f="compCytof",
                 "as it contains entries greater than 1.\n",
                 "Valid spillvalues are non-negative and mustn't exceed 1.")
         
+        n <- ncol(x)
         nms <- flowCore::colnames(x)
         ms <- gsub("[[:alpha:][:punct:]]", "", nms)
         ff_chs <- flowCore::colnames(x[, !is.na(ms)])
@@ -100,7 +101,7 @@ setMethod(f="compCytof",
             all_mets <- gsub("[[:digit:]]+Di", "", nms)
             spill_cols <- get_spill_cols(ms, all_mets)
             
-            first = TRUE
+            first <- TRUE
             for (i in seq_along(new_ms)) {
                 idx <- which(ms == new_ms[i] & all_mets == new_mets[i])
                 if (length(idx) > 0) {
@@ -111,7 +112,7 @@ setMethod(f="compCytof",
                             "Spill values for the following interactions\n",
                             "         ",
                             "have not been estimated:")
-                        first=FALSE
+                        first <- FALSE
                     }
                     message(nms[idx], " -> ", paste(
                         nms[spill_cols[[idx]]], collapse=", "))
@@ -120,8 +121,7 @@ setMethod(f="compCytof",
         }
         
         # add them into the matrix
-        sm <- diag(length(nms))
-        rownames(sm) <- colnames(sm) <- nms
+        sm <- matrix(diag(n), n, n, dimnames=list(nms, nms))
         sl_sm_cols <- sm_cols[sm_cols %in% ff_chs]
         sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
         
