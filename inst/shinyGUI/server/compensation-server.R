@@ -4,20 +4,20 @@ observe({
     if (is.null(x)) return()
     for (i in seq_len(nrow(x)))
         vals$ffsComp[[i]] <- flowCore::read.FCS(x[[i, "datapath"]])
-    output$compensationSidebar1 <- renderUI({ compensationSidebar1 })
+    output$compensationSidebar1 <- renderUI(compensationSidebar1)
 })
 
 observeEvent(input$fcsComp, {
     if (!is.null(input$input_bcChs) & !is.null(vals$re2)) {
         updateCheckboxInput(session,
-                            inputId="box_estSm",
-                            value=TRUE)
+            inputId="box_estSm",
+            value=TRUE)
         # auto-estimate spillover matrix if possible
         vals$sm <- CATALYST::computeSpillmat(x=vals$re2)
     } else {
         updateCheckboxInput(session,
-                            inputId="box_upldSm",
-                            value=TRUE)
+            inputId="box_upldSm",
+            value=TRUE)
     }
 })
 
@@ -49,50 +49,11 @@ observe({
     updateCheckboxInput(session, "box_IDsAsNms", value=FALSE)
 })
 
-# ------------------------------------------------------------------------------
-# checkboxInput "Estimate spill from single-stained controls"
-# ------------------------------------------------------------------------------
-
-output$enterTrim <- renderUI({
-    if (input$box_estSm == 1 & !is.null(input$input_bcChs) & !is.null(vals$re2))
-        enterTrim
-})
-
-output$panel_estTrim <- renderUI({
-    x <- input$box_estSm
-    if (!is.null(x) & x == 1 & !is.null(input$input_bcChs) & !is.null(vals$re2))
-        panel_estTrim
-})
-
-observe({
-    toggleState(id="button_estTrim", 
-                condition=(is.numeric(input$estTrim_min) 
-                           & is.numeric(input$estTrim_max) 
-                           & is.numeric(input$estTrim_stp) 
-                           & input$estTrim_stp != 0))
-    toggleState(id="button_enterTrim", 
-                condition=is.numeric(input$input_enterTrim))
-})
-
-# actionButton "Go"
-observeEvent(input$button_estTrim, {
-    min <- input$estTrim_min
-    max <- input$estTrim_max
-    stp <- input$estTrim_stp
-    l <- length(seq(min, max, stp))
-    showNotification(paste("Estimating spill for", l, "trim values..."),
-                     id="msg", type="message", duration=NULL, closeButton=FALSE)
-    p <- CATALYST::estTrim(vals$re2, min, max, stp)
-    output$plot_estTrim <- renderPlotly(p)
-    removeNotification(id="msg")
-})
-
 # actionButton "Estimate spillover"
 observeEvent(input$button_enterTrim, {
     showNotification(h5("Estimating spillover..."), id="msg", 
-                     type="message", duration=NULL, closeButton=FALSE)
-    vals$trm <- input$input_enterTrim
-    vals$sm  <- CATALYST::computeSpillmat(x=vals$re2, trim=vals$trm)
+        type="message", duration=NULL, closeButton=FALSE)
+    vals$sm  <- CATALYST::computeSpillmat(x=vals$reApplyCutoffs)
     removeNotification(id="msg")
 })
 
@@ -107,9 +68,8 @@ output$inputSm <- renderUI({
 
 observe({
     if (!is.null(input$inputSm))
-        vals$sm0 <- vals$sm <- as.matrix(
-            read.csv(input$inputSm$datapath, 
-                     check.names=FALSE, row.names=1))
+        vals$sm0 <- vals$sm <- 
+            read.csv(input$inputSm$datapath, check.names=FALSE, row.names=1)
 })
 
 # ------------------------------------------------------------------------------
@@ -128,8 +88,9 @@ observeEvent(vals$sm, once=TRUE, {
     x <- match(msSm[[1]][inds[1]], ms)
     y <- match(msSm[[2]][inds[2]], ms)
     output$panel_scatters <- renderUI(
-        panel_scatters(samples=input$fcsComp$name,
-                       channels=chs, x=x, y=y))        
+        panel_scatters(
+            samples=input$fcsComp$name,
+            channels=chs, x=x, y=y))        
 })
 
 # keep track of currently selected sample
@@ -144,18 +105,20 @@ selectedComp <- reactive({
 # next / previous sample buttons
 observe({
     n <- length(vals$ffsComp)
-    toggleState(id="prevSmplComp", condition=selectedComp()!=1)
-    toggleState(id="nextSmplComp", condition=selectedComp()!=n)
+    toggleState(id="prevSmplComp", condition=selectedComp() != 1)
+    toggleState(id="nextSmplComp", condition=selectedComp() != n)
 })
 
 observeEvent(input$prevSmplComp, { 
-    updateSelectInput(session, "select_sampleComp", 
-                      selected=input$fcsComp$name[selectedComp()-1]) 
+    updateSelectInput(session, 
+        inpudId="select_sampleComp", 
+        selected=input$fcsComp$name[selectedComp()-1]) 
 })
 
 observeEvent(input$nextSmplComp, { 
-    updateSelectInput(session, "select_sampleComp", 
-                      selected=input$fcsComp$name[selectedComp()+1]) 
+    updateSelectInput(session, 
+        inputId="select_sampleComp", 
+        selected=input$fcsComp$name[selectedComp()+1]) 
 })
 
 # update channel selection choices upon sample change
@@ -164,14 +127,21 @@ observe({
     chs <- flowCore::colnames(isolate(vals$ffsComped)[[selectedComp()]])
     # default to currently selected masses 
     ms <- gsub("[[:punct:][:alpha:]]", "", chs)
-    currentMs <- sapply(c(isolate(input$scatterCh1), isolate(input$scatterCh2)), 
-                        function(i) gsub("[[:punct:][:alpha:]]", "", i))
+    currentMs <- sapply(
+        c(isolate(input$scatterCh1), isolate(input$scatterCh2)), 
+        function(i) gsub("[[:punct:][:alpha:]]", "", i))
     inds <- match(currentMs, ms)
     # if non-existent, plot first 2 mass channels
     if (any(is.na(inds))) 
         inds <- which(!is.na(as.numeric(ms)))[1:2]
-    updateSelectInput(session, "scatterCh1", choices=chs, selected=chs[inds[1]])
-    updateSelectInput(session, "scatterCh2", choices=chs, selected=chs[inds[2]])
+    updateSelectInput(session, 
+        inputId="scatterCh1", 
+        choices=chs, 
+        selected=chs[inds[1]])
+    updateSelectInput(session, 
+        inputId="scatterCh2", 
+        choices=chs, 
+        selected=chs[inds[2]])
 })
 
 # actionButton: Swap x- and y-axis
@@ -213,11 +183,14 @@ output$plot_plotSpillmat <- renderPlot({
     if (is.null(vals$sm)) return()
     input$button_newSpill
     if (input$box_estSm == 1) {
-        CATALYST::plotSpillmat(bc_ms=vals$key, SM=isolate(vals$sm))
+        CATALYST::plotSpillmat(
+            bc_ms=vals$key, 
+            SM=isolate(vals$sm))
     } else {
         ms <- gsub("[[:punct:][:alpha:]]", "", colnames(vals$sm))
-        CATALYST::plotSpillmat(bc_ms=ms[!is.na(as.numeric(ms))], 
-                               SM=isolate(vals$sm))
+        CATALYST::plotSpillmat(
+            bc_ms=ms[!is.na(as.numeric(ms))], 
+            SM=isolate(vals$sm))
     }
 })
 
@@ -232,8 +205,8 @@ observe({
             have not been estimated:")
         output$text_compCytof_2 <- renderPrint(
             cat(capture.output(type="message", 
-                               vals$ffsComped <- c(compCytof(x=vals$ff1, y=vals$sm),
-                                                   vals$ffsComped))[-c(1:3)], sep="\n"))
+            vals$ffsComped <- c(compCytof(x=vals$ff1, y=vals$sm),
+                    vals$ffsComped))[-c(1:3)], sep="\n"))
     }
 })
 
@@ -253,9 +226,9 @@ output$compScatter1 <- renderPlot({
     x <- vals$ffsComp[[selectedComp()]]
     if (is.null(x) || !is.numeric(input$cfComp)) return()
     plotScatter(es=exprs(x), n=25e3,
-                x=isolate(input$scatterCh1), 
-                y=input$scatterCh2, 
-                cf=input$cfComp)
+        x=isolate(input$scatterCh1), 
+        y=input$scatterCh2, 
+        cf=input$cfComp)
 })
 output$text_info1 <- renderText({ 
     text_info(
@@ -272,9 +245,9 @@ output$compScatter2 <- renderPlot({
     x <- vals$ffsComped[[selectedComp()]]
     if (is.null(x) || !is.numeric(input$cfComp)) return()
     plotScatter(es=exprs(x), n=25e3,
-                x=isolate(input$scatterCh1), 
-                y=input$scatterCh2, 
-                cf=input$cfComp)
+        x=isolate(input$scatterCh1), 
+        y=input$scatterCh2, 
+        cf=input$cfComp)
 })
 output$text_info2 <- renderText({ 
     input$button_view 
