@@ -4,39 +4,6 @@ inlineTop <- "display:inline-block; vertical-align:top"
 inlineTop34 <- "display:inline-block; vertical-align:top; height:34px"
 
 # ------------------------------------------------------------------------------
-# estTrim()
-panel_estTrim <- fluidPage(
-    fluidRow(align="center",
-        # input estTrim min
-        div(style=inline, h5(strong("From:"))),
-        div(style=inline, 
-            numericInput("estTrim_min", NULL, width="75px",
-                value=.04, min=0, max=.5, step=.01)),
-        # input estTrim max
-        div(style=inline, h5(strong("To:"))),
-        div(style=inline, 
-            numericInput("estTrim_max", NULL, width="75px",
-                value=.18, min=.01, max=.5, step=.01)),
-        # input estTrim step
-        div(style=inline, h5(strong("Step:"))),
-        div(style=inline, 
-            numericInput("estTrim_stp", NULL, width="75px", 
-                value=.02, min=.01, max=.5, step=.01)),
-        # go button
-        div(style=inlineTop,
-            bsButton(inputId="button_estTrim",
-                     label=NULL,
-                     icon=icon("share"),
-                     style="success"))
-    ),
-    fluidRow(align="center",
-        tags$head(tags$style("#plot_estTrim{height:100vh !important;}")),
-        # plotting window
-        plotlyOutput("plot_estTrim", width="100%")
-    )
-)
-
-# ------------------------------------------------------------------------------
 # plotSpillmat()
 panel_plotSpillmat <- fluidPage(
         fluidRow(align="center", 

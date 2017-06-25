@@ -2,36 +2,36 @@
 # plotYields()
 # ------------------------------------------------------------------------------
 
-yp_panel <- function(choices) { 
+yieldPlotPanel <- function(x) { 
     fluidPage(
         column(width=9,
             fluidRow(align="center",
                 # previous channel button
                 div(style=inlineCenter,
                     shinyBS::bsButton(
-                        inputId="yp_prev",
+                        inputId="prev_yieldPlot",
                         label=NULL,
                         icon=icon("chevron-left"),
                         size="extra-small")),
                 # which channel selectInput
                 div(style=inline,
                     selectInput(
-                        inputId="yp_which", 
+                        inputId="select_yieldPlot", 
                         label=NULL, 
                         width="120px",
-                        choices=choices,
-                        selected=choices[1])),
+                        choices=x,
+                        selected=x[1])),
                 # next channel button
                 div(style=inlineCenter,
                     shinyBS::bsButton(
-                        inputId="yp_next",
+                        inputId="next_yieldPlot",
                         label=NULL,
                         icon=icon("chevron-right"),
                         size="extra-small"))),
             # plotting window
             fluidRow(align="center",
-                tags$head(tags$style("#plotYields{height:70vh !important;}")),
-                plotOutput("plotYields"))),
+                tags$head(tags$style("#yieldPlot{height:70vh !important;}")),
+                plotOutput("yieldPlot"))),
         column(width=3,
             align="center",
             tags$head(tags$style("#table_summary{height:100vh !important;}")),
@@ -43,28 +43,28 @@ yp_panel <- function(choices) {
 # plotEvents()
 # ------------------------------------------------------------------------------
 
-ep_panel <- function(choices) {
+eventPlotPanel <- function(x) {
     fluidPage(
         fluidRow(align="center",
             # previous channel button
             div(style=inlineCenter,
                 shinyBS::bsButton(
-                    inputId="ep_prev", 
+                    inputId="prev_eventPlot", 
                     label=NULL,
                     icon=icon("chevron-left"),
                     size="extra-small")),
             # which channel selectInput
             div(style=inline,
                 selectInput(
-                    inputId="ep_which", 
+                    inputId="select_eventPlot", 
                     label=NULL,
                     width="120px", 
-                    choices=choices, 
-                    selected=choices[1])),
+                    choices=x, 
+                    selected=x[1])),
             # next channel button
             div(style=inlineCenter,
                 shinyBS::bsButton(
-                    inputId="ep_next", 
+                    inputId="next_eventPlot", 
                     label=NULL,
                     icon=icon("chevron-right"),
                     size="extra-small")),
@@ -78,21 +78,21 @@ ep_panel <- function(choices) {
                     selected=1e3))),
         # plotting window
         fluidRow(align="center", 
-            tags$head(tags$style("#plotEvents{height:100vh !important;}")),
-            plotOutput(outputId="plotEvents")))
+            tags$head(tags$style("#eventPlot{height:100vh !important;}")),
+            plotOutput(outputId="eventPlot")))
 }
 
 # ------------------------------------------------------------------------------
 # plotMahal()
 # ------------------------------------------------------------------------------
 
-mhl_panel <- function(choices) {
+mahalPlotPanel <- function(x) {
     fluidPage(
         fluidRow(align="center",
             # previous channel button
             div(style=inlineCenter,
                 shinyBS::bsButton(
-                    inputId="mhl_prev", 
+                    inputId="prev_mahalPlot", 
                     label=NULL, 
                     icon=icon("chevron-left"),
                     style="default",
@@ -100,15 +100,15 @@ mhl_panel <- function(choices) {
             # which channel input
             div(style=inline,
                 selectInput(
-                    inputId="mhl_which",
+                    inputId="select_mahalPlot",
                     label=NULL, 
-                    choices=choices, 
-                    selected=choices[1], 
+                    choices=x, 
+                    selected=x[1], 
                     width="120px")),
             # next channel button
             div(style=inlineCenter,
                 shinyBS::bsButton(
-                    inputId="mhl_next", 
+                    inputId="next_mahalPlot", 
                     label=NULL, 
                     icon=icon("chevron-right"),
                     style="default",
@@ -118,13 +118,13 @@ mhl_panel <- function(choices) {
                 "Cofactor:"),
             div(style=inlineTop,     
                 numericInput(
-                    inputId="input_mhlCofactor", 
+                    inputId="mahalPlotCofactor", 
                     label=NULL, 
-                    value=50, 
-                    min=5, 
+                    value=5, 
+                    min=1, 
                     width="60px"))), 
         # plotting window
         fluidRow(align="center", 
-            tags$head(tags$style("#plotMahal{height:100vh !important;}")),
-            plotOutput(outputId="plotMahal")))
+            tags$head(tags$style("#mahalPlot{height:100vh !important;}")),
+            plotOutput(outputId="mahalPlot")))
 }

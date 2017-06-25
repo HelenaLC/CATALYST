@@ -13,13 +13,13 @@ debarcodingTab <- fluidPage(
                     uiOutput("debarcoding_guide")),
                 tabPanel(
                     title="Yield plot", 
-                    uiOutput("yp_panel")),
+                    uiOutput("yieldPlotPanel")),
                 tabPanel(
                     title="Event plot", 
-                    uiOutput("ep_panel")),
+                    uiOutput("eventPlotPanel")),
                 tabPanel(
                     title="Mahal plot", 
-                    uiOutput("mhl_panel")))),
+                    uiOutput("mahalPlotPanel")))),
         sidebarPanel(width=3,
             fileInput(
                 inputId="fcsDeba", 
@@ -38,16 +38,16 @@ debarcodingTab <- fluidPage(
 
 debarcodingSidebar1 <- tagList(
     checkboxInput(
-        inputId="box_csv", 
+        inputId="boxUploadCsv", 
         label="Upload barcoding scheme (CSV)", 
         value=TRUE), 
-    uiOutput("file_csv"),
+    uiOutput("debaSchemeCsv"),
     checkboxInput(
-        inputId="box_bcChs", 
+        inputId="boxSelectBcChs", 
         label="Select single-positive channels"), 
-    uiOutput("select_bcChs"),
+    uiOutput("selectBcChs"),
     shinyBS::bsButton(
-        inputId="button_assignPrelim", 
+        inputId="buttonDebarcode", 
         label="Debarcode", 
         style="primary",
         block=TRUE)
@@ -68,29 +68,21 @@ debarcodingSidebar2 <- tagList(
     checkboxInput(
         inputId="box_adjustCutoff", 
         label="Adjust population-specific cutoffs"),
-    div(style="display:inline-block; width:25%",
-        uiOutput("select_adjustCutoff")),
-    div(style="display:inline-block; width:25%",
-        uiOutput("input_adjustCutoff")),
-    div(style=inlineTop,
-        uiOutput("button_adjustCutoff")),
-    # global sparation cutoff
-    checkboxInput(inputId="box_globalCutoff", 
-                  label="Enter global separation cutoff"),
-    div(style="display:inline-block; width:25%",
-        uiOutput("input_globalCutoff")),
-    div(style=inlineTop,
-        uiOutput("button_globalCutoff")),
+    uiOutput("adjustCutoffUI"),
+    checkboxInput(
+        inputId="box_globalCutoff", 
+        label="Enter global separation cutoff"),
+    uiOutput("globalCutoffUI"),
     # mahalanobis distance cutoff
     div(style="display:inline-block; vertical-align:middle; width:75%",
         sliderInput(
-            inputId="slider_mhlCutoff", 
+            inputId="mahalCutoff", 
             label="Mahalanobis distance threshold",
             min=10, 
             max=100, 
             value=30,
             width="100%")),
-    div(style="display:inline-block; vertical-align:middle", 
+    div(style=inlineCenter, 
         shinyBS::bsButton(
             inputId="button_mhlCutoff",
             label=NULL,
@@ -111,15 +103,58 @@ debarcodingSidebar2 <- tagList(
         label="Upload naming sheet (CSV)"),
     uiOutput("upldNms"),
     # download buttons
-    tags$style(type="text/css", 
-        "#dwnld_fcs {display:inline-block; color:white; width:25%}"),
-    tags$style(type="text/css", 
-        "#dwnld_yep {display:inline-block; color:white; width:25%}"),
+    tags$style(type="text/css", "#dwnld_fcs {
+        display:inline-block; color:white; width:49%; float:left}"),
+    tags$style(type="text/css", "#dwnld_yep {
+        display:inline-block; color:white; width:49%; float:right}"),
     downloadButton(
-        outputId="dwnld_fcs", 
+        outputId="dwnld_debaFcs", 
         label="FCS files",
         class="btn-success"), 
     downloadButton(
-        outputId="dwnld_yep", 
+        outputId="dwnld_debaPlots", 
         label="Plots", 
         class="btn-success"))
+
+adjustCutoffUI <- function(dbFrame, choices, selected) {
+    tagList(
+        div(style="display:inline-block; vertical-align:top; width:25%",
+            selectInput(
+                inputId="select_adjustCutoff",
+                label=NULL,
+                choices=choices)),
+        div(style="display:inline-block; width:25%",
+            numericInput(
+                inputId="input_adjustCutoff",
+                label=NULL,
+                value=sep_cutoffs(dbFrame)[selected],
+                min=0, max=1, step=.01)),
+        div(style=inlineTop,
+            tagList(
+                shinyBS::bsButton(
+                    inputId="button_adjustCutoff",
+                    label=NULL,
+                    icon=icon("share"),
+                    style="warning"),
+                shinyBS::bsTooltip(
+                    id="button_adjustCutoff",
+                    title="Adjust",
+                    placement="right")))
+    )
+}
+
+globalCutoffUI <- tagList(
+    numericInput(
+        inputId="input_globalCutoff", 
+        label=NULL, value=NULL, 
+        min=0, max=1, step=.01),
+    shinyBS::bsButton(
+        inputId="button_globalCutoff", 
+        label=NULL, 
+        icon=icon("share"), 
+        style="warning"),
+    shinyBS::bsTooltip(
+        id="button_globalCutoff",
+        title="Apply", 
+        placement="right")
+)
