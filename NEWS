@@ -2,9 +2,12 @@
 	*** Version 1.1.2 ***
 —————————————————————————————————————
 
-+ computeSpillmat(), estTrim(): options “method” and “interactions”
-  allowing specification of how spillover should be estimated and 
-  which interactions to consider, respectively
+o estCutoffs():
+  estimation of separation cutoffs using 4-parameter log-logistic regression
+
+o computeSpillmat(), estTrim(): 
+  options “method” and “interactions” allowing specification of
+  how spillover should be estimated and which interactions to consider
 
 o S. Chevrier and B. Bodenmiller added as authors
 
