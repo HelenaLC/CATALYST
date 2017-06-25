@@ -61,7 +61,7 @@ Since bead gating is automated here, normalization comes down to a single functi
 
 By default, we apply a $median\;\pm5\;mad$ rule to remove low- and high-signal events from the bead population used for estimating normalization factors. The extent to which bead populations are trimmed can be adjusted via `trim`. The population will become increasingly narrow and bead-bead doublets will be exluded as the `trim` value decreases. Notably, slight *over-trimming* will **not** affect normalization. It is therefore recommended to choose a `trim` value that is small enough to assure removal of doublets at the cost of a small bead population to normalize to.
 
-```{r fig.width=17, fig.height=8.5}
+```{r fig.width=15, fig.height=7.5}
 normCytof(x=ff, y="dvs", k=300)
 ```
 
@@ -112,7 +112,40 @@ re
 
 As opposed to a single global cutoff, `estCutoffs` will estimate a sample-specific cutoff to deal with barcode population cell yields that decline in an asynchronous fashion. Thus, the choice of thresholds for the distance between negative and positive barcode populations can be *i) automated* and *ii) independent for each barcode*. Nevertheless, reviewing the yield plots (see below), checking and possibly refining separation cutoffs is advisable. 
 
-For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. The separation cutoff value should be chosen such that it appropriately balances confidence in barcode assignment and cell yield. We thus fit the yields function, its first and second derivative, and compute the first turning point, marking the on-set of the plateu regime, as an adequte cutoff estimate.
+For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. The separation cutoff value should be chosen such that it appropriately balances confidence in barcode assignment and cell yield.
+
+To this end, we fit a three-parameter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@drc]. As an adequate cutoff estimate, we compute the first minimum of the forth derivative, which approximately marks the end of the plateu regime and on-set of yield decline (see figure below).
+
+```{r echo=FALSE, fig.width=5}
+library(ggplot2)
+f0 <- function(x, b, c, d, e) c+(d-c)/(1+exp(b*(log(x)-log(e))))
+f1 <- function(x, b, c, d, e) b*e^b*x^(b-1)*(c-d)/(x^b+e^b)^2
+f2 <- function(x, b, c, d, e) b*e^b*x^(b-2)*((b-1)*e^b-(b+1)*x^b)*(c-d)/(x^b+e^b)^3
+f3 <- function(x, b, c, d, e) (b*(c-d)*e^b*x^(-3+b)*((2-3*b+b^2)*e^(2*b)-4*(-1+b^2)*e^b*x^b+(2+3*b+b^2)*x^(2*b)))/(e^b+x^b)^4
+f4 <- function(x, b, c, d, e) (b*(c-d)*e^b*x^(-4+b)*((-6+11*b-6*b^2+b^3)*e^(3*b)+(-18+11*b+18*b^2-11*b^3)*e^(2*b)*x^b+(-18-11*b+18*b^2+11*b^3)*e^b*x^(2*b)-(6+11*b+6*b^2+b^3)*x^(3*b)))/(e^b+x^b)^5
+x <- seq(0,100,.01); b <- 25; c <- 0; d <- 1; e <- 50
+df <- data.frame(x, f0(x, b, c, d, e),
+    f1(x, b, c, d, e)*(1/max(abs(f1(x, b, c, d, e)))),
+    f2(x, b, c, d, e)*(1/max(abs(f2(x, b, c, d, e)))),
+    f3(x, b, c, d, e)*(1/max(abs(f3(x, b, c, d, e)))),
+    f4(x, b, c, d, e)*(1/max(abs(f4(x, b, c, d, e)))))
+colnames(df) <- c("x", "f(x)", "f'(x)", "f''(x)", "f'''(x)", "f''''(x)")
+df <- reshape2::melt(df, id.var="x")
+root <- which(diff(sign(diff(f4(x, b, c, d, e)))) == 2) + 1
+ggplot(df, aes(x=x, y=value)) + 
+    ggtitle("The four-parameter log-logistic function") +
+    geom_hline(yintercept=0, lty=1, size=.25, color="grey") +
+    geom_vline(xintercept=50, lty=1, size=.25, color="grey") +
+    geom_vline(xintercept=x[root[1]], lty=2, size=.5, color="red3") +
+    facet_grid(variable~.) + geom_line(size=.5) + 
+    scale_x_continuous(limits=c(0,100), breaks=NULL) +
+    scale_y_continuous(limits=c(-1,1), breaks=0) +
+    labs(x=NULL, y=NULL) + theme_classic() + theme(
+        axis.text=element_text(size=8),
+        aspect.ratio=1/5, plot.title=element_text(hjust=.5, size=10),
+        strip.text.y=element_text(angle=0, size=8),
+        strip.background=element_rect(color="white"))
+```
 
 ```{r}
 re <- estCutoffs(x=re, verbose=FALSE)
@@ -196,17 +229,23 @@ Therefore, we can estimate the real signal, $I_{real}\;$, as:
 $$I_{real} = I_{observed}\; \cdot {SM}^{-1} = I_{observed}\; \cdot CM$$ 
 where $\text{SM}^{-1}$ is termed compensation matrix (CM).
 
-Because any signal not in a single stain experiment’s primary channel $j$ results from channel crosstalk, each spill entry $s_{ij}$ can be approximated by the slope of a linear regression with channel $j$ signal as the response, and channel $i$ signals as the predictors, where $i\in w_j$. To facilitate robust estimates, we calculate this as the slope of a line through the medians (or trimmed means) of stained and unstained populations, $m_j^+$ and $m_i^+$, respectively. The medians (or trimmed means) computed from events that are i) negative in the respective channels; and, ii) not assigned to interacting channels; and, iii) not unassigned, $m_j^-$ and $m_i^-$, respectively, are subtracted as to account for background according to:
+Because any signal not in a single stain experiment’s primary channel $j$ results from channel crosstalk, each spill entry $s_{ij}$ can be approximated by the slope of a linear regression with channel $j$ signal as the response, and channel $i$ signals as the predictors, where $i\in w_j$.
+
+The default method estimates spillover as the median ratio between the unstained spillover receiving and stained spillover emitting channel in the corresponding single-positive populations:
+
+$$s_{ij} = med(m_j^+/m_i^+)$$
+
+As in conventional flow cytometry, `method = "classic"` calculates $s_{ij}$ as the slope of a line through the medians (or trimmed means) of stained and unstained populations, $m_j^+$ and $m_i^+$, respectively. The medians (or trimmed means) computed from events that are i) negative in the respective channels; and, ii) not assigned to interacting channels; and, iii) not unassigned, $m_j^-$ and $m_i^-$, respectively, are subtracted as to account for background according to:
 
 $$s_{ij} = \frac{m_j^+-m_j^-}{m_i^+-m_i^-}$$
 
-On the basis of their additive nature, spill values are estimated independently for every pair of interacting channels. The current framework exclusively takes into consideration interactions that are sensible from a chemical and physical point of view:
+On the basis of their additive nature, spill values are estimated independently for every pair of interacting channels. `interactions = "default"` thereby exclusively takes into account interactions that are sensible from a chemical and physical point of view:
 
 - $M\pm1$ channels (*abundance sensitivity*)
 - the $M+16$ channel (*oxide formation*)
 - channels measuring isotopes (*isotopic impurities*) 
 
-Lastly, the SM’s diagonal entries $s_{ii}$ are set to 1 so that spill is relative to the total signal measured in a given channel. The list of mass channels that may contain isotopic contaminatons are shown below.
+The list of mass channels considered to potentionally contain isotopic contaminatons is given below.
 
 Metal | Isotope masses                    |
 ----- | --------------------------------- |
@@ -225,6 +264,8 @@ Tm    | 169                               |
 Lu    | 175, 176                          |
 
 Table: List of isotopes available for each metal used in CyTOF. In addition to $M\pm1$ and $M+16$ channels, these mass channels are considered during estimation of spill to capture channel crosstalk that is due to isotopic contanimations [@isotopes].
+
+Alternatively, `interactions = "all"` will compute a spill estimate for all $n\cdot n-n$ interactions, where $n$ denotes the number of single-color controls. Estimates falling below the threshold specified by `th` will be set to zero. Lastly, the SM’s diagonal entries $s_{ii}$ are set to 1 so that spill is relative to the total signal measured in a given channel.
 
 ## Compensation work-flow
 
@@ -247,13 +288,12 @@ spillMat <- computeSpillmat(x=re)
 
 ### `estTrim`: Estimation of an optimal trim value
 
-To optimize results achieved upon compensation, `estTrim` will estimate the SM for a range of trim values, and evaluate, for each barcode population, the sum over squared medians of each negative channel upon compensation. Along with an **optimal** trim value, the function will return a figure of population- and channel-wise median counts for each trim value. The returned value is the one that minimizes this sum. Nevertheless, it may be worth chosing a trim value that gives rise to compensated data that is centered around 0 at the cost of a higher sum of squared medians. It is thus recommended to view the diagnostic plot to check the selected value, and potentially choose another.
-For example, in the figure below, the minimal sum of squares is achieved with a trim value of 0.4 while 0.2 appears to be a better choice as populations are kept from highly positive or negative medians. 
+To optimize results achieved upon compensation, `estTrim` will estimate the SM for a range of trim values, and evaluate, for each barcode population, the sum over squared medians of each negative channel upon compensation. The function will return a figure of population- and channel-wise median counts for each trim value. The highlighted value is the one that minimizes this sum.
 
-```{r fig.width=8, fig.height=6}
+```{r fig.width=8}
 # estimate trim value minimizing sum of squared 
 # population- and channel-wise medians upon compensation
-estTrim(x=re, min=0.05, max=0.11)
+estTrim(x=re, min=0, max=.6, step=.1)
 ```
 
 \newpage
@@ -263,7 +303,7 @@ estTrim(x=re, min=0.05, max=0.11)
 `plotSpillmat` provides a visualization of estimated spill percentages as a heat map. Channels without a single-antibody stained control are annotated in grey, and colours are ramped to the highest spillover value present. Option `annotate=TRUE` (the default) will display spill values inside each bin, and the total amount of spill caused and received by each channel on the top and to the right, respectively.
 
 ```{r fig.width=7.5, fig.height=7.5} 
-spillMat <- computeSpillmat(x=re, trim=0.08)
+spillMat <- computeSpillmat(x=re)
 plotSpillmat(bc_ms=bc_ms, SM=spillMat) 
 ```
 

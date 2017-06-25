@@ -82,6 +82,7 @@ setMethod(f="plotEvents",
         if ("all" %in% which) 
             which <- ids
         bc_labs <- get_bc_labs(x)
+
         if ("0" %in% ids) 
             bc_labs <- c("Unassigned", bc_labs)
         

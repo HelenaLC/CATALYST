@@ -45,7 +45,6 @@
 #' 
 #' @examples
 #' # get single-stained control samples
-#' # get single-stained control samples
 #' data(ss_exp)
 #' 
 #' # specify mass channels stained for
@@ -70,15 +69,16 @@ setMethod(f="compCytof",
     definition=function(x, y, out_path=NULL) {
         
         # check validity of input spillover matrix
-        # if (any(y < 0))
-        #     stop("\nThe supplied spillover matrix is invalid ",
-        #         "as it contains negative entries.\n",
-        #         "Valid spillvalues are non-negative and mustn't exceed 1.")
+        if (any(y < 0))
+            stop("\nThe supplied spillover matrix is invalid ",
+                "as it contains negative entries.\n",
+                "Valid spillvalues are non-negative and mustn't exceed 1.")
         if (any(y > 1))
             stop("\nThe supplied spillover matrix is invalid ",
                 "as it contains entries greater than 1.\n",
                 "Valid spillvalues are non-negative and mustn't exceed 1.")
         
+        n <- ncol(x)
         nms <- flowCore::colnames(x)
         ms <- gsub("[[:alpha:][:punct:]]", "", nms)
         ff_chs <- flowCore::colnames(x[, !is.na(ms)])
@@ -101,7 +101,7 @@ setMethod(f="compCytof",
             all_mets <- gsub("[[:digit:]]+Di", "", nms)
             spill_cols <- get_spill_cols(ms, all_mets)
             
-            first = TRUE
+            first <- TRUE
             for (i in seq_along(new_ms)) {
                 idx <- which(ms == new_ms[i] & all_mets == new_mets[i])
                 if (length(idx) > 0) {
@@ -112,7 +112,7 @@ setMethod(f="compCytof",
                             "Spill values for the following interactions\n",
                             "         ",
                             "have not been estimated:")
-                        first=FALSE
+                        first <- FALSE
                     }
                     message(nms[idx], " -> ", paste(
                         nms[spill_cols[[idx]]], collapse=", "))
@@ -121,8 +121,7 @@ setMethod(f="compCytof",
         }
         
         # add them into the matrix
-        sm <- diag(length(nms))
-        rownames(sm) <- colnames(sm) <- nms
+        sm <- matrix(diag(n), n, n, dimnames=list(nms, nms))
         sl_sm_cols <- sm_cols[sm_cols %in% ff_chs]
         sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
         
@@ -178,7 +177,7 @@ setMethod(f="compCytof",
         
         if (!file.exists(x))
             stop("x is neither a flowFrame nor a valid file/folder path.")
-        fcs <- list.files(x, ".fcs", full.names=TRUE)
+        fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
         if (length(fcs) == 0)
             stop("No FCS files found in specified location.")
         ffs <- lapply(fcs, flowCore::read.FCS)
@@ -186,10 +185,17 @@ setMethod(f="compCytof",
         if (is.null(out_path)) {
             lapply(ffs, function(i) compCytof(i, y))
         } else {
-            out_nms <- file.path(out_path, gsub(".fcs", 
-                "_comped.fcs", list.files(x, ".fcs")))
+            out_nms <- gsub(x, out_path, 
+                gsub(".fcs", "_comped.fcs", ignore.case=TRUE, fcs))
             for (i in seq_along(ffs))
                 suppressWarnings(flowCore::write.FCS(
                     compCytof(ffs[[i]], y), out_nms[i]))
         }
+    })
+
+#' @rdname compCytof
+setMethod(f="compCytof",
+    signature=signature(x="ANY", y="data.frame"),
+    definition=function(x, y, out_path=NULL) {
+        compCytof(x, as.matrix(y), out_path)
     })
