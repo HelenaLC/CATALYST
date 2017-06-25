@@ -14,9 +14,6 @@ compensationTab <- fluidPage(
                     icon("info-circle"), 
                     uiOutput("compensation_guide")),
                 tabPanel(
-                    "Trim value estimation", 
-                    uiOutput("panel_estTrim")),
-                tabPanel(
                     "Spillover matrix", 
                     uiOutput("panel_plotSpillmat")),
                 tabPanel(
