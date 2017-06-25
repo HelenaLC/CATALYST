@@ -24,7 +24,7 @@
 #' Note that \code{trim = 0.5} is equivalent to using medians.
 #' @param th
 #' a single non-negative numeric. Specifies a threshold value below which spill
-#' estimates will be set to 0. Applies only if \code{interactions="all"}.
+#' estimates will be set to 0.
 #'
 #' @return 
 #' Returns a square compensation matrix with dimensions and dimension names 
@@ -148,6 +148,6 @@ setMethod(f="computeSpillmat",
             }
         }
         colnames(SM) <- rownames(SM) <- chs
-        if (interactions == "all") SM[SM < th] <- 0
+        SM[SM < th] <- 0
         SM[bc_cols, !is.na(ms)]
     })
