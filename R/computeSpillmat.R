@@ -119,13 +119,11 @@ setMethod(f="computeSpillmat",
                 pos <- bc_ids(x) == id
                 neg <- !bc_ids(x) %in% c(0, id, ms[spill_cols[[i]]])
                 if (sum(neg) != 0) {
-                    bg <- median(es[neg, j]) / median(es[neg, i])
-                    if (is.na(bg)) 
-                        bg <- 0
+                    s <- (es[pos, j] - median(es[neg, j])) / 
+                        (es[pos, i] - median(es[neg, i]))
                 } else {
-                    bg <- 0
+                    s <- es[pos, j] / es[pos, i] - bg
                 }
-                s <- es[pos, j] / es[pos, i] - bg
                 s <- matrix(s, ncol=length(j))
                 s[is.na(s) | s < 0] <- 0
                 SM[i, j] <- matrixStats::colMedians(s)
