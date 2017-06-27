@@ -9,7 +9,7 @@
 computeSpillmat(x, ...)
 
 \S4method{computeSpillmat}{dbFrame}(x, method = "default",
-  interactions = "default", trim = 0.5, th = 0.00001)
+  interactions = "default", trim = 0.5, th = 1e-05)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
@@ -28,7 +28,7 @@ interactions that are sensible from a chemical and physical point of view
 Note that \code{trim = 0.5} is equivalent to using medians.}
 
 \item{th}{a single non-negative numeric. Specifies a threshold value below which spill
-estimates will be set to 0. Applies only if \code{interaction="all"}.}
+estimates will be set to 0.}
 }
 \value{
 Returns a square compensation matrix with dimensions and dimension names 

@@ -3,13 +3,6 @@
 # ------------------------------------------------------------------------------
 get_spill_cols <- function(ms, mets) {
     ms <- as.numeric(ms)
-    iso_tbl <- list(
-        La=138:139, Pr=141, Nd=c(142:146, 148, 150), 
-        Sm=c(144, 147:150, 152, 154), Eu=c(151, 153), 
-        Gd=c(152, 154:158, 160), Dy=c(156, 158, 160:164), 
-        Tb=159, Er=c(162, 164, 166:168, 170), Ho=165, 
-        Yb=c(168, 170:174, 176), Tm=169, Lu=175:176)
-    
     spill_cols <- list()
     for (i in seq_along(ms)) {
         if (is.na(ms[i])) next
@@ -17,7 +10,7 @@ get_spill_cols <- function(ms, mets) {
         if ((ms[i] + 1)  %in% ms) p1 <- which(ms == (ms[i] + 1))
         if ((ms[i] - 1)  %in% ms) m1 <- which(ms == (ms[i] - 1)) 
         if ((ms[i] + 16) %in% ms) ox <- which(ms == (ms[i] + 16))
-        iso <- iso_tbl[[mets[i]]]
+        iso <- isotope_list[[mets[i]]]
         iso <- which(ms %in% iso[iso != ms[i]])
         spill_cols[[i]] <- unique(c(m1, p1, iso, ox))
     }
@@ -28,7 +21,6 @@ get_spill_cols <- function(ms, mets) {
 # make spillover matrix symmetrical
 # ------------------------------------------------------------------------------
 make_symetric <- function(x) {
-    if (!is.numeric(x)) stop()
     x <- as.matrix(x)
     dims <- dim(x)
     i <- which.max(dim(x))
