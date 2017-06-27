@@ -7,7 +7,8 @@ ffDeba <- reactive(flowCore::read.FCS(input$fcsDeba$datapath))
 
 # expand sidebar
 output$debarcodingSidebar1 <- renderUI({
-    if (is.null(input$fcsDeba)) return()
+    if (is.null(input$fcsDeba)) 
+        return()
     debarcodingSidebar1
 })
 
@@ -266,43 +267,76 @@ output$table_summary <- DT::renderDataTable({
 # ------------------------------------------------------------------------------
 # next / previous buttons
 # ------------------------------------------------------------------------------
+observe({
+    choices <- yieldPlotChoices()
+    n <- length(choices)
+    selected <- which(choices == input$select_yieldPlot)
+    toggleState(id="prev_yieldPlot", condition=selected != 1)
+    toggleState(id="next_yieldPlot", condition=selected != n)
+})
+observe({
+    choices <- eventPlotChoices()
+    n <- length(choices)
+    selected <- which(choices == input$select_eventPlot)
+    toggleState(id="prev_eventPlot", condition=selected != 1)
+    toggleState(id="next_eventPlot", condition=selected != n)
+})
+observe({
+    choices <- mahalPlotChoices()
+    n <- length(choices)
+    selected <- which(choices == input$select_mahalPlot)
+    toggleState(id="prev_mahalPlot", condition=selected != 1)
+    toggleState(id="next_mahalPlot", condition=selected != n)
+})
+
 observeEvent(input$prev_yieldPlot, { 
-    x <- yieldPlotChoices()
-    y <- which(x == input$select_yieldPlot)
-    if (y == 1) return()
-    updateSelectInput(session, "select_yieldPlot", selected=x[y-1]) 
+    choices <- yieldPlotChoices()
+    selected <- which(choices == input$select_yieldPlot)
+    updateSelectInput(session, 
+        inputId="select_yieldPlot", 
+        selected=choices[selected-1]) 
 })
 observeEvent(input$next_yieldPlot, { 
-    x <- yieldPlotChoices()
-    y <- which(x == input$select_yieldPlot)
-    if (y == length(x)) return()
-    updateSelectInput(session, "select_yieldPlot", selected=x[y+1]) 
+    choices <- yieldPlotChoices()
+    y <- which(choices == input$select_yieldPlot)
+    if (y == length(choices)) return()
+    updateSelectInput(session, 
+        inputId="select_yieldPlot", 
+        selected=choices[selected+1]) 
 })
 
 observeEvent(input$prev_eventPlot, { 
-    x <- eventPlotChoices()
-    y <- which(x == input$select_eventPlot)
+    choices <- eventPlotChoices()
+    y <- which(choices == input$select_eventPlot)
     if (y == 1) return()
-    updateSelectInput(session, "select_eventPlot", selected=x[y-1]) 
+    updateSelectInput(session, 
+        inputId="select_eventPlot", 
+        selected=choices[selected-1]) 
 })
 observeEvent(input$next_eventPlot, { 
-    x <- eventPlotChoices()
-    y <- which(x == input$select_eventPlot)
-    if (y == length(x)) return()
-    updateSelectInput(session, "select_eventPlot", selected=x[y+1])
+    choices <- eventPlotChoices()
+    y <- which(choices == input$select_eventPlot)
+    if (y == length(choices)) return()
+    updateSelectInput(session, 
+        inputId="select_eventPlot", 
+        selected=choices[selected+1])
 })
 
 observeEvent(input$prev_mahalPlot, { 
-    x <- mahalPlotChoices()
-    y <- which(x == input$select_mahalPlot)
+    choices <- mahalPlotChoices()
+    y <- which(choices == input$select_mahalPlot)
     if (y == 1) return()
-    updateSelectInput(session, "select_mahalPlot", selected=x[y-1])
+    updateSelectInput(session, 
+        inputId="select_mahalPlot", 
+        selected=choices[selected-1])
 })
 observeEvent(input$next_mahalPlot, { 
-    x <- mahalPlotChoices()
-    y <- which(x == input$select_mahalPlot)
-    if (y == length(x)) return()
-    updateSelectInput(session, "select_mahalPlot", selected=x[y+1])
+    choices <- mahalPlotChoices()
+    y <- which(choices == input$select_mahalPlot)
+    if (y == length(choices)) return()
+    updateSelectInput(session, 
+        inputId="select_mahalPlot", 
+        selected=choices[selected+1])
 })
 
 # ------------------------------------------------------------------------------
