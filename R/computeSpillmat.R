@@ -122,7 +122,7 @@ setMethod(f="computeSpillmat",
                     s <- (es[pos, j] - median(es[neg, j])) / 
                         (es[pos, i] - median(es[neg, i]))
                 } else {
-                    s <- es[pos, j] / es[pos, i] - bg
+                    s <- es[pos, j] / es[pos, i]
                 }
                 s <- matrix(s, ncol=length(j))
                 s[is.na(s) | s < 0] <- 0
