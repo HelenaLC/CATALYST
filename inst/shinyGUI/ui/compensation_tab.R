@@ -3,28 +3,29 @@
 # ==============================================================================
 
 compensationTab <- fluidPage(
-    tags$head(tags$style("#text_compCytof_1 {color:firebrick}")),
-    tags$head(tags$style("#text_compCytof_2 {font-size:x-small}")),
-    sidebarLayout(position="left",
+    tags$style("#plotSpillmat{height:100vh !important; width:100%}"),
+    sidebarLayout(
+        position="left",
         mainPanel(
             width=9,
             tabBox(
                 width=12,
                 tabPanel(
-                    icon("info-circle"), 
+                    title=icon("info-circle"), 
                     uiOutput("compensation_guide")),
                 tabPanel(
-                    "Spillover matrix", 
-                    uiOutput("panel_plotSpillmat")),
+                    title="Spillover matrix", 
+                    plotOutput("plotSpillmat")),
                 tabPanel(
-                    "Before vs. after scatters", 
+                    title="Before vs. after scatters", 
                     uiOutput("panel_scatters")))),
         sidebarPanel(
             width=3,
-            fileInput(inputId="fcsComp", 
-                      label="Upload FCS", 
-                      multiple=TRUE,
-                      accept=".fcs"),
+            fileInput(
+                inputId="fcsComp", 
+                label="Upload FCS", 
+                multiple=TRUE,
+                accept=".fcs"),
             uiOutput("compensationSidebar1"),
             uiOutput("compensationSidebar2"))))
 
@@ -33,34 +34,13 @@ compensationTab <- fluidPage(
 # ------------------------------------------------------------------------------
 
 compensationSidebar1 <- tagList(
-    checkboxInput(inputId="box_estSm", 
-                  label="Estimate spill from single-stained controls"),
-    uiOutput("enterTrim"),
-    checkboxInput(inputId="box_upldSm", 
-                  label="Upload spillover matrix (CSV)"),
+    checkboxInput(
+        inputId="box_upldSm", 
+        label="Upload spillover matrix (CSV)"),
     uiOutput("inputSm"),
-    uiOutput("text_compCytof"))
-
-enterTrim <- tagList(
-    h5(strong("Enter trim value for estimation of spill values")),
-    div(style="display:inline-block; width:25%",
-        numericInput(inputId="input_enterTrim", 
-                     label=NULL,
-                     value=.08, 
-                     min=.01, 
-                     max=.5, 
-                     step=.01)),
-    div(style="display:inline-block; width:25%; vertical-align:top",
-        shinyBS::bsButton(inputId="button_enterTrim",
-                          label=NULL,
-                          icon=icon("share"),
-                          style="success")),
-    shinyBS::bsTooltip(id="button_enterTrim",
-                       title="Estimate spill",
-                       placement="right",
-                       trigger="hover"),
-    helpText("Note that a trim value of 0.5 is equal to using medians.")
-)
+    checkboxInput(
+        inputId="box_estSm", 
+        label="Estimate spill from single-stained controls"))
 
 # ------------------------------------------------------------------------------
 # 2nd sidebar
@@ -68,13 +48,15 @@ enterTrim <- tagList(
 
 compensationSidebar2 <- tagList(
     hr(style="border-color:black"),
-    tags$style(type="text/css", 
-        "#dwnld_fcs {display:inline-block; color:white; width:49%; float:left}"),
-    tags$style(type="text/css", 
-        "#dwnld_yep {display:inline-block; color:white; width:49%; float:right}"),
-    downloadButton(outputId="dwnld_comped", 
+    tags$style(type="text/css", "#dwnld_comped {
+        display:inline-block; color:white; width:49%; float:left}"),
+    tags$style(type="text/css", "#dwnld_spillMat {
+        display:inline-block; color:white; width:49%; float:right}"),
+    downloadButton(
+        outputId="dwnld_comped", 
         label="Compensated data",
         class="btn-success"), 
-    downloadButton(outputId="dwnld_spillMat", 
+    downloadButton(
+        outputId="dwnld_spillMat", 
         label="Spillover matrix", 
         class="btn-success"))
