@@ -1,4 +1,4 @@
-# load required packages
+# load required packages^
 library(magrittr)
 
 # set maximum web request size to 500 MB
@@ -10,6 +10,7 @@ shinyServer(function(input, output, session) {
     library(shinyjs)
     library(shinyBS)
     library(plotly)
+    library(flowCore)
     library(grid)
     library(gridExtra)
     library(CATALYST)
@@ -34,6 +35,7 @@ shinyServer(function(input, output, session) {
     
     vals <- reactiveValues(
 # ----- NORMALIZATION -----
+        customBeads = NULL,
         ff_norm = NULL,         # input FCS for normalization
         beads = NULL,    # beads for normalization
         beadInds = list(NULL),
@@ -41,15 +43,8 @@ shinyServer(function(input, output, session) {
 # debarcoding
         dbFrame1 = NULL, # preliminary dbFrame
         dbFrame2 = NULL, # dbFrame with deconvolution parameters applied
-# ----- COMPENSATION -----
-        ffsComp = list(), # input flowFrame(s) for compensation
-        ffsComped = list(NULL),
-        log  = NULL, # console output
-        trm  = NULL, # trim value
-        sm0  = NULL, # original spillover matrix
-        sm   = NULL, # spillover matrix
-        ch1  = NULL, # scatter channel 1
-        ch2  = NULL, # scatter channel 2
+# compensation
+        sm  = NULL,  # original spillover matrix
         cmp1 = NULL, # compensated flowFrame 1
         cmp2 = NULL) # compensated flowFrame 2
 

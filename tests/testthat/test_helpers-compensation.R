@@ -17,7 +17,6 @@ test_that("make_symetric() works flawlessly.", {
     expect_true(is.numeric(m))
     expect_true(length(unique(dim(m))) == 1)
     expect_true(all.equal(rownames(m), colnames(m)))
-    expect_error(make_symetric("NaN"))
 })
 
 test_that("get_spill_cols() works impeccably", {

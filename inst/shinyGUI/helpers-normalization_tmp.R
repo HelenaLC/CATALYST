@@ -183,26 +183,37 @@ plotScatter <- function(es, x, y, cf, n) {
     chs <- colnames(df)
     
     # get axis limits and labels
+    min <- max(apply(df, 2, function(i) -ceiling(abs(min(i))*2)/2))
     max <- max(apply(df, 2, function(i) ceiling(max(i)*2)/2))
-    min <- max(apply(df, 2, function(i) floor(  min(i)*2)/2))
-
-    tcks <- c(-1e2,-10,0,10,1e2,1e3,1e4,1e5)
-    labs <- parse(text=gsub("[[:digit:]]*e", " 10^", 
-        format(tcks, scientific=TRUE)))
-    labs[3] <- 0
+    
+    if (min != 0) {
+        tcks <- c(-10^(ceiling(log10(abs(sinh(min)*cf))):0), 
+            0, 10^(0:ceiling(log10(sinh(max)*cf))))
+    } else {
+        tcks <- c(0,  10^(0:ceiling(log10(sinh(max)*cf))))
+    }
+    labs <- parse(text=gsub("[[:digit:]]*e", " 10^",
+       format(tcks, scientific=TRUE)))
+    labs[tcks == 0] <- ""
+    tcks <- asinh(tcks/cf)
         
     ggplot(df, aes_string(x=chs[1], y=chs[2])) + 
-        geom_point(alpha=.1, size=2) + 
-        coord_cartesian(xlim=c(min, max), ylim=c(min, max), expand=FALSE) +
-        scale_x_continuous(breaks=asinh(tcks/cf), labels=labs) +
-        scale_y_continuous(breaks=asinh(tcks/cf), labels=labs) +
-        theme_classic() + theme(aspect.ratio=1,
+        geom_point(alpha=.25, size=2.5, stroke=.25) + 
+        geom_vline(xintercept=0, col="red2", size=.75, lty=2) +
+        geom_hline(yintercept=0, col="red2", size=.75, lty=2) +
+        geom_rug(sides="tr", col="darkblue", alpha=.25, size=.05) +
+        coord_cartesian(xlim=tcks, ylim=tcks, expand=.1) +
+        scale_x_continuous(breaks=tcks, labels=labs) +
+        scale_y_continuous(breaks=tcks, labels=labs) +
+        theme_classic() + theme(
+            aspect.ratio=1,
             plot.margin=unit(c(.5,.5,.5,.5), "cm"),
             panel.grid.minor=element_blank(),
-            panel.grid.major=element_line(color="lightgrey"),
+            panel.grid.major=element_blank(),
             axis.ticks=element_line(size=.5),
-            axis.title=element_text(size=12, face="bold"),
-            axis.text=element_text(size=10, color="grey25"))
+            axis.title=element_text(size=16, face="bold"),
+            axis.text.x=element_text(size=14, color="black", angle=30, hjust=1, vjust=1),
+            axis.text.y=element_text(size=14, color="black", angle=30))
 }
 
 getBaseline <- function(x, y, beads) {

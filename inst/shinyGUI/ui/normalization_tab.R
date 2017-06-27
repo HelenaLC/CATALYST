@@ -7,19 +7,18 @@ normalizationTab <- fluidPage(
     shinyjs::extendShinyjs(text=collapseBox),
     tags$head(tags$style(HTML(".small-box{height:96px; 
                               margin-bottom:0px}"))),
-    tags$head(tags$style("#button_customBeads{height:34px}")),
-    tags$head(tags$style("#beadScatter1{float:left}")),
-    tags$head(tags$style("#beadScatter2{float:left}")),
-    tags$head(tags$style("#beadScatter3{float:left}")),
-    tags$head(tags$style("#beadScatter4{float:left}")),
-    tags$head(tags$style("#beadScatter5{float:left}")),
+    # tags$head(tags$style("#beadScatter1{float:left}")),
+    # tags$head(tags$style("#beadScatter2{float:left}")),
+    # tags$head(tags$style("#beadScatter3{float:left}")),
+    # tags$head(tags$style("#beadScatter4{float:left}")),
+    # tags$head(tags$style("#beadScatter5{float:left}")),
     tags$head(tags$style("#plot_smoothedBeads{height:100vh !important;}")),
     tags$head(tags$style("#dwnld_normResults {color:white; width:100%}")),
     fluidRow(
-        column(3, 
+        column(width=3, 
                style="padding:0px", 
                shinydashboard::box(
-                   id="box_1",
+                   id="box1",
                    width=12, 
                    collapsible=TRUE,
                    fileInput(
@@ -27,13 +26,13 @@ normalizationTab <- fluidPage(
                        label="Upload FCS", 
                        multiple=TRUE,
                        accept=".fcs"))),
-        column(3, 
+        column(width=3, 
                style="padding:0px", 
                uiOutput("box2")),
-        column(3, 
+        column(width=3, 
                style="padding:0px", 
                uiOutput("box3")),
-        column(3, 
+        column(width=3, 
                style="padding:0px", 
                uiOutput("box4"))
     ),
@@ -45,7 +44,7 @@ normalizationTab <- fluidPage(
 
 # box 2: select data to normalize to
 box2 <- shinydashboard::box(
-    id="box_2",
+    id="box2",
     width=12,
     collapsible=TRUE,
     checkboxInput(
@@ -59,16 +58,16 @@ box2 <- shinydashboard::box(
 
 # box 3: bead selection
 box3 <- shinydashboard::box(
-    id="box_3",
+    id="box3",
     width=12,
     collapsible=TRUE,
     selectInput(
         inputId="select_beads", 
         label=h5(strong("Select beads")), 
         choices=c("", 
-            "DVS Beads (140, 151, 153, 165, 175)" = "dvs",
-            "Beta Beads (139, 141, 159, 169, 175)" = "beta",
-            "Custom" = "custom")),
+            "DVS Beads (140, 151, 153, 165, 175)"="dvs",
+            "Beta Beads (139, 141, 159, 169, 175)"="beta",
+            "Custom"="custom")),
     uiOutput("select_customBeads")
 )
 
@@ -77,7 +76,8 @@ selectInput_customBeads <- function(x) {
     nms <- flowCore::colnames(x)
     des <- flowCore::parameters(x)$desc
     fluidRow(
-        column(width=12,
+        column(
+            width=12,
             div(style="display:inline-block; width:80%", 
                 selectizeInput(
                     inputId="input_customBeads", 
@@ -98,7 +98,7 @@ selectInput_customBeads <- function(x) {
 
 # box 4: gating yield and download results
 box4 <- shinydashboard::box(
-    id="box_4",
+    id="box4",
     width=12, 
     collapsible=TRUE,
     div(style="display:inline-block; float:right; width:49%; margin-bottom:5px",
@@ -181,7 +181,7 @@ box_beadGating <- function(samples, selected) {
                         inputId="input_nGating", 
                         label=NULL, 
                         value=20e3, 
-                        min=1e4, 
+                        min=10e3, 
                         width="90px")),
                 div(style=inlineTop,
                     shinyBS::bsButton(
