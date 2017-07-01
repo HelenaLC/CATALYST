@@ -18,6 +18,12 @@
 #' rows/columns are annotated with the total amount of spill caused/received. 
 #' @param palette
 #' an optional vector of colors to interpolate.
+#' @param out_path 
+#' a character string. If specified, outputs will be generated 
+#' in this location. Defaults to NULL.
+#' @param name_ext 
+#' a character string. If specified, will be appended to the plot's name. 
+#' Defaults to NULL.
 #' 
 #' @return plots estimated spill percentages as a heat map. 
 #' Colours are ramped to the highest spillover value present
@@ -42,13 +48,15 @@
 
 # ==============================================================================
 
-plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
+plotSpillmat <- function(bc_ms, SM, annotate=TRUE, 
+    palette=NULL, out_path=NULL, name_ext=NULL) {
     
     nms <- colnames(SM)
     ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
     bc_cols <- which(ms %in% bc_ms)
     bc_range <- min(bc_cols) : max(bc_cols)
     SM <- make_symetric(SM)[bc_range, bc_range]
+    diag(SM) <- 1
     n <- length(bc_range)
     axis_labs <- nms[bc_range]
     lab_cols <- rep("grey", n)
@@ -73,7 +81,7 @@ plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
         scale_y_discrete(limits=1:n, expand=c(0,0), labels=rev(axis_labs)) +
         coord_fixed() + xlab(NULL) + ylab(NULL) + theme_bw() + theme(
             panel.grid.major=element_blank(), panel.border=element_blank(),
-            axis.text.x=element_text(vjust=.5, angle=90),
+            axis.text.x=element_text(vjust=.5, angle=90, color="black"),
             axis.text.y=element_text(vjust=.5, color=rev(lab_cols)))
     
     if (annotate) {
@@ -88,11 +96,18 @@ plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
         p <- p + geom_text(aes_string(label="spill_labs"), size=3) +
             annotate("text", rep(n+1.15, n), 1:n, label=rev(row_labs), 
                 fontface="bold", size=2.5, col=rev(lab_cols)) +
-            annotate("text", 1:n, rep(n+1, n), label=col_labs,      
-                fontface="bold", size=2.5) 
+            annotate("text", 1:n+.1, rep(n+1, n), label=col_labs,      
+                fontface="bold", size=2.5, angle=30) 
     }
     
     p <- ggplot_gtable(ggplot_build(p))
     p$layout$clip[p$layout$name == "panel"] <- "off"
-    grid::grid.draw(p)
+    
+    if (!is.null(out_path)) {
+        pdf(file.path(out_path, paste0("SpillMat", name_ext, ".pdf")), 8.1, 8)
+        grid::grid.draw(p)
+        dev.off()
+    } else {
+        grid::grid.draw(p)
+    }
 }
