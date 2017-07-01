@@ -1,7 +1,6 @@
 # ==============================================================================
 # get spillover columns
 # ------------------------------------------------------------------------------
-#' @importFrom utils data
 get_spill_cols <- function(ms, mets, l=CATALYST::isotope_list) {
     ms <- as.numeric(ms)
     spill_cols <- list()
@@ -16,6 +15,30 @@ get_spill_cols <- function(ms, mets, l=CATALYST::isotope_list) {
         spill_cols[[i]] <- unique(c(m1, p1, iso, ox))
     }
     spill_cols
+}
+
+# ==============================================================================
+# compute channel i to j spill
+# ------------------------------------------------------------------------------
+get_sij <- function(pos_i, neg_i, pos_j, neg_j, method, trim) {
+    if (length(neg_i) == 0) neg_i <- 0
+    if (length(neg_j) == 0) neg_j <- 0
+    if (method == "default") {
+        bg_j <- mean(neg_j, trim=.1)
+        bg_i <- mean(neg_i, trim=.1)
+        receiver <- pos_j - bg_j
+        spiller  <- pos_i - bg_i
+    } else if (method == "classic") {
+        receiver <- mean(pos_j, trim) - mean(neg_j, trim)
+        spiller  <- mean(pos_i, trim) - mean(neg_i, trim)
+    } else {
+        stop("'method = ", method, "' is not a valid option.")
+    }
+    receiver[receiver < 0] <- 0
+    spiller [spiller  < 0] <- 0
+    sij <- receiver / spiller
+    sij[is.infinite(sij)] <- 0
+    median(sij)
 }
 
 # ==============================================================================
