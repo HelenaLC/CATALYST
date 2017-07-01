@@ -4,7 +4,8 @@
 \alias{plotSpillmat}
 \title{Spillover matrix heat map}
 \usage{
-plotSpillmat(bc_ms, SM, annotate = TRUE, palette = NULL)
+plotSpillmat(bc_ms, SM, annotate = TRUE, palette = NULL, out_path = NULL,
+  name_ext = NULL)
 }
 \arguments{
 \item{bc_ms}{a vector of numeric masses corresponding to barcode channels.}
@@ -15,6 +16,12 @@ plotSpillmat(bc_ms, SM, annotate = TRUE, palette = NULL)
 rows/columns are annotated with the total amount of spill caused/received.}
 
 \item{palette}{an optional vector of colors to interpolate.}
+
+\item{out_path}{a character string. If specified, outputs will be generated 
+in this location. Defaults to NULL.}
+
+\item{name_ext}{a character string. If specified, will be appended to the plot's name. 
+Defaults to NULL.}
 }
 \value{
 plots estimated spill percentages as a heat map. 
