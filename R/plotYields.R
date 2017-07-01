@@ -47,10 +47,10 @@
 #' re <- estCutoffs(x = re)
 #' 
 #' # all barcodes summary plot
-#' plotYields(x = re, which = 0)
+#' plotYields(x = re, which = 0, out_path="/Users/HLC/Desktop")
 #' 
 #' # plot for specific sample
-#' plotYields(x = re, which = "C1")
+#' plotYields(x = re, which = "C1", out_path="/Users/HLC/Desktop")
 #'
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -103,7 +103,7 @@ setMethod(f="plotYields",
         
         if (!is.null(out_path))
             pdf(file.path(out_path, paste0("yield_plot", name_ext, ".pdf")),
-                height=6, width=12)
+                height=5, width=10)
         suppressWarnings(lapply(ps, plot))
         if (!is.null(out_path))
             dev.off()
