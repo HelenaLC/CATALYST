@@ -11,51 +11,75 @@
 #'
 #' @param x       
 #' a \code{\link{dbFrame}}.
-#' @param verbose 
-#' logical. Should extra information on progress be reported? Defaults to TRUE.
+#' @param deriv
+#' a single numeric between 2 and 8. Specifies which derivative of the 
+#' three-parameter log-logistic function fit to use for cutoff estimation 
+#' (see below for more details). 
+#' Generally, a low value will yield more stringent (higher) estimates, 
+#' while a higher value will render more liberal (lower) estimates. 
+#' For very distinct bimodality in the count distribution, 
+#' a higher value is recommendable.
+#'
+#' @details 
+#' For the estimation of sample-specific cutoff parameters, we fit a 
+#' three-parameter log-logistic function to the yields function. 
+#' As an adequate cutoff estimate, we target a point which approximately marks 
+#' the end of the plateu regime and on-set of yield decline. By default,
+#' we compute this as the first minimum of the fifth derivative (\code{d=5}). 
+#' However, depending on the overall doublet-singlet separation, 
+#' and how bimodel the count distribution is, another derivate may provide 
+#' a better estimate. As a general guideline, higher values of \code{d} 
+#' will shift the computed minimum towards the left and yield more liberal 
+#' (low) cutoffs, while a low \code{d} will shift it towards the inflection
+#' point of the yields functions, arriving at more stringent (high) estimates.
 #'
 #' @return
-#' Will update the \code{sep_cutoffs}, \code{mhl_cutoff}, \code{counts} and 
-#' \code{yields} slots of the input \code{\link{dbFrame}} and return the latter.
+#' Will update the \code{sep_cutoffs} slot of the input \code{\link{dbFrame}} 
+#' and return the latter.
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
+#' # assign preliminary IDs
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
-#' estCutoffs(x = re)
+#' # estimate separation cutoffs
+#' re_d4 <- estCutoffs(x = re, d = 4)
+#' re_d5 <- estCutoffs(x = re, d = 5)
+#' # view exemplary estimates
+#' plotYields(re_d4, "A1")
+#' plotYields(re_d5, "A1")
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @importFrom stats loess
-#' @importFrom drc drm LL.4
+#' @importFrom stats deriv
+#' @importFrom drc drm LL.3
 
 # ------------------------------------------------------------------------------
 
 setMethod(f="estCutoffs", 
     signature=signature(x="dbFrame"), 
-    definition=function(x, verbose=TRUE) {
+    definition=function(x, deriv=5) {
         
-        cutoffs <- seq(0, 1, .01)
+        sep_cutoffs <- seq(0, 1, .01)
         n_bcs <- nrow(bc_key(x))
         ests <- numeric(n_bcs)
-        
-        # f0 <- function(x, b, c, d, e) c+(d-c)/(1+exp(b*(log(x)-log(e))))
-        # f1 <- function(x, b, c, d, e) b*e^b*x^(b-1)*(c-d)/(x^b+e^b)^2
-        # f2 <- function(x, b, c, d, e) b*e^b*x^(b-2)*((b-1)*e^b-(b+1)*x^b)*(c-d)/(x^b+e^b)^3
-        # f3 <- function(x, b, c, d, e) (b*e^b*x^(b-3)*(b^2+3*b+2)*x^(2*b)-4*(b^2-1)*e^b*x^b+(b^2-3*b+2)*e^(2*b)*(c-d))/(x^b+e^b)^4
-        f4 <- function(x, b, c, d, e) (b*(c-d)*e^b*x^(-4+b)*((-6+11*b-6*b^2+b^3)*e^(3*b)+(-18+11*b+18*b^2-11*b^3)*e^(2*b)*x^b+(-18-11*b+18*b^2+11*b^3)*e^b*x^(2*b)-(6+11*b+6*b^2+b^3)*x^(3*b)))/(e^b+x^b)^5
-        
+        # get dth derivative of three-parameter
+        # log-logistic function
+        llf <- quote(d/(1+exp(b*(log(sep_cutoffs)-log(e)))))
+        for (i in seq_len(deriv))
+            llf <- D(llf, "sep_cutoffs")
+
         for (i in seq_len(n_bcs)) {
-            df <- data.frame(cutoff=cutoffs, yield=as.vector(yields(x)[i, ]))
-            fit <- drc::drm(yield~cutoff, data=df, 
-                fct=drc::LL.4(fixed=c(NA, 0, NA, NA)))
+            df <- data.frame(x=sep_cutoffs, y=as.vector(yields(x)[i, ]))
+            fit <- drc::drm(y~x, data=df, fct=drc::LL.3())
             b <- fit$coefficients[1]
-            c <- 0
             d <- fit$coefficients[2]
             e <- fit$coefficients[3]
-            root <- which(diff(sign(diff(f4(cutoffs, b, c, d, e)))) == 2) + 1
-            ests[i] <- cutoffs[root[1]]
+            root <- which(diff(sign(diff(eval(llf)))) == 2) + 1
+            #root <- which(diff(sign(diff(llf(cutoffs, b, d, e)))) == 2) + 1
+            ests[i] <- sep_cutoffs[root[1]]
         }
         
         names(ests) <- rownames(bc_key(x))
         sep_cutoffs(x) <- ests
         x
     })
+        
