@@ -2,6 +2,7 @@
 # get spillover columns
 # ------------------------------------------------------------------------------
 get_spill_cols <- function(ms, mets) {
+    get("isotope_list")
     ms <- as.numeric(ms)
     spill_cols <- list()
     for (i in seq_along(ms)) {
