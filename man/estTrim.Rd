@@ -56,7 +56,7 @@ bc_ms <- c(139, 141:156, 158:176)
 re <- assignPrelim(x = ss_exp, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
-estTrim(x = re, min = 0.02, max = 0.14, step = 0.02)
+estTrim(x = re, min = 0, max = 0.12, step = 0.02, method = "classic")
 
 }
 \author{

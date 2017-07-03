@@ -8,17 +8,20 @@
 \usage{
 estCutoffs(x, ...)
 
-\S4method{estCutoffs}{dbFrame}(x, d = 5)
+\S4method{estCutoffs}{dbFrame}(x, deriv = 5)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{d}{a single numeric between 1 and 8. Specifies which derivative of the three-
-parameter log-logistic function fit to use for cutoff estimation (see below 
-for more details). Generally, a low value will yield more stringent (higher) 
-estimates, while a higher value will render more liberal (lower) estimates.}
+\item{deriv}{a single positive integer. Specifies which derivative of the 
+three-parameter log-logistic function fit to use for cutoff estimation 
+(see below for more details). 
+Generally, a low value will yield more stringent (higher) estimates, 
+while a higher value will render more liberal (lower) estimates. 
+For very distinct bimodality in the count distribution, 
+a higher value is recommendable.}
 }
 \value{
 Will update the \code{sep_cutoffs} slot of the input \code{\link{dbFrame}} 
@@ -32,21 +35,23 @@ distance between positive and negative barcode populations.
 For the estimation of sample-specific cutoff parameters, we fit a 
 three-parameter log-logistic function to the yields function. 
 As an adequate cutoff estimate, we target a point which approximately marks 
-the end of the plateu regime and on-set of yield decline. By default,
-we compute this as the first minimum of the fifth derivative (\code{d=5}). 
-However, depending on the overall doublet-singlet separation, 
-and how bimodel the count distribution is, another derivate may provide 
-a better estimate. As a general guideline, higher values of \code{d} 
-will give more liberal (low) cutoffs, while a low \code{d} will yield 
-more stringent (high) estimates.
+the end of the plateau regime and on-set of yield decline. 
+By default, we compute this as the first minimum of the fifth derivative 
+(\code{deriv=5}). However, depending on the overall doublet-singlet 
+separation, and how bimodel the count distribution is, another derivate 
+may provide a better estimate. 
+As a general guideline, higher values of \code{deriv} will shift the 
+computed minimum towards the left and yield more liberal (low) cutoffs, 
+while a low \code{deriv} will shift it towards the inflection point of 
+the yields functions, arriving at more stringent (high) estimates.
 }
 \examples{
 data(sample_ff, sample_key)
 # assign preliminary IDs
 re <- assignPrelim(x = sample_ff, y = sample_key)
 # estimate separation cutoffs
-re_d4 <- estCutoffs(x = re, d = 4)
-re_d5 <- estCutoffs(x = re, d = 5)
+re_d4 <- estCutoffs(x = re, deriv = 4)
+re_d5 <- estCutoffs(x = re, deriv = 5)
 # view exemplary estimates
 plotYields(re_d4, "A1")
 plotYields(re_d5, "A1")
