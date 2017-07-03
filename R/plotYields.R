@@ -62,6 +62,7 @@
 #' @import ggplot2 grid gridExtra
 #' @importFrom stats predict smooth.spline
 #' @importFrom RColorBrewer brewer.pal
+#' @importFrom reshape2 melt
 #' @importFrom grDevices colorRampPalette pdf dev.off
 
 # ------------------------------------------------------------------------------
@@ -79,7 +80,7 @@ setMethod(f="plotYields",
 
         ps <- list()
         for (id in which) {
-            ps[[length(ps)+1]] <- plot_yield(
+            ps[[length(ps)+1]] <- plot_yields(
                 id, x, seps, n_bcs, legend, bc_labs)
             if (annotate && length(sep_cutoffs(x)) != 0) {
                 if (id == 0) {
