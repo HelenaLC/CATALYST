@@ -8,27 +8,48 @@
 \usage{
 estCutoffs(x, ...)
 
-\S4method{estCutoffs}{dbFrame}(x, verbose = TRUE)
+\S4method{estCutoffs}{dbFrame}(x, d = 5)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
+\item{d}{a single numeric between 1 and 8. Specifies which derivative of the three-
+parameter log-logistic function fit to use for cutoff estimation (see below 
+for more details). Generally, a low value will yield more stringent (higher) 
+estimates, while a higher value will render more liberal (lower) estimates.}
 }
 \value{
-Will update the \code{sep_cutoffs}, \code{mhl_cutoff}, \code{counts} and 
-\code{yields} slots of the input \code{\link{dbFrame}} and return the latter.
+Will update the \code{sep_cutoffs} slot of the input \code{\link{dbFrame}} 
+and return the latter.
 }
 \description{
 For each barcode, estimates a cutoff parameter for the 
 distance between positive and negative barcode populations.
 }
+\details{
+For the estimation of sample-specific cutoff parameters, we fit a 
+three-parameter log-logistic function to the yields function. 
+As an adequate cutoff estimate, we target a point which approximately marks 
+the end of the plateu regime and on-set of yield decline. By default,
+we compute this as the first minimum of the fifth derivative (\code{d=5}). 
+However, depending on the overall doublet-singlet separation, 
+and how bimodel the count distribution is, another derivate may provide 
+a better estimate. As a general guideline, higher values of \code{d} 
+will give more liberal (low) cutoffs, while a low \code{d} will yield 
+more stringent (high) estimates.
+}
 \examples{
 data(sample_ff, sample_key)
+# assign preliminary IDs
 re <- assignPrelim(x = sample_ff, y = sample_key)
-estCutoffs(x = re)
+# estimate separation cutoffs
+re_d4 <- estCutoffs(x = re, d = 4)
+re_d5 <- estCutoffs(x = re, d = 5)
+# view exemplary estimates
+plotYields(re_d4, "A1")
+plotYields(re_d5, "A1")
 
 }
 \author{
