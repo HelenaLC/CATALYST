@@ -54,7 +54,7 @@ and, iii) not unassigned are subtracted as to account for background.
 \code{interactions="default"} considers only expected interactions, that is, 
 M+/-1 (detection sensitivity), M+16 (oxide formation) and channels measuring 
 metals that are potentially contaminated by isotopic impurites 
-(see reference below and \code{\link{isotope_list}} in \code{\link{data}}). 
+(see reference below and \code{\link{isotope_list}}).
 
 \code{interaction="all"} will estimate spill for all n x n - n 
 interactions, where n denotes the number of single-color controls 
