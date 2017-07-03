@@ -44,8 +44,9 @@
 #' and, iii) not unassigned are subtracted as to account for background.
 #' 
 #' \code{interactions="default"} considers only expected interactions, that is, 
-#' M+/-1 (detection sensitivity), same metals (isotopic impurites) and M+16 
-#' (oxide formation). By default, diagonal entries are set to 1. 
+#' M+/-1 (detection sensitivity), M+16 (oxide formation) and channels measuring 
+#' metals that are potentially contaminated by isotopic impurites 
+#' (see reference below and \code{\link{isotope_list}}).
 #' 
 #' \code{interaction="all"} will estimate spill for all n x n - n 
 #' interactions, where n denotes the number of single-color controls 
@@ -61,7 +62,11 @@
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
 #' head(computeSpillmat(x = re))
-#'
+
+#' @references 
+#' Coursey, J.S., Schwab, D.J., Tsai, J.J., Dragoset, R.A. (2015).
+#' Atomic weights and isotopic compositions, 
+#' (available at http://physics.nist.gov/Comp).
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats median
 
