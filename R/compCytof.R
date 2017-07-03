@@ -69,15 +69,8 @@ setMethod(f="compCytof",
     definition=function(x, y, out_path=NULL) {
         
         # check validity of input spillover matrix
-        if (any(y < 0))
-            stop("\nThe supplied spillover matrix is invalid ",
-                "as it contains negative entries.\n",
-                "Valid spillvalues are non-negative and mustn't exceed 1.")
-        if (any(y > 1))
-            stop("\nThe supplied spillover matrix is invalid ",
-                "as it contains entries greater than 1.\n",
-                "Valid spillvalues are non-negative and mustn't exceed 1.")
-        
+        check_spillMat(y)
+
         n <- ncol(x)
         nms <- flowCore::colnames(x)
         ms <- gsub("[[:alpha:][:punct:]]", "", nms)
@@ -88,36 +81,14 @@ setMethod(f="compCytof",
         
         # check which channels of input flowFrame are not 
         # contained in spillover matrix and give warning
-        add <- ff_chs[(!ff_chs %in% sm_chs)]
-        if (length(add) != 0) {
-            new_mets <- gsub("[[:digit:]]+Di", "", add)
-            old_ms <- as.numeric(regmatches(sm_chs, gregexpr("[0-9]+", sm_chs)))
-            new_ms <- as.numeric(regmatches(add, gregexpr("[0-9]+", add)))
-            ms <- c(old_ms, new_ms)
-            o <- order(ms)
-            ms <- ms[o]
-            nms <- c(sm_chs, add)[o]
-            # get the potential spillover interactions 
-            all_mets <- gsub("[[:digit:]]+Di", "", nms)
-            spill_cols <- get_spill_cols(ms, all_mets)
-            
-            first <- TRUE
-            for (i in seq_along(new_ms)) {
-                idx <- which(ms == new_ms[i] & all_mets == new_mets[i])
-                if (length(idx) > 0) {
-                    if (first) {
-                        message("WARNING: ",
-                            "Compensation is likely to be inaccurate.\n",
-                            "         ",
-                            "Spill values for the following interactions\n",
-                            "         ",
-                            "have not been estimated:")
-                        first <- FALSE
-                    }
-                    message(nms[idx], " -> ", paste(
-                        nms[spill_cols[[idx]]], collapse=", "))
-                }
-            }
+        new_chs <- ff_chs[!ff_chs %in% sm_chs]
+        if (length(new_chs) != 0) {
+            old_and_new_ms <- warning_compCytof(new_chs, sm_chs)
+            old_ms <- old_and_new_ms$old_ms
+            new_ms <- old_and_new_ms$new_ms
+        } else {
+            old_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", sm_chs))
+            new_ms <- new_ms
         }
         
         # add them into the matrix
@@ -125,7 +96,7 @@ setMethod(f="compCytof",
         sl_sm_cols <- sm_cols[sm_cols %in% ff_chs]
         sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
         
-        test <- (length(add) != 0) && (any(inds <- old_ms %in% new_ms))
+        test <- (length(new_chs) != 0) && (any(inds <- old_ms %in% new_ms))
         if (test) {
             # check if any new masses were already present in the old masses
             # and add them to receive spillover according to the old masses
