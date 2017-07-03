@@ -21,8 +21,7 @@ Imports:
     RColorBrewer,
     stats,
     utils
-Suggests: BiocStyle, knitr, rmarkdown,
-    testthat
+Suggests: BiocStyle, knitr, rmarkdown, testthat
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 License: GPL (>=2)

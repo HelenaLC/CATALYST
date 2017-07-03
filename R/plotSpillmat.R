@@ -67,7 +67,7 @@ plotSpillmat <- function(bc_ms, SM, annotate=TRUE, palette=NULL) {
     pal <- colorRampPalette(palette)(max*100)
     
     p <- ggplot(df, aes_string(x="c1", y="c2")) + 
-        geom_tile(aes_string(fill="spill"), col="lightgrey") + 
+        geom_tile(aes_string(fill="spill"), col="lightgrey", size=.1) + 
         scale_fill_gradientn(colors=pal, limits=c(0, max), guide=FALSE) +
         scale_x_discrete(limits=1:n, expand=c(0,0), labels=axis_labs) +
         scale_y_discrete(limits=1:n, expand=c(0,0), labels=rev(axis_labs)) +
