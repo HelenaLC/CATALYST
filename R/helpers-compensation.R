@@ -2,7 +2,7 @@
 # get spillover columns
 # ------------------------------------------------------------------------------
 get_spill_cols <- function(ms, mets) {
-    get("isotope_list")
+    l <- data("isotope_list", package="CATALYST")
     ms <- as.numeric(ms)
     spill_cols <- list()
     for (i in seq_along(ms)) {
@@ -11,7 +11,7 @@ get_spill_cols <- function(ms, mets) {
         if ((ms[i] + 1)  %in% ms) p1 <- which(ms == (ms[i] + 1))
         if ((ms[i] - 1)  %in% ms) m1 <- which(ms == (ms[i] - 1)) 
         if ((ms[i] + 16) %in% ms) ox <- which(ms == (ms[i] + 16))
-        iso <- isotope_list[[mets[i]]]
+        iso <- l[[mets[i]]]
         iso <- which(ms %in% iso[iso != ms[i]])
         spill_cols[[i]] <- unique(c(m1, p1, iso, ox))
     }
