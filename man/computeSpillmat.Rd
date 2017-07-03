@@ -9,7 +9,7 @@
 computeSpillmat(x, ...)
 
 \S4method{computeSpillmat}{dbFrame}(x, method = "default",
-  interactions = "default", trim = 0.5, th = 1e-05)
+  interactions = "default", trim = 0.5, th = 0.00001)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
