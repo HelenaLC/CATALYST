@@ -90,9 +90,9 @@ setValidity(Class="dbFrame",
                 "\nand coherent with masses eobjecttracted from 'exprs'."))
         # check that 'normed_bcs' is of dimension
         # number events x number barcode channels
-        if (!all.equal(dim(normed_bcs(object)), c(n, length(ms))))
-            return(message("'exprs' and 'normed_bcs' should contain ",
-                "the same number of events."))
+        if (!all.equal(dim(normed_bcs(object)), c(n, ncol(bc_key(object)))))
+            return(message("'normed_bcs' should be of dimension",
+                "nrow('exprs') x ncol('bc_key')."))
         # check that 'bc_ids', 'deltas' and 'mhl_dists' 
         # are of length number of events
         if (!all(c(length(bc_ids(object)), length(deltas(object))) == n))
