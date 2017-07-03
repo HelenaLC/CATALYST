@@ -7,6 +7,7 @@
 \alias{sample_key}
 \alias{ss_exp}
 \alias{mp_cells}
+\alias{isotope_list}
 \title{Example data sets}
 \value{
 see descriptions above.
@@ -24,7 +25,7 @@ such that each of the 20 individual barcodes are positive for exactly 3
 out of the 6 barcode channels.}
 \item{\code{sample_key}}{
 a \code{data.frame} of dimension 20 x 6 with sample names as row and 
-barcode masses as column names. Contains a binary code of length 6 for each 
+barcode masses as column names. Contains a binary code of length 6 for each
 sample in \code{sample_ff}, e.g. 111000, as its unique identifier.}
 \item{\code{ss_exp}}{
 a \code{\link{flowFrame}} with 20'000 events. 
@@ -32,7 +33,10 @@ Contains 36 single-antibody stained controls where beads were stained
 with antibodies captured by mass channels 139, 141 through 156, and 
 158 through 176, respectively, and pooled together.}
 \item{\code{mp_cells}}{a \code{\link{flowFrame}} with 5000 spill-affected
-multiplexed cells and 39 measurement parameters.}}
+multiplexed cells and 39 measurement parameters.}
+\item{\code{isotope_list}}{a named list of isotopic compositions for all 
+elements within 75 through 209 u corresponding to the  CyTOF mass range
+at the time of writing (see reference).}}
 }
 \examples{
 ### example data for normalization:
@@ -51,6 +55,11 @@ multiplexed cells and 39 measurement parameters.}}
     # multiplexed cells
     data(mp_cells)
 
+}
+\references{
+Coursey, J.S., Schwab, D.J., Tsai, J.J., Dragoset, R.A. (2015).
+Atomic weights and isotopic compositions, 
+(available at http://physics.nist.gov/Comp).
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}
