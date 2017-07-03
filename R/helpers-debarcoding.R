@@ -112,7 +112,6 @@ get_deltas <- function(data, bc_key, verbose) {
 # plot distribution of barcode separations & 
 # yields as a function of separation cutoffs
 # ------------------------------------------------------------------------------
-
 plot_yield <- function(id, x, seps, n_bcs, lgd, bc_labs) {
     if (id == 0) {
         pal <- RColorBrewer::brewer.pal(11, "Spectral")
@@ -121,52 +120,47 @@ plot_yield <- function(id, x, seps, n_bcs, lgd, bc_labs) {
         } else {
             cols <- sample(pal, n_bcs)
         }
-        df_h <- data.frame(sep=seps, count=colSums(counts(x)))
-        max <- max(df_h$count)
-        df_l <- data.frame(sep=rep(seps, n_bcs), 
-            yield=max*c(t(yields(x))), bc=rep(1:n_bcs, each=101))
+        counts <- colSums(counts(x))
+        max <- max(counts)
+        hist <- data.frame(seps, counts)
+        line <- reshape2::melt(data.frame(
+            seps, yields=t(yields(x))*max), id.var=seps)
         
-        p <- ggplot() + theme_classic() + theme(
-            panel.grid.major=element_line(color="lightgrey"),
-            panel.grid.minor=element_blank()) +
-            scale_x_continuous("Barcode separation", seq(0, 1, .1)) +
-            scale_y_continuous("Yield upon debarcoding", 
-                seq(0, max, length=5), labels=paste0(seq(0, 100, 25), "%"), 
-                sec.axis=sec_axis(~.*1, "Event count", 
-                    labels=scientific_10)) +
-            geom_bar(data=df_h, aes_string(x="sep", y="count"),  
-                width=1/101, stat="identity", fill="lightgrey", col="white") +
-            geom_line(data=df_l, size=.75, aes_string(
-                x="sep", y="yield", col="as.factor(bc)")) +
+        p <- ggplot() + 
+            geom_bar(data=hist, aes_string(x="seps", y="counts"), width=1/101, 
+                stat="identity", fill="lightgrey", col="white") +
+            geom_line(data=line, aes_string(x="seps", y="value",
+                col="as.factor(variable)"), size=.5) +
             guides(colour=guide_legend(override.aes=list(size=1))) +
-            scale_colour_manual(values=cols, name=NULL, labels=bc_labs) 
+            scale_colour_manual(values=cols, name=NULL, labels=bc_labs)
         if (!lgd)
             p <- p + guides(colour=FALSE)
     } else {
-        df_h <- data.frame(sep=seps, count=counts(x)[id, ])
-        max <- max(df_h$count)
-        df_l <- data.frame(sep=seps, yield=yields(x)[id, ])
-        df_c <- data.frame(sep=seps, fit=max*predict(
-            smooth.spline(df_l$sep, df_l$yield))$y)
-        df_l$yield <- df_l$yield*max
+        max <- max(counts(x)[id, ])
+        df <- data.frame(seps, 
+            counts=counts(x)[id, ], 
+            yields=yields(x)[id, ]*max,
+            fit=max*predict(smooth.spline(seps, yields(x)[id, ]), seps)$y)
+        inds <- seq(1, nrow(df), 2)
         
-        p <- ggplot() + theme_classic() + theme(
-            panel.grid.major=element_line(color="lightgrey"),
-            panel.grid.minor=element_blank()) + 
-            scale_x_continuous("Barcode separation", seq(0, 1, .1)) +
-            scale_y_continuous("Yield upon debarcoding", 
-                seq(0, max, length=5), labels=paste0(seq(0, 100, 25), "%"), 
-                sec.axis=sec_axis(~.*1, "Event count", labels=scientific_10)) +
-            geom_bar(data=data.frame(sep=seps, count=counts(x)[id, ]), 
-                aes_string(x="sep", y="count"), width=1/101, 
-                stat="identity", fill="navy", colour="lightblue") +
-            geom_point(data=df_l, aes_string(x="sep", y="yield"), size=3, 
-                fill="green", col="darkgreen", pch=21, alpha=.5, stroke=1) + 
-            geom_line(data=df_c, aes_string(x="sep", y="fit"), col="green4") +
-            geom_vline(lty=3, size=.75, col="red", 
-                aes_string(xintercept="sep_cutoffs(x)[id]"))
+        ggplot(df, aes_string(x="seps")) + 
+            geom_bar(aes_string(y="counts"), width=1/101, size=.3, 
+                stat="identity", fill="lavender", colour="darkslateblue") +
+            geom_point(data=data.frame(df[inds, ]), aes_string(y="yields"), 
+                fill="mintcream", color="aquamarine4", 
+                pch=21, size=3, stroke=.75) + 
+            geom_line(aes_string( y="fit"), col="aquamarine3", size=.75) +
+            geom_vline(lty=3, size=.75, col="red2", 
+                aes_string(xintercept="sep_cutoffs(x)[id]")) 
     }
-    p
+    p + scale_x_continuous(name="Barcode separation", 
+            breaks=seq(0, 1, .1), limits=c(-.025,1.025), expand=c(0,0)) +
+        scale_y_continuous(name="Yield upon debarcoding", 
+            breaks=seq(0, max, length=5), labels=paste0(seq(0, 100, 25), "%"),
+            limits=c(-.05*max, max+.05*max), expand=c(0,0), sec.axis=sec_axis(
+                trans=~.*1, name="Event count", labels=scientific_10)) +
+        theme_classic() + theme(axis.text=element_text(color="black"),
+            panel.grid.major=element_line(color="grey", size=.25))
 }
 
 # ==============================================================================
@@ -197,3 +191,4 @@ get_legend <- function(p) {
 # ------------------------------------------------------------------------------
 scientific_10 <- function(x)
     parse(text=gsub("e", " %*% 10^", format(x, scientific=TRUE)))
+    
