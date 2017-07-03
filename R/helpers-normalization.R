@@ -25,7 +25,7 @@ get_bead_cols <- function(channels, beads) {
 
 get_bead_inds <- function(x, y) {
     re <- assignPrelim(x, y, verbose=FALSE)
-    re <- estCutoffs(re, verbose=FALSE)
+    re <- estCutoffs(re)
     re <- applyCutoffs(re)
     bc_ids(re) == "is_bead"
 }
