@@ -93,6 +93,7 @@ setMethod(f="computeSpillmat",
         
         # get intensities, no. of channels, masses and metals
         es <- exprs(x)
+        n <- ncol(es)
         chs <- colnames(es)
         ms <- as.numeric(regmatches(chs, gregexpr("[0-9]+", chs)))
         mets <- gsub("[[:digit:]]+Di", "", chs)
@@ -110,48 +111,33 @@ setMethod(f="computeSpillmat",
             # for each channel, get spillover candidate channels
             # (+/-1M, -16M and channels measuring isotopes)
             spill_cols <- get_spill_cols(ms, mets)
+            ex <- spill_cols
         } else if (interactions == "all") {
             # consider all channels
             spill_cols <- lapply(ms, function(x) which(ms != x & !is.na(ms)))
+            ex <- get_spill_cols(ms, mets)
         }
         
         # compute and return compensation matrix
-        SM <- diag(ncol(es))
-        if (method == "default") {
-            for (id in ids) {
-                i <- bc_cols[bc_ms == id]
-                j <- spill_cols[[which(ms == id)]]
-                pos <- bc_ids(x) == id
-                neg <- !bc_ids(x) %in% c(0, id, ms[spill_cols[[i]]])
-                if (sum(neg) != 0) {
-                    s <- (es[pos, j] - median(es[neg, j])) / 
-                        (es[pos, i] - median(es[neg, i]))
-                } else {
-                    s <- es[pos, j] / es[pos, i]
-                }
-                s <- matrix(s, ncol=length(j))
-                s[is.na(s) | s < 0] <- 0
-                SM[i, j] <- matrixStats::colMedians(s)
-            }
-        } else {
-            for (id in ids) {
-                i <- bc_cols[bc_ms == id]
-                j <- spill_cols[[which(ms == id)]]
-                pos <- bc_ids(x) == id
-                neg <- !bc_ids(x) %in% c(0, id, ms[spill_cols[[i]]])
-                if (sum(neg) != 0) {
-                    s <- (apply(es[pos, j], 2, mean, trim) - 
-                            apply(es[neg, j], 2, mean, trim)) /
-                        (mean(es[pos, i], trim) - mean(es[neg, i], trim))
-                } else {
-                    s <- apply(es[pos, j], 2, mean, trim) / 
-                        mean(es[pos, i], trim)
-                }
-                s[is.na(s) | s < 0] <- 0
-                SM[i, j] <- s
-            }
+        SM <- matrix(diag(n), nrow=n, ncol=n, dimnames=list(chs, chs))
+        for (id in ids) {
+            i <- which(ms == id)
+            pos <- bc_ids(x) == id
+            # exclude unassigned events, i-positive & events assigned to
+            # spill receiving channels from negative population
+            neg <- which(!bc_ids(x) %in% c(0, id, ms[ex[[i]]]))
+            pos_i <- es[pos, i]
+            neg_i <- es[neg, i]
+            for (j in spill_cols[[i]]) {
+                pos_j <- es[pos, j]
+                # further exclude events assigned to population
+                # for which interaction is calculated 
+                neg_j <- es[neg[bc_ids(x)[neg] != ms[j]], j]
+                sij <- get_sij(pos_i, neg_i, pos_j, neg_j, method, trim)
+                SM[i, j] <- sij
+            } 
         }
-        colnames(SM) <- rownames(SM) <- chs
+        #colnames(SM) <- rownames(SM) <- chs
         SM[SM < th] <- 0
         SM[bc_cols, !is.na(ms)]
     })
