@@ -2,6 +2,7 @@
 # get spillover columns
 # ------------------------------------------------------------------------------
 get_spill_cols <- function(ms, mets) {
+    ms <- as.numeric(ms)
     iso_tbl <- list(
         La=138:139, Pr=141, Nd=c(142:146, 148, 150), 
         Sm=c(144, 147:150, 152, 154), Eu=c(151, 153), 
@@ -27,10 +28,15 @@ get_spill_cols <- function(ms, mets) {
 # make spillover matrix symmetrical
 # ------------------------------------------------------------------------------
 make_symetric <- function(x) {
-    sm <- diag(ncol(x))
-    rownames(sm) <- colnames(sm) <- colnames(x)
-    sm[rownames(x), colnames(x)] <- as.matrix(x)
-    sm
+    if (!is.numeric(x)) stop()
+    x <- as.matrix(x)
+    dims <- dim(x)
+    i <- which.max(dim(x))
+    nms <- dimnames(x)[[i]]
+    M <- matrix(0, dims[i], dims[i])
+    rownames(M) <- colnames(M) <- nms
+    M[rownames(x), colnames(x)] <- as.matrix(x)
+    M
 }
 
 # ==============================================================================
