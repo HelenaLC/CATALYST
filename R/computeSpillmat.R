@@ -86,15 +86,15 @@ setMethod(f="computeSpillmat",
                 "Valid options are \"default\" and \"all\".\n",
                 "See ?computeSpillmat for more details.")
         
-        # get no. of channels, masses and metals
-        chs <- colnames(exprs(x))
-        n_chs <- length(chs)
+        # get intensities, no. of channels, masses and metals
+        es <- exprs(x)
+        chs <- colnames(es)
         ms <- as.numeric(regmatches(chs, gregexpr("[0-9]+", chs)))
         mets <- gsub("[[:digit:]]+Di", "", chs)
         
         # get barcode IDs and barcodes masses
         ids <- unique(bc_ids(x))
-        ids <- sort(ids[which(ids != 0)])
+        ids <- ids[ids != 0]
         bc_ms <- as.numeric(rownames(bc_key(x)))
         
         # find which columns of loaded FCS file 
@@ -107,46 +107,49 @@ setMethod(f="computeSpillmat",
             spill_cols <- get_spill_cols(ms, mets)
         } else if (interactions == "all") {
             # consider all channels
-            spill_cols <- lapply(ms, function(i) which(ms != i & !is.na(ms)))
+            spill_cols <- lapply(ms, function(x) which(ms != x & !is.na(ms)))
         }
         
         # compute and return compensation matrix
-        SM <- diag(n_chs)
-        for (i in ids) {
-            j <- bc_cols[ids == i]
-            pos <- bc_ids(x) == i
-            neg <- !bc_ids(x) %in% c(0, i, ms[spill_cols[[j]]])
-            if (sum(pos) != 0) {
-                if (method == "default") {
-                    for (k in spill_cols[[j]]) {
-                        spill <- mean(exprs(x)[pos, k]/exprs(x)[pos, j], trim)
-                        if (is.na(spill)) spill <- 0
-                        SM[j, k] <- spill
-                    }
-                } else if (method == "classic") {
-                    if (sum(neg) == 0) {
-                        for (k in spill_cols[[j]]) {
-                            spill <- 
-                                mean(exprs(x)[pos, k], trim)/
-                                mean(exprs(x)[pos, j], trim)
-                            if (is.na(spill)) spill <- 0
-                            SM[j, k] <- spill
-                        }
-                    } else {
-                        for (k in spill_cols[[j]]) {
-                            spill <- 
-                                (mean(exprs(x)[pos, k], trim)- 
-                                        mean(exprs(x)[neg, k], trim))/
-                                (mean(exprs(x)[pos, j],  trim)-
-                                        mean(exprs(x)[neg, j], trim))
-                            if (is.na(spill) | spill < 0) spill <- 0
-                            SM[j, k] <- spill
-                        }
-                    }
+        SM <- diag(ncol(es))
+        if (method == "default") {
+            for (id in ids) {
+                i <- bc_cols[bc_ms == id]
+                j <- spill_cols[[which(ms == id)]]
+                pos <- bc_ids(x) == id
+                neg <- !bc_ids(x) %in% c(0, id, ms[spill_cols[[i]]])
+                if (sum(neg) != 0) {
+                    bg <- median(es[neg, j]) / median(es[neg, i])
+                    if (is.na(bg)) 
+                        bg <- 0
+                } else {
+                    bg <- 0
                 }
+                s <- es[pos, j] / es[pos, i] - bg
+                s <- matrix(s, ncol=length(j))
+                s[is.na(s) | s < 0] <- 0
+                SM[i, j] <- matrixStats::colMedians(s)
+            }
+        } else {
+            for (id in ids) {
+                i <- bc_cols[bc_ms == id]
+                j <- spill_cols[[which(ms == id)]]
+                pos <- bc_ids(x) == id
+                neg <- !bc_ids(x) %in% c(0, id, ms[spill_cols[[i]]])
+                if (sum(neg) != 0) {
+                    s <- (apply(es[pos, j], 2, mean, trim) - 
+                            apply(es[neg, j], 2, mean, trim)) /
+                        (mean(es[pos, i], trim) - mean(es[neg, i], trim))
+                } else {
+                    s <- apply(es[pos, j], 2, mean, trim) / 
+                        mean(es[pos, i], trim)
+                }
+                s[is.na(s) | s < 0] <- 0
+                SM[i, j] <- s
             }
         }
         colnames(SM) <- rownames(SM) <- chs
-        if (interactions == "all") SM[SM < th] <- 0
+        if (interactions == "all") 
+            SM[SM < th] <- 0
         SM[bc_cols, !is.na(ms)]
     })
