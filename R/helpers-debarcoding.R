@@ -112,7 +112,7 @@ get_deltas <- function(data, bc_key, verbose) {
 # plot distribution of barcode separations & 
 # yields as a function of separation cutoffs
 # ------------------------------------------------------------------------------
-plot_yield <- function(id, x, seps, n_bcs, lgd, bc_labs) {
+plot_yields <- function(id, x, seps, n_bcs, lgd, bc_labs) {
     if (id == 0) {
         pal <- RColorBrewer::brewer.pal(11, "Spectral")
         if (n_bcs > 11) {
@@ -143,7 +143,7 @@ plot_yield <- function(id, x, seps, n_bcs, lgd, bc_labs) {
             fit=max*predict(smooth.spline(seps, yields(x)[id, ]), seps)$y)
         inds <- seq(1, nrow(df), 2)
         
-        ggplot(df, aes_string(x="seps")) + 
+        p <- ggplot(df, aes_string(x="seps")) + 
             geom_bar(aes_string(y="counts"), width=1/101, size=.3, 
                 stat="identity", fill="lavender", colour="darkslateblue") +
             geom_point(data=data.frame(df[inds, ]), aes_string(y="yields"), 
@@ -161,6 +161,31 @@ plot_yield <- function(id, x, seps, n_bcs, lgd, bc_labs) {
                 trans=~.*1, name="Event count", labels=scientific_10)) +
         theme_classic() + theme(axis.text=element_text(color="black"),
             panel.grid.major=element_line(color="grey", size=.25))
+}
+
+# ==============================================================================
+# helper for plotEvents()
+# ------------------------------------------------------------------------------
+plot_events <- function(x, inds, n, cols, title) {
+    df <- reshape2::melt(data.frame(
+        x=seq_len(n), y=normed_bcs(x)[inds, ]), id.var="x")
+    y_max <- ceiling(4*max(df$value))/4
+    ggplot(df, aes_string(x="x", y="value", col="as.factor(variable)")) +
+        geom_point(stroke=.5, size=1+100/n, alpha=.75) +
+        scale_colour_manual(values=cols, labels=colnames(normed_bcs(x))) + 
+        guides(colour=guide_legend(title=NULL,
+            override.aes=list(alpha=1, size=2.5))) +
+        scale_x_continuous(limits=c(0, n+1), 
+            breaks=seq_len(n), expand=c(0, 0)) + 
+        scale_y_continuous(limits=c(-.125, y_max+.125), 
+            breaks=seq(0, y_max, .25), expand=c(0, 0)) +
+        labs(x=NULL, y="Normalized intensity") + 
+        ggtitle(title) + theme_classic() + theme(
+            axis.ticks.x=element_blank(),
+            axis.text.x=element_blank(),
+            axis.text.y=element_text(color="black"),
+            panel.grid.major.y=element_line(color="grey", size=.25),
+            panel.grid.minor=element_blank())
 }
 
 # ==============================================================================
