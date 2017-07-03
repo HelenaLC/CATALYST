@@ -57,10 +57,10 @@ re <- assignPrelim(x = sample_ff, y = sample_key)
 re <- estCutoffs(x = re)
 
 # all barcodes summary plot
-plotYields(x = re, which = 0)
+plotYields(x = re, which = 0, out_path="/Users/HLC/Desktop")
 
 # plot for specific sample
-plotYields(x = re, which = "C1")
+plotYields(x = re, which = "C1", out_path="/Users/HLC/Desktop")
 
 }
 \references{
