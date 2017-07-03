@@ -19,6 +19,7 @@ Imports:
     methods,
     plotly,
     RColorBrewer,
+    reshape2,
     stats,
     utils
 Suggests: BiocStyle, knitr, rmarkdown, testthat
