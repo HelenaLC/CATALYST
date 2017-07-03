@@ -1,6 +1,7 @@
 # ==============================================================================
 # get spillover columns
 # ------------------------------------------------------------------------------
+#' @importFrom utils data
 get_spill_cols <- function(ms, mets) {
     l <- data("isotope_list", package="CATALYST")
     ms <- as.numeric(ms)
