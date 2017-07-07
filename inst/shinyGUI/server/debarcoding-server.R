@@ -225,9 +225,9 @@ output$mahalPlotPanel <- renderUI({
 })
 
 # get selected ID
-yieldPlotSelected <- reactive(input$yieldPlotSelected)
-eventPlotSelected <- reactive(input$eventPlotSelected)
-mahalPlotSelected <- reactive(input$mahalPlotSelected)
+yieldPlotSelected <- reactive(input$select_yieldPlot)
+eventPlotSelected <- reactive(input$select_eventPlot)
+mahalPlotSelected <- reactive(input$select_mahalPlot)
 
 # get n_events & cofactor for eventPlot & mahalPlot
 eventPlotNEvents  <- reactive(as.numeric(input$n_events))
@@ -298,8 +298,7 @@ observeEvent(input$prev_yieldPlot, {
 })
 observeEvent(input$next_yieldPlot, { 
     choices <- yieldPlotChoices()
-    y <- which(choices == input$select_yieldPlot)
-    if (y == length(choices)) return()
+    selected <- which(choices == input$select_yieldPlot)
     updateSelectInput(session, 
         inputId="select_yieldPlot", 
         selected=choices[selected+1]) 
@@ -307,16 +306,14 @@ observeEvent(input$next_yieldPlot, {
 
 observeEvent(input$prev_eventPlot, { 
     choices <- eventPlotChoices()
-    y <- which(choices == input$select_eventPlot)
-    if (y == 1) return()
+    selected <- which(choices == input$select_eventPlot)
     updateSelectInput(session, 
         inputId="select_eventPlot", 
         selected=choices[selected-1]) 
 })
 observeEvent(input$next_eventPlot, { 
     choices <- eventPlotChoices()
-    y <- which(choices == input$select_eventPlot)
-    if (y == length(choices)) return()
+    selected <- which(choices == input$select_eventPlot)
     updateSelectInput(session, 
         inputId="select_eventPlot", 
         selected=choices[selected+1])
@@ -324,16 +321,14 @@ observeEvent(input$next_eventPlot, {
 
 observeEvent(input$prev_mahalPlot, { 
     choices <- mahalPlotChoices()
-    y <- which(choices == input$select_mahalPlot)
-    if (y == 1) return()
+    selected <- which(choices == input$select_mahalPlot)
     updateSelectInput(session, 
         inputId="select_mahalPlot", 
         selected=choices[selected-1])
 })
 observeEvent(input$next_mahalPlot, { 
     choices <- mahalPlotChoices()
-    y <- which(choices == input$select_mahalPlot)
-    if (y == length(choices)) return()
+    selected <- which(choices == input$select_mahalPlot)
     updateSelectInput(session, 
         inputId="select_mahalPlot", 
         selected=choices[selected+1])
