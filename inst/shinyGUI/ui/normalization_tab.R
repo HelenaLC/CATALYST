@@ -3,15 +3,10 @@
 # ==============================================================================
 
 normalizationTab <- fluidPage(
-    shinyjs::useShinyjs(),
-    shinyjs::extendShinyjs(text=collapseBox),
+    useShinyjs(),
+    extendShinyjs(text=collapseBox),
     tags$head(tags$style(HTML(".small-box{height:96px; 
                               margin-bottom:0px}"))),
-    # tags$head(tags$style("#beadScatter1{float:left}")),
-    # tags$head(tags$style("#beadScatter2{float:left}")),
-    # tags$head(tags$style("#beadScatter3{float:left}")),
-    # tags$head(tags$style("#beadScatter4{float:left}")),
-    # tags$head(tags$style("#beadScatter5{float:left}")),
     tags$head(tags$style("#plot_smoothedBeads{height:100vh !important;}")),
     tags$head(tags$style("#dwnld_normResults {color:white; width:100%}")),
     fluidRow(
