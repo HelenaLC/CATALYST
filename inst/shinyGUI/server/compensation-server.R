@@ -54,8 +54,9 @@ output$inputSm <- renderUI({
 
 # get spillover matrix
 spillMat <- reactive({
-    test <- input$box_upldSm == 1 && !is.null(input$inputSm)
-    if (test) {
+    if (is.null(ffsComp())) 
+        return()
+    if (input$box_upldSm == 1 && !is.null(input$inputSm)) {
         read.csv(input$inputSm$datapath, check.names=FALSE, row.names=1)
     } else if (input$box_estSm == 1 && !is.null(dbFrame())) {
         computeSpillmat(x=dbFrame())

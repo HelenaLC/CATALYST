@@ -1,20 +1,9 @@
-# load required packages^
-library(magrittr)
-
 # set maximum web request size to 500 MB
 options(shiny.maxRequestSize=500*1024^2)
 
 shinyServer(function(input, output, session) {
 
     source("helpers-normalization_tmp.R")
-    library(shinyjs)
-    library(shinyBS)
-    library(plotly)
-    library(flowCore)
-    library(grid)
-    library(gridExtra)
-    library(CATALYST)
-    library(ggplot2)
     source("helpers.R")
 
 # guides 
