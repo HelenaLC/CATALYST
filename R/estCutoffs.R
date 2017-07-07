@@ -66,20 +66,24 @@ setMethod(f="estCutoffs",
         sep_cutoffs <- seq(0, 1, .01)
         n_bcs <- nrow(bc_key(x))
         ests <- numeric(n_bcs)
-        # get dth derivative of three-parameter
-        # log-logistic function
+        # three-parameter log-logistic function & 1st derivative
         llf <- quote(d/(1+exp(b*(log(sep_cutoffs)-log(e)))))
-        for (i in seq_len(deriv)) 
-            llf <- stats::D(llf, "sep_cutoffs")
-
+        deriv <-  stats::D(llf, "sep_cutoffs")
         for (i in seq_len(n_bcs)) {
             df <- data.frame(x=sep_cutoffs, y=as.vector(yields(x)[i, ]))
             fit <- drc::drm(y~x, data=df, fct=drc::LL.3())
             b <- fit$coefficients[1]
             d <- fit$coefficients[2]
             e <- fit$coefficients[3]
-            root <- which(diff(sign(diff(eval(llf)))) == 2) + 1
-            ests[i] <- sep_cutoffs[root[1]]
+            linear_fit <- lm(yields(x)[i, ] ~ sep_cutoffs + 1)
+            intercept <- coefficients(linear_fit)[1]
+            slope <- coefficients(linear_fit)[2]
+            rss_linear <- sum((yields(x)[i,] - predict(linear_fit)) ^ 2)
+            rss_llf <- sum((yields(x)[i,] - eval(llf)) ^ 2) 
+            w <- rss_llf / (rss_llf + rss_linear)
+            est_llf <- sep_cutoffs[which(abs(c(0, eval(deriv)[-1])) / eval(llf) > 1e-2)[1]]
+            est_lin <- round(-intercept/slope/2, 2)
+            ests[i] <- round((1 - w) * est_llf + w * est_lin, 2)
         }
         
         names(ests) <- rownames(bc_key(x))
