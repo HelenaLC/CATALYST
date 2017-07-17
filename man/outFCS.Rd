@@ -3,16 +3,18 @@
 \docType{methods}
 \name{outFCS}
 \alias{outFCS}
-\alias{outFCS,dbFrame-method}
+\alias{outFCS,dbFrame,flowFrame-method}
 \title{Write population-wise FCS files}
 \usage{
-outFCS(x, out_path = tempdir(), ...)
+outFCS(x, y, out_path = tempdir(), ...)
 
-\S4method{outFCS}{dbFrame}(x, out_path = tempdir(), out_nms = NULL,
-  verbose = TRUE)
+\S4method{outFCS}{dbFrame,flowFrame}(x, y, out_path = tempdir(),
+  out_nms = NULL, verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
+
+\item{y}{a \code{\link{flowFrame}} containing the original measurement and meta data.}
 
 \item{out_path}{character string. Specifies in which location 
 output files are to be generated.}
