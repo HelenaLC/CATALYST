@@ -201,7 +201,7 @@ observe({
             j <- i
             plotId <- paste0("beadScatter", j)
             output[[plotId]] <- renderPlot(
-                plotScatter(
+                CATALYST:::plotScatter(
                     es=exprs(ffsNorm()[[selectedSmplGating()]]), 
                     x=beadCols()[j], y=dnaCol(), cf=5))
         })
@@ -339,9 +339,9 @@ smoothedBeads <- reactive({
     colnames(smoothed) <- colnames(smoothedNormed) <- 
         chs()[c(timeCol(), beadCols())]
     
-    p1 <- plotSmoothed(smoothed, "Smoothed beads")
-    p2 <- plotSmoothed(smoothedNormed, "Smoothed normalized beads")
-    arrangeSmoothed(p1, p2, shiny=TRUE)
+    p1 <- CATALYST:::plotSmoothed(smoothed, "Smoothed beads")
+    p2 <- CATALYST:::plotSmoothed(smoothedNormed, "Smoothed normalized beads")
+    CATALYST:::arrangeSmoothed(p1, p2, shiny=TRUE)
 })
 
 output$plot_smoothedBeads <- renderPlot(grid.arrange(smoothedBeads()))
