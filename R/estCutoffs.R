@@ -50,9 +50,8 @@
 #' plotYields(re_d5, "A1")
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @importFrom stats D
+#' @importFrom stats coef lm D 
 #' @importFrom drc drm LL.3
-
 # ------------------------------------------------------------------------------
 
 setMethod(f="estCutoffs", 
@@ -76,8 +75,8 @@ setMethod(f="estCutoffs",
             d <- fit$coefficients[2]
             e <- fit$coefficients[3]
             linear_fit <- lm(yields(x)[i, ] ~ sep_cutoffs + 1)
-            intercept <- coefficients(linear_fit)[1]
-            slope <- coefficients(linear_fit)[2]
+            intercept <- coef(linear_fit)[1]
+            slope <- coef(linear_fit)[2]
             rss_linear <- sum((yields(x)[i,] - predict(linear_fit)) ^ 2)
             rss_llf <- sum((yields(x)[i,] - eval(llf)) ^ 2) 
             w <- rss_llf / (rss_llf + rss_linear)
