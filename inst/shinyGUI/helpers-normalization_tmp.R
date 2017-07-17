@@ -171,55 +171,6 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
     return(p)
 }
 
-plotScatter <- function(es, x, y, cf, n) {
-    # downsample for plotting
-    if (nrow(es) > n) {
-        set.seed(88)
-        es <- es[sample(nrow(es), n), ]
-    }
-    
-    # get channel names and transform
-    df <- data.frame(asinh(es[, c(x, y)]/cf))
-    chs <- colnames(df)
-    
-    # get axis limits and labels
-    min <- max(apply(df, 2, function(i) -ceiling(abs(min(i))*2)/2))
-    max <- max(apply(df, 2, function(i) ceiling(max(i)*2)/2))
-    
-    if (min != 0) {
-        tcks <- c(-10^(ceiling(log10(abs(sinh(min)*cf))):0), 
-            0, 10^(0:ceiling(log10(sinh(max)*cf))))
-    } else {
-        tcks <- c(0,  10^(0:ceiling(log10(sinh(max)*cf))))
-    }
-    labs <- parse(text=gsub("[[:digit:]]*e", " 10^",
-       format(tcks, scientific=TRUE)))
-    labs[tcks == 0] <- ""
-    tcks <- asinh(tcks/cf)
-        
-    ggplot(df, aes_string(x=chs[1], y=chs[2])) + 
-        geom_point(alpha=.25, size=2.5, stroke=.25) + 
-        geom_vline(xintercept=0, col="red2", size=.75, lty=2) +
-        geom_hline(yintercept=0, col="red2", size=.75, lty=2) +
-        geom_rug(sides="tr", col="darkblue", alpha=.25, size=.05) +
-        coord_cartesian(xlim=tcks, ylim=tcks, expand=.1) +
-        scale_x_continuous(breaks=tcks, labels=labs) +
-        scale_y_continuous(breaks=tcks, labels=labs) +
-        theme_classic() + theme(
-            aspect.ratio=1,
-            plot.margin=unit(c(.5,.5,.5,.5), "cm"),
-            panel.grid.minor=element_blank(),
-            panel.grid.major=element_blank(),
-            axis.ticks=element_line(size=.5),
-            axis.title=element_text(size=16, face="bold"),
-            axis.text.x=element_text(size=14, color="black", angle=30, hjust=1, vjust=1),
-            axis.text.y=element_text(size=14, color="black", angle=30))
-}
-
-getBaseline <- function(x, y, beads) {
-    beadCols <- get_bead_cols(flowCore::colnames(x), y)
-    colMeans(flowCore::exprs(x)[beads, beadCols])
-}
 
 normCytof <- function(x, y, beads, bl) {
     chs <- flowCore::colnames(x)
@@ -234,7 +185,7 @@ normCytof <- function(x, y, beads, bl) {
     beadSlopes <- rowSums(beadEs*bl) / rowSums(beadEs^2)
     slopes <- approx(beadTs, beadSlopes, es[, timeCol])$y
     
-    flowCore::exprs(x)[, -c(timeCol, lgthCol)] <- 
+    flowCore::exprs(x)[, -c(timeCol, <- <- <- <- <- <- <- <- <- <- <- <- <- <- <- <- <-  lgthCol)] <- 
         flowCore::exprs(x)[, -c(timeCol, lgthCol)] * slopes
     return(x)
 }

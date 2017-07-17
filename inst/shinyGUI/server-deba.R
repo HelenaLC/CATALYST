@@ -7,8 +7,7 @@ ffDeba <- reactive(flowCore::read.FCS(input$fcsDeba$datapath))
 
 # expand sidebar
 output$debarcodingSidebar1 <- renderUI({
-    if (is.null(input$fcsDeba)) 
-        return()
+    req(input$fcsDeba)
     debarcodingSidebar1
 })
 
@@ -20,27 +19,23 @@ output$debarcodingSidebar1 <- renderUI({
 
 # toggle checkboxes
 observe({
-    x <- input$boxUploadCsv
-    if (is.null(x) || x == 0) return()
+    req(input$boxUploadCsv == 1)
     updateCheckboxInput(session, "boxSelectBcChs", value=FALSE)
 })
 observe({
-    x <- input$boxSelectBcChs
-    if (is.null(x) || x == 0) return()
+    req(input$boxSelectBcChs == 1)
     updateCheckboxInput(session, "boxUploadCsv", value=FALSE)
 })
 
 # boxUploadCsv -> render fileInput
 output$debaSchemeCsv <- renderUI({
-    x <- input$boxUploadCsv
-    if (is.null(x) || x == 0) return()
+    req(input$boxUploadCsv == 1)
     fileInput(inputId="debaSchemeCsv", label=NULL, accept=".csv")
 })
 
 # boxSelectBcChs -> render selectInput
 output$selectBcChs <- renderUI({
-    x <- input$boxSelectBcChs
-    if (is.null(x) || x == 0) return()
+    req(input$boxSelectBcChs == 1)
     selectInput(
         inputId="input_bcChs", label=NULL, 
         choices=flowCore::colnames(ffDeba()), 
@@ -53,20 +48,17 @@ debaKey <- reactive({
         gsub("[[:alpha:][:punct:]]", "", input$input_bcChs)
     } else if (!is.null(input$debaSchemeCsv)) {
         read.csv(input$debaSchemeCsv$datapath, check.names=FALSE, row.names=1)
-    } else {
-        NULL
     }
 })
 
 # ------------------------------------------------------------------------------
 # bsButton: "Debarcode"
 # ------------------------------------------------------------------------------
+observe({
+    toggleState(id="buttonDebarcode", condition=!is.null(debaKey()))
+})
+
 observeEvent(input$buttonDebarcode, {
-    if (is.null(debaKey())) {
-        showNotification("Please upload a barcoding scheme or select 
-            single-positive channels.", type="error", closeButton=FALSE)
-        return()
-    }
     showNotification(h5("Assigning preliminary IDs..."), 
         duration=NULL, closeButton=FALSE, id="msg", type="message")
     vals$dbFrame1 <- assignPrelim(ffDeba(), debaKey())
@@ -77,20 +69,17 @@ observeEvent(input$buttonDebarcode, {
 # ------------------------------------------------------------------------------
 # toggle checkboxes
 observe({
-    x <- input$box_estCutoffs
-    if (is.null(x) || x == 0) return()
+    req(input$box_estCutoffs == 1)
     updateCheckboxInput(session, "box_adjustCutoff", value=FALSE)
     updateCheckboxInput(session, "box_globalCutoff", value=FALSE)
 })
 observe({
-    x <- input$box_adjustCutoff
-    if (is.null(x) || x == 0) return()
+    req(input$box_adjustCutoff == 1)
     updateCheckboxInput(session, "box_estCutoffs",   value=FALSE)
     updateCheckboxInput(session, "box_globalCutoff", value=FALSE)
 })
 observe({
-    x <- input$box_globalCutoff
-    if (is.null(x) || x == 0) return()
+    req(input$box_globalCutoff == 1)
     updateCheckboxInput(session, "box_estCutoffs",   value=FALSE)
     updateCheckboxInput(session, "box_adjustCutoff", value=FALSE)
 })
@@ -102,63 +91,57 @@ observeEvent(input$box_estCutoffs, {
     vals$dbFrame2 <- estCutoffs(vals$dbFrame1)
 })
 
+# toggle UIs
+observe({
+    x <- input$box_adjustCutoff
+    toggle(id="adjustCutoffUI", condition=x)
+})
+observe({
+    x <- input$box_globalCutoff
+    toggle(id="globalCutoffUI", condition=x)
+})
+
 # ------------------------------------------------------------------------------
 # cutoff adjustment
 # ------------------------------------------------------------------------------
 
-# toggle selectInput, numericInput & bsButton
-observe({
-    x <- input$box_adjustCutoff
-    toggle(id="adjustCutoff", condition=x)
-})
-
 # selectInput choices
-adjustCutoffChoices <- reactive({
-    x <- dbFrame()
-    if (is.null(x)) {
-        NULL
-    } else {
-        rownames(debaKey())
-    }
-})
+adjustCutoffChoices <- reactive(rownames(debaKey()))
 
 # renderUI if checkboxInput == 1
 output$adjustCutoffUI <- renderUI({
-        x <- adjustCutoffChoices() == input$select_adjustCutoff
-        adjustCutoffUI(
-            dbFrame=vals$dbFrame2, 
-            choices=adjustCutoffChoices(), 
-            selected=x)
+    adjustCutoffUI(
+        dbFrame=vals$dbFrame2, 
+        choices=adjustCutoffChoices(), 
+        selected=1)
 })
 
-# synchronize selectInput w/ yield plot
+# synchronize selectInput & numericInput w/ yield plot
 observe({
     x <- input$select_yieldPlot
-    if (is.null(x) || x == 0) return()
+    req(x != 0)
     updateSelectInput(session, "select_adjustCutoff", selected=x)
+    updateNumericInput(session, "input_adjustCutoff", 
+        value=paste(sep_cutoffs(vals$dbFrame2)[x]))
+})
+observe({
+    req(input$select_adjustCutoff)
+    updateSelectInput(session, "select_yieldPlot", 
+        selected=input$select_adjustCutoff)
 })
 
 # adjust cutoff upon bsButton click
 observeEvent(input$button_adjustCutoff, {
-    x <- adjustCutoffChoices() == input$select_adjustCutoff
-    sep_cutoffs(vals$dbFrame2)[x] <- input$input_adjustCutoff
+    x <- match(input$select_adjustCutoff, adjustCutoffChoices())
+    sep_cutoffs(vals$dbFrame2)[x] <- as.numeric(input$input_adjustCutoff)
 })
 
 # ------------------------------------------------------------------------------
 # global separation cutoff
 # ------------------------------------------------------------------------------
 
-# toggle numericInput & bsButton
-observe({
-    x <- input$box_globalCutoff
-    toggle(id="globalCutoff",  condition=x)
-    toggle(id="button_globalCutoff", condition=x)
-})
-
 # renderUI if checkboxInput == 1
-output$globalCutoffUI <- renderUI({
-    globalCutoffUI
-})
+output$globalCutoffUI <- renderUI(globalCutoffUI)
 
 # set global cutoff upon bsButton click
 observeEvent(input$button_globalCutoff, {
@@ -166,13 +149,14 @@ observeEvent(input$button_globalCutoff, {
 })
 
 # sliderInput: "Mahalanobis distance threshold"
-mahalCutoff <- reactive(input$mahalCutoff)
+observeEvent(input$button_mhlCutoff, {
+    vals$mhlCutoffDeba <- input$input$mahalCutoff
+})
 
 # apply cutoffs if deconvolution parameters change
 dbFrame <- reactive({
-    x <- vals$dbFrame2
-    if (is.null(x)) return()
-    applyCutoffs(x, mahalCutoff())
+    req(vals$dbFrame2)
+    applyCutoffs(vals$dbFrame2, vals$mhlCutoffDeba)
 })
 
 # ------------------------------------------------------------------------------
@@ -181,53 +165,39 @@ dbFrame <- reactive({
 
 # inputSelect choices
 yieldPlotChoices <- reactive({
-    x <- dbFrame()
-    if (is.null(x)) {
-        NULL
-    } else {
-        ids <- rownames(debaKey())
-        setNames(c(0, ids), c("All", ids))
-    }
+    req(debaKey())
+    ids <- rownames(debaKey())
+    setNames(c(0, ids), c("All", ids))
 })
 eventPlotChoices <- reactive({
-    x <- dbFrame()
-    if (is.null(x)) {
-        NULL
-    } else {
-        sort(unique(bc_ids(dbFrame())))
-    }
+    req(vals$dbFrame2)
+    sort(unique(bc_ids(vals$dbFrame2)))
 })
 mahalPlotChoices <- reactive({
-    x <- dbFrame()
-    if (is.null(x)) {
-        NULL
-    } else {
-        choices <- eventPlotChoices()
-        choices[choices != 0]
-    }
+    req(vals$dbFrame2)
+    choices <- eventPlotChoices()
+    choices[choices != 0]
 })
 
-# render IUs
+# render UIs
 output$yieldPlotPanel <- renderUI({
     x <- yieldPlotChoices()
+    y <- input$select_yieldPlot
     if (!is.null(x)) 
-        yieldPlotPanel(x)
+        yieldPlotPanel(x, y)
 })
 output$eventPlotPanel <- renderUI({
     x <- eventPlotChoices()
+    y <- input$select_eventPlot
     if (!is.null(x)) 
-        eventPlotPanel(x)
+        eventPlotPanel(x, y)
 })
 output$mahalPlotPanel <- renderUI({
     x <- mahalPlotChoices()
+    y <- input$select_mahalPlot
     if (!is.null(x)) 
-        mahalPlotPanel(x)
+        mahalPlotPanel(x, y)
 })
-
-# get selected ID
-yieldPlotSelected <- reactive(input$select_yieldPlot)
-eventPlotSelected <- reactive(input$select_eventPlot)
-mahalPlotSelected <- reactive(input$select_mahalPlot)
 
 # get n_events & cofactor for eventPlot & mahalPlot
 eventPlotNEvents  <- reactive(as.numeric(input$n_events))
@@ -235,33 +205,30 @@ mahalPlotCofactor <- reactive(input$mahalPlotCofactor)
 
 # render plots
 output$yieldPlot <- renderPlot({
-    if (is.null(dbFrame())) 
-        return()
+    req(dbFrame())
     plotYields(
         dbFrame(), 
-        yieldPlotSelected())
+        input$select_yieldPlot)
 })
 output$eventPlot <- renderPlot({
-    if (is.null(dbFrame()))
-        return()
+    req(dbFrame())
     plotEvents(
         dbFrame(), 
-        eventPlotSelected(), 
+        input$select_eventPlot, 
         eventPlotNEvents())
 })
 output$mahalPlot <- renderPlot({
-    if (is.null(dbFrame()))
-        return()
+    req(dbFrame())
     plotMahal(
         dbFrame(), 
-        mahalPlotSelected(), 
+        input$select_mahalPlot, 
         mahalPlotCofactor())
 })
 
 # renderDataTable: IDs | Counts | Cutoffs | Yields
 output$table_summary <- DT::renderDataTable({ 
-    if (is.null(dbFrame())) return()
-    summary_tbl(dbFrame()) 
+    if (!is.null(dbFrame()))
+        summary_tbl(dbFrame()) 
 })
 
 # ------------------------------------------------------------------------------
@@ -270,35 +237,35 @@ output$table_summary <- DT::renderDataTable({
 observe({
     choices <- yieldPlotChoices()
     n <- length(choices)
-    selected <- which(choices == input$select_yieldPlot)
+    selected <- match(input$select_yieldPlot, choices)
     toggleState(id="prev_yieldPlot", condition=selected != 1)
     toggleState(id="next_yieldPlot", condition=selected != n)
 })
 observe({
     choices <- eventPlotChoices()
     n <- length(choices)
-    selected <- which(choices == input$select_eventPlot)
+    selected <- match(input$select_eventPlot, choices)
     toggleState(id="prev_eventPlot", condition=selected != 1)
     toggleState(id="next_eventPlot", condition=selected != n)
 })
 observe({
     choices <- mahalPlotChoices()
     n <- length(choices)
-    selected <- which(choices == input$select_mahalPlot)
+    selected <- match(input$select_mahalPlot, choices)
     toggleState(id="prev_mahalPlot", condition=selected != 1)
     toggleState(id="next_mahalPlot", condition=selected != n)
 })
 
 observeEvent(input$prev_yieldPlot, { 
     choices <- yieldPlotChoices()
-    selected <- which(choices == input$select_yieldPlot)
+    selected <- match(input$select_yieldPlot, choices)
     updateSelectInput(session, 
         inputId="select_yieldPlot", 
         selected=choices[selected-1]) 
 })
 observeEvent(input$next_yieldPlot, { 
     choices <- yieldPlotChoices()
-    selected <- which(choices == input$select_yieldPlot)
+    selected <- match(input$select_yieldPlot, choices)
     updateSelectInput(session, 
         inputId="select_yieldPlot", 
         selected=choices[selected+1]) 
@@ -306,14 +273,14 @@ observeEvent(input$next_yieldPlot, {
 
 observeEvent(input$prev_eventPlot, { 
     choices <- eventPlotChoices()
-    selected <- which(choices == input$select_eventPlot)
+    selected <- match(input$select_eventPlot, choices)
     updateSelectInput(session, 
         inputId="select_eventPlot", 
         selected=choices[selected-1]) 
 })
 observeEvent(input$next_eventPlot, { 
     choices <- eventPlotChoices()
-    selected <- which(choices == input$select_eventPlot)
+    selected <- match(input$select_eventPlot, choices)
     updateSelectInput(session, 
         inputId="select_eventPlot", 
         selected=choices[selected+1])
@@ -321,14 +288,14 @@ observeEvent(input$next_eventPlot, {
 
 observeEvent(input$prev_mahalPlot, { 
     choices <- mahalPlotChoices()
-    selected <- which(choices == input$select_mahalPlot)
+    selected <- match(input$select_mahalPlot, choices)
     updateSelectInput(session, 
         inputId="select_mahalPlot", 
         selected=choices[selected-1])
 })
 observeEvent(input$next_mahalPlot, { 
     choices <- mahalPlotChoices()
-    selected <- which(choices == input$select_mahalPlot)
+    selected <- match(input$select_mahalPlot, choices)
     updateSelectInput(session, 
         inputId="select_mahalPlot", 
         selected=choices[selected+1])

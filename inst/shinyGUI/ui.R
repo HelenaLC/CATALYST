@@ -30,15 +30,8 @@ sidebar <- dashboardSidebar(
         menuItem(
             text="Normalization", 
             tabName="normalization", 
-            icon=icon("balance-scale")),
-        menuSubItem(
-            text="Bead gating", 
-            tabName=NULL, 
-            icon=icon("angle-double-right")),
-        menuSubItem(
-            text="Bead removal",
-            tabName=NULL,
-            icon=icon("angle-double-right")),
+            icon=icon("balance-scale"),
+            startExpanded=FALSE),
         menuItem(
             text="Debarcoding",   
             tabName="debarcoding",   
