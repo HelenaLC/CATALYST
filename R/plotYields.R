@@ -78,26 +78,28 @@ setMethod(f="plotYields",
         seps <- seq(0, 1, .01)
         bc_labs <- get_bc_labs(x)
 
-        ps <- list()
-        for (id in which) {
-            ps[[length(ps)+1]] <- plot_yields(
+        ps <- vector("list", length(which))
+        for (i in seq_along(which)) {
+            id <- which[i]
+            ps[[i]] <- plot_yields(
                 id, x, seps, n_bcs, legend, bc_labs)
             if (annotate && length(sep_cutoffs(x)) != 0) {
                 if (id == 0) {
-                    p <- paste0(sprintf("%2.2f", sum(yields(x)[cbind(1:n_bcs,
-                        match(sep_cutoffs(x), seps))])/n_bcs*100), "%")
-                    ps[[length(ps)]] <- ps[[length(ps)]] + 
+                    p <- paste0(sprintf("%2.2f", sum(yields(x)[cbind(
+                        seq_len(n_bcs), findInterval(sep_cutoffs(x), seps))])
+                        /n_bcs*100), "%")
+                    ps[[i]] <- ps[[i]] + 
                         ggtitle(bquote(bold(.(p))*" overall yield")) 
                 } else {
                     p <- paste0(sprintf("%2.2f", yields(x)
-                        [id, seps %in% sep_cutoffs(x)[id]]*100), "%")
-                    ps[[length(ps)]] <- ps[[length(ps)]] + ggtitle(
+                        [id, findInterval(sep_cutoffs(x)[id], seps)]*100), "%")
+                    ps[[i]] <- ps[[i]] + ggtitle(
                         bquote(bold(.(bc_labs[ids == id]))*scriptstyle(
                             " (separation cutoff "*.(sep_cutoffs(x)[id])
                             *" with "*.(p)*" yield)")))
                 }
             } else if (id != 0) {
-                ps[[length(ps)]] <- ps[[length(ps)]] + 
+                ps[[i]] <- ps[[i]] + 
                     ggtitle(bquote(bold(.(bc_labs[ids == id]))))
             }
         }
