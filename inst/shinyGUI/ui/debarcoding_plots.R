@@ -2,7 +2,7 @@
 # plotYields()
 # ------------------------------------------------------------------------------
 
-yieldPlotPanel <- function(x) { 
+yieldPlotPanel <- function(x, y) { 
     fluidPage(
         column(width=9,
             fluidRow(align="center",
@@ -20,7 +20,7 @@ yieldPlotPanel <- function(x) {
                         label=NULL, 
                         width="120px",
                         choices=x,
-                        selected=x[1])),
+                        selected=y)),
                 # next channel button
                 div(style=inlineCenter,
                     shinyBS::bsButton(
@@ -43,7 +43,7 @@ yieldPlotPanel <- function(x) {
 # plotEvents()
 # ------------------------------------------------------------------------------
 
-eventPlotPanel <- function(x) {
+eventPlotPanel <- function(x, y) {
     fluidPage(
         fluidRow(align="center",
             # previous channel button
@@ -59,8 +59,8 @@ eventPlotPanel <- function(x) {
                     inputId="select_eventPlot", 
                     label=NULL,
                     width="120px", 
-                    choices=x, 
-                    selected=x[1])),
+                    choices=x,
+                    selected=y)),
             # next channel button
             div(style=inlineCenter,
                 shinyBS::bsButton(
@@ -86,7 +86,7 @@ eventPlotPanel <- function(x) {
 # plotMahal()
 # ------------------------------------------------------------------------------
 
-mahalPlotPanel <- function(x) {
+mahalPlotPanel <- function(x, y) {
     fluidPage(
         fluidRow(align="center",
             # previous channel button
@@ -102,8 +102,8 @@ mahalPlotPanel <- function(x) {
                 selectInput(
                     inputId="select_mahalPlot",
                     label=NULL, 
-                    choices=x, 
-                    selected=x[1], 
+                    choices=x,
+                    selected=y,
                     width="120px")),
             # next channel button
             div(style=inlineCenter,

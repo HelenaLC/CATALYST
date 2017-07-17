@@ -5,45 +5,52 @@
 normalizationTab <- fluidPage(
     useShinyjs(),
     extendShinyjs(text=collapseBox),
-    tags$head(tags$style(HTML(".small-box{height:96px; 
-                              margin-bottom:0px}"))),
-    tags$head(tags$style("#plot_smoothedBeads{height:100vh !important;}")),
+    tags$head(tags$style("#plot_smoothedBeads {height:100vh !important;}")),
+    tags$head(tags$style(HTML(".small-box{height:96px; margin-bottom:0px}"))),
     tags$head(tags$style("#dwnld_normResults {color:white; width:100%}")),
+    tags$style(HTML(".shiny-plot-output {display:inline-block}")),
     fluidRow(
         column(width=3, 
-               style="padding:0px", 
-               shinydashboard::box(
-                   id="box1",
-                   width=12, 
-                   collapsible=TRUE,
-                   fileInput(
-                       inputId="fcsNorm", 
-                       label="Upload FCS", 
-                       multiple=TRUE,
-                       accept=".fcs"))),
+            style="padding:0px", 
+            shinydashboard::box(
+                title="Upload FCS",
+                solidHeader=TRUE,
+                status="warning",
+                id="box_1",
+                width=12, 
+                collapsible=TRUE,
+                fileInput(
+                    inputId="fcsNorm", 
+                    label=NULL,
+                    multiple=TRUE,
+                    accept=".fcs"))),
         column(width=3, 
-               style="padding:0px", 
-               uiOutput("box2")),
+            style="padding:0px", 
+            uiOutput("box2")),
         column(width=3, 
-               style="padding:0px", 
-               uiOutput("box3")),
+            style="padding:0px", 
+            uiOutput("box3")),
         column(width=3, 
-               style="padding:0px", 
-               uiOutput("box4"))
-    ),
+            style="padding:0px", 
+            uiOutput("box4"))),
     fluidRow(
         uiOutput("box_beadGating")),
     fluidRow(
-        uiOutput("box_smoothedBeads"))
-    )
+        uiOutput("box_smoothedBeads")),
+    fluidRow(
+        uiOutput("box_beadRemoval"))
+)
 
 # box 2: select data to normalize to
 box2 <- shinydashboard::box(
-    id="box2",
+    title="Normalization baseline",
+    solidHeader=TRUE,
+    status="warning",
+    id="box_2",
     width=12,
     collapsible=TRUE,
     checkboxInput(
-        inputId="box_NormToCurrent", 
+        inputId="box_normToCurrent", 
         label="Normalize to median level of current files"),
     checkboxInput(
         inputId="box_uploadNormTo", 
@@ -53,13 +60,16 @@ box2 <- shinydashboard::box(
 
 # box 3: bead selection
 box3 <- shinydashboard::box(
-    id="box3",
+    title="Bead selection",
+    solidHeader=TRUE,
+    status="warning",
+    id="box_3",
     width=12,
     collapsible=TRUE,
     selectInput(
         inputId="select_beads", 
-        label=h5(strong("Select beads")), 
-        choices=c("", 
+        label=NULL,
+        choices=c("",
             "DVS Beads (140, 151, 153, 165, 175)"="dvs",
             "Beta Beads (139, 141, 159, 169, 175)"="beta",
             "Custom"="custom")),
@@ -67,9 +77,9 @@ box3 <- shinydashboard::box(
 )
 
 # selectInput for custom beads
-selectInput_customBeads <- function(x) {
-    nms <- flowCore::colnames(x)
-    des <- flowCore::parameters(x)$desc
+selectInput_customBeads <- function(ff) {
+    pars <- flowCore::colnames(ff)
+    desc <- flowCore::parameters(ff)$desc
     fluidRow(
         column(
             width=12,
@@ -79,21 +89,20 @@ selectInput_customBeads <- function(x) {
                     label=NULL, 
                     multiple=TRUE, 
                     choices=setNames(
-                        object=as.list(nms), 
-                        nm=paste0(des, " [", nms, "]")))),
+                        object=as.list(pars), 
+                        nm=paste0(desc, " [", pars, "]")))),
             div(style="display:inline-block; vertical-align:top; width:19%", 
                 actionButton(
                     inputId="button_customBeads", 
-                    label="Gate", 
-                    icon=icon("object-ungroup"), 
-                    width="100%"))
+                    label=NULL, 
+                    icon=icon("share")))
         )
     )
 }
 
 # box 4: gating yield and download results
 box4 <- shinydashboard::box(
-    id="box4",
+    id="box_4",
     width=12, 
     collapsible=TRUE,
     div(style="display:inline-block; float:right; width:49%; margin-bottom:5px",
@@ -101,14 +110,14 @@ box4 <- shinydashboard::box(
             value=textOutput("howManyGated"), 
             subtitle="samples gated",
             icon=icon("hashtag"),
-            color="light-blue",
+            color="teal",
             width=NULL)),
     div(style="display:inline-block; float:left; width:49%; margin-bottom:5px",
         valueBox(
             value=textOutput("gatingYield"),
             subtitle="gating yield",
             icon=icon("percent"),
-            color="light-blue", 
+            color="teal", 
             width=NULL)),
     checkboxInput(
         inputId="box_removeBeads",
@@ -124,20 +133,16 @@ box4 <- shinydashboard::box(
 # ------------------------------------------------------------------------------
 box_beadGating <- function(samples, selected) {
     shinydashboard::box(
+        id="beadGating",
         width=12, 
         collapsible=TRUE,
-        footer=em(strong("Brush to gate beads."), 
-            "Ideally, bead-bead and cell-bead doublets should be excluded.
-            However, if bead populations are not clear in some channels, 
-            be liberal with your gates, as only events falling in the 
-            intersection of all gates will get used for normalization."), 
         fluidPage(
             fluidRow(
                 align="center",
                 # previous sample button
                 div(style=inlineCenter,
-                    shinyBS::bsButton(
-                        inputId="prevSmpl", 
+                    bsButton(
+                        inputId="prevSmplGating", 
                         label=NULL,
                         icon=icon("chevron-left"),
                         style="default",
@@ -145,57 +150,27 @@ box_beadGating <- function(samples, selected) {
                 # sample selection
                 div(style=inline,  
                     selectInput(
-                        inputId="select_sample",
+                        inputId="selectSmplGating",
                         label=NULL,
                         choices=samples,
                         selected=samples[[selected]],
-                        width="240px")),
+                        width="320px")),
                 # next sample button
                 div(style=inlineCenter,
-                    shinyBS::bsButton(
-                        inputId="nextSmpl", 
+                    bsButton(
+                        inputId="nextSmplGating", 
                         label=NULL,
                         icon=icon("chevron-right"),
                         style="default",
                         size="extra-small")),
-                div(style=inline,    
-                    h6(strong("Cofactor:"))),
-                # transformation cofactor input
-                div(style=inline,    
-                    numericInput(
-                        inputId="input_cfGating", 
-                        label=NULL, 
-                        value=5, 
-                        min=1, 
-                        width="60px")),
-                div(style=inline,    
-                    h6(strong("Number of events:"))),
-                # number of events input
-                div(style=inline,    
-                    numericInput(
-                        inputId="input_nGating", 
-                        label=NULL, 
-                        value=20e3, 
-                        min=10e3, 
-                        width="90px")),
                 div(style=inlineTop,
-                    shinyBS::bsButton(
-                        inputId="button_viewGating", 
-                        label=NULL,
-                        icon=icon("share"),
-                        style="success")),
-                shinyBS::bsTooltip(
-                    id="button_viewGating", 
-                    title="View",
-                    placement="right", 
-                    trigger="hover"),
-                div(style=inlineTop,
-                    shinyBS::bsButton(
+                    bsButton(
                         inputId="gateBeads", 
                         label=NULL,
                         icon=icon("object-ungroup"),
-                        style="primary")),
-                shinyBS::bsTooltip(
+                        style="default",
+                        disabled=TRUE)),
+                bsTooltip(
                     id="gateBeads", 
                     title="Gate",
                     placement="right", 
@@ -215,6 +190,75 @@ box_beadGating <- function(samples, selected) {
 # ------------------------------------------------------------------------------
 box_smoothedBeads <- 
     shinydashboard::box(
+        id="smoothedBeads",
         width=12, 
         collapsible=TRUE, 
-        plotOutput(outputId="plot_smoothedBeads"))
+        fluidPage(
+            tags$style("#beadsVsBeads{height:100vh !important}"),
+            plotOutput(outputId="plot_smoothedBeads", width="100%")
+        )
+    )
+
+mhlCutoffNormUI <- function(samples) {
+    tagList(
+        # previous sample button
+        div(style=inlineCenter,
+            bsButton(
+                inputId="prevSmplMhl", 
+                label=NULL,
+                icon=icon("chevron-left"),
+                style="default",
+                size="extra-small")),
+        # sample selection
+        div(style=inline,  
+            selectInput(
+                inputId="selectSmplMhl",
+                label=NULL,
+                choices=samples,
+                width="320px")),
+        # next sample button
+        div(style=inlineCenter,
+            bsButton(
+                inputId="nextSmplMhl", 
+                label=NULL,
+                icon=icon("chevron-right"),
+                style="default",
+                size="extra-small")),
+        div(style="display:inline-block; width:25%; vertical-align:middle",
+            sliderInput(
+                inputId="mhlCutoffNorm", 
+                label=NULL, 
+                min=0, 
+                max=100, 
+                value=0,
+                step=1,
+                width="100%")),
+        div(style=inlineCenter,
+            bsButton(
+                inputId="applyMhlCutoffNorm", 
+                label=NULL,
+                icon=icon("share"),
+                style="default",
+                size="extra-small")),
+        bsTooltip(
+            id="applyMhlCutoffNorm", 
+            title="Apply",
+            placement="right", 
+            trigger="hover")
+)}  
+
+box_beadRemoval <- 
+    shinydashboard::box(
+        width=12,
+        collapsible=TRUE,
+        fluidPage(
+            fluidRow(
+                align="center",
+                uiOutput(outputId="mhlCutoffNormUI")
+            ),
+            fluidRow(
+                tags$style("#beadsVsBeads{height:100vh !important}"),
+                plotOutput(outputId="beadsVsBeads", width="100%")
+            )
+        )
+    )

@@ -69,7 +69,7 @@ setMethod(f="compCytof",
     definition=function(x, y, out_path=NULL) {
         
         # check validity of input spillover matrix
-        check_spillMat(y)
+        #check_spillMat(y)
 
         n <- ncol(x)
         nms <- flowCore::colnames(x)
@@ -138,9 +138,7 @@ setMethod(f="compCytof",
             comped
         }
     })
-
 # ------------------------------------------------------------------------------
-
 #' @rdname compCytof
 setMethod(f="compCytof",
     signature=signature(x="character", y="matrix"),
@@ -163,7 +161,7 @@ setMethod(f="compCytof",
                     compCytof(ffs[[i]], y), out_nms[i]))
         }
     })
-
+# ------------------------------------------------------------------------------
 #' @rdname compCytof
 setMethod(f="compCytof",
     signature=signature(x="ANY", y="data.frame"),

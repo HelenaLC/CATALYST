@@ -46,10 +46,11 @@ debarcodingSidebar1 <- tagList(
         inputId="boxSelectBcChs", 
         label="Select single-positive channels"), 
     uiOutput("selectBcChs"),
-    shinyBS::bsButton(
+    bsButton(
         inputId="buttonDebarcode", 
         label="Debarcode", 
         style="primary",
+        size="extra-small",
         block=TRUE)
 )
 
@@ -83,12 +84,13 @@ debarcodingSidebar2 <- tagList(
             value=30,
             width="100%")),
     div(style=inlineCenter, 
-        shinyBS::bsButton(
+        bsButton(
             inputId="button_mhlCutoff",
             label=NULL,
             icon=icon("share"),
-            style="warning")),
-    shinyBS::bsTooltip(
+            style="warning",
+            size="extra-small")),
+    bsTooltip(
         id="button_mhlCutoff",
         title="Apply",
         placement="right"),
@@ -103,9 +105,9 @@ debarcodingSidebar2 <- tagList(
         label="Upload naming sheet (CSV)"),
     uiOutput("upldNms"),
     # download buttons
-    tags$style(type="text/css", "#dwnld_fcs {
+    tags$style(type="text/css", "#dwnld_debaFcs {
         display:inline-block; color:white; width:49%; float:left}"),
-    tags$style(type="text/css", "#dwnld_yep {
+    tags$style(type="text/css", "#dwnld_debaPlots {
         display:inline-block; color:white; width:49%; float:right}"),
     downloadButton(
         outputId="dwnld_debaFcs", 
@@ -129,14 +131,15 @@ adjustCutoffUI <- function(dbFrame, choices, selected) {
                 label=NULL,
                 value=sep_cutoffs(dbFrame)[selected],
                 min=0, max=1, step=.01)),
-        div(style=inlineTop,
+        div(style=inlineCenter,
             tagList(
-                shinyBS::bsButton(
+                bsButton(
                     inputId="button_adjustCutoff",
                     label=NULL,
                     icon=icon("share"),
-                    style="warning"),
-                shinyBS::bsTooltip(
+                    style="warning",
+                    size="extra-small"),
+                bsTooltip(
                     id="button_adjustCutoff",
                     title="Adjust",
                     placement="right")))
@@ -144,16 +147,19 @@ adjustCutoffUI <- function(dbFrame, choices, selected) {
 }
 
 globalCutoffUI <- tagList(
-    numericInput(
-        inputId="input_globalCutoff", 
-        label=NULL, value=NULL, 
-        min=0, max=1, step=.01),
-    shinyBS::bsButton(
-        inputId="button_globalCutoff", 
-        label=NULL, 
-        icon=icon("share"), 
-        style="warning"),
-    shinyBS::bsTooltip(
+    div(style="display:inline-block; width:25%", 
+        numericInput(
+            inputId="input_globalCutoff", 
+            label=NULL, value=NULL, 
+            min=0, max=1, step=.01)),
+    div(style=inlineCenter,
+        bsButton(
+            inputId="button_globalCutoff", 
+            label=NULL, 
+            icon=icon("share"), 
+            style="warning",
+            size="extra-small")),
+    bsTooltip(
         id="button_globalCutoff",
         title="Apply", 
         placement="right")

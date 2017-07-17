@@ -2,36 +2,27 @@
 options(shiny.maxRequestSize=500*1024^2)
 
 shinyServer(function(input, output, session) {
-
-    source("helpers-normalization_tmp.R")
     source("helpers.R")
-
+    
 # guides 
     source("ui/guides.R")
     output$debarcoding_guide  <- renderUI(debarcoding_guide)
     output$compensation_guide <- renderUI(compensation_guide)
-    
-# server files -----
-    source("server/normalization-server.R", local=TRUE)
-    source("server/debarcoding-server.R", local=TRUE)
-    source("server/compensation-server.R", local=TRUE)
+
+    source("server-norm.R", TRUE)
+    source("server-deba.R", TRUE)
+    source("server-comp.R", TRUE)
 # plot files -----    
-    source("ui/normalization_plots.R")
     source("ui/debarcoding_plots.R")
     source("ui/compensation_plots.R")
 
 # ------------------------------------------------------------------------------
     
     vals <- reactiveValues(
-# ----- NORMALIZATION -----
-        customBeads = NULL,
-        ff_norm = NULL,         # input FCS for normalization
-        beads = NULL,    # beads for normalization
-        beadInds = list(NULL),
-        smpl = 1,        # index of currently selected sample
 # debarcoding
         dbFrame1 = NULL, # preliminary dbFrame
         dbFrame2 = NULL, # dbFrame with deconvolution parameters applied
+        mhlCutoffDeba = 30, # default Mahalanobis distance cutoff
 # compensation
         sm  = NULL,  # original spillover matrix
         cmp1 = NULL, # compensated flowFrame 1
