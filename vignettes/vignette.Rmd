@@ -121,7 +121,7 @@ re0
 
 As opposed to a single global cutoff, `estCutoffs` will estimate a sample-specific cutoff to deal with barcode population cell yields that decline in an asynchronous fashion. Thus, the choice of thresholds for the distance between negative and positive barcode populations can be *i) automated* and *ii) independent for each barcode*. Nevertheless, reviewing the yield plots (see below), checking and possibly refining separation cutoffs is advisable. 
 
-For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. To facilitate robust estimation, we fit a linear and a three-parameter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@drc] (\@ref(fig:estCutoffs)). As an adequate cutoff estimate, we target a point that marks the end of the plateau regime and on-set of yield decline to appropriately balance confidence in barcode assignment and cell yield. 
+For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. To facilitate robust estimation, we fit a linear and a three-parameter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@drc] (Figure \@ref(fig:estCutoffs)). As an adequate cutoff estimate, we target a point that marks the end of the plateau regime and on-set of yield decline to appropriately balance confidence in barcode assignment and cell yield. 
 
 The goodness of the linear fit relative to the log-logistic fit is weighed as follow: 
 $$w = \frac{\text{RSS}_{log-logistic}}{\text{RSS}_{log-logistic}+\text{RSS}_{linear}}$$
@@ -135,14 +135,11 @@ The final cutoff estimate $c$ is defined as the weighted mean between these esti
 
 $$c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}$$
 
-![(\#fig:estCutoffs) Impact of the derivative order used for cutoff estimation. Top: Three-parameter log-logistic function fit of yields as a function of applied separation cutoffs. Bottom: First through fifth derivative of the fitted function. Higher order derivatives will yield more liberal-, lower order derivatives more stringent cutoff estimates.](estCutoffs.png)
+![(\#fig:estCutoffs) Description of the automatic cutoff estimation for each individual population. The bar graphs indicate the distribution of cells relative to the barcode distance and the dotted line corresponds to the yield upon debarcoding as a function of the applied separation cutoff. This curve is fitted with a linear regression (blue line) and a three parameter log-logistic function (red line). The cutoff estimate is defined as the mean of estimates derived from both fits, weighted with the goodness of the respective fit.](estCutoffs.png)
 
-```{r fig.show='hold', fig.height=2.5}
+```{r}
 # estimate separation cutoffs
 re <- estCutoffs(x=re0)
-
-# view exemplary estimates
-plotYields(x=re, which="A1")
 ```
 
 ---
