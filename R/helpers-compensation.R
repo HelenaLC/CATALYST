@@ -106,7 +106,7 @@ check_spillMat <- function(sm) {
 # check which channels of input flowFrame are not 
 # contained in spillover matrix and give warning
 # ------------------------------------------------------------------------------
-warning_compCytof <- function(new_chs, sm_chs) {
+prep_spillMat <- function(new_chs, sm_chs) {
     new_mets <- gsub("[[:digit:]]+Di", "", new_chs)
     old_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", sm_chs))
     new_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", new_chs))
