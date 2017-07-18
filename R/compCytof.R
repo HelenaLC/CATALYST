@@ -80,7 +80,7 @@ setMethod(f="compCytof",
         # contained in spillover matrix and give warning
         new_chs <- ff_chs[!ff_chs %in% sm_chs]
         if (length(new_chs) != 0) {
-            old_and_new_ms <- warning_compCytof(new_chs, sm_chs)
+            old_and_new_ms <- prep_spillMat(new_chs, sm_chs)
             old_ms <- old_and_new_ms$old_ms
             new_ms <- old_and_new_ms$new_ms
         } else {
@@ -158,6 +158,7 @@ setMethod(f="compCytof",
                     compCytof(ffs[[i]], y), out_nms[i]))
         }
     })
+
 # ------------------------------------------------------------------------------
 #' @rdname compCytof
 setMethod(f="compCytof",

@@ -11,15 +11,7 @@
 #'
 #' @param x       
 #' a \code{\link{dbFrame}}.
-#' @param deriv
-#' a single positive integer. Specifies which derivative of the 
-#' three-parameter log-logistic function fit to use for cutoff estimation 
-#' (see below for more details). 
-#' Generally, a low value will yield more stringent (higher) estimates, 
-#' while a higher value will render more liberal (lower) estimates. 
-#' For very distinct bimodality in the count distribution, 
-#' a higher value is recommendable.
-#'
+#' 
 #' @details 
 #' For the estimation of sample-specific cutoff parameters, we fit a 
 #' three-parameter log-logistic function to the yields function. 
@@ -43,31 +35,27 @@
 #' # assign preliminary IDs
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
 #' # estimate separation cutoffs
-#' re_d4 <- estCutoffs(x = re, deriv = 4)
-#' re_d5 <- estCutoffs(x = re, deriv = 5)
-#' # view exemplary estimates
-#' plotYields(re_d4, "A1")
-#' plotYields(re_d5, "A1")
+#' re <- estCutoffs(x = re)
+#' # view exemplary estimate
+#' plotYields(re, "A1")
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @importFrom stats coef lm D 
+#' @importFrom stats lm coef D
 #' @importFrom drc drm LL.3
 # ------------------------------------------------------------------------------
 
 setMethod(f="estCutoffs", 
     signature=signature(x="dbFrame"), 
-    definition=function(x, deriv=5) {
-        
-        if (!is.numeric(deriv) || deriv < 1)
-            stop("Invalid 'deriv' specified; 
-                should be a single positive integer.")
+    definition=function(x) {
         
         sep_cutoffs <- seq(0, 1, .01)
         n_bcs <- nrow(bc_key(x))
         ests <- numeric(n_bcs)
+        
         # three-parameter log-logistic function & 1st derivative
         llf <- quote(d/(1+exp(b*(log(sep_cutoffs)-log(e)))))
         deriv <-  stats::D(llf, "sep_cutoffs")
+        
         for (i in seq_len(n_bcs)) {
             df <- data.frame(x=sep_cutoffs, y=as.vector(yields(x)[i, ]))
             fit <- drc::drm(y~x, data=df, fct=drc::LL.3())
@@ -80,13 +68,10 @@ setMethod(f="estCutoffs",
             rss_linear <- sum((yields(x)[i,] - predict(linear_fit)) ^ 2)
             rss_llf <- sum((yields(x)[i,] - eval(llf)) ^ 2) 
             w <- rss_llf / (rss_llf + rss_linear)
-            est_llf <- sep_cutoffs[which(abs(c(0, eval(deriv)[-1])) / eval(llf) > 1e-2)[1]]
-            est_lin <- round(-intercept/slope/2, 2)
-            ests[i] <- round((1 - w) * est_llf + w * est_lin, 2)
+            est_llf <- sep_cutoffs[abs(c(0, eval(deriv)[-1])) / 
+                    eval(llf) > 1e-2][1]
         }
-        
         names(ests) <- rownames(bc_key(x))
         sep_cutoffs(x) <- ests
         x
     })
-        
