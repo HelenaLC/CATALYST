@@ -140,8 +140,7 @@ setGeneric(name="outFrames",
 #' @export
 setGeneric(name="outFCS",      
     package="CATALYST", 
-    def=function(x, out_path=tempdir(), ...) standardGeneric("outFCS"),
-    signature="x")
+    def=function(x, y, out_path=tempdir(), ...) standardGeneric("outFCS"))
 
 # ==============================================================================
 # Generics for plotting
