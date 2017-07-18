@@ -7,6 +7,8 @@
 #'
 #' @param x 
 #' a \code{\link{dbFrame}}.
+#' @param y
+#' a \code{\link{flowFrame}} containing the original measurement and meta data.
 #' @param out_path
 #' character string. Specifies in which location 
 #' output files are to be generated.
@@ -33,7 +35,7 @@
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
-#' outFCS(x = re)
+#' outFCS(x = re, y = sample_ff)
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
@@ -43,8 +45,8 @@
 # ------------------------------------------------------------------------------
 
 setMethod(f="outFCS", 
-    signature="dbFrame", 
-    definition=function(x, out_path=tempdir(), out_nms=NULL, verbose=TRUE) {
+    signature=signature(x="dbFrame", y="flowFrame"),
+    definition=function(x, y, out_path=tempdir(), out_nms=NULL, verbose=TRUE) {
         stopifnot(is.character(out_path), length(out_path) == 1L)
         smpl_nms <- rownames(bc_key(x))
         if (is.null(out_nms)) {
@@ -68,40 +70,22 @@ setMethod(f="outFCS",
             }
         }
         ids <- sort(unique(bc_ids(x)))
-        skip <- c()
-        for (i in ids) {
-            if (sum(bc_ids(x) == i) < 10) {
-                skip <- c(skip, i) 
-                next
-            }
-            ff <- new("flowFrame", exprs=exprs(x)[bc_ids(x) == i, ])
-            if (i == 0) {
+        inds <- match(bc_ids(x), ids)
+        for (i in seq_along(ids)) {
+            id <- ids[i]
+            if (id == "0") {
                 nm <- "Unassigned"
             } else {
-                nm <- out_nms[smpl_nms == i]
+                nm <- out_nms[smpl_nms == id]
             }
-            suppressWarnings(
-                flowCore::write.FCS(ff, 
-                    file.path(out_path, paste0(nm, ".fcs"))))
+            suppressWarnings(flowCore::write.FCS(x=y[inds == i, ], 
+                filename=file.path(out_path, paste0(nm, ".fcs"))))
         }
         if (verbose) {
-            if (length(skip) > 1) {
-                message("o Samples ", paste(skip, collapse=", "), 
-                    " contain less than 10 events\n ",
-                    " (no FCS files have been generated for these barcodes)")
-            } else if (length(skip) == 1) {
-                message("o Sample ", skip, " contains less than 10 events\n",
-                    "  (no FCS file has been generated for this barcode)")
-            }
-            
-            tmp <- smpl_nms[!smpl_nms %in% ids]
-            if (length(tmp) > 1) {
-                message("o No events assigned to samples ", 
-                    paste(tmp, collapse=", "))
-            } else if (length(tmp) == 1) {
-                message("o No events assigned to sample ", 
-                    paste(tmp, collapse=", "))
-            }
+            empty <- smpl_nms[!smpl_nms %in% ids]
+            if (length(empty) > 1)
+                message("o No events assigned to sample(s) ", 
+                    paste(empty, collapse=", "))
         }
         message("*** ", length(ids), " FCS files created in")
         out_path
