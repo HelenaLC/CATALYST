@@ -67,9 +67,6 @@
 setMethod(f="compCytof",
     signature=signature(x="flowFrame", y="matrix"),
     definition=function(x, y, out_path=NULL) {
-        
-        # check validity of input spillover matrix
-        #check_spillMat(y)
 
         n <- ncol(x)
         nms <- flowCore::colnames(x)
