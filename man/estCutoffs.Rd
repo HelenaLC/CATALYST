@@ -8,20 +8,12 @@
 \usage{
 estCutoffs(x, ...)
 
-\S4method{estCutoffs}{dbFrame}(x, deriv = 5)
+\S4method{estCutoffs}{dbFrame}(x)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
 \item{...}{optional arguments.}
-
-\item{deriv}{a single positive integer. Specifies which derivative of the 
-three-parameter log-logistic function fit to use for cutoff estimation 
-(see below for more details). 
-Generally, a low value will yield more stringent (higher) estimates, 
-while a higher value will render more liberal (lower) estimates. 
-For very distinct bimodality in the count distribution, 
-a higher value is recommendable.}
 }
 \value{
 Will update the \code{sep_cutoffs} slot of the input \code{\link{dbFrame}} 
@@ -50,11 +42,9 @@ data(sample_ff, sample_key)
 # assign preliminary IDs
 re <- assignPrelim(x = sample_ff, y = sample_key)
 # estimate separation cutoffs
-re_d4 <- estCutoffs(x = re, deriv = 4)
-re_d5 <- estCutoffs(x = re, deriv = 5)
-# view exemplary estimates
-plotYields(re_d4, "A1")
-plotYields(re_d5, "A1")
+re <- estCutoffs(x = re)
+# view exemplary estimate
+plotYields(re, "A1")
 
 }
 \author{
