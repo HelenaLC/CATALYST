@@ -58,6 +58,7 @@ make_symetric <- function(x) {
 # ==============================================================================
 # plot for estTrim()
 # ------------------------------------------------------------------------------
+
 plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
     opt <- trms[which.min(text$e)]
     ggplot(df, aes_string(x="t", y="m")) +
@@ -71,7 +72,7 @@ plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
         geom_hline(aes(yintercept=0), lty=2, col="red", size=.5) +
         scale_x_continuous(limits=c(xMin, xMax), 
             expand=c(0,0), breaks=trms, labels=format(trms, 2)) +
-        scale_y_continuous(limits=c(yMin, yMax+.5), 
+        scale_y_continuous(limits=c(yMin, yMax+.6), 
             expand=c(0,0), breaks=c(0, yMin:yMax)) +
         labs(x="Trim value used for estimation of spill values", 
             y="Median counts upon compensation") + 
@@ -81,59 +82,4 @@ plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
             panel.grid.major.y=element_blank(),
             panel.grid.major.x=element_line(size=.25, color="grey"),
             panel.grid.minor=element_blank())
-}
-
-# ==============================================================================
-# check validity of input spillover matrix in compCytof()
-# ------------------------------------------------------------------------------
-check_spillMat <- function(sm) {
-    if (any(sm < 0))
-        stop("\nThe supplied spillover matrix is invalid ",
-            "as it contains negative entries.\n",
-            "Valid spill values are non-negative and mustn't exceed 1.")
-    if (any(sm > 1))
-        stop("\nThe supplied spillover matrix is invalid ",
-            "as it contains entries greater than 1.\n",
-            "Valid spill values are non-negative and mustn't exceed 1.")
-    sii <- sm[cbind(which(rownames(sm) %in% colnames(sm)), 
-        which(colnames(sm) %in% rownames(sm)))]
-    if (any(sii != 1))
-        stop("\nThe supplied spillover matrix is invalid ",
-            "as its diagonal contains entries != 1.\n")
-}
-
-# ==============================================================================
-# check which channels of input flowFrame are not 
-# contained in spillover matrix and give warning
-# ------------------------------------------------------------------------------
-warning_compCytof <- function(new_chs, sm_chs) {
-    new_mets <- gsub("[[:digit:]]+Di", "", new_chs)
-    old_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", sm_chs))
-    new_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", new_chs))
-    ms <- c(old_ms, new_ms)
-    o <- order(ms)
-    ms <- ms[o]
-    nms <- c(sm_chs, new_chs)[o]
-    # get potential spillover interactions 
-    all_mets <- gsub("[[:digit:]]+Di", "", nms)
-    spill_cols <- get_spill_cols(ms, all_mets)
-    
-    first <- TRUE
-    for (i in seq_along(new_ms)) {
-        idx <- which(ms == new_ms[i] & all_mets == new_mets[i])
-        if (length(idx) > 0) {
-            if (first) {
-                message("WARNING: ",
-                    "Compensation is likely to be inaccurate.\n",
-                    "         ",
-                    "Spill values for the following interactions\n",
-                    "         ",
-                    "have not been estimated:")
-                first <- FALSE
-            }
-            message(nms[idx], " -> ", paste(
-                nms[spill_cols[[idx]]], collapse=", "))
-        }
-    }
-    return(list(old=old_ms, new=new_ms))
 }
