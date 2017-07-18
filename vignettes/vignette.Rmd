@@ -20,6 +20,7 @@ vignette: >
 output: 
   BiocStyle::html_document2
 ---
+\DeclareMathOperator*{\argmin}{argmin}
 
 # Data examples
 
@@ -120,9 +121,19 @@ re0
 
 As opposed to a single global cutoff, `estCutoffs` will estimate a sample-specific cutoff to deal with barcode population cell yields that decline in an asynchronous fashion. Thus, the choice of thresholds for the distance between negative and positive barcode populations can be *i) automated* and *ii) independent for each barcode*. Nevertheless, reviewing the yield plots (see below), checking and possibly refining separation cutoffs is advisable. 
 
-For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. To facilitate robust estimation, we fit a three-parameter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@drc]. As an adequate cutoff estimate, we target a point that marks the end of the plateau regime and on-set of yield decline to appropriately balance confidence in barcode assignment and cell yield. 
+For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. To facilitate robust estimation, we fit a linear and a three-parameter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@drc] (\@ref(fig:estCutoffs)). As an adequate cutoff estimate, we target a point that marks the end of the plateau regime and on-set of yield decline to appropriately balance confidence in barcode assignment and cell yield. 
 
-By default, we compute this point as the first local minimum of the fifth derivative (`deriv = 5`) to assure the selected cutoff lies well before the yield functions last inflection point, and that its application does not cause a significant decline in yield. Generally, higher order derivatives will give more liberal, low cutoff estimates; and lower order derivatives will render more stringent, higher estimates (see Figure \@ref(fig:estCutoffs)). Thence, depending on the overall doublet-singlet separation, and how bimodal the count distribution is, another derivate may provide a better estimate.
+The goodness of the linear fit relative to the log-logistic fit is weighed as follow: 
+$$w = \frac{\text{RSS}_{log-logistic}}{\text{RSS}_{log-logistic}+\text{RSS}_{linear}}$$
+
+The cutoffs for both functions are defined as:
+
+$$c_{linear} = \frac{\beta_0}{2\beta_1}$$
+$$c_{log-logistic}=\underset{x}{\arg\min}\:\frac{\vert\:f'(x)\:\vert}{f(x)} > 0.1$$
+
+The final cutoff estimate $c$ is defined as the weighted mean between these estimates:
+
+$$c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}$$
 
 ![(\#fig:estCutoffs) Impact of the derivative order used for cutoff estimation. Top: Three-parameter log-logistic function fit of yields as a function of applied separation cutoffs. Bottom: First through fifth derivative of the fitted function. Higher order derivatives will yield more liberal-, lower order derivatives more stringent cutoff estimates.](estCutoffs.png)
 
@@ -132,7 +143,6 @@ re <- estCutoffs(x=re0)
 
 # view exemplary estimates
 plotYields(x=re, which="A1")
-plotYields(x=estCutoffs(x=re0, deriv=6), which="A1")
 ```
 
 ---
@@ -156,7 +166,7 @@ re <- applyCutoffs(x=re)
 Once event assignments have been finalized, a separate FCS file can be written for each population by running `outFCS`. If option `out_nms=NULL` (the default), the respective population`s ID in the barcoding scheme will be used as file name. Alternatively, an ordered character vector or a 2 column CSV with sample IDs and the desired file names may be specified as a naming scheme.
 
 ```{r results='hide', message=FALSE}
-outFCS(x=re)
+outFCS(x=re, y=sample_ff)
 ```
 
 ---
