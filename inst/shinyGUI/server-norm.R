@@ -375,7 +375,8 @@ output$beadsVsBeads <- renderPlot({
     tmp <- CATALYST:::get_axes(es, 5)
     tcks <- tmp[[1]]
     labs <- tmp[[2]]
-    plotBeadsVsBeads(es, mhlDists()[[x]], vals$mhlCutoffs[x], tcks, labs)
+    CATALYST:::plotBeadsVsBeads(
+        es, mhlDists()[[x]], vals$mhlCutoffs[x], tcks, labs)
 })
 
 # ------------------------------------------------------------------------------
