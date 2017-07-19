@@ -2,9 +2,9 @@
 # plotYields()
 # ------------------------------------------------------------------------------
 
-yieldPlotPanel <- function(x, y) { 
+yieldPlotPanel <- function(x) { 
     fluidPage(
-        column(width=9,
+        column(width=8,
             fluidRow(align="center",
                 # previous channel button
                 div(style=inlineCenter,
@@ -19,8 +19,7 @@ yieldPlotPanel <- function(x, y) {
                         inputId="select_yieldPlot", 
                         label=NULL, 
                         width="120px",
-                        choices=x,
-                        selected=y)),
+                        choices=x)),
                 # next channel button
                 div(style=inlineCenter,
                     shinyBS::bsButton(
@@ -32,7 +31,7 @@ yieldPlotPanel <- function(x, y) {
             fluidRow(align="center",
                 tags$head(tags$style("#yieldPlot{height:70vh !important;}")),
                 plotOutput("yieldPlot"))),
-        column(width=3,
+        column(width=4,
             align="center",
             tags$head(tags$style("#table_summary{height:100vh !important;}")),
             DT::dataTableOutput(

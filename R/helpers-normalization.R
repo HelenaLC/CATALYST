@@ -111,7 +111,7 @@ plotScatter <- function(es, x, y, cf) {
     chs <- colnames(df)
     
     # get axis limits and labels
-    temp <- get_axes(df, cf)
+    temp <- CATALYST:::get_axes(df, cf)
     tcks <- temp[[1]]
     labs <- temp[[2]]
     
