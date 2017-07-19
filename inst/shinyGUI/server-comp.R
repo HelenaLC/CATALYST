@@ -4,94 +4,79 @@
 
 # read input FCS files
 ffsComp <- reactive({
-    x <- input$fcsComp
-    if (is.null(x)) return()
-    lapply(seq_len(nrow(x)), function(i) 
-        read.FCS(
-            filename=x[[i, "datapath"]],
+    inFile <- input$fcsComp
+    req(inFile)
+    lapply(seq_len(nrow(inFile)), function(i) 
+        flowCore::read.FCS(
+            filename=inFile[[i, "datapath"]],
             transformation=FALSE,
             truncate_max_range=FALSE))
 })
 
 # expand sidebar once data has been uploaded
 output$compensationSidebar1 <- renderUI({
-    if (is.null(input$fcsComp)) 
-        return()
+    req(input$fcsComp)
     compensationSidebar1
 })
 
-# ------------------------------------------------------------------------------
 # toggle checkboxes
-# ------------------------------------------------------------------------------
 observe({
-    x <- input$box_estSm
-    if (is.null(x) || x == 0) return()
+    req(input$box_estSm == 1)
     updateCheckboxInput(session, "box_upldSm", value=FALSE)
 })
 observe({
-    x <- input$box_upldSm
-    if (is.null(x) || x == 0) return()
+    req(input$box_upldSm == 1)
     updateCheckboxInput(session, "box_estSm", value=FALSE)
 })
-observe({
-    x <- input$box_IDsAsNms
-    if (is.null(x) || x == 0) return()
-    updateCheckboxInput(session, "box_upldNms", value=FALSE)
-})
-observe({
-    x <- input$box_upldNms
-    if (is.null(x) || x == 0) return()
-    updateCheckboxInput(session, "box_IDsAsNms", value=FALSE)
-})
 
+# ------------------------------------------------------------------------------
+# spillover matrix selection & plotting
 # ------------------------------------------------------------------------------
 
 # render fileInput if checkboxInput == 1
 output$inputSm <- renderUI({
-    if (input$box_upldSm)
-        fileInput("inputSm", NULL, accept=".csv")
+    req(input$box_upldSm == 1)
+    fileInput("inputSm", NULL, accept=".csv")
 })
 
 # get spillover matrix
 spillMat <- reactive({
-    if (is.null(ffsComp())) 
-        return()
-    if (input$box_upldSm == 1 && !is.null(input$inputSm)) {
+    req(ffsComp())
+    x <- input$box_upldSm
+    if (!is.null(x) && x == 1 && !is.null(input$inputSm)) {
         read.csv(input$inputSm$datapath, check.names=FALSE, row.names=1)
-    } else if (input$box_estSm == 1 && !is.null(dbFrame())) {
-        computeSpillmat(x=dbFrame())
+    } else {
+        x <- input$box_estSm
+        if (!is.null(x) && x == 1 && !is.null(dbFrame()))
+            computeSpillmat(x=dbFrame())
     }
 })
 
-# make copy for spill adjustment
-observe({
-    if (is.null(spillMat()))
-        return()
+# store original spillover matrix
+observeEvent(spillMat(), {
     vals$sm <- spillMat()
 })
 
 # plotSpillmat()
 output$plotSpillmat <- renderPlot({
-    if (!is.null(vals$sm)) {
-        if (input$box_upldSm) {
-            ms <- gsub("[[:punct:][:alpha:]]", "", colnames(vals$sm))
-            plotSpillmat(ms, vals$sm)
-        } else if (input$box_estSm) {
-            plotSpillmat(debaKey(), vals$sm)
-        }
+    req(vals$sm)
+    if (input$box_upldSm) {
+        ms <- gsub("[[:punct:][:alpha:]]", "", colnames(vals$sm))
+        CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
+    } else if (input$box_estSm) {
+        CATALYST::plotSpillmat(bc_ms=debaKey(), SM=vals$sm)
     }
 })
 
 # compensate input flowFrame(s)
 ffsComped <- reactive({
-    if (!is.null(vals$sm))
-        lapply(ffsComp(), compCytof, vals$sm)
+    req(vals$sm)
+    lapply(ffsComp(), CATALYST::compCytof, vals$sm)
 })
 
 # render download button when data has been compensated
 output$compensationSidebar2 <- renderUI({
-    if (is.null(ffsComped()))
-        return()
+    req(ffsComped())
     compensationSidebar2
 })
 
@@ -99,23 +84,20 @@ output$compensationSidebar2 <- renderUI({
 # before vs. after compensation scatters
 # ------------------------------------------------------------------------------
 output$panel_scatters <- renderUI({
-    if (is.null(spillMat()))
-        return()
+    req(spillMat())
     panel_scatters(samples=input$fcsComp$name)
 })
 
 # keep track of currently selected sample
 selectedSmplComp <- reactive({
-    selected <- input$select_smplComp
-    if (!is.null(selected))
-        match(selected, input$fcsComp$name)
+    req(input$select_smplComp)
+    match(input$select_smplComp, input$fcsComp$name)
 })
 
 observe({
-    x <- selectedSmplComp()
-    if (is.null(x))
-        return()
-    choices <- colnames(ffsComp()[[x]])
+    selected <- selectedSmplComp()
+    req(selected)
+    choices <- colnames(ffsComp()[[selected]])
     ms <- gsub("[[:alpha:][:punct:]]", "", choices)
     ch1 <- choices[choices == input$scatterCh1]
     ch2 <- choices[choices == input$scatterCh2]
@@ -158,8 +140,9 @@ observeEvent(input$next_smplComp, {
 
 # update channel selection choices upon sample change
 observe({
-    if (is.null(selectedSmplComp())) return()
-    chs <- flowCore::colnames(isolate(vals$ffsComped)[[selectedSmplComp()]])
+    selected <- selectedSmplComp()
+    req(selected)
+    chs <- flowCore::colnames(isolate(vals$ffsComped)[[selected]])
     # default to currently selected masses 
     ms <- gsub("[[:punct:][:alpha:]]", "", chs)
     currentMs <- sapply(
@@ -182,20 +165,18 @@ observe({
 # actionButton: Swap x- and y-axis
 observeEvent(input$flipAxes, {
     ch1 <- ch1()
-    updateSelectInput(session,
-                      inputId="scatterCh1",
-                      selected=input$scatterCh2)
-    updateSelectInput(session,
-                      inputId="scatterCh2",
-                      selected=ch1)
+    updateSelectInput(session, inputId="scatterCh1", selected=input$scatterCh2)
+    updateSelectInput(session, inputId="scatterCh2", selected=ch1)
 })
 
 # textOutput: Spillover of current interaction
 output$text_spill <- renderText({
-    spill <- vals$sm[ch1(), ch2()]
-    if (is.null(spill) || is.na(spill))
-        return()
-    paste0(sprintf("%.3f", 100*spill), "%")
+    ch1 <- ch1()
+    ch2 <- ch2()
+    if (ch1() %in% rownames(vals$sm) && ch2() %in% colnames(vals$sm)) {
+        spill <- vals$sm[ch1, ch2]
+        paste0(sprintf("%.3f", 100*spill), "%")
+    }
 })
 
 # actionButton: Adjust spill of current interaction
@@ -216,27 +197,27 @@ observeEvent(input$revertAll, {
 # before vs. after compensation scatters
 # ------------------------------------------------------------------------------
 
-ch1 <- reactive({input$scatterCh1})
-ch2 <- reactive({input$scatterCh2})
-cfComp <- reactive({input$cfComp})
+ch1 <- reactive(input$scatterCh1)
+ch2 <- reactive(input$scatterCh2)
+cfComp <- reactive(input$cfComp)
 
 # default to cofactor 5 if input is invalid
 observe({
-    if (!is.numeric(input$cfComp) || input$cfComp == 0)
-        updateNumericInput(session, inputId="cfComp", value=5)
+    req(!is.numeric(input$cfComp), input$cfComp == 0)
+    updateNumericInput(session, inputId="cfComp", value=5)
 })
 
 # left scatter (uncompensated)
 output$compScatter1 <- renderPlot({ 
     data <- ffsComp()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
-    if (is.null(data) || x == "" || y == "") return()
-    plotScatter(es=exprs(data), n=10e3, x=x, y=y, cf=cfComp())
+    req(!is.null(data), x != "", y != "")
+    CATALYST:::plotScatter(es=flowCore::exprs(data), x=x, y=y, cf=cfComp())
 })
 output$text_info1 <- renderText({ 
     data <- ffsComp()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
-    if (is.null(data) || x == "" || y == "") return()
+    req(!is.null(data), x != "", y != "")
     text_info(data, isolate(input$cfComp), input$rect1, x, y)
 })   
 
@@ -244,12 +225,66 @@ output$text_info1 <- renderText({
 output$compScatter2 <- renderPlot({
     data <- ffsComped()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
-    if (is.null(data) || x == "" || y == "") return()
-    plotScatter(es=exprs(data), n=10e3, x=x, y=y, cf=cfComp())
+    req(!is.null(data), x != "", y != "")
+    CATALYST:::plotScatter(es=flowCore::exprs(data), x=x, y=y, cf=cfComp())
 })
 output$text_info2 <- renderText({ 
     data <- ffsComped()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
-    if (is.null(data) || x == "" || y == "") return()
+    req(!is.null(data), x != "", y != "")
     text_info(data, isolate(input$cfComp), input$rect2, x, y)
 })
+
+# ------------------------------------------------------------------------------
+# download handlers
+# ------------------------------------------------------------------------------
+
+output$dwnld_debaPlots <- downloadHandler(
+    filename=function() { "yield_event_plots.zip" },
+    content =function(file) { 
+        dbFrame <- dbFrame()
+        tmpdir <- tempdir()
+        setwd(tmpdir)
+        CATALYST::plotYields(
+            x=dbFrame, 
+            which=yieldPlotChoices(), 
+            out_path=tmpdir)
+        CATALYST::plotEvents(
+            x=dbFrame, 
+            out_path=tmpdir, 
+            n_events=250)
+        zip(zipfile=file,
+            files=paste0(c("yield_plot", "event_plot"), ".pdf")) },
+    contentType="application/zip")
+
+output$dwnld_comped <- downloadHandler(
+    filename=function() { 
+        paste0(Sys.Date(), "_compensation.zip")
+    },
+    content =function(file) { 
+        tmpdir <- tempdir()
+        setwd(tmpdir)
+        outNms <- file.path(tmpdir, gsub(".fcs", "_comped.fcs", 
+            input$fcsComp, ignore.case=TRUE))
+        ffs <- ffsComped()
+        if (input$box_setToZero) {
+            lapply(seq_along(ffs), function(i) {
+                flowCore::exprs(ffs[[i]])[flowCore::exprs(ffs[[i]]) < 0] <- 0
+                suppressWarnings(flowCore::write.FCS(ffs[[i]], outNms[i])) 
+            })
+        } else {
+            lapply(seq_along(ffs), function(i) {
+                suppressWarnings(flowCore::write.FCS(ffs[[i]], outNms[i]))
+            })
+        }
+        zip(zipfile=file, files=gsub(tmpdir, "", outNms)) 
+    },
+    contentType="application/zip")
+
+output$dwnld_spillMat <- downloadHandler(
+    filename=function() { 
+        "spillMat.csv"
+    },
+    content=function(file) { 
+        write.csv(vals$sm, file) 
+    })

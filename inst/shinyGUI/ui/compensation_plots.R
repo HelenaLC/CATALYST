@@ -6,7 +6,7 @@ panel_scatters <- function(samples) {
         # sample selection & next / previous sample buttons
         fluidRow(
             align="center",
-            div(style=inlineTop,
+            div(style=inlineCenter,
                 bsButton(
                     inputId="prev_smplComp", 
                     label=NULL,
@@ -32,37 +32,43 @@ panel_scatters <- function(samples) {
         # cofactor input & view button
         fluidRow(
             align="center",
-            div(style=inlineTop,
-                bsButton(inputId="flipAxes", 
-                         label=NULL,
-                         icon=icon("exchange"),
-                         style="primary")),
-            bsTooltip(id="flipAxes", 
-                      title="Swap axes", 
-                      placement="right", 
-                      trigger="hover"),
+            div(style=inlineCenter,
+                bsButton(
+                    inputId="flipAxes", 
+                    label=NULL,
+                    icon=icon("exchange"),
+                    style="primary",
+                    size="extra-small")),
+            bsTooltip(
+                id="flipAxes", 
+                title="Swap axes", 
+                placement="right", 
+                trigger="hover"),
             div(style=inline,
                 h5(strong(" X-axis:"), align="right")),
             div(style=inlineTop,
-                selectInput(inputId="scatterCh1",
-                            label=NULL, 
-                            choices=NULL,
-                            width="120px")),
+                selectInput(
+                    inputId="scatterCh1",
+                    label=NULL, 
+                    choices=NULL,
+                    width="120px")),
             div(style=inline,
                 h5(strong(" Y-axis:"), align="right")),
             div(style=inlineTop,
-                selectInput(inputId="scatterCh2", 
-                            label=NULL, 
-                            choices=NULL,
-                            width="120px")),
+                selectInput(
+                    inputId="scatterCh2", 
+                    label=NULL, 
+                    choices=NULL,
+                    width="120px")),
             div(style=inline,
                 h5(strong(" Cofactor:"), align="right")),
             div(style=inlineTop,
-                numericInput(inputId="cfComp", 
-                             label=NULL,
-                             value=5, 
-                             min=1, 
-                             width="91px"))
+                numericInput(
+                    inputId="cfComp", 
+                    label=NULL,
+                    value=5, 
+                    min=1, 
+                    width="91px"))
         ),
         # display current spill & spill adjustment
         fluidRow(
@@ -77,39 +83,46 @@ panel_scatters <- function(samples) {
                 h5(strong( "Enter new:"), align="right")),
             # numericInput: new spill value  
             div(style=inlineTop,
-                numericInput(inputId="newSpill", 
-                             label=NULL, 
-                             value=NULL, 
-                             min=0, 
-                             max=100, 
-                             step=.01, 
-                             width="120px")), 
+                numericInput(
+                    inputId="newSpill", 
+                    label=NULL, 
+                    value=NULL, 
+                    min=0, 
+                    max=100, 
+                    step=.01, 
+                    width="120px")), 
             # bsButton: adjust spill of current interaction
-            div(style=inlineTop,
-                bsButton(inputId="adjustSpill", 
-                         label=NULL,
-                         icon=icon("reply"), 
-                         style="success")),
+            div(style=inlineCenter,
+                bsButton(
+                    inputId="adjustSpill", 
+                    label=NULL,
+                    icon=icon("reply"), 
+                    style="success",
+                    size="extra-small")),
             bsTooltip(id="adjustSpill", 
                       title="Adjust",
                       placement="right", 
                       trigger="hover"),
             # bsButton: revert current adjustment
-            div(style=inlineTop,
-                bsButton(inputId="revert", 
-                         label=NULL,
-                         icon=icon("reply"),
-                         style="warning")),
+            div(style=inlineCenter,
+                bsButton(
+                    inputId="revert", 
+                    label=NULL,
+                    icon=icon("reply"),
+                    style="warning",
+                    size="extra-small")),
             bsTooltip(id="revert", 
                       title="Revert", 
                       placement="right", 
                       trigger="hover"),
             # bsButton: revert all adjustments
-            div(style=inlineTop,
-                bsButton(inputId="revertAll", 
-                         label=NULL,
-                         icon=icon("reply-all"),
-                         style="danger")),
+            div(style=inlineCenter,
+                bsButton(
+                    inputId="revertAll", 
+                    label=NULL,
+                    icon=icon("reply-all"),
+                    style="danger",
+                    size="extra-small")),
             bsTooltip(id="revertAll", 
                       title="Revert all", 
                       placement="right", 
@@ -121,10 +134,14 @@ panel_scatters <- function(samples) {
             shinydashboard::box(
                 width=12, 
                 fluidPage( 
-                    tags$head(tags$style("#text_info1 {font-size:20px; color:blue; background-color:white")), 
-                    tags$head(tags$style("#text_info2 {font-size:20px; color:blue; background-color:white")), 
-                    tags$head(tags$style("#compScatter1{float:center; height:100vh !important}")),
-                    tags$head(tags$style("#compScatter2{float:center; height:100vh !important}")),
+                    tags$head(tags$style("#text_info1 {
+                        font-size:20px; color:blue; background-color:white")), 
+                    tags$head(tags$style("#text_info2 {
+                        font-size:20px; color:blue; background-color:white")), 
+                    tags$head(tags$style("#compScatter1{
+                        float:center; height:100vh !important}")),
+                    tags$head(tags$style("#compScatter2{
+                        float:center; height:100vh !important}")),
                     fluidRow(
                         align="center",
                         column(
@@ -160,8 +177,4 @@ panel_scatters <- function(samples) {
             )
         )
     )
-}
-
-select_smplComp <- function(samples) {
-
 }
