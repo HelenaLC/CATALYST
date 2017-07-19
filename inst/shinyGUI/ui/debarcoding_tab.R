@@ -48,9 +48,9 @@ debarcodingSidebar1 <- tagList(
     uiOutput("selectBcChs"),
     bsButton(
         inputId="buttonDebarcode", 
-        label="Debarcode", 
-        style="primary",
-        size="extra-small",
+        label=strong("Debarcode"), 
+        style="warning",
+        size="small",
         block=TRUE)
 )
 
@@ -88,7 +88,7 @@ debarcodingSidebar2 <- tagList(
             inputId="button_mhlCutoff",
             label=NULL,
             icon=icon("share"),
-            style="warning",
+            style="default",
             size="extra-small")),
     bsTooltip(
         id="button_mhlCutoff",
@@ -103,7 +103,11 @@ debarcodingSidebar2 <- tagList(
     checkboxInput(
         inputId="box_upldNms",  
         label="Upload naming sheet (CSV)"),
-    uiOutput("upldNms"),
+    fileInput(
+        inputId="input_upldNms", 
+        label=helpText("This should be a 2 column sheet with
+            sample IDs and the desired output filenames."), 
+        accept=".csv"),
     # download buttons
     tags$style(type="text/css", "#dwnld_debaFcs {
         display:inline-block; color:white; width:49%; float:left}"),
@@ -118,7 +122,7 @@ debarcodingSidebar2 <- tagList(
         label="Plots", 
         class="btn-success"))
 
-adjustCutoffUI <- function(dbFrame, choices, selected) {
+adjustCutoffUI <- function(dbFrame, choices) {
     tagList(
         div(style="display:inline-block; vertical-align:top; width:25%",
             selectInput(
@@ -129,7 +133,7 @@ adjustCutoffUI <- function(dbFrame, choices, selected) {
             numericInput(
                 inputId="input_adjustCutoff",
                 label=NULL,
-                value=sep_cutoffs(dbFrame)[selected],
+                value=sep_cutoffs(dbFrame)[1],
                 min=0, max=1, step=.01)),
         div(style=inlineCenter,
             tagList(

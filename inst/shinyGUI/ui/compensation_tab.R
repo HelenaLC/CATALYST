@@ -48,6 +48,9 @@ compensationSidebar1 <- tagList(
 
 compensationSidebar2 <- tagList(
     hr(style="border-color:black"),
+    checkboxInput(
+        inputId="box_setToZero", 
+        label="Should negative values be set to zero?"),
     tags$style(type="text/css", "#dwnld_comped {
         display:inline-block; color:white; width:49%; float:left}"),
     tags$style(type="text/css", "#dwnld_spillMat {

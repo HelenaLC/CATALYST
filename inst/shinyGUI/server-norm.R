@@ -372,7 +372,7 @@ output$beadsVsBeads <- renderPlot({
     req(mhlDists())
     x <- selectedSmplMhl()
     es <- asinh(exprs(ffsNorm()[[x]])[, beadCols()]/5)
-    tmp <- get_axes(es, 5)
+    tmp <- CATALYST:::get_axes(es, 5)
     tcks <- tmp[[1]]
     labs <- tmp[[2]]
     plotBeadsVsBeads(es, mhlDists()[[x]], vals$mhlCutoffs[x], tcks, labs)

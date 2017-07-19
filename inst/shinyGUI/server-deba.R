@@ -34,18 +34,23 @@ output$debaSchemeCsv <- renderUI({
 })
 
 # boxSelectBcChs -> render selectInput
+bcChoices <- reactive({
+
+})
 output$selectBcChs <- renderUI({
     req(input$boxSelectBcChs == 1)
+    chs <- flowCore::colnames(ffDeba())
+    ms <- as.numeric(gsub("[[:alpha:][:punct:]]", "", chs))
+    chs <- chs[!is.na(as.numeric(ms))]
     selectInput(
-        inputId="input_bcChs", label=NULL, 
-        choices=flowCore::colnames(ffDeba()), 
+        inputId="input_bcChs", label=NULL, choices=chs, 
         multiple=TRUE, selectize=FALSE, size=12)
 })
 
 # get debarcoding scheme
 debaKey <- reactive({
     if (!is.null(input$input_bcChs)) {
-        gsub("[[:alpha:][:punct:]]", "", input$input_bcChs)
+        as.numeric(gsub("[[:alpha:][:punct:]]", "", input$input_bcChs))
     } else if (!is.null(input$debaSchemeCsv)) {
         read.csv(input$debaSchemeCsv$datapath, check.names=FALSE, row.names=1)
     }
@@ -91,35 +96,33 @@ observeEvent(input$box_estCutoffs, {
     vals$dbFrame2 <- estCutoffs(vals$dbFrame1)
 })
 
-# toggle UIs
-observe({
-    x <- input$box_adjustCutoff
-    toggle(id="adjustCutoffUI", condition=x)
-})
-observe({
-    x <- input$box_globalCutoff
-    toggle(id="globalCutoffUI", condition=x)
-})
-
 # ------------------------------------------------------------------------------
 # cutoff adjustment
 # ------------------------------------------------------------------------------
 
+# toggle UI
+observe({
+    x <- input$box_adjustCutoff
+    toggle(id="adjustCutoffUI", condition=x)
+})
+
 # selectInput choices
-adjustCutoffChoices <- reactive(rownames(debaKey()))
+adjustCutoffChoices <- reactive({
+    req(dbFrame())
+    rownames(bc_key(dbFrame()))
+})
 
 # renderUI if checkboxInput == 1
 output$adjustCutoffUI <- renderUI({
     adjustCutoffUI(
         dbFrame=vals$dbFrame2, 
-        choices=adjustCutoffChoices(), 
-        selected=1)
+        choices=adjustCutoffChoices())
 })
 
 # synchronize selectInput & numericInput w/ yield plot
 observe({
     x <- input$select_yieldPlot
-    req(x != 0)
+    req(!is.null(x), x != 0)
     updateSelectInput(session, "select_adjustCutoff", selected=x)
     updateNumericInput(session, "input_adjustCutoff", 
         value=paste(sep_cutoffs(vals$dbFrame2)[x]))
@@ -139,6 +142,12 @@ observeEvent(input$button_adjustCutoff, {
 # ------------------------------------------------------------------------------
 # global separation cutoff
 # ------------------------------------------------------------------------------
+
+# toggle UI
+observe({
+    x <- input$box_globalCutoff
+    toggle(id="globalCutoffUI", condition=x)
+})
 
 # renderUI if checkboxInput == 1
 output$globalCutoffUI <- renderUI(globalCutoffUI)
@@ -165,8 +174,8 @@ dbFrame <- reactive({
 
 # inputSelect choices
 yieldPlotChoices <- reactive({
-    req(debaKey())
-    ids <- rownames(debaKey())
+    req(vals$dbFrame1)
+    ids <- rownames(bc_key(vals$dbFrame1))
     setNames(c(0, ids), c("All", ids))
 })
 eventPlotChoices <- reactive({
@@ -182,13 +191,12 @@ mahalPlotChoices <- reactive({
 # render UIs
 output$yieldPlotPanel <- renderUI({
     x <- yieldPlotChoices()
-    y <- input$select_yieldPlot
-    if (!is.null(x)) 
-        yieldPlotPanel(x, y)
+    req(x)
+    yieldPlotPanel(x)
 })
 output$eventPlotPanel <- renderUI({
     x <- eventPlotChoices()
-    y <- input$select_eventPlot
+    y <- input$select_yieldPlot
     if (!is.null(x)) 
         eventPlotPanel(x, y)
 })
@@ -207,28 +215,28 @@ mahalPlotCofactor <- reactive(input$mahalPlotCofactor)
 output$yieldPlot <- renderPlot({
     req(dbFrame())
     plotYields(
-        dbFrame(), 
-        input$select_yieldPlot)
+        x=dbFrame(), 
+        which=input$select_yieldPlot)
 })
 output$eventPlot <- renderPlot({
     req(dbFrame())
     plotEvents(
-        dbFrame(), 
-        input$select_eventPlot, 
-        eventPlotNEvents())
+        x=dbFrame(), 
+        which=input$select_eventPlot, 
+        n_events=eventPlotNEvents())
 })
 output$mahalPlot <- renderPlot({
     req(dbFrame())
     plotMahal(
-        dbFrame(), 
-        input$select_mahalPlot, 
-        mahalPlotCofactor())
+        x=dbFrame(), 
+        which=input$select_mahalPlot, 
+        cofactor=mahalPlotCofactor())
 })
 
 # renderDataTable: IDs | Counts | Cutoffs | Yields
 output$table_summary <- DT::renderDataTable({ 
-    if (!is.null(dbFrame()))
-        summary_tbl(dbFrame()) 
+    req(dbFrame())
+    summary_tbl(dbFrame()) 
 })
 
 # ------------------------------------------------------------------------------
@@ -322,3 +330,84 @@ observe({
     updateSelectInput(session, "select_yieldPlot", selected=x)
     updateSelectInput(session, "select_eventPlot", selected=x)
 })
+
+# ------------------------------------------------------------------------------
+# download handlers
+# ------------------------------------------------------------------------------
+
+# toggle checkboxes
+observe({
+    req(input$box_IDsAsNms == 1)
+    updateCheckboxInput(session, "box_upldNms", value=FALSE)
+})
+observe({
+    req(input$box_upldNms == 1)
+    updateCheckboxInput(session, "box_IDsAsNms", value=FALSE)
+})
+
+# toggle fileInput: "Upload naming sheet (CSV)"
+observe(toggle(id="input_upldNms", condition=input$box_upldNms))
+
+output$dwnld_debaFcs <- downloadHandler(
+    filename=function() { "fcs.zip" },
+    content =function(file) { 
+        dbFrame <- dbFrame()
+        key <- debaKey()
+        ids <- rownames(bc_key(dbFrame))
+        tmpdir <- tempdir()
+        setwd(tmpdir)
+        inds <- c(0, ids) %in% sort(unique(bc_ids(dbFrame)))
+        if (input$box_IDsAsNms) {
+            CATALYST::outFCS(
+                x=dbFrame, 
+                y=ffDeba(), 
+                out_path=tmpdir) 
+            fileNms <- c("Unassigned", ids)[inds]
+        } else if (input$box_upldNms) {
+            if (is.null(input$input_upldNms)) {
+                showNotification("Please upload a naming.",
+                    type="error", closeButton=FALSE)
+                return()
+            } 
+            smplNms <- read.csv(input$input_upldNms$datapath, header=FALSE)
+            if (nrow(smplNms) < nrow(key)) {
+                showNotification(paste("Only", nrow(smplNms), 
+                    "sample names provided but", nrow(key), "needed."),
+                    type="error", closeButton=FALSE)
+                return()
+            } else if (sum(smplNms[, 1] %in% ids) != nrow(key)) {
+                showNotification(
+                    "Couldn't find a file name for all samples.\n
+                    Please make sure all sample IDs occur\n
+                    in the provided naming scheme.",
+                    type="error", closeButton=FALSE)
+                return()
+            }
+            CATALYST::outFCS(
+                x=dbFrame(), 
+                y=ffDeba(),
+                out_path=tmpdir, 
+                out_nms=paste0(smplNms[, 2], "_", ids))
+            fileNms <- c("Unassigned", paste0(smplNms[, 2], "_", ids))[inds]
+        }
+        zip(zipfile=file, 
+            files=paste0(fileNms, ".fcs")) }, 
+    contentType="application/zip")                        
+
+output$dwnld_debaPlots <- downloadHandler(
+    filename=function() { "yield_event_plots.zip" },
+    content =function(file) { 
+        dbFrame <- dbFrame()
+        tmpdir <- tempdir()
+        setwd(tmpdir)
+        CATALYST::plotYields(
+            x=dbFrame, 
+            which=yieldPlotChoices(), 
+            out_path=tmpdir)
+        CATALYST::plotEvents(
+            x=dbFrame, 
+            out_path=tmpdir, 
+            n_events=250)
+        zip(zipfile=file,
+            files=paste0(c("yield_plot", "event_plot"), ".pdf")) },
+    contentType="application/zip")
