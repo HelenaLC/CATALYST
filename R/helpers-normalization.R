@@ -308,10 +308,12 @@ plotBeadsVsBeads <- function(
     beads, mhlDists, cutoff, tcks, labs) {
     
     maxDist <- ceiling(max(mhlDists))
-    if (maxDist < 50) {
+    if (maxDist <= 50) {
         stp <- 5
-    } else {
+    } else if (maxDist <= 100) {
         stp <- 10
+    } else {
+        stp <- 25
     }
     
     if (!is.null(cutoff)) {
