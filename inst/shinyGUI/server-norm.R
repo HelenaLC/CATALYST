@@ -59,14 +59,15 @@ baseline <- reactive({
             filename=input$fcsNormTo$datapath,
             transformation=FALSE,
             truncate_max_range=FALSE)
-        matrixStats::colMedians(flowCore::exprs(ref_ff)[, beadCols()])
+        colMeans(flowCore::exprs(ref_ff)[, beadCols()])
     } else {
         x <- input$box_normToCurrent
         if (!is.null(x) && x &&
                 !(any(vapply(vals$beadInds, is.null, logical(1))))) 
-            matrixStats::colMedians(matrix(do.call(rbind, lapply(
-                ffsNorm(), function(ff) matrixStats::colMedians(
-                    flowCore::exprs(ff))))), ncol=ncol(ff))
+            colMeans(matrix(do.call(rbind, lapply(seq_along(ffsNorm()), 
+                function(i) colMeans(flowCore::exprs(
+                    ffsNorm()[[i]][vals$beadInds[[i]], beadCols()])))), 
+                ncol=length(beadCols())))
     }
 })
 
@@ -249,7 +250,6 @@ ffsNormed <- reactive({
     req(!(any(vapply(vals$beadInds, is.null, logical(1)))))
     lapply(seq_along(ffsNorm()), function(i) {
         es <- flowCore::exprs(ffsNorm()[[i]])
-        es_t <- asinh(es[, beadCols()]/5)
         # get bead slopes and linearly interpolate at non-bead events
         bead_es <- es[vals$beadInds[[i]], beadCols()]
         bead_ts <- es[vals$beadInds[[i]], timeCol()]
@@ -351,8 +351,10 @@ output$plot_smoothedBeads <- renderPlot(grid.arrange(smoothedBeads()))
 # ------------------------------------------------------------------------------
 # render sample selection, sliderInput & actionButton
 output$mhlCutoffNormUI <- renderUI({
-    req(input$box_removeBeads == 1)
-    mhlCutoffNormUI(smplNmsNorm())
+    req(input$box_removeBeads == 1, mhlDists())
+    mhlCutoffNormUI(
+        samples=smplNmsNorm(), 
+        maxMhlDist=ceiling(max(mhlDists()[[selectedSmplMhl()]])))
 })
 
 # render beads vs. beads panel

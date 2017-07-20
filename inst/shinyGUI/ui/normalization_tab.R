@@ -148,13 +148,13 @@ box_beadGating <- function(samples, selected) {
                         style="default",
                         size="extra-small")),
                 # sample selection
-                div(style=inline,  
+                div(style="display:inline-block; width:25%",  
                     selectInput(
                         inputId="selectSmplGating",
                         label=NULL,
                         choices=samples,
                         selected=samples[[selected]],
-                        width="320px")),
+                        width="100%")),
                 # next sample button
                 div(style=inlineCenter,
                     bsButton(
@@ -199,7 +199,14 @@ box_smoothedBeads <-
         )
     )
 
-mhlCutoffNormUI <- function(samples) {
+mhlCutoffNormUI <- function(samples, maxMhlDist) {
+    if (maxMhlDist <= 50) {
+        step <- 5
+    } else if (maxMhlDist <= 100) {
+        step <- 10
+    } else {
+        step <- 25
+    }
     tagList(
         # previous sample button
         div(style=inlineCenter,
@@ -210,12 +217,12 @@ mhlCutoffNormUI <- function(samples) {
                 style="default",
                 size="extra-small")),
         # sample selection
-        div(style=inline,  
+        div(style="display:inline-block; width:25%",
             selectInput(
                 inputId="selectSmplMhl",
                 label=NULL,
                 choices=samples,
-                width="320px")),
+                width="100%")),
         # next sample button
         div(style=inlineCenter,
             bsButton(
@@ -224,14 +231,14 @@ mhlCutoffNormUI <- function(samples) {
                 icon=icon("chevron-right"),
                 style="default",
                 size="extra-small")),
-        div(style="display:inline-block; width:25%; vertical-align:middle",
+        div(style="display:inline-block; width:25%; vertical-align:top",
             sliderInput(
                 inputId="mhlCutoffNorm", 
                 label=NULL, 
                 min=0, 
-                max=100, 
-                value=0,
-                step=1,
+                max=maxMhlDist, 
+                value=NULL,
+                step=step,
                 width="100%")),
         div(style=inlineCenter,
             bsButton(
