@@ -47,10 +47,10 @@
 #' re <- estCutoffs(x = re)
 #' 
 #' # all barcodes summary plot
-#' plotYields(x = re, which = 0, out_path="/Users/HLC/Desktop")
+#' plotYields(x = re, which = 0)
 #' 
 #' # plot for specific sample
-#' plotYields(x = re, which = "C1", out_path="/Users/HLC/Desktop")
+#' plotYields(x = re, which = "C1")
 #'
 #' @references 
 #' Zunder, E.R. et al. (2015).
