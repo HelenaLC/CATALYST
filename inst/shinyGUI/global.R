@@ -11,7 +11,14 @@ library(flowCore)
 library(magrittr)
 library(DT)
 
-source("ui/aes.R")
-source("ui/normalization_tab.R")
-source("ui/debarcoding_tab.R")
-source("ui/compensation_tab.R")
+source("ui-normalization.R")   
+source("ui-debarcoding.R")
+source("ui-compensation.R")
+
+source("module-yieldPlot.R")
+source("module-debaPars.R")
+
+# helper to force collapse shinydashboard::box
+collapseBox <- "shinyjs.collapse=function(boxId){
+$('#'+boxId).closest('.box').not('.collapsed-box')
+.find('[data-widget=collapse]').click();}"
