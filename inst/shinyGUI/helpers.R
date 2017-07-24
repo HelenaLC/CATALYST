@@ -1,4 +1,38 @@
 # ==============================================================================
+# check validity of barcoding scheme CSV
+# ------------------------------------------------------------------------------
+
+checkKey <- function(key, ff) {
+    if (any(rownames(key) == "") || 
+            length(unique(rownames(key))) != nrow(key)) {
+        showNotification(
+            "BARCODING SCHEME INVALID:
+            All samples need to be given a 
+            non-empty and unique name.",
+            type="error", duration=NULL)
+        return(FALSE)
+    }
+    test <- tryCatch(CATALYST::assignPrelim(
+        x=ff[1:10, ], y=key, verbose=FALSE), error=function(e) e)
+    if (inherits(test, "error")) {
+        showNotification(
+            "BARCODING SCHEME INVALID:
+            Column names need to be numeric masses
+            and match with measurement parameters.",
+            type="error", duration=NULL)
+        return(FALSE)
+    } 
+    if (any(!unlist(c(key)) %in% c(0, 1))) {
+        showNotification(
+            "BARCODING SCHEME INVALID:
+            Only binary values are allowed.",
+            type="error", duration=NULL)
+        return(FALSE)
+    }
+    return(TRUE)
+}
+
+# ==============================================================================
 # debarcoding summary table: 
 # IDs | Counts | Cutoffs | Yields
 # ------------------------------------------------------------------------------
@@ -13,7 +47,8 @@ summary_tbl <- function(x) {
         sapply(ids, function(k) sum(bc_ids(x) == k)), 
         sep_cutoffs(x), round(yields, 4) * 100), ncol=4)
     colnames(tbl) <- c("IDs", "Counts", "Cutoffs", "Yields")
-    cols <- colorRampPalette(RColorBrewer::brewer.pal(11, "RdYlGn")[-c(1, 11)])(100)
+    cols <- colorRampPalette(
+        RColorBrewer::brewer.pal(11, "RdYlGn")[-c(1, 11)])(100)
     if (nrow(bc_key(x)) < 21) {
         dom <- "t"
     } else {

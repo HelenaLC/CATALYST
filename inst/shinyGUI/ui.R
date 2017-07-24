@@ -27,6 +27,7 @@ header$children[[3]]$children <- tagList(
 
 sidebar <- dashboardSidebar(
     sidebarMenu(
+        id="tabs",
         menuItem(
             text="Normalization", 
             tabName="normalization", 
