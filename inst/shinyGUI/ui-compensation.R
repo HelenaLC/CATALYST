@@ -2,13 +2,13 @@
 # compensation tab
 # ==============================================================================
 
-editFCS <- function() {
-    modalDialog(
-        title="FCS file editing",
-        footer=modalButton("Done"),
-        size="l"
-    )
-}
+# editFCS <- function() {
+#     modalDialog(
+#         title="FCS file editing",
+#         footer=modalButton("Done"),
+#         size="l"
+#     )
+# }
 
 compensationTab <- fluidPage(
     tags$style("#plotSpillmat{height:100vh !important; width:100%}"),
