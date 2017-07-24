@@ -20,10 +20,10 @@ ffsComp <- reactive({
     }
 })
 
-observe({
-    req(ffsComp(), spillMat())
-    showModal(editFCS())
-})
+# observe({
+#     req(ffsComp(), spillMat())
+#     showModal(editFCS())
+# })
 
 # expand sidebar once data has been uploaded
 output$compensationSidebar1 <- renderUI({
