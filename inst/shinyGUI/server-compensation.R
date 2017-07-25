@@ -5,7 +5,9 @@
 # get input flowFrames: 
 # use debarcoded samples or read input FCS files
 ffsComp <- reactive({
-    if (vals$keepDataDeba) {
+    if (vals$alterPars) {
+        vals$newMp
+    } else if (vals$keepDataDeba) {
         ids <- sort(unique(bc_ids(dbFrameDeba())))
         ids <- ids[ids != 0]
         lapply(ids, function(id) 
@@ -20,10 +22,87 @@ ffsComp <- reactive({
     }
 })
 
-# observe({
-#     req(ffsComp(), spillMat())
-#     showModal(editFCS())
-# })
+# render FCS file editing modal
+observe({
+    req(chInds(), !vals$checkPars)
+    inds <- chInds()
+    showModal(editFCS())
+    output$chList1 <- renderUI(chList(ffControls(),   inds[[1]], "ss"))
+    output$chList2 <- renderUI(chList(ffsComp()[[1]], inds[[2]], "mp"))
+    vals$checkPars <- TRUE
+})
+
+# get indicies of masses matching between
+# multiplexed and single-stained flowFrames
+chInds <- reactive({
+    req(ffsComp(), ffControls())
+    chs1 <- flowCore::colnames(ffControls())
+    chs2 <- flowCore::colnames(ffsComp()[[1]])
+    ms1 <- gsub("[[:punct:][:alpha:]]", "", chs1)
+    ms2 <- gsub("[[:punct:][:alpha:]]", "", chs2)
+    ex1 <- is.na(as.numeric(ms1))
+    ex2 <- is.na(as.numeric(ms2))
+    ms <- intersect(ms1[!ex1], ms2[!ex2])
+    inds1 <- ms1 %in% ms
+    inds2 <- ms2 %in% ms
+    list(inds1, inds2)
+})
+
+# color textInputs depending on (mis)match between metals
+observe({
+    req(input$ss1)
+    inds <- chInds()
+    chs1 <- flowCore::colnames(ffControls())  [inds[[1]]]
+    chs2 <- flowCore::colnames(ffsComp()[[1]])[inds[[2]]]
+    mets1 <- gsub("[[:punct:][:digit:]+Di]", "", chs1)
+    mets2 <- gsub("[[:punct:][:digit:]+Di]", "", chs2)
+    diff <- mets1 != mets2
+    n <- length(diff)
+    cols <- rep("#cce698", n)
+    cols[diff] <- "#ffcccc"
+    for (i in 1:2) {
+        id <- c("ss", "mp")[i] 
+        for (j in seq_len(n)) {
+            js$textInputCol(id=paste0(id, j), col=cols[j])
+        }
+    }
+})
+
+# bsButton: "Done":
+# alter parameter names of input flowFrames
+observeEvent(input$done, {
+    inds <- chInds()
+    chs1 <- flowCore::colnames(ffControls())  [inds[[1]]]
+    chs2 <- flowCore::colnames(ffsComp()[[1]])[inds[[2]]]
+    mets1 <- gsub("[[:punct:][:digit:]+Di]", "", chs1)
+    mets2 <- gsub("[[:punct:][:digit:]+Di]", "", chs2)
+    diff <- mets1 != mets2
+    n <- length(diff)
+    # single-stained
+    ss <- ffControls()
+    pars <- flowCore::colnames(ss)
+    pars[inds[[1]]] <- sapply(seq_len(n), 
+        function(i) input[[paste0("ss", i)]])
+    vals$newSs <- new_ff(
+        data=flowCore::exprs(ss),
+        pars=pars,
+        desc=ss@parameters@data$desc)
+    # multiplexed
+    mp <- ffsComp()
+    vals$newMp <- 
+        lapply(seq_along(mp), function(i) {
+            ff <- mp[[i]]
+            pars <- flowCore::colnames(ff)
+            pars[inds[[2]]] <- sapply(seq_len(n), 
+                function(i) input[[paste0("mp", i)]])
+            new_ff(
+                data=flowCore::exprs(ff),
+                pars=pars,
+                desc=ff@parameters@data$desc)
+        })
+    vals$alterPars <- TRUE
+    removeModal()
+})
 
 # expand sidebar once data has been uploaded
 output$compensationSidebar1 <- renderUI({
@@ -56,11 +135,15 @@ output$uploadControls <- renderUI({
 
 # get flowFrame of single-stained controls
 ffControls <- reactive({
-    req(input$controlsFCS)
-    flowCore::read.FCS(
-        filename=input$controlsFCS$datapath,
-        transformation=FALSE,
-        truncate_max_range=FALSE)
+    if (vals$alterPars) {
+        vals$newSs
+    } else {
+        req(input$controlsFCS)
+        flowCore::read.FCS(
+            filename=input$controlsFCS$datapath,
+            transformation=FALSE,
+            truncate_max_range=FALSE)
+    }
 })
 
 # render selectInput and bsButton
@@ -303,6 +386,8 @@ output$compensationSidebar2 <- renderUI({
 # ------------------------------------------------------------------------------
 # before vs. after compensation scatters
 # ------------------------------------------------------------------------------
+
+# render UI
 output$panel_scatters <- renderUI({
     req(spillMat())
     panel_scatters(samples=input$fcsComp$name)
@@ -459,13 +544,16 @@ output$text_info2 <- renderText({
 # download handlers
 # ------------------------------------------------------------------------------
 
+# get output file names
 smplNmsComp <- reactive({
     if (vals$keepDataDeba) {
-        smplNmsDeba()
+        dbFrame <- dbFrameDeba()
+        ids <- rownames(bc_key(dbFrame))
+        paste0(smplNmsDeba(), "_comped.fcs")[
+            c(0, ids) %in% sort(unique(bc_ids(dbFrame)))]
     } else {
         req(input$fcsComp)
-        print(input$fcsComp$name)
-        input$fcsComp$name
+        gsub(".fcs", "_comped.fcs", input$fcsComp$name, ignore.case=TRUE)
     }
 })
 
@@ -476,20 +564,19 @@ output$dwnld_comped <- downloadHandler(
     content=function(file) { 
         tmpdir <- tempdir()
         setwd(tmpdir)
-        outNms <- gsub(".fcs", "_comped.fcs", 
-            input$fcsComp$name, ignore.case=TRUE)
         ffs <- ffsComped()
+        fileNms <- smplNmsComp()
         if (input$box_setToZero) {
             lapply(seq_along(ffs), function(i) {
                 flowCore::exprs(ffs[[i]])[flowCore::exprs(ffs[[i]]) < 0] <- 0
-                suppressWarnings(flowCore::write.FCS(ffs[[i]], outNms[i])) 
+                suppressWarnings(flowCore::write.FCS(ffs[[i]], fileNms[i])) 
             })
         } else {
             lapply(seq_along(ffs), function(i) {
-                suppressWarnings(flowCore::write.FCS(ffs[[i]], outNms[i]))
+                suppressWarnings(flowCore::write.FCS(ffs[[i]], fileNms[i]))
             })
         }
-        zip(zipfile=file, files=outNms)
+        zip(zipfile=file, files=fileNms)
     },
     contentType="application/zip"
 )

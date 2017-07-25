@@ -3,11 +3,12 @@
 # ==============================================================================
 
 normalizationTab <- fluidPage(
-    useShinyjs(),
+    shinyjs::useShinyjs(),
     extendShinyjs(text=collapseBox),
-    tags$head(tags$style("#plot_smoothedBeads {height:100vh !important;}")),
-    tags$head(tags$style(HTML(".small-box{height:96px; margin-bottom:0px}"))),
-    tags$head(tags$style("#dwnld_normResults {color:white; width:100%}")),
+    tags$style("#plot_smoothedBeads {height:100vh !important;}"),
+    tags$style(HTML(".small-box{height:96px; margin-bottom:0px}")),
+    tags$style("#dwnld_normResults {
+        display:inline-block; color:white; width:49%; float:right}"),
     tags$style(HTML(".shiny-plot-output {display:inline-block}")),
     fluidRow(
         column(width=3, 
@@ -133,12 +134,11 @@ box4 <- shinydashboard::box(
         placement="left",
         title=NULL,
         content="<span style=color:firebrick>Data will be concatenated<br>if multiple files were uploaded</span>"),
-    div(style="display:inline-block; width:49%; float:right",
-        downloadButton(
-            outputId="dwnld_normResults", 
-            label="Normalized data", 
-            class="btn-success",
-            disabled=TRUE))
+    downloadButton(
+        outputId="dwnld_normResults", 
+        label="Normalized data", 
+        class="btn-success",
+        disabled=TRUE)
 )
 
 # ------------------------------------------------------------------------------
@@ -179,8 +179,9 @@ box_beadGating <- function(samples) {
                     bsButton(
                         inputId="gateBeads", 
                         label=NULL,
-                        icon=icon("object-ungroup"),
-                        style="default",
+                        icon=icon("share"),
+                        style="error",
+                        size="small"
                         disabled=TRUE)),
                 bsTooltip(
                     id="gateBeads", 
@@ -214,7 +215,7 @@ box_smoothedBeads <-
 # ------------------------------------------------------------------------------
 # bead removal box 
 # ------------------------------------------------------------------------------
-mhlCutoffNormUI <- function(samples, maxMhlDist) {
+mhlCutoffNormUI <- function(samples, selected, maxMhlDist) {
     tagList(
         # previous sample button
         div(style="display:inline-block; vertical-align:center",
@@ -230,6 +231,7 @@ mhlCutoffNormUI <- function(samples, maxMhlDist) {
                 inputId="selectSmplMhl",
                 label=NULL,
                 choices=samples,
+                selected=samples[selected],
                 width="100%")),
         # next sample button
         div(style="display:inline-block; vertical-align:center",
