@@ -1,4 +1,27 @@
 # ==============================================================================
+# FCS file editing
+# ------------------------------------------------------------------------------
+
+new_ff <- function(data, pars, desc){
+    colnames(data) <- pars
+    params <- data.frame(list(name=pars, desc=desc))
+    params$minRange <- apply(data, 2, function(x) min(min(x), 0))
+    params$maxRange <- apply(data, 2, max)
+    params$range <- params$maxRange - params$minRange
+    params <- Biobase::AnnotatedDataFrame(params)
+    row.names(params) <- paste0('$P', seq_len(nrow(params)))
+
+    desc <- list()
+    for (i in seq_len(nrow(params))){
+        nm <- row.names(params)[i]
+        desc[paste0(nm, 'N')] <- as.character(params$name[i])
+        desc[paste0(nm, 'S')] <- as.character(params$desc[i])
+        desc[paste0(nm, 'R')] <- params$range[i]
+    }
+    flowCore::flowFrame(data, params, desc)
+}
+
+# ==============================================================================
 # check validity of barcoding scheme CSV
 # ------------------------------------------------------------------------------
 
@@ -46,7 +69,7 @@ summary_tbl <- function(x) {
     tbl <- matrix(c(paste0("<b>", ids, "</b>"), 
         sapply(ids, function(k) sum(bc_ids(x) == k)), 
         sep_cutoffs(x), round(yields, 4) * 100), ncol=4)
-    colnames(tbl) <- c("IDs", "Counts", "Cutoffs", "Yields")
+    colnames(tbl) <- c("ID", "Count", "Cutoff", "Yield")
     cols <- colorRampPalette(
         RColorBrewer::brewer.pal(11, "RdYlGn")[-c(1, 11)])(100)
     if (nrow(bc_key(x)) < 21) {

@@ -170,7 +170,7 @@ observeEvent(input$button_mhlCutoffDeba, {
 # apply cutoffs if deconvolution parameters change
 dbFrameDeba <- reactive({
     req(vals$dbFrame2Deba)
-    applyCutoffs(vals$dbFrame2Deba, vals$mhlCutoffDeba)
+    CATALYST::applyCutoffs(x=vals$dbFrame2Deba, mhl_cutoff=vals$mhlCutoffDeba)
 })
 
 # ------------------------------------------------------------------------------
