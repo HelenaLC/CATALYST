@@ -2,15 +2,41 @@
 # compensation tab
 # ==============================================================================
 
-# editFCS <- function() {
-#     modalDialog(
-#         title="FCS file editing",
-#         footer=modalButton("Done"),
-#         size="l"
-#     )
-# }
+chList <- function(ff, inds, id) {
+    chs <- flowCore::colnames(ff)
+    n <- sum(inds)
+    chList <- lapply(seq_len(n), function(i) {
+        textInput(
+            inputId=paste0(id, i),
+            label=NULL,
+            value=chs[inds][i],
+            width="100%")
+    })
+    do.call(tagList, chList)
+}
+
+editFCS <- function() {
+    modalDialog(
+        fluidPage(
+            column(
+                width=6,
+                style="padding:10px",
+                uiOutput("chList1")
+            ),
+            column(
+                width=6,
+                style="padding:10px",
+                uiOutput("chList2")
+            )
+        ),
+        title=strong("FCS file editing"),
+        footer=shinyBS::bsButton(inputId="done", label="Done"),
+        size="m"
+    )
+}
 
 compensationTab <- fluidPage(
+    shinyjs::extendShinyjs(text=textInputCol),
     tags$style("#plotSpillmat{height:100vh !important; width:100%}"),
     sidebarLayout(
         position="left",

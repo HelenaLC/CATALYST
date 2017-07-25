@@ -14,11 +14,11 @@ yieldPlotModule <- function(sampleIDs, module) {
                         icon=icon("chevron-left"),
                         size="extra-small")),
                 # which channel selectInput
-                div(style="display:inline-block",
+                div(style="display:inline-block; width:25%",
                     selectInput(
                         inputId=paste0("select_yieldPlot", module),
                         label=NULL, 
-                        width="120px",
+                        width="100%",
                         choices=sampleIDs)),
                 # next channel button
                 div(style="display:inline-block; vertical-align:middle",
