@@ -30,8 +30,7 @@ debarcodingTab <- fluidPage(
                 accept=".fcs", 
                 width="100%"),
             uiOutput("debarcodingSidebar1"),
-            uiOutput("debarcodingSidebar2"),
-            uiOutput("debarcodingSidebar3"))
+            uiOutput("debarcodingSidebar2"))
     )
 )
 
@@ -61,7 +60,7 @@ debarcodingSidebar2 <- tagList(
     tags$head(tags$style("#yieldPlotDeba{height:70vh !important;}")),
     tags$head(tags$style("#summaryTblDeba{height:100vh !important;}")),
     tags$style(type="text/css", "#dwnld_debaFcs {
-        display:inline-block; color:white; width:49%; float:left}"),
+        display:inline-block; color:white; width:49%; float:right}"),
     debaParsModule(module="Deba"),
     hr(style="border-color:black"),
     # checkboxes for output FCS file naming
@@ -72,21 +71,24 @@ debarcodingSidebar2 <- tagList(
     checkboxInput(
         inputId="box_upldNms",  
         label="Upload naming sheet (CSV)"),
+    # fileInput for naming sheet CSV
     fileInput(
         inputId="input_upldNms", 
         label=helpText("This should be a 2 column sheet with
             sample IDs and the desired output filenames."), 
         accept=".csv"),
+    # bsButton: "Go to compensation"
     div(style="display:inline-block; width:49%; float:left",
         bsButton(
             inputId="goToComp",
             label="Go to compensation",
             width="100%")),
-    div(style="display:inline-block; width:49%; float:right",
-        downloadButton(
-            outputId="dwnld_debaFcs", 
-            label="FCS files", 
-            class="btn-success"))
+    # downloadButton
+    downloadButton(
+        outputId="dwnld_debaFcs", 
+        label="FCS files", 
+        class="btn-success",
+        width="100%")
 )
 
 # ------------------------------------------------------------------------------

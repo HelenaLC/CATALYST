@@ -23,6 +23,8 @@ shinyServer(function(input, output, session) {
         dbFrame2Deba = NULL, # dbFrame with deconvolution parameters applied
         mhlCutoffDeba = 30,  # default Mahalanobis distance cutoff
 # compensation
+        checkPars = FALSE,
+        alterPars = FALSE,
         dbFrame1Comp = NULL, # preliminary dbFrame
         dbFrame2Comp = NULL, # dbFrame with deconvolution parameters applied
         mhlCutoffComp = 30,  # default Mahalanobis distance cutoff

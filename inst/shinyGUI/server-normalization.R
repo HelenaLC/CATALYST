@@ -360,6 +360,7 @@ output$mhlCutoffNormUI <- renderUI({
     req(input$box_removeBeads == 1, mhlDists())
     mhlCutoffNormUI(
         samples=smplNmsNorm(), 
+        selected=selectedSmplMhl(),
         maxMhlDist=ceiling(max(mhlDists()[[selectedSmplMhl()]])))
 })
 
@@ -424,33 +425,36 @@ output$dwnld_normResults <- downloadHandler(
         ggsave("beads_before_vs_after.pdf", width=12, height=8, plot=gt)
         # write FCS files of normalized data,
         # beads, and removed events
+        raw <- ffsNorm()
+        normed <- ffsNormed()
         nms <- gsub(".fcs", "", smplNmsNorm(), ignore.case=TRUE)
         outNms <- rbind(
             paste0(nms, "_normed.fcs"),
             paste0(nms, "_beads.fcs"),
             paste0(nms, "_removed.fcs"))
         if (input$box_removeBeads) {
-            sapply(seq_along(ffsNorm()), function(i) {
+            dists <- mhlDists()
+            sapply(seq_along(raw), function(i) {
                 beads <- vals$beadInds[[i]]
-                removed <- mhlDists()[[i]] < vals$mhlCutoffs[i]
+                removed <- dists[[i]] < vals$mhlCutoffs[i]
                 suppressWarnings(flowCore::write.FCS(
-                    x=ffsNormed()[[i]][!removed, ], 
+                    x=normed[[i]][!removed, ], 
                     filename=outNms[1, i]))
                 suppressWarnings(flowCore::write.FCS(
-                    x=ffsNorm()[[i]][beads, ],  
+                    x=raw[[i]][beads, ],  
                     filename=outNms[2, i]))
                 suppressWarnings(flowCore::write.FCS(
-                    x=ffsNormed()[[i]][removed, ], 
+                    x=normed[[i]][removed, ], 
                     filename=outNms[3, i]))
             })
         } else {
-            sapply(seq_along(ffsNorm()), function(i) {
+            sapply(seq_along(raw), function(i) {
             beads <- vals$beadInds[[i]]
             suppressWarnings(flowCore::write.FCS(
-                x=ffsNormed()[[i]],
+                x=normed[[i]],
                 filename=outNms[1, i]))
             suppressWarnings(flowCore::write.FCS(
-                x=ffsNorm()[[i]][beads, ],  
+                x=raw[[i]][beads, ],  
                 filename=outNms[2, i]))
             })
         }
