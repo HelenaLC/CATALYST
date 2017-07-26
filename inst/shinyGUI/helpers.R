@@ -2,7 +2,7 @@
 # FCS file editing
 # ------------------------------------------------------------------------------
 
-new_ff <- function(data, pars, desc){
+new_ff <- function(data, pars, desc) {
     colnames(data) <- pars
     params <- data.frame(list(name=pars, desc=desc))
     params$minRange <- apply(data, 2, function(x) min(min(x), 0))
@@ -81,7 +81,7 @@ summary_tbl <- function(x) {
         escape=FALSE, extensions="FixedHeader",
         options=list(scrollY=TRUE, ordering=FALSE, selection=FALSE, 
             searching=FALSE, info=FALSE, pageLength=20, dom=dom)) %>% 
-        DT::formatStyle("Yields", 
+        DT::formatStyle("Yield", 
             backgroundColor=DT::styleInterval(cuts=1:99, values=cols))
 }
 

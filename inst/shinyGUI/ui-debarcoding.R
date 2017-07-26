@@ -3,7 +3,6 @@
 # ==============================================================================
 
 debarcodingTab <- fluidPage( 
-    shinyjs::useShinyjs(),
     tags$style(type="text/css", "a{color:steelblue; font-weight:bold}"),
     sidebarLayout(
         mainPanel(

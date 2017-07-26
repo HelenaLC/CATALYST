@@ -1,5 +1,5 @@
-# set maximum web request size to 500 MB
-options(shiny.maxRequestSize=500*1024^2)
+# set maximum web request size to 2 GB
+options(shiny.maxRequestSize=2000*1024^2)
 
 shinyServer(function(input, output, session) {
     
@@ -23,6 +23,7 @@ shinyServer(function(input, output, session) {
         dbFrame2Deba = NULL, # dbFrame with deconvolution parameters applied
         mhlCutoffDeba = 30,  # default Mahalanobis distance cutoff
 # compensation
+        compFiles = FALSE,
         checkPars = FALSE,
         alterPars = FALSE,
         dbFrame1Comp = NULL, # preliminary dbFrame

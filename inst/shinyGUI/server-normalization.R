@@ -358,10 +358,11 @@ output$plot_smoothedBeads <- renderPlot(grid.arrange(smoothedBeads()))
 # render sample selection, sliderInput & actionButton
 output$mhlCutoffNormUI <- renderUI({
     req(input$box_removeBeads == 1, mhlDists())
+    x <- selectedSmplMhl()
     mhlCutoffNormUI(
         samples=smplNmsNorm(), 
-        selected=selectedSmplMhl(),
-        maxMhlDist=ceiling(max(mhlDists()[[selectedSmplMhl()]])))
+        selected=x,
+        maxMhlDist=ceiling(max(mhlDists()[[x]])))
 })
 
 # render beads vs. beads panel

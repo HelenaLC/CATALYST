@@ -12,7 +12,8 @@ library(magrittr)
 library(DT)
 
 # helper to style textInput
-textInputCol <- 'shinyjs.textInputCol = function(pars) {
+styleTextInput <- 'shinyjs.textInputCol=function(pars) {
+    console.log(pars.id);
     $("#"+pars.id).css("background-color",pars.col)
     .css("height","24px").css("line-height","12px")
     .css("padding-top","6px").css("padding-bottom","6px")
@@ -27,6 +28,7 @@ collapseBox <- "shinyjs.collapse=function(boxId){
 source("module-yieldPlot.R")
 source("module-debaPars.R")
 
+source("ui-concatenation.R")
 source("ui-normalization.R")   
 source("ui-debarcoding.R")
 source("ui-compensation.R")
