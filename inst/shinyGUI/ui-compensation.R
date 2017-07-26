@@ -36,7 +36,7 @@ editFCS <- function() {
 }
 
 compensationTab <- fluidPage(
-    shinyjs::extendShinyjs(text=textInputCol),
+    shinyjs::extendShinyjs(text=styleTextInput),
     tags$style("#plotSpillmat{height:100vh !important; width:100%}"),
     sidebarLayout(
         position="left",
