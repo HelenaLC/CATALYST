@@ -10,10 +10,12 @@ ffsComp <- reactive({
     } else if (vals$keepDataDeba) {
         ids <- sort(unique(bc_ids(dbFrameDeba())))
         ids <- ids[ids != 0]
+        vals$compFiles <- TRUE
         lapply(ids, function(id) 
             ffDeba()[bc_ids(dbFrameDeba()) == id, ])
     } else {
         req(input$fcsComp) 
+        vals$compFiles <- TRUE
         lapply(seq_len(nrow(input$fcsComp)), function(i) 
             flowCore::read.FCS(
                 filename=input$fcsComp[[i, "datapath"]],
@@ -94,7 +96,7 @@ observeEvent(input$done, {
             ff <- mp[[i]]
             pars <- flowCore::colnames(ff)
             pars[inds[[2]]] <- sapply(seq_len(n), 
-                function(i) input[[paste0("mp", i)]])
+                function(j) input[[paste0("mp", j)]])
             new_ff(
                 data=flowCore::exprs(ff),
                 pars=pars,
@@ -106,7 +108,7 @@ observeEvent(input$done, {
 
 # expand sidebar once data has been uploaded
 output$compensationSidebar1 <- renderUI({
-    req(ffsComp())
+    req(isTRUE(vals$compFiles))
     compensationSidebar1
 })
 
@@ -374,6 +376,8 @@ output$plotSpillmat <- renderPlot({
 # compensate input flowFrame(s)
 ffsComped <- reactive({
     req(vals$sm)
+    print(is.list(ffsComp()))
+    print(compCytof(ffsComp()[[1]], vals$sm))
     lapply(ffsComp(), CATALYST::compCytof, vals$sm)
 })
 
