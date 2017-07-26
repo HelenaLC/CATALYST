@@ -220,7 +220,8 @@ output$yieldPlotDeba <- renderPlot({
     req(dbFrameDeba())
     plotYields(
         x=dbFrameDeba(), 
-        which=selectedYieldPlotDeba())
+        which=selectedYieldPlotDeba(),
+        legend=FALSE)
 })
 output$eventPlot <- renderPlot({
     req(dbFrameDeba())
