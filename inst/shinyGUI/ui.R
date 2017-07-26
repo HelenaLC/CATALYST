@@ -27,10 +27,10 @@ header$children[[3]]$children <- tagList(
 
 sidebar <- dashboardSidebar(
     sidebarMenu(
-        menuItem(
-            text="Concatenation", 
-            tabName="concatenation", 
-            icon=icon("clone")),
+        # menuItem(
+        #     text="Concatenation", 
+        #     tabName="concatenation", 
+        #     icon=icon("clone")),
         menuItem(
             text="Normalization", 
             tabName="normalization", 
@@ -48,7 +48,7 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
     tabItems(
-        tabItem(tabName="concatenation", concatenationTab),
+        #tabItem(tabName="concatenation", concatenationTab),
         tabItem(tabName="normalization", normalizationTab),
         tabItem(tabName="debarcoding",   debarcodingTab),
         tabItem(tabName="compensation",  compensationTab)
