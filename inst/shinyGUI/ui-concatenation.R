@@ -13,12 +13,6 @@ concatenationTab <- fluidPage(
                     label=NULL
                 )
             )
-        ),
-        column(
-            width=3,
-            shinydashboard::box(
-                uiOutput("")
-            )
         )
     )
 )
