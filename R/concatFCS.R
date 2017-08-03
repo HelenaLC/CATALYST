@@ -12,11 +12,14 @@
 #' can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
 #' a character specifying the location of the FCS files to be concatinated, 
 #' or a vector of FCS file names.
-#' 
 #' @param out_path
 #' an optional character string. If specified, an FCS file 
 #' of the concatinated data will be written to this location. 
 #' If NULL (default), a \code{\link{flowFrame}} will be returned.
+#' @param by_time logical. 
+#' Specifies whether files should be ordered by time of acquisition.
+#' @param file_num logical. 
+#' Specifies whether a file number column should be added.
 #'
 #' @return 
 #' a \code{\link{flowFrame}} containing measurement intensities 
@@ -35,31 +38,78 @@
 
 setMethod(f="concatFCS",
     signature=signature(x="flowSet"),
-    definition=function(x, out_path=NULL) {
+    definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE) {
         
-        chs <- flowCore::colnames(x)
-        es <- flowCore::fsApply(x, flowCore::exprs)
-        n <- flowCore::fsApply(x, nrow)
-        t <- grep("time", chs, TRUE)
-
-        start <- c(1, cumsum(n)+1)
+        n <- length(x)
+        if (by_time) {
+            # order by time
+            bts <- keyword(x, "$BTIM")
+            o <- order(bts)
+            x <- x[o]
+        } else {
+            o <- seq_len(n)
+        }
+        nPars <- ncol(x[[1]])
+        nEvents <- as.numeric(keyword(x, "$TOT"))
+        
+        # concatenate
+        es <- fsApply(x, exprs)
+        timeCol <- grep("time", colnames(x), ignore.case=TRUE)
+        start <- c(1, cumsum(nEvents)+1)
         end <- start[-1]-1
         for (i in seq_along(x)[-1]) {
             inds <- start[i]:end[i]
-            es[inds, t] <- es[inds, t] + es[end[i-1], t]
+            es[inds, timeCol] <- es[inds, timeCol]+es[end[i-1], timeCol]
         }
         
-        ff <- new("flowFrame", exprs=es, description=list())
-        flowCore::parameters(ff)$desc <- flowCore::parameters(x[[1]])$desc
+        # get descriptions
+        d <- description(x[[1]])
+        d$`$TOT` <- sum(nEvents)
+        d$`GUID` <- gsub("_\\d+.fcs", "_concat.fcs", 
+            d$ORIGINALGUID, ignore.case=TRUE)
+        d <- d[!names(d) %in% c("$FIL", "FILENAME", "ORIGINALGUID")]
+        d$`FILE LIST` <- paste(paste0(seq_len(n), 
+            "-", keyword(x, "ORIGINALGUID")), collapse=",")
+        d$`$BTIM` <- d$`$BTIM`
+        d$`$ETIM` <- description(x[[n]])$`$ETIM`
+        d$`$COM` <- "FCS files concatenated by CATALYST"
+        d[paste0("$P", seq_len(nPars), "R")] <- df$range
+        d$transformation <- "applied"
         
-        nm <- gsub("_\\d+.fcs", "_concat.fcs", 
-            flowCore::description(x[[1]])$ORIGINALGUID, TRUE)
-        flowCore::description(ff)[c("GUID", "ORIGINALGUID")] <- 
-            flowCore::identifier(ff) <- nm
+        # add file number column
+        if (file_num) {
+            nPars <- nPars+1
+            es <- as.matrix(cbind(es, "FileNum"=
+                    rep(seq_len(n)[o], nEvents[o])))
+            d[paste0("$P", nPars, "B")] <- 32
+            d[paste0("$P", nPars, "E")] <- 0
+            d[paste0("$P", nPars, "N")] <- "FileNum"
+            d[paste0("$P", nPars, "R")] <- n-1
+            d[paste0("$P", nPars, "S")] <- "File Number"
+        }
         
-        if (is.null(out_path)) 
-            return(ff)
-        suppressWarnings(flowCore::write.FCS(ff, file.path(out_path, nm)))
+        # get parameters
+        pars <- colnames(es)
+        PnS <- d[paste0("$P", seq_len(nPars), "S")]
+        PnS[sapply(PnS, is.null)] <- NA
+        
+        mins <- matrixStats::colMins(es)
+        maxs <- matrixStats::colMaxs(es)
+        df <- data.frame(list(
+            name=colnames(es), 
+            desc=unlist(PnS), 
+            range=abs(maxs)-abs(mins),
+            minRange=mins,
+            maxRange=maxs))
+        p <- Biobase::AnnotatedDataFrame(df)
+        rownames(p) <- paste0("$P", seq_len(nPars))
+
+        # construct new flowFrame
+        ff <- flowFrame(exprs=es, parameters=p, description=d)
+
+        if (is.null(out_path)) return(ff)
+        suppressWarnings(flowCore::write.FCS(ff, 
+            file.path(out_path, description(ff)$GUID)))
     })
 
 # ------------------------------------------------------------------------------
@@ -67,7 +117,7 @@ setMethod(f="concatFCS",
 #' @rdname concatFCS
 setMethod(f="concatFCS",
     signature=signature(x="character"),
-    definition=function(x, out_path=NULL) {
+    definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE) {
         if (length(x) == 1) {
             fcs <- list.files(x, ".fcs", full.names=TRUE, ignore.case=TRUE)
         } else {
@@ -82,7 +132,9 @@ setMethod(f="concatFCS",
             if (n == 1) 
                 stop("Only a single FCS file has been found in \"", x,"\"") 
         }
-        concatFCS(lapply(fcs, flowCore::read.FCS), out_path)
+        ffs <- lapply(fcs, flowCore::read.FCS, 
+            transformation=FALSE, truncate_max_range=FALSE)
+        concatFCS(ffs, out_path, by_time, file_num)
     })
 
 # ------------------------------------------------------------------------------
@@ -90,8 +142,8 @@ setMethod(f="concatFCS",
 #' @rdname concatFCS
 setMethod(f="concatFCS",
     signature=signature(x="list"),
-    definition=function(x, out_path=NULL) {
+    definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE) {
         if (length(x) == 1) 
             stop("Only a single flowFrame has been provided.")
-        concatFCS(as(x, "flowSet"), out_path)
+        concatFCS(as(x, "flowSet"), out_path, by_time, file_num)
     })
