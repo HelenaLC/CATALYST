@@ -23,8 +23,7 @@ normalizationTab <- fluidPage(
                 fileInput(
                     inputId="fcsNorm", 
                     label=NULL,
-                    multiple=TRUE,
-                    accept=".fcs"))),
+                    multiple=TRUE))),
         column(
             width=3, 
             style="padding:0px", 
