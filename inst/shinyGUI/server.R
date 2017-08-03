@@ -1,4 +1,4 @@
-d# set maximum web request size to 5 GB
+# set maximum web request size to 5 GB
 options(shiny.maxRequestSize=5000*1024^2)
 
 shinyServer(function(input, output, session) {
