@@ -8,8 +8,8 @@
 \usage{
 plotYields(x, ...)
 
-\S4method{plotYields}{dbFrame}(x, which = 0, annotate = TRUE,
-  legend = TRUE, out_path = NULL, name_ext = NULL)
+\S4method{plotYields}{dbFrame}(x, which = 0, out_path = NULL,
+  name_ext = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
@@ -20,13 +20,6 @@ plotYields(x, ...)
 Valid values are IDs that occur as row names in the \code{bc_key} of the 
 supplied \code{\link{dbFrame}}; 0 (the default) will generate a summary plot 
 with all barcodes.}
-
-\item{annotate}{logical. If TRUE (default) and the \code{sep_cutoffs} slot of the supplied
-\code{\link{dbFrame}} is not empty, vertical lines will be drawn at cutoff
-values and the resulting yield will be included in the plot title.}
-
-\item{legend}{logical. Specifies if a legend should be included. 
-This will only affect the summary plot (\code{which=0}).}
 
 \item{out_path}{a character string. If specified, outputs will be generated 
 in this location. Defaults to NULL.}
