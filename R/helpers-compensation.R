@@ -96,8 +96,9 @@ check_spillMat <- function(sm) {
         stop("\nThe supplied spillover matrix is invalid ",
             "as it contains entries greater than 1.\n",
             "Valid spill values are non-negative and mustn't exceed 1.")
-    sii <- sm[cbind(which(rownames(sm) %in% colnames(sm)), 
-        which(colnames(sm) %in% rownames(sm)))]
+    sii <- sm[cbind(
+        colnames(sm)[colnames(sm) %in% rownames(sm)], 
+        colnames(sm)[colnames(sm) %in% rownames(sm)])]
     if (any(sii != 1))
         stop("\nThe supplied spillover matrix is invalid ",
             "as its diagonal contains entries != 1.\n")
