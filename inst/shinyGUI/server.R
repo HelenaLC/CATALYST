@@ -1,5 +1,5 @@
-# set maximum web request size to 2 GB
-options(shiny.maxRequestSize=2000*1024^2)
+d# set maximum web request size to 5 GB
+options(shiny.maxRequestSize=5000*1024^2)
 
 shinyServer(function(input, output, session) {
     
@@ -9,6 +9,7 @@ shinyServer(function(input, output, session) {
     output$debarcoding_guide  <- renderUI(debarcoding_guide)
     output$compensation_guide <- renderUI(compensation_guide)
 
+    source("server-concatenation.R", local=TRUE)
     source("server-normalization.R", local=TRUE)
     source("server-debarcoding.R",   local=TRUE)
     source("server-compensation.R",  local=TRUE)

@@ -3,15 +3,15 @@
 # ==============================================================================
 
 normalizationTab <- fluidPage(
-    shinyjs::useShinyjs(),
-    extendShinyjs(text=collapseBox),
+    shinyjs::extendShinyjs(text=collapseBox),
     tags$style("#plot_smoothedBeads {height:100vh !important;}"),
     tags$style(HTML(".small-box{height:96px; margin-bottom:0px}")),
     tags$style("#dwnld_normResults {
         display:inline-block; color:white; width:49%; float:right}"),
     tags$style(HTML(".shiny-plot-output {display:inline-block}")),
     fluidRow(
-        column(width=3, 
+        column(
+            width=3, 
             style="padding:0px", 
             shinydashboard::box(
                 title="Upload FCS",
@@ -25,13 +25,16 @@ normalizationTab <- fluidPage(
                     label=NULL,
                     multiple=TRUE,
                     accept=".fcs"))),
-        column(width=3, 
+        column(
+            width=3, 
             style="padding:0px", 
             uiOutput("box2")),
-        column(width=3, 
+        column(
+            width=3, 
             style="padding:0px", 
             uiOutput("box3")),
-        column(width=3, 
+        column(
+            width=3, 
             style="padding:0px", 
             uiOutput("box4"))),
     fluidRow(
@@ -101,7 +104,7 @@ selectInput_customBeads <- function(ff) {
     )
 }
 
-# box 4: "Go to debarcoding" & "Download results"
+# box 4: "Go to compensation" & "Download results"
 box4 <- shinydashboard::box(
     id="box_4",
     width=12, 
@@ -125,8 +128,8 @@ box4 <- shinydashboard::box(
         label="Should beads be removed?"),
     div(style="display:inline-block; width:49%; float:left",
         shinyBS::bsButton(
-            inputId="goToDeba",
-            label="Go to debarcoding",
+            inputId="goToComp",
+            label="Go to compensation",
             disabled=TRUE,
             width="100%")),
     shinyBS::bsPopover(
