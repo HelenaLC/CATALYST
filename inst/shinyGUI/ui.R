@@ -28,21 +28,21 @@ header$children[[3]]$children <- tagList(
 sidebar <- dashboardSidebar(
     sidebarMenu(
         menuItem(
-            text="Concatenation", 
-            tabName="concatenation", 
+            text="Concatenation",
+            tabName="concatenation",
             icon=icon("clone")),
         menuItem(
             text="Normalization", 
             tabName="normalization", 
             icon=icon("balance-scale")),
         menuItem(
-            text="Debarcoding",   
-            tabName="debarcoding",   
-            icon=icon("barcode")),
-        menuItem(
             text="Compensation",  
             tabName="compensation",  
-            icon=icon("cogs"))
+            icon=icon("cogs")),
+        menuItem(
+            text="Debarcoding",   
+            tabName="debarcoding",   
+            icon=icon("barcode"))
     )
 )
 
@@ -50,8 +50,8 @@ body <- dashboardBody(
     tabItems(
         tabItem(tabName="concatenation", concatenationTab),
         tabItem(tabName="normalization", normalizationTab),
-        tabItem(tabName="debarcoding",   debarcodingTab),
-        tabItem(tabName="compensation",  compensationTab)
+        tabItem(tabName="compensation",  compensationTab),
+        tabItem(tabName="debarcoding",   debarcodingTab)
     )
 )
     

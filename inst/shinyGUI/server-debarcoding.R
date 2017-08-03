@@ -4,26 +4,21 @@
 
 # read input FCS
 ffDeba <- reactive({
-    if (vals$keepDataNorm) {
-        if (length(ffsNormed()) == 1) {
-            ff <- ffsNormed()[[1]]
-        } else {
-            ff <- CATALYST::concatFCS(x=ffsNormed())
-        }
-        if (input$box_removeBeads) {
-            removed <- sapply(seq_along(ffsNorm()), function(i) 
-                mhlDists()[[i]] < vals$mhlCutoffs[i])
-            ff[!removed, ]
-        } else {
-            ff
-        }
+    if (vals$keepDataComp) {
+        ff <- ffComped()
+        if (input$box_setToZero)
+            exprs(ff)[exprs(ff) < 0] <- 0
     } else {
         req(input$fcsDeba)
-        flowCore::read.FCS(
+        # check validity of input FCS files
+        valid <- check_FCS_fileInput(input$fcsDeba, n)
+        if (!valid) return()
+        ff <- read.FCS(
             filename=input$fcsDeba$datapath,
             transformation=FALSE,
             truncate_max_range=FALSE)
     }
+    return(ff)
 })
 
 
@@ -406,7 +401,7 @@ output$dwnld_debaFcs <- downloadHandler(
                     "sample names provided but", nrow(key), "needed."),
                     type="error", closeButton=FALSE)
                 return()
-            } else if (sum(nms[, 1] %in% ids) != nrow(key)) {
+            } else if (sum(nms[, 1] %in% ids) != length(ids)) {
                 showNotification(
                     "Couldn't find a file name for all samples.\n
                     Please make sure all sample IDs occur\n
@@ -421,8 +416,10 @@ output$dwnld_debaFcs <- downloadHandler(
                 out_nms=paste0(nms[, 2], "_", ids))
             fileNms <- c("Unassigned", paste0(nms[, 2], "_", ids))[inds]
         }
-        zip(zipfile=file, 
-            files=paste0(fileNms, ".fcs")) }, 
+        write.csv()
+        fileNms <- c("summary_table.csv", paste0(fileNms, ".fcs"))
+        zip(zipfile=file, files=fileNms) 
+        }, 
     contentType="application/zip")                        
 
 output$dwnld_debaPlots <- downloadHandler(

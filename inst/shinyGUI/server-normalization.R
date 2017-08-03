@@ -5,7 +5,11 @@
 # read input FCS
 ffsNorm <- reactive({
     req(input$fcsNorm)
-    lapply(seq_len(nrow(input$fcsNorm)), function(i)
+    n <- nrow(input$fcsNorm)
+    # check validity of input FCS files
+    valid <- check_FCS_fileInput(input$fcsNorm, n)
+    if (!valid) return()
+    lapply(seq_len(n), function(i)
         flowCore::read.FCS(
             filename=input$fcsNorm[[i, "datapath"]],
             transformation=FALSE,
@@ -400,15 +404,15 @@ observe({
     x <- input$box_removeBeads
     test <- x == 0 && !is.null(ffsNormed()) ||
         x == 1 && !any(vals$mhlCutoffs == 0)
-    toggleState(id="goToDeba", condition=test)
+    toggleState(id="goToComp", condition=test)
     toggleState(id="dwnld_normResults", condition=test)
 })
 
 # bsButton "Go to debarcoding": propagate data 
 # & hide FCS fileInput from debarcoding tab
-observeEvent(input$goToDeba, {
-    shinyjs::hide(id="fcsDeba")
-    updateTabItems(session, inputId="tabs", selected="debarcoding")
+observeEvent(input$goToComp, {
+    shinyjs::hide(id="fcsComp")
+    updateTabItems(session, inputId="tabs", selected="compensation")
     vals$keepDataNorm <- TRUE
 })
 
