@@ -32,6 +32,8 @@ collapseBox <- "shinyjs.collapse=function(boxId){
     $('#'+boxId).closest('.box').not('.collapsed-box')
     .find('[data-widget=collapse]').click();}"
 
+source("helpers.R")
+
 source("module-yieldPlot.R")
 source("module-debaPars.R")
 
