@@ -7,16 +7,27 @@
 ffsComp <- reactive({
     if (vals$alterPars) {
         vals$newMp
-    } else if (vals$keepDataDeba) {
-        ids <- sort(unique(bc_ids(dbFrameDeba())))
-        ids <- ids[ids != 0]
-        vals$compFiles <- TRUE
-        lapply(ids, function(id) 
-            ffDeba()[bc_ids(dbFrameDeba()) == id, ])
+    } else if (vals$keepDataNorm) {
+        if (length(ffsNormed()) == 1) {
+            ff <- ffsNormed()[[1]]
+        } else {
+            ff <- CATALYST::concatFCS(x=ffsNormed())
+        }
+        if (input$box_removeBeads) {
+            removed <- sapply(seq_along(ffsNorm()), function(i) 
+                mhlDists()[[i]] < vals$mhlCutoffs[i])
+            ff[!removed, ]
+        } else {
+            list(ff)
+        }
     } else {
-        req(input$fcsComp) 
+        req(input$fcsComp)
+        n <- nrow(input$fcsComp)
+        # check validity of input FCS files
+        valid <- check_FCS_fileInput(input$fcsComp, n)
+        if (!valid) return()
         vals$compFiles <- TRUE
-        lapply(seq_len(nrow(input$fcsComp)), function(i) 
+        lapply(seq_len(n), function(i) 
             flowCore::read.FCS(
                 filename=input$fcsComp[[i, "datapath"]],
                 transformation=FALSE,
@@ -374,7 +385,7 @@ output$plotSpillmat <- renderPlot({
 })
 
 # compensate input flowFrame(s)
-ffsComped <- reactive({
+ffComped <- reactive({
     req(vals$sm)
     print(is.list(ffsComp()))
     print(compCytof(ffsComp()[[1]], vals$sm))
@@ -383,7 +394,7 @@ ffsComped <- reactive({
 
 # render download button when data has been compensated
 output$compensationSidebar2 <- renderUI({
-    req(ffsComped())
+    req(ffComped())
     compensationSidebar2
 })
 
@@ -451,7 +462,7 @@ observeEvent(input$next_smplComp, {
 observe({
     selected <- selectedSmplComp()
     req(selected)
-    chs <- flowCore::colnames(isolate(vals$ffsComped)[[selected]])
+    chs <- flowCore::colnames(isolate(vals$ffComped)[[selected]])
     # default to currently selected masses 
     ms <- gsub("[[:punct:][:alpha:]]", "", chs)
     currentMs <- sapply(
@@ -532,13 +543,13 @@ output$text_info1 <- renderText({
 
 # left scatter (compensated)
 output$compScatter2 <- renderPlot({
-    data <- ffsComped()[[selectedSmplComp()]]
+    data <- ffComped()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
     req(!is.null(data), x != "", y != "")
     CATALYST:::plotScatter(es=flowCore::exprs(data), x=x, y=y, cf=cfComp())
 })
 output$text_info2 <- renderText({ 
-    data <- ffsComped()[[selectedSmplComp()]]
+    data <- ffComped()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
     req(!is.null(data), x != "", y != "")
     text_info(data, isolate(input$cfComp), input$rect2, x, y)
@@ -550,11 +561,8 @@ output$text_info2 <- renderText({
 
 # get output file names
 smplNmsComp <- reactive({
-    if (vals$keepDataDeba) {
-        dbFrame <- dbFrameDeba()
-        ids <- rownames(bc_key(dbFrame))
-        paste0(smplNmsDeba(), "_comped.fcs")[
-            c(0, ids) %in% sort(unique(bc_ids(dbFrame)))]
+    if (vals$keepDataNorm) {
+        gsub(".fcs", "_comped.fcs", identifier(ffsComped()))
     } else {
         req(input$fcsComp)
         gsub(".fcs", "_comped.fcs", input$fcsComp$name, ignore.case=TRUE)
@@ -568,16 +576,16 @@ output$dwnld_comped <- downloadHandler(
     content=function(file) { 
         tmpdir <- tempdir()
         setwd(tmpdir)
-        ffs <- ffsComped()
+        ff <- ffComped()
         fileNms <- smplNmsComp()
         if (input$box_setToZero) {
-            lapply(seq_along(ffs), function(i) {
-                flowCore::exprs(ffs[[i]])[flowCore::exprs(ffs[[i]]) < 0] <- 0
-                suppressWarnings(flowCore::write.FCS(ffs[[i]], fileNms[i])) 
+            lapply(seq_along(ff), function(i) {
+                flowCore::exprs(ff[[i]])[flowCore::exprs(ff[[i]]) < 0] <- 0
+                suppressWarnings(flowCore::write.FCS(ff[[i]], fileNms[i])) 
             })
         } else {
-            lapply(seq_along(ffs), function(i) {
-                suppressWarnings(flowCore::write.FCS(ffs[[i]], fileNms[i]))
+            lapply(seq_along(ff), function(i) {
+                suppressWarnings(flowCore::write.FCS(ff[[i]], fileNms[i]))
             })
         }
         zip(zipfile=file, files=fileNms)

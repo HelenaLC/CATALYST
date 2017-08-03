@@ -48,8 +48,7 @@ debarcodingSidebar1 <- tagList(
         style="warning",
         size="small",
         block=TRUE,
-        disabled=TRUE)
-)
+        disabled=TRUE))
 
 # ------------------------------------------------------------------------------
 # 2nd sidebar
@@ -59,6 +58,8 @@ debarcodingSidebar2 <- tagList(
     tags$head(tags$style("#yieldPlotDeba{height:70vh !important;}")),
     tags$head(tags$style("#summaryTblDeba{height:100vh !important;}")),
     tags$style(type="text/css", "#dwnld_debaFcs {
+        display:inline-block; color:white; width:49%; float:left}"),
+    tags$style(type="text/css", "#dwnld_debaPlots {
         display:inline-block; color:white; width:49%; float:right}"),
     debaParsModule(module="Deba"),
     hr(style="border-color:black"),
@@ -76,19 +77,18 @@ debarcodingSidebar2 <- tagList(
         label=helpText("This should be a 2 column sheet with
             sample IDs and the desired output filenames."), 
         accept=".csv"),
-    # bsButton: "Go to compensation"
-    div(style="display:inline-block; width:49%; float:left",
-        bsButton(
-            inputId="goToComp",
-            label="Go to compensation",
-            width="100%")),
     # downloadButton
     downloadButton(
         outputId="dwnld_debaFcs", 
         label="FCS files", 
         class="btn-success",
-        width="100%")
-)
+        width="100%"),
+    # downloadButton
+    downloadButton(
+        outputId="dwnld_debaPlots", 
+        label="Plots", 
+        class="btn-success",
+        width="100%"))
 
 # ------------------------------------------------------------------------------
 # plotYields()
