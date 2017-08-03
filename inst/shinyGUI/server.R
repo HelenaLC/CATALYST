@@ -3,8 +3,7 @@ options(shiny.maxRequestSize=5000*1024^2)
 
 shinyServer(function(input, output, session) {
     
-    source("helpers.R")
-    
+    #source("helpers.R")
     source("guides.R")
     output$debarcoding_guide  <- renderUI(debarcoding_guide)
     output$compensation_guide <- renderUI(compensation_guide)
