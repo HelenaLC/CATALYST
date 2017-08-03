@@ -172,36 +172,3 @@ output$dwnldConcat <- downloadHandler(
         read.FCS("/Users/HLC/Downloads/170731_concat.fcs")
     }
 )
-
-pars <- colnames(fs)
-desc <- seq_len(ncol(fs[[1]]))
-
-read.FCS("/Users/HLC/Downloads/170731_concat.fcs")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
