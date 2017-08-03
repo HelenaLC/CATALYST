@@ -94,9 +94,9 @@ compensationSidebar2 <- tagList(
         inputId="box_setToZero", 
         label="Should negative values be set to zero?"),
     tags$style(type="text/css", "#dwnld_comped {
-        display:inline-block; color:white; width:49%; float:left}"),
+        display:inline-block; color:white; width:35%; float:left}"),
     tags$style(type="text/css", "#dwnld_spillMat {
-        display:inline-block; color:white; width:49%; float:right}"),
+        display:inline-block; color:white; width:35%; margin-left:5px}"),
     downloadButton(
         outputId="dwnld_comped", 
         label="Compensated data",
@@ -104,7 +104,15 @@ compensationSidebar2 <- tagList(
     downloadButton(
         outputId="dwnld_spillMat", 
         label="Spillover matrix", 
-        class="btn-success"))
+        class="btn-success"),
+    # bsButton: "Go to debarcoding"
+    div(style=" display:inline-block; width:25%; float:right",
+        bsButton(
+            inputId="goToDeba",
+            label="Go to debarcoding",
+            width="100%"))
+
+)
 
 # ------------------------------------------------------------------------------
 
