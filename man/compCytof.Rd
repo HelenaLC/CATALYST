@@ -10,7 +10,8 @@
 \usage{
 compCytof(x, y, ...)
 
-\S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL)
+\S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL,
+  method = "flow")
 
 \S4method{compCytof}{character,matrix}(x, y, out_path = NULL)
 
