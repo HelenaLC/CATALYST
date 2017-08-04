@@ -96,8 +96,8 @@ check_spillMat <- function(sm) {
         stop("\nThe supplied spillover matrix is invalid ",
             "as it contains entries greater than 1.\n",
             "Valid spill values are non-negative and mustn't exceed 1.")
-    sii <- sm[cbind(which(rownames(sm) %in% colnames(sm)), 
-        which(colnames(sm) %in% rownames(sm)))]
+    cnames = colnames(sm)[which(colnames(sm) %in% rownames(sm))]
+    sii <- sm[cbind(cnames, cnames)]
     if (any(sii != 1))
         stop("\nThe supplied spillover matrix is invalid ",
             "as its diagonal contains entries != 1.\n")
@@ -137,4 +137,113 @@ prep_spillMat <- function(new_chs, sm_chs) {
         }
     }
     return(list(old=old_ms, new=new_ms))
+}
+
+
+# ==============================================================================
+# Adapt spillover matrix for compensation
+# ------------------------------------------------------------------------------
+
+#' @rdname adaptCompensationSpillmat
+#' @title Adapts a spillovermatrix such that it can be used directly for compensation
+#' 
+#' @description 
+#' This helper function adapts the columns of a provided spillover matrix such that it is compatible with
+#' data having the column names provided.
+#'
+#' @param input_sm     
+#' A previously calculated spillover matrix.
+#' @param output_names
+#' The names that the prepared output spillover matrix should have as column names.
+#' Numeric names as well as names of the form MetalMassDi (e.g. Ir191Di or Ir191) will be
+#' interpreted as masses with associated metals.
+#' @details
+#' The rules how the spillover matrix is adapted can be found in the compCytof function documentation.
+#' 
+#' @return 
+#' An adapted spillovermatrix with column and row names according to the output names
+#' 
+#' @examples
+#' data(ss_exp)
+#' 
+#' # specify mass channels stained for
+#' bc_ms <- c(139, 141:156, 158:176)
+#'  re <- assignPrelim(x = ss_exp, y = bc_ms)
+#' re <- estCutoffs(x = re)
+#' re <- applyCutoffs(x = re)
+#' spillMat <- computeSpillmat(x = re)
+#' ff <- 
+#' adaptCompensationSpillmat(spillMat, colnames(ss_exp))
+#'
+#' @author 
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
+#' @importFrom flowCore flowFrame colnames exprs compensate
+#' @export
+# ------------------------------------------------------------------------------
+
+adaptCompensationSpillmat <- function(input_sm, output_names){
+  y=input_sm
+  check_spillMat(y)
+  n = length(output_names)
+  nms = output_names
+  ms <- gsub("[[:alpha:][:punct:]]", "", nms)
+  ff_chs <- nms[!is.na(ms)]
+  sm_chs <- rownames(y)
+  sm_cols <- colnames(y)
+  y <- make_symetric(y)
+  
+  # check which channels of input flowFrame are not 
+  # contained in spillover matrix and give warning
+
+  
+  # add them into the matrix
+  sm <- matrix(diag(n), n, n, dimnames=list(nms, nms))
+  sl_sm_cols <- sm_cols[sm_cols %in% ff_chs]
+  sm[sl_sm_cols, sl_sm_cols] <- y[sl_sm_cols, sl_sm_cols]
+  
+  new_chs <- ff_chs[!ff_chs %in% sm_chs]
+  if (length(new_chs) != 0) {
+    # TODO is this now also caputuring cases where new masses could receive spillover?
+    old_and_new_ms <- prep_spillMat(new_chs, sm_chs)
+    old_ms <- old_and_new_ms$old_ms
+    new_ms <- old_and_new_ms$new_ms
+  } else {
+    old_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", sm_chs))
+    new_ms <- new_ms
+  }
+  
+  test <- (length(new_chs) != 0) && (any(inds <- old_ms %in% new_ms))
+  if (test) {
+    # check if any new masses were already present in the old masses
+    # and add them to receive spillover according to the old masses
+    
+    # get the channels that correspond to the old_masses 
+    # that have an aditional metal with the same weight
+    y_col <- sm_chs[inds]
+    names(y_col) <- as.character(old_ms[inds])
+    # get all columns that are part of the affected masses
+    fil <- ms %in% old_ms[inds]
+    sm_col <- nms[fil]
+    sm_col_ms <- as.character(ms[fil])
+    # add the spillover
+    sm[rownames(y), sm_col] <- y[, y_col[sm_col_ms]]
+    for (m in unique(sm_col_ms)){
+      mfil <- ms == m
+      # set the spillover between channels of the same mass to 0
+      # otherwise the linear system can get singular
+      # diagonal elements will be set to 1 again later on
+      sm[mfil, mfil] <- 0
+    }
+  }
+  
+  # check which channels of spillover matrix are missing in flowFrame
+  # and drop corresponding rows and columns
+  ex <- rownames(sm)[!rownames(sm) %in% ff_chs]
+  if (length(ex) != 0)
+    sm <- sm[!rownames(sm) %in% ex, !colnames(sm) %in% ex]
+  
+  # assure diagonal is all 1
+  diag(sm) <- 1
+  return(sm)  
 }
