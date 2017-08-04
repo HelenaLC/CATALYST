@@ -68,63 +68,7 @@ setMethod(f="compCytof",
     signature=signature(x="flowFrame", y="matrix"),
     definition=function(x, y, out_path=NULL) {
 
-        n <- ncol(x)
-        nms <- flowCore::colnames(x)
-        ms <- gsub("[[:alpha:][:punct:]]", "", nms)
-        ff_chs <- flowCore::colnames(x[, !is.na(ms)])
-        sm_chs <- rownames(y)
-        sm_cols <- colnames(y)
-        y <- make_symetric(y)
-        
-        # check which channels of input flowFrame are not 
-        # contained in spillover matrix and give warning
-        new_chs <- ff_chs[!ff_chs %in% sm_chs]
-        if (length(new_chs) != 0) {
-            old_and_new_ms <- prep_spillMat(new_chs, sm_chs)
-            old_ms <- old_and_new_ms$old_ms
-            new_ms <- old_and_new_ms$new_ms
-        } else {
-            old_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", sm_chs))
-            new_ms <- new_ms
-        }
-        
-        # add them into the matrix
-        sm <- matrix(diag(n), n, n, dimnames=list(nms, nms))
-        sl_sm_cols <- sm_cols[sm_cols %in% ff_chs]
-        sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
-        
-        test <- (length(new_chs) != 0) && (any(inds <- old_ms %in% new_ms))
-        if (test) {
-            # check if any new masses were already present in the old masses
-            # and add them to receive spillover according to the old masses
-            
-            # get the channels that correspond to the old_masses 
-            # that have an aditional metal with the same weight
-            y_col <- sm_chs[inds]
-            names(y_col) <- as.character(old_ms[inds])
-            # get all columns that are part of the affected masses
-            fil <- ms %in% old_ms[inds]
-            sm_col <- nms[fil]
-            sm_col_ms <- as.character(ms[fil])
-            # add the spillover
-            sm[rownames(y), sm_col] <- y[, y_col[sm_col_ms]]
-            for (m in unique(sm_col_ms)){
-                mfil <- ms == m
-                # set the spillover between channels of the same mass to 0
-                # otherwise the linear system can get singular
-                # diagonal elements will be set to 1 again later on
-                sm[mfil, mfil] <- 0
-            }
-        }
-        
-        # check which channels of spillover matrix are missing in flowFrame
-        # and drop corresponding rows and columns
-        ex <- rownames(sm)[!rownames(sm) %in% ff_chs]
-        if (length(ex) != 0)
-            sm <- sm[!rownames(sm) %in% ex, !colnames(sm) %in% ex]
-        
-        # assure diagonal is all 1
-        diag(sm) <- 1
+      sm = adaptCompensationSpillmat(y, flowCore::colnames(x))
         
         comped <- flowCore::compensate(x, sm)
         if (!is.null(out_path)) {
