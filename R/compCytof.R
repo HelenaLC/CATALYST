@@ -60,13 +60,13 @@
 #' @author 
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
-#' @importFrom flowCore flowFrame colnames exprs compensate
+#' @importFrom flowCore flowFrame colnames exprs compensate nnls
 #' @export
 # ------------------------------------------------------------------------------
 
 setMethod(f="compCytof",
     signature=signature(x="flowFrame", y="matrix"),
-    definition=function(x, y, out_path=NULL) {
+    definition=function(x, y, out_path=NULL, method='flow') {
 
         n <- ncol(x)
         nms <- flowCore::colnames(x)
@@ -125,8 +125,18 @@ setMethod(f="compCytof",
         
         # assure diagonal is all 1
         diag(sm) <- 1
-        
-        comped <- flowCore::compensate(x, sm)
+        if (method=='flow'){ 
+          comped <- flowCore::compensate(x, sm)
+        } else if (method == 'nnls') {
+          print('asdfasdf')
+          expr_comped <- t(apply(flowCore::exprs(x), 1, function(row) (nnls(t(sm),row)$x)))
+          comped = x
+          colnames(expr_comped) <- colnames(flowCore::exprs(x))
+          rownames(expr_comped) <- rownames(flowCore::exprs(x))
+          flowCore::exprs(comped) <- expr_comped
+        } else {
+          stop('not a valid method choosen')
+        }
         if (!is.null(out_path)) {
             nm <- flowCore::identifier(x)
             suppressWarnings(flowCore::write.FCS(comped,
