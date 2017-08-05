@@ -34,3 +34,33 @@ test_that("get_spill_cols() works impeccably", {
     expect_true(all(sapply(l, function(i) length(unique(i)) == length(i))))
 })
     
+
+compare_smnames_helper <- function(sm, names){
+  expect_true(all(colnames(sm)== names))
+  expect_true(all(rownames(sm)== names))
+}
+
+test_that('adaptCompensationSpillmat() works', {
+  data(ss_exp)
+  # generate a dummy spillover matrix
+  ncol = flowCore::ncol(ss_exp)
+  sm = diag(1, ncol, ncol)
+  sm[cbind(1:(ncol-1),2:(ncol))] = 0.1
+  colnames(sm) <- rownames(sm) <- flowCore::colnames(ss_exp)
+  cnames <- flowCore::colnames(ss_exp)
+  
+  # Case a subset of the channels
+  sm_ad <- adaptCompensationSpillmat(sm, cnames[1:10])
+  compare_smnames_helper(sm_ad, cnames[1:10])
+  
+  # Case a new channel
+  cnames2 = c(cnames, 'Ce141Di')
+  sm_ad <- adaptCompensationSpillmat(sm, cnames2)
+  compare_smnames_helper(sm_ad, cnames2)
+  # Case random channel order
+  cnames3 <- sample(cnames2)
+  sm_ad <- adaptCompensationSpillmat(sm, cnames3)
+  compare_smnames_helper(sm_ad, cnames3)
+  
+})
+
