@@ -60,126 +60,64 @@
 #' @author 
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
-#' @importFrom flowCore flowFrame colnames exprs compensate nnls
+#' @importFrom flowCore flowFrame colnames exprs compensate
+#' @importFrom nnls nnls
 #' @export
 # ------------------------------------------------------------------------------
 
 setMethod(f="compCytof",
-    signature=signature(x="flowFrame", y="matrix"),
-<<<<<<< HEAD
-    definition=function(x, y, out_path=NULL) {
-        sm = adaptCompensationSpillmat(y, flowCore::colnames(x))
-        
-        comped <- flowCore::compensate(x, sm)
-=======
-    definition=function(x, y, out_path=NULL, method='flow') {
-
-        n <- ncol(x)
-        nms <- flowCore::colnames(x)
-        ms <- gsub("[[:alpha:][:punct:]]", "", nms)
-        ff_chs <- flowCore::colnames(x[, !is.na(ms)])
-        sm_chs <- rownames(y)
-        sm_cols <- colnames(y)
-        y <- make_symetric(y)
-        
-        # check which channels of input flowFrame are not 
-        # contained in spillover matrix and give warning
-        new_chs <- ff_chs[!ff_chs %in% sm_chs]
-        if (length(new_chs) != 0) {
-            old_and_new_ms <- prep_spillMat(new_chs, sm_chs)
-            old_ms <- old_and_new_ms$old_ms
-            new_ms <- old_and_new_ms$new_ms
-        } else {
-            old_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", sm_chs))
-            new_ms <- new_ms
-        }
-        
-        # add them into the matrix
-        sm <- matrix(diag(n), n, n, dimnames=list(nms, nms))
-        sl_sm_cols <- sm_cols[sm_cols %in% ff_chs]
-        sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
-        
-        test <- (length(new_chs) != 0) && (any(inds <- old_ms %in% new_ms))
-        if (test) {
-            # check if any new masses were already present in the old masses
-            # and add them to receive spillover according to the old masses
-            
-            # get the channels that correspond to the old_masses 
-            # that have an aditional metal with the same weight
-            y_col <- sm_chs[inds]
-            names(y_col) <- as.character(old_ms[inds])
-            # get all columns that are part of the affected masses
-            fil <- ms %in% old_ms[inds]
-            sm_col <- nms[fil]
-            sm_col_ms <- as.character(ms[fil])
-            # add the spillover
-            sm[rownames(y), sm_col] <- y[, y_col[sm_col_ms]]
-            for (m in unique(sm_col_ms)){
-                mfil <- ms == m
-                # set the spillover between channels of the same mass to 0
-                # otherwise the linear system can get singular
-                # diagonal elements will be set to 1 again later on
-                sm[mfil, mfil] <- 0
-            }
-        }
-        
-        # check which channels of spillover matrix are missing in flowFrame
-        # and drop corresponding rows and columns
-        ex <- rownames(sm)[!rownames(sm) %in% ff_chs]
-        if (length(ex) != 0)
-            sm <- sm[!rownames(sm) %in% ex, !colnames(sm) %in% ex]
-        
-        # assure diagonal is all 1
-        diag(sm) <- 1
-        if (method=='flow'){ 
-          comped <- flowCore::compensate(x, sm)
-        } else if (method == 'nnls') {
-          print('asdfasdf')
-          expr_comped <- t(apply(flowCore::exprs(x), 1, function(row) (nnls(t(sm),row)$x)))
-          comped = x
-          colnames(expr_comped) <- colnames(flowCore::exprs(x))
-          rownames(expr_comped) <- rownames(flowCore::exprs(x))
-          flowCore::exprs(comped) <- expr_comped
-        } else {
-          stop('not a valid method choosen')
-        }
->>>>>>> feature-nnls
-        if (!is.null(out_path)) {
-            nm <- flowCore::identifier(x)
-            suppressWarnings(flowCore::write.FCS(comped,
-                file.path(out_path, paste0(nm, "_comped.fcs"))))
-        } else {
-            comped
-        }
-    })
+          signature=signature(x="flowFrame", y="matrix"),
+          definition=function(x, y, out_path=NULL, method='flow') {
+              sm = adaptCompensationSpillmat(y, flowCore::colnames(x))
+              
+              if (method=='flow'){ 
+                  comped <- flowCore::compensate(x, sm)
+              } else if (method == 'nnls') {
+                  expr_comped <- t(apply(flowCore::exprs(x), 1, function(row) (nnls(t(sm),row)$x)))
+                  comped = x
+                  colnames(expr_comped) <- colnames(flowCore::exprs(x))
+                  rownames(expr_comped) <- rownames(flowCore::exprs(x))
+                  flowCore::exprs(comped) <- expr_comped
+              } else {
+                  stop('not a valid method choosen')
+              }
+              
+              if (!is.null(out_path)) {
+                  nm <- flowCore::identifier(x)
+                  suppressWarnings(flowCore::write.FCS(comped,
+                                                       file.path(out_path, paste0(nm, "_comped.fcs"))))
+              } else {
+                  comped
+              }
+          })
 # ------------------------------------------------------------------------------
 #' @rdname compCytof
 setMethod(f="compCytof",
-    signature=signature(x="character", y="matrix"),
-    definition=function(x, y, out_path=NULL) {
-        
-        if (!file.exists(x))
-            stop("x is neither a flowFrame nor a valid file/folder path.")
-        fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
-        if (length(fcs) == 0)
-            stop("No FCS files found in specified location.")
-        ffs <- lapply(fcs, flowCore::read.FCS)
-        
-        if (is.null(out_path)) {
-            lapply(ffs, function(i) compCytof(i, y))
-        } else {
-            out_nms <- gsub(x, out_path, 
-                gsub(".fcs", "_comped.fcs", ignore.case=TRUE, fcs))
-            for (i in seq_along(ffs))
-                suppressWarnings(flowCore::write.FCS(
-                    compCytof(ffs[[i]], y), out_nms[i]))
-        }
-    })
+          signature=signature(x="character", y="matrix"),
+          definition=function(x, y, out_path=NULL) {
+              
+              if (!file.exists(x))
+                  stop("x is neither a flowFrame nor a valid file/folder path.")
+              fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
+              if (length(fcs) == 0)
+                  stop("No FCS files found in specified location.")
+              ffs <- lapply(fcs, flowCore::read.FCS)
+              
+              if (is.null(out_path)) {
+                  lapply(ffs, function(i) compCytof(i, y))
+              } else {
+                  out_nms <- gsub(x, out_path, 
+                                  gsub(".fcs", "_comped.fcs", ignore.case=TRUE, fcs))
+                  for (i in seq_along(ffs))
+                      suppressWarnings(flowCore::write.FCS(
+                          compCytof(ffs[[i]], y), out_nms[i]))
+              }
+          })
 
 # ------------------------------------------------------------------------------
 #' @rdname compCytof
 setMethod(f="compCytof",
-    signature=signature(x="ANY", y="data.frame"),
-    definition=function(x, y, out_path=NULL) {
-        compCytof(x, as.matrix(y), out_path)
-    })
+          signature=signature(x="ANY", y="data.frame"),
+          definition=function(x, y, out_path=NULL) {
+              compCytof(x, as.matrix(y), out_path)
+          })
