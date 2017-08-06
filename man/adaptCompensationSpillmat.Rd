@@ -4,7 +4,7 @@
 \alias{adaptCompensationSpillmat}
 \title{Adapts a spillovermatrix such that it can be used directly for compensation}
 \usage{
-adaptCompensationSpillmat(input_sm, output_names)
+adaptCompensationSpillmat(input_sm, out_channels)
 }
 \arguments{
 \item{input_sm}{A previously calculated spillover matrix.}
