@@ -5,7 +5,7 @@ test_that("compCytof() works.", {
     # generate a dummy spillover matrix
     ncol = flowCore::ncol(ss_exp)
     sm = diag(1, ncol, ncol)
-    sm[cbind(1:(ncol-1),2:(ncol))] = 0.1
+    sm[cbind(1:(ncol-1),2:(ncol))] = seq(0.01, 0.3, length.out=ncol-1)
     colnames(sm) <- rownames(sm) <- flowCore::colnames(ss_exp)
     
     # add the spillover
