@@ -20,6 +20,12 @@ Imports:
     plotly,
     RColorBrewer,
     reshape2,
+    shiny, 
+    shinydashboard, 
+    shinyjs, 
+    shinyBS, 
+    DT, 
+    magrittr,
     stats,
     utils
 Suggests: BiocStyle, knitr, rmarkdown, testthat

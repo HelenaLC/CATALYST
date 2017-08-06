@@ -112,7 +112,7 @@ get_deltas <- function(data, bc_key, verbose) {
 # plot distribution of barcode separations & 
 # yields as a function of separation cutoffs
 # ------------------------------------------------------------------------------
-plot_yields <- function(id, x, seps, n_bcs, lgd, bc_labs) {
+plot_yields <- function(id, x, seps, n_bcs, bc_labs) {
     if (id == 0) {
         pal <- RColorBrewer::brewer.pal(11, "Spectral")
         if (n_bcs > 11) {
@@ -125,36 +125,39 @@ plot_yields <- function(id, x, seps, n_bcs, lgd, bc_labs) {
         hist <- data.frame(seps, counts)
         line <- reshape2::melt(data.frame(
             seps, yields=t(yields(x))*max), id.var=seps)
+        line$Sample <- rep(bc_labs, each=length(seps))
         
         p <- ggplot() + 
             geom_bar(data=hist, aes_string(x="seps", y="counts"), width=1/101, 
                 stat="identity", fill="lightgrey", col="white") +
-            geom_line(data=line, aes_string(x="seps", y="value",
-                col="as.factor(variable)"), size=.5) +
+            geom_line(data=line, size=.5, aes_string(x="seps", y="value",
+                col="as.factor(variable)", text="Sample")) +
             guides(colour=guide_legend(override.aes=list(size=1))) +
             scale_colour_manual(values=cols, name=NULL, labels=bc_labs)
-        if (!lgd)
-            p <- p + guides(colour=FALSE)
     } else {
         max <- max(counts(x)[id, ])
-        df <- data.frame(seps, 
-            counts=counts(x)[id, ], 
-            yields=yields(x)[id, ]*max,
+        df <- data.frame(Cutoff=seps, 
+            Count=counts(x)[id, ], 
+            yield=yields(x)[id, ]*max,
             fit=max*predict(smooth.spline(seps, yields(x)[id, ]), seps)$y)
+        df$Yield <- paste0(sprintf("%2.2f", round(df$yield, 2)), "%")
         inds <- seq(1, nrow(df), 2)
         
-        p <- ggplot(df, aes_string(x="seps")) + 
-            geom_bar(aes_string(y="counts"), width=1/101, size=.3, 
+        p <- ggplot(df) + 
+            geom_bar(aes_string(x="Cutoff", y="Count"), width=1/101, size=.3, 
                 stat="identity", fill="lavender", colour="darkslateblue") +
-            geom_point(data=data.frame(df[inds, ]), aes_string(y="yields"), 
+            geom_point(data=data.frame(df[inds, ]),
+                aes_string(x="Cutoff", y="yield", group="Yield"), 
                 fill="mintcream", color="aquamarine4", 
                 pch=21, size=3, stroke=.75) + 
-            geom_line(aes_string( y="fit"), col="aquamarine3", size=.75) +
+            geom_line(data=data.frame(x=seps, y=df$fit), 
+                aes_string(x="x", y="y"), 
+                col="aquamarine3", size=.75) +
             geom_vline(lty=3, size=.75, col="red2", 
                 aes_string(xintercept="sep_cutoffs(x)[id]")) 
     }
     p + scale_x_continuous(name="Barcode separation", 
-            breaks=seq(0, 1, .1), limits=c(-.025,1.025), expand=c(0,0)) +
+        breaks=seq(0, 1, .1), limits=c(-.025,1.025), expand=c(0,0)) +
         scale_y_continuous(name="Yield upon debarcoding", 
             breaks=seq(0, max, length=5), labels=paste0(seq(0, 100, 25), "%"),
             limits=c(-.05*max, max+.05*max), expand=c(0,0), sec.axis=sec_axis(
