@@ -313,12 +313,6 @@ adaptCompensationSpillmat <- function(input_sm, out_channels){
         }
     }
     
-    # check which channels of spillover matrix are missing in flowFrame
-    # and drop corresponding rows and columns
-    ex <- rownames(sm)[!rownames(sm) %in% out_metalchannels]
-    if (length(ex) != 0)
-        sm <- sm[!rownames(sm) %in% ex, !colnames(sm) %in% ex]
-    
     # assure diagonal is all 1
     diag(sm) <- 1
     return(sm)  
