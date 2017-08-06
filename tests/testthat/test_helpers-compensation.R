@@ -57,6 +57,12 @@ test_that('adaptCompensationSpillmat() works', {
   cnames2 = c(cnames, 'Ce141Di')
   sm_ad <- adaptCompensationSpillmat(sm, cnames2)
   compare_smnames_helper(sm_ad, cnames2)
+  
+  # Case a multiple new channels
+  cnames2 = c(cnames, 'Ce141Di', 'Ce139i')
+  sm_ad <- adaptCompensationSpillmat(sm, cnames2)
+  compare_smnames_helper(sm_ad, cnames2)
+  
   # Case random channel order
   cnames3 <- sample(cnames2)
   sm_ad <- adaptCompensationSpillmat(sm, cnames3)
