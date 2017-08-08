@@ -91,13 +91,17 @@ setMethod(f="computeSpillmat",
                 "Valid options are \"default\" and \"all\".\n",
                 "See ?computeSpillmat for more details.")
         
-        # get intensities, no. of channels, masses and metals
+    # get intensities, no. of channels, masses and metals
         es <- exprs(x)
         n <- ncol(es)
         chs <- colnames(es)
+        
+        # TODO: use helper functions to guarantee that the 
+        # metals and masses are consistently parsed in the 
+        # whole CATALYST package
         ms <- as.numeric(regmatches(chs, gregexpr("[0-9]+", chs)))
         mets <- gsub("[[:digit:]]+Di", "", chs)
-        
+    
         # get barcode IDs and barcodes masses
         ids <- unique(bc_ids(x))
         ids <- ids[ids != 0]
@@ -132,7 +136,7 @@ setMethod(f="computeSpillmat",
                 pos_j <- es[pos, j]
                 # further exclude events assigned to population
                 # for which interaction is calculated 
-                neg_j <- es[neg[bc_ids(x)[neg] != ms[j]], j]
+                neg_j <- es[neg[bc_ids(x)[neg] != ms[j] & !(bc_ids(x)[neg] %in%  ms[ex[[j]]])], j]
                 sij <- get_sij(pos_i, neg_i, pos_j, neg_j, method, trim)
                 SM[i, j] <- sij
             } 
