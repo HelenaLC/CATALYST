@@ -46,8 +46,8 @@ alter_pars <- function(ff, pars) {
 # ------------------------------------------------------------------------------
 
 get_ms_and_mets <- function(chs) {
-    ms <- gsub("[[:punct:][:alpha:]]", "", chs)
-    mets <- gsub("([[:punct:]]*)([[:digit:]]*)(Di)*", "", chs)
+    ms <- CATALYST:::get_ms_from_chs(chs)
+    mets <- CATALYST:::get_mets_form_chs(chs)
     setNames(list(ms, mets), c("Mass", "Metal"))
 }
 
