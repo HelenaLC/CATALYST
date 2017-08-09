@@ -64,24 +64,25 @@ plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
     ggplot(df, aes_string(x="t", y="m")) +
         geom_vline(aes(xintercept=opt), lty=2, size=.5) +
         geom_jitter(aes_string(fill="Spiller", group="Receiver"),
-                    col="navy", height=0, width=diff(trms)[1]/5, size=2, alpha=.3) + 
+            col="navy", height=0, width=diff(trms)[1]/5, size=2, alpha=.3) + 
         geom_rect(fill="aliceblue", inherit.aes=FALSE, data=rect, 
-                  aes_string(xmin="x1", xmax="x2", ymin="y1", ymax="y2")) + 
+            aes_string(xmin="x1", xmax="x2", ymin="y1", ymax="y2")) + 
         geom_text(size=3, col="blue", vjust=.5, data=text, 
-                  aes_string(label="e", x="x", y="y")) +
+            aes_string(label="e", x="x", y="y")) +
         geom_hline(aes(yintercept=0), lty=2, col="red", size=.5) +
         scale_x_continuous(limits=c(xMin, xMax), 
-                           expand=c(0,0), breaks=trms, labels=format(trms, 2)) +
+            expand=c(0,0), breaks=trms, labels=format(trms, 2)) +
         scale_y_continuous(limits=c(yMin, yMax+.6), 
-                           expand=c(0,0), breaks=c(0, yMin:yMax)) +
+            expand=c(0,0), breaks=c(0, yMin:yMax)) +
         labs(x="Trim value used for estimation of spill values", 
-             y="Median counts upon compensation") + 
-        theme_classic() + theme(legend.position="none", 
-                                axis.text=element_text(size=8),
-                                axis.title=element_text(size=10), 
-                                panel.grid.major.y=element_blank(),
-                                panel.grid.major.x=element_line(size=.25, color="grey"),
-                                panel.grid.minor=element_blank())
+            y="Median counts upon compensation") + 
+        theme_classic() + 
+        theme(legend.position="none", 
+            axis.text=element_text(size=8),
+            axis.title=element_text(size=10), 
+            panel.grid.major.y=element_blank(),
+            panel.grid.major.x=element_line(size=.25, color="grey"),
+            panel.grid.minor=element_blank())
 }
 
 # ==============================================================================
@@ -90,18 +91,18 @@ plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
 check_spillMat <- function(sm) {
     if (any(sm < 0))
         stop("\nThe supplied spillover matrix is invalid ",
-             "as it contains negative entries.\n",
-             "Valid spill values are non-negative and mustn't exceed 1.")
+            "as it contains negative entries.\n",
+            "Valid spill values are non-negative and mustn't exceed 1.")
     if (any(sm > 1))
         stop("\nThe supplied spillover matrix is invalid ",
-             "as it contains entries greater than 1.\n",
-             "Valid spill values are non-negative and mustn't exceed 1.")
+            "as it contains entries greater than 1.\n",
+            "Valid spill values are non-negative and mustn't exceed 1.")
     
     cnames <- colnames(sm)[which(colnames(sm) %in% rownames(sm))]
     sii <- sm[cbind(cnames, cnames)]
     if (any(sii != 1))
         stop("\nThe supplied spillover matrix is invalid ",
-             "as its diagonal contains entries != 1.\n")
+            "as its diagonal contains entries != 1.\n")
 }
 
 
