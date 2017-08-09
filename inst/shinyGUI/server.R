@@ -12,22 +12,23 @@ shinyServer(function(input, output, session) {
     source("server-normalization.R", local=TRUE)
     source("server-debarcoding.R",   local=TRUE)
     source("server-compensation.R",  local=TRUE)
+    source("server-FCSchecking.R",   local=TRUE)
 
 # ------------------------------------------------------------------------------
     
     vals <- reactiveValues(
+        # logicals indicating whether data should be propagated
+        keepDataConcat = FALSE,
         keepDataNorm = FALSE,
-# debarcoding
+        keepDataComp = FALSE,
+        # debarcoding
         debaKeyIsValid = FALSE, # set to TRUE if input CSV passes validity check
-        dbFrame1Deba = NULL, # preliminary dbFrame
-        dbFrame2Deba = NULL, # dbFrame with deconvolution parameters applied
-        mhlCutoffDeba = 30,  # default Mahalanobis distance cutoff
-# compensation
-        compFiles = FALSE,
-        checkPars = FALSE,
-        alterPars = FALSE,
+        dbFrame1Deba = NULL,    # preliminary dbFrame
+        dbFrame2Deba = NULL,    # dbFrame with deconvolution parameters applied
+        mhlCutoffDeba = 30,     # default Mahalanobis distance cutoff
+        # compensation
         dbFrame1Comp = NULL, # preliminary dbFrame
         dbFrame2Comp = NULL, # dbFrame with deconvolution parameters applied
-        mhlCutoffComp = 30,  # default Mahalanobis distance cutoff
-        keepDataDeba = FALSE)
+        mhlCutoffComp = 30   # default Mahalanobis distance cutoff
+    )
 })
