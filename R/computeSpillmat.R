@@ -90,7 +90,7 @@ setMethod(f="computeSpillmat",
                 "Valid options are \"default\" and \"all\".\n",
                 "See ?computeSpillmat for more details.")
         
-    # get intensities, no. of channels, masses and metals
+        # get intensities, no. of channels, masses and metals
         es <- exprs(x)
         n <- ncol(es)
         chs <- colnames(es)
@@ -100,7 +100,7 @@ setMethod(f="computeSpillmat",
         # whole CATALYST package
         ms <- as.numeric(regmatches(chs, gregexpr("[0-9]+", chs)))
         mets <- gsub("[[:digit:]]+Di", "", chs)
-    
+        
         # get barcode IDs and barcodes masses
         ids <- unique(bc_ids(x))
         ids <- ids[ids != 0]
@@ -143,4 +143,5 @@ setMethod(f="computeSpillmat",
         #colnames(SM) <- rownames(SM) <- chs
         SM[SM < th] <- 0
         SM[bc_cols, !is.na(ms)]
-    })
+    }
+)
