@@ -185,6 +185,13 @@ setGeneric(name="computeSpillmat",
     package="CATALYST",
     def=function(x, ...) standardGeneric("computeSpillmat"))
 
+#' @rdname adaptSpillmat
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="adaptSpillmat", 
+    package="CATALYST",
+    def=function(input_sm, out_chs) standardGeneric("adaptSpillmat"))
+
 #' @rdname compCytof
 #' @param ... optional arguments.
 #' @export
