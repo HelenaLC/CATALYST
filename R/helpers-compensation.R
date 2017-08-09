@@ -108,12 +108,13 @@ check_spillMat <- function(sm) {
 # ==============================================================================
 # Helper functions to get mass and metal from a channel name
 # ------------------------------------------------------------------------------
-get_mass_from_channel <- function(channel){
-    return( as.numeric(gsub("[[:punct:][:alpha:]]", "", channel)))
+
+get_ms_from_chs <- function(chs) {
+    gsub("[[:punct:][:alpha:]]", "", chs)
 }
 
-get_metal_from_channel <- function(channel){
-    return(gsub("[[:digit:]].*", "", channel))
+get_mets_from_chs <- function(chs) { 
+    gsub("([[:punct:]]*)([[:digit:]]*)(Di)*", "", chs)
 }
 
 # ==============================================================================
@@ -123,197 +124,49 @@ get_metal_from_channel <- function(channel){
 # expected spillover among the new channels.
 # ------------------------------------------------------------------------------
 
-warn_new_intearctions <- function(chan_new, sm){
-    chan_emmiting <- rownames(sm)
-    chan_receiving <- colnames(sm)
-    channels <- list(chan_new, chan_emmiting, chan_receiving)
+warn_new_intearctions <- function(chs_new, sm){
+    chs_emitting  <- rownames(sm)
+    chs_receiving <- colnames(sm)
+    chs <- list(chs_new, chs_emitting, chs_receiving)
+    chs <- setNames(chs, c("new", "emitting", "receiving"))
     
-    # get the metals from the names
-    metals <- lapply(channels, get_metal_from_channel)
-    metals_new <- metals[[1]]
-    metals_emmiting <- metals[[2]]
-    metals_receiving <- metals[[3]]
-    
-    # get the mass from the names
-    mass = lapply(channels, get_mass_from_channel)
-    mass_new <- mass[[1]]
-    mass_emmiting <- mass[[2]]
-    mass_receiving <- mass[[3]]
+    # get the metals and masses from the names
+    mets <- lapply(chs, get_mets_from_chs)
+    ms <- lapply(chs, get_ms_from_chs)
     
     # get the potential mass channels a channel could cause spillover in
-    spill_cols <- get_spill_cols(mass_new, metals_new)
+    spill_cols <- get_spill_cols(ms$new, mets$new)
     
     first <- TRUE
-    
-    for (i in order(mass_new)) {
+    for (i in order(ms$new)) {
         # check if the provided spillovermatrix had the 
         # current channel measured as a spill emitter
-        is_new_emmitting <-(!chan_new[i] %in% chan_emmiting)
-        cur_spillmasses <- mass_new[spill_cols[[i]]]
+        is_new_emitting <- !chs_new[i] %in% chs_emitting
+        cur_spillms <- ms$new[spill_cols[[i]]]
         
-        if (is_new_emmitting){
+        if (is_new_emitting) {
             # if channel was never measured, no information is present
             # for spill in any of the potential spill receiver channels
-            mass_new_rec = cur_spillmasses
+            mass_new_rec <- cur_spillms
         } else {
             # if it has been measured, no information is only present
             # for the channels which were not considered spill receivers 
             # in the spillover matrix provided
-            mass_new_rec <- cur_spillmasses[!cur_spillmasses%in% mass_receiving]
+            mass_new_rec <- cur_spillms[!cur_spillms %in% ms$receiving]
         }
         
         if (length(mass_new_rec) > 0) {
             if (first) {
                 message("WARNING: ",
-                        "Compensation is likely to be inaccurate.\n",
-                        "         ",
-                        "Spill values for the following interactions\n",
-                        "         ",
-                        "have not been estimated:")
+                    "Compensation is likely to be inaccurate.\n",
+                    "         ",
+                    "Spill values for the following interactions\n",
+                    "         ",
+                    "have not been estimated:")
                 first <- FALSE
             }
-            message(chan_new[i], " -> ", paste(
-                chan_new[mass_new %in% mass_new_rec], collapse=", "))
-        }
-        
-    }
-}
-
-# ==============================================================================
-# check which channels of input flowFrame are not 
-# contained in spillover matrix and give warning
-# ------------------------------------------------------------------------------
-
-prep_spillMat <- function(new_chs, sm_chs) {
-    new_mets <- gsub("[[:digit:]]+Di", "", new_chs)
-    old_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", sm_chs))
-    new_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", new_chs))
-    ms <- c(old_ms, new_ms)
-    o <- order(ms)
-    ms <- ms[o]
-    nms <- c(sm_chs, new_chs)[o]
-    # get potential spillover interactions 
-    all_mets <- gsub("[[:digit:]]+Di", "", nms)
-    spill_cols <- get_spill_cols(ms, all_mets)
-    
-    first <- TRUE
-    for (i in seq_along(new_ms)) {
-        idx <- which(ms == new_ms[i] & all_mets == new_mets[i])
-        if (length(idx) > 0) {
-            if (first) {
-                message("WARNING: ",
-                        "Compensation is likely to be inaccurate.\n",
-                        "         ",
-                        "Spill values for the following interactions\n",
-                        "         ",
-                        "have not been estimated:")
-                first <- FALSE
-            }
-            message(nms[idx], " -> ", paste(
-                nms[spill_cols[[idx]]], collapse=", "))
+            message(chs_new[i], " -> ", paste(
+                chs_new[ms$new %in% mass_new_rec], collapse=", "))
         }
     }
-    return(list(old=old_ms, new=new_ms))
-}
-
-
-# ==============================================================================
-# Adapt spillover matrix for compensation
-# ------------------------------------------------------------------------------
-
-#' @rdname adaptCompensationSpillmat
-#' @title Adapts a spillovermatrix such that it can be used directly for compensation
-#' 
-#' @description 
-#' This helper function adapts the columns of a provided spillover matrix such that it is compatible with
-#' data having the column names provided.
-#'
-#' @param input_sm     
-#' A previously calculated spillover matrix.
-#' @param output_names
-#' The names that the prepared output spillover matrix should have as column names.
-#' Numeric names as well as names of the form MetalMassDi (e.g. Ir191Di or Ir191) will be
-#' interpreted as masses with associated metals.
-#' @details
-#' The rules how the spillover matrix is adapted can be found in the compCytof function documentation.
-#' 
-#' @return 
-#' An adapted spillovermatrix with column and row names according to the output names
-#' 
-#' @examples
-#' data(ss_exp)
-#' 
-#' # specify mass channels stained for
-#' bc_ms <- c(139, 141:156, 158:176)
-#'  re <- assignPrelim(x = ss_exp, y = bc_ms)
-#' re <- estCutoffs(x = re)
-#' re <- applyCutoffs(x = re)
-#' spillMat <- computeSpillmat(x = re)
-#' ff <- 
-#' adaptCompensationSpillmat(spillMat, colnames(ss_exp))
-#'
-#' @author 
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
-#' @importFrom flowCore flowFrame colnames exprs compensate
-#' @export
-# ------------------------------------------------------------------------------
-
-adaptCompensationSpillmat <- function(input_sm, out_channels){
-    
-    # check the spillovermatrix for obvious errors
-    check_spillMat(input_sm)
-    # make it symmetric
-    #input_sm <- make_symetric(input_sm)
-    # get the output names, metals and masses
-    n = length(out_channels)
-    out_masses <- get_mass_from_channel(out_channels)
-    out_metalchannels <- out_channels[!is.na(out_masses)]
-    input_sm_channels_col <- colnames(input_sm)
-    input_sm_channels_row <- rownames(input_sm)
-    input_sm_channels <- unique(c(input_sm_channels_row,
-                                  input_sm_channels_col))
-    
-    # copy the existing spillover information into a new spillover matrix
-    sm <- matrix(diag(n), n, n, dimnames=list(out_channels, out_channels))
-    sm_preexisting_col <- input_sm_channels_col[input_sm_channels_col %in% out_channels]
-    sm_preexisting_row <- input_sm_channels_row[input_sm_channels_row %in% out_channels]
-    sm[sm_preexisting_row, sm_preexisting_col] <- input_sm[sm_preexisting_row, sm_preexisting_col]
-    
-    warn_new_intearctions(out_metalchannels, input_sm)
-    
-    # check for new channels
-    new_metalchannels <- out_metalchannels[!out_metalchannels %in% input_sm_channels]
-    new_masses <- get_mass_from_channel(new_metalchannels)
-    
-    old_receiving_masses <- get_mass_from_channel(input_sm_channels_col)
-    
-    test <- (length(new_metalchannels) != 0) && (any(inds <- old_receiving_masses %in% new_masses))
-    if (test) {
-        # check if any new masses were already present in the old masses
-        # and add them to receive spillover according to the old masses
-        
-        # get the channels that correspond to the old_masses 
-        # that have an aditional metal with the same weight
-        y_col <- input_sm_channels_col[inds]
-        names(y_col) <- as.character(old_receiving_masses[inds])
-        # get all columns that are part of the affected masses
-        fil <- out_masses %in% old_receiving_masses[inds]
-        sm_col <- out_channels[fil]
-        sm_col_ms <- as.character(out_masses[fil])
-        # add the spillover
-        old_rowchannels = out_channels[out_channels %in% input_sm_channels_row]
-        sm[old_rowchannels, sm_col] <- input_sm[old_rowchannels, y_col[sm_col_ms]]
-        for (m in unique(sm_col_ms)){
-            mfil <- out_masses == m
-            # set the spillover between channels of the same mass to 0
-            # otherwise the linear system can get singular
-            # diagonal elements will be set to 1 again later on
-            sm[mfil, mfil] <- 0
-        }
-    }
-    
-    # assure diagonal is all 1
-    diag(sm) <- 1
-    return(sm)  
 }

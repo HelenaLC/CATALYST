@@ -37,52 +37,44 @@ ffsConcat <- reactive({
 })
 
 # render shinydashboard::box "File editing"
-output$editFcsConcat <- renderUI({ 
-    req(ffsConcat())
-    editFcsConcat(ffsConcat()[[1]])
-    
-})
-
-# restyle textInputs
-observe({
-    req(input$par1)
-    for (i in seq_len(ncol(ffsConcat()[[1]]))) {
-        js$restyleTextInputConcat(paste0("par", i))
-        js$restyleTextInputConcat(paste0("des", i))
-    }
-})
+output$editFcsConcat <- renderUI(editFcsConcat(ffsConcat()[[1]]))
 
 # render checkboxInputs "Add file number channel" & "Order by time"
 # & downloadButton "Merge files"
 output$concatOutput <- renderUI({
     req(ffsConcat())
-    outNm <- paste0(format(Sys.Date(), "%y%m%d"), "_concat.fcs")
-    tagList(
-        textInput(
-            inputId="concatOutputFileNm",
-            label="Output file name",
-            value=outNm),
-        checkboxInput(
-            inputId="addFileNo",
-            label="Add file number channel"),
-        checkboxInput(
-            inputId="orderByTime",
-            label="Order by time",
-            value=TRUE),
-        tags$style("#dwnldConcat {color:white; width:100%}"),
-        downloadButton(
-            outputId="dwnldConcat",
-            label="Merge files",
-            class="btn-success")
-        )
+    nm <- input$fcsConcat$name[1]
+    outNm <- gsub("(_)*([[:digit:]]*)(.fcs)$", 
+        "_concat.fcs", nm, ignore.case=TRUE)
+    concatOutput(outNm)
+})
+
+# bsButton "Go to normalization": propagate data 
+# & disable FCS fileInput from normalization tab
+observeEvent(input$goToNorm, {
+    shinyjs::disable(id="fcsNorm")
+    updateTabItems(session, inputId="tabs", selected="normalization")
+    vals$keepDataConcat <- TRUE
 })
 
 # ------------------------------------------------------------------------------
 # download handler
 # ------------------------------------------------------------------------------
 
+ffConcat <- reactive({
+    req(isTRUE(vals$keepDataConcat))
+    nPars <- ncol(ffsConcat()[[1]])
+    pars <- sapply(seq_len(nPars), function(i) input[[paste0("par", i)]])
+    desc <- sapply(seq_len(nPars), function(i) input[[paste0("des", i)]])
+    CATALYST::concatFCS(ffsConcat(), 
+        by_time=input$orderByTime,
+        file_num=input$addFileNo, 
+        pars=pars, 
+        desc=desc)
+})
+
 # get output file name
-outNmConcat <- reactive({
+smplNmConcat <- reactive({
     nm <- input$concatOutputFileNm
     req(nm)
     # assure suffix is ".fcs"
@@ -94,7 +86,7 @@ outNmConcat <- reactive({
 
 output$dwnldConcat <- downloadHandler(
     filename=function() {
-        outNmConcat()
+        smplNmConcat()
     }, 
     content=function(file) { 
         fs <- as(ffsConcat(), "flowSet")
@@ -121,8 +113,8 @@ output$dwnldConcat <- downloadHandler(
         # (mandatory keywords are set by flowCore::write.FCS)
         # ······································································
         # get parameters and descriptions from textInputs
-        #pars <- sapply(seq_len(nPars), function(i) input[[paste0("par", i)]])
-        #desc <- sapply(seq_len(nPars), function(i) input[[paste0("des", i)]])
+        pars <- sapply(seq_len(nPars), function(i) input[[paste0("par", i)]])
+        desc <- sapply(seq_len(nPars), function(i) input[[paste0("des", i)]])
         # get descriptions and modify some keywords
         d <- description(fs[[1]])
         d <- d[!names(d) %in% c("$FIL", "FILENAME", "ORIGINALGUID")]
