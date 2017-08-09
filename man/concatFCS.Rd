@@ -11,7 +11,7 @@
 concatFCS(x, ...)
 
 \S4method{concatFCS}{flowSet}(x, out_path = NULL, by_time = TRUE,
-  file_num = FALSE)
+  file_num = FALSE, pars = NULL, desc = NULL)
 
 \S4method{concatFCS}{character}(x, out_path = NULL, by_time = TRUE,
   file_num = FALSE)
@@ -35,6 +35,9 @@ Specifies whether files should be ordered by time of acquisition.}
 
 \item{file_num}{logical. 
 Specifies whether a file number column should be added.}
+
+\item{pars, desc}{optional character vector of channel names and descriptions
+to use when mergin files.}
 }
 \value{
 a \code{\link{flowFrame}} containing measurement intensities 

@@ -99,7 +99,7 @@ setMethod(f="plotYields",
                 ps[[i]] <- ggplotly(ps[[i]], 
                     tooltip=c("Cutoff","Yield","Count")) %>% 
                     config(displayModeBar=FALSE)
-                ps[[i]] <- layout(ps[[i]], margin=list(t = 75))
+                ps[[i]] <- layout(ps[[i]], margin=list(t=75))
             }
         }
         if (!is.null(out_path)) {
