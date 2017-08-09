@@ -108,12 +108,13 @@ check_spillMat <- function(sm) {
 # ==============================================================================
 # Helper functions to get mass and metal from a channel name
 # ------------------------------------------------------------------------------
-get_mass_from_channel <- function(channel){
-    return(as.numeric(gsub("[[:punct:][:alpha:]]", "", channel)))
+
+get_ms_from_chs <- function(chs) {
+    gsub("[[:punct:][:alpha:]]", "", chs)
 }
 
-get_metal_from_channel <- function(channel){
-    return(gsub("[[:digit:]].*", "", channel))
+get_mets_from_chs <- function(chs) { 
+    gsub("([[:punct:]]*)([[:digit:]]*)(Di)*", "", chs)
 }
 
 # ==============================================================================
@@ -130,8 +131,8 @@ warn_new_intearctions <- function(chs_new, sm){
     chs <- setNames(chs, c("new", "emitting", "receiving"))
     
     # get the metals and masses from the names
-    mets <- lapply(chs, get_metal_from_channel)
-    ms <- lapply(chs, get_mass_from_channel)
+    mets <- lapply(chs, get_mets_from_chs)
+    ms <- lapply(chs, get_ms_from_chs)
     
     # get the potential mass channels a channel could cause spillover in
     spill_cols <- get_spill_cols(ms$new, mets$new)
