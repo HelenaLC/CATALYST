@@ -11,7 +11,7 @@
 concatFCS(x, ...)
 
 \S4method{concatFCS}{flowSet}(x, out_path = NULL, by_time = TRUE,
-  file_num = FALSE)
+  file_num = FALSE, pars = NULL, desc = NULL)
 
 \S4method{concatFCS}{character}(x, out_path = NULL, by_time = TRUE,
   file_num = FALSE)
