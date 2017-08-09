@@ -90,9 +90,7 @@ setMethod(f="compCytof",
         # add them into the matrix
         sm <- matrix(diag(n), n, n, dimnames=list(nms, nms))
         sl_sm_cols <- sm_cols[sm_cols %in% ff_chs]
-        print("A")
         sm[sm_chs, sl_sm_cols] <- y[sm_chs, sl_sm_cols]
-        print("B")
         
         test <- (length(new_chs) != 0) && (any(inds <- old_ms %in% new_ms))
         if (test) {
