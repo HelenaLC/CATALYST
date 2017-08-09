@@ -91,46 +91,6 @@ debarcodingSidebar2 <- tagList(
         width="100%"))
 
 # ------------------------------------------------------------------------------
-# plotYields()
-# ------------------------------------------------------------------------------
-
-yieldPlotPanel <- function(x) { 
-    fluidPage(
-        column(width=8,
-            fluidRow(align="center",
-                # previous channel button
-                div(style="display:inline-block; vertical-align:center",
-                    shinyBS::bsButton(
-                        inputId="prev_yieldPlot",
-                        label=NULL,
-                        icon=icon("chevron-left"),
-                        size="extra-small")),
-                # which channel selectInput
-                div(style="display:inline-block",
-                    selectInput(
-                        inputId="select_yieldPlot", 
-                        label=NULL, 
-                        width="120px",
-                        choices=x)),
-                # next channel button
-                div(style="display:inline-block; vertical-align:center",
-                    shinyBS::bsButton(
-                        inputId="next_yieldPlot",
-                        label=NULL,
-                        icon=icon("chevron-right"),
-                        size="extra-small"))),
-            # plotting window
-            fluidRow(align="center",
-                tags$head(tags$style("#yieldPlot{height:70vh !important;}")),
-                plotOutput("yieldPlot"))),
-        column(width=4,
-            align="center",
-            tags$head(tags$style("#table_summary{height:100vh !important;}")),
-            DT::dataTableOutput(
-                outputId="table_summary")))
-}
-
-# ------------------------------------------------------------------------------
 # plotEvents()
 # ------------------------------------------------------------------------------
 
