@@ -69,7 +69,6 @@
 #' (available at http://physics.nist.gov/Comp).
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats median
-
 # ------------------------------------------------------------------------------
 
 setMethod(f="computeSpillmat", 

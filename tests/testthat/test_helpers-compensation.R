@@ -1,7 +1,7 @@
 # ==============================================================================
 # unit tests for compensation helpers
 # ------------------------------------------------------------------------------
-test_that("make_symetric() works flawlessly.", {
+test_that("make_symetric() works flawlessly", {
     dims <- sample(1:10, 2)
     min <- which.min(dims)
     max <- which.max(dims)
@@ -35,69 +35,69 @@ test_that("get_spill_cols() works impeccably", {
 })
 
 
-compare_smnames_helper <- function(sm, names){
-    expect_true(all(colnames(sm)== names))
-    expect_true(all(rownames(sm)== names))
+compare_sm_nms <- function(sm, nms){
+    expect_true(all(colnames(sm) == nms))
+    expect_true(all(rownames(sm) == nms))
 }
 
-test_that('adaptCompensationSpillmat() works', {
+test_that("adaptSpillmat() is magnificent", {
     data(ss_exp)
     # generate a dummy spillover matrix
-    ncol = flowCore::ncol(ss_exp)
-    sm = diag(1, ncol, ncol)
-    sm[cbind(1:(ncol-1),2:(ncol))] = seq(0.01, 0.3, length.out=ncol-1)
+    ncol <- flowCore::ncol(ss_exp)
+    sm <- diag(1, ncol, ncol)
+    inds <- cbind(1:(ncol-1),2:(ncol))
+    sm[inds] <- seq(0.01, 0.3, length.out=ncol-1)
     colnames(sm) <- rownames(sm) <- flowCore::colnames(ss_exp)
-    cnames <- flowCore::colnames(ss_exp)
+    chs <- flowCore::colnames(ss_exp)
     
-    # Case a subset of the channels
-    sm_ad <- adaptCompensationSpillmat(sm, cnames[1:10])
-    compare_smnames_helper(sm_ad, cnames[1:10])
+    # case a subset of the channels
+    inds <- 1:10
+    sm_ad <- adaptSpillmat(sm, chs[inds])
+    compare_sm_nms(sm_ad, chs[inds])
     # test that underlying spillover structure is not altered
-    expect_equal(sm[cnames[1:10],cnames[1:10]], sm_ad[cnames[1:10],cnames[1:10]])
+    expect_equal(sm[chs[inds], chs[inds]], sm_ad[chs[inds], chs[inds]])
     
-    # Case a new channel
-    cnames2 = c(cnames, 'Ce141Di')
-    sm_ad <- adaptCompensationSpillmat(sm, cnames2)
-    compare_smnames_helper(sm_ad, cnames2)
+    # case a new channel
+    chs2 <- c(chs, "Ce141Di")
+    sm_ad <- adaptSpillmat(sm, chs2)
+    compare_sm_nms(sm_ad, chs2)
     # test that underlying spillover structure is not altered
-    expect_equal(sm[cnames,cnames], sm_ad[cnames,cnames])
+    expect_equal(sm[chs, chs], sm_ad[chs, chs])
     
-    # Case a multiple new channels
-    cnames2 = c(cnames, 'Filename','Ce141Di', 'Time','Ce139i')
-    sm_ad <- adaptCompensationSpillmat(sm, cnames2)
-    compare_smnames_helper(sm_ad, cnames2)
+    # case a multiple new channels
+    chs2 <- c(chs, "Filename", "Ce141Di", "Time", "Ce139i")
+    sm_ad <- adaptSpillmat(sm, chs2)
+    compare_sm_nms(sm_ad, chs2)
     # test that underlying spillover structure is not altered
-    expect_equal(sm[cnames,cnames], sm_ad[cnames,cnames])
+    expect_equal(sm[chs, chs], sm_ad[chs, chs])
     
-    # Case duplicated masses
-    cnames2 = c(cnames, 'Ce141Di', 'Pr140Di')
-    sm_ad <- adaptCompensationSpillmat(sm, cnames2)
-    compare_smnames_helper(sm_ad, cnames2)
-    # Pr140 Di should now receive spillover as Ce140Di
-    expect_equal(sum(sm_ad[, 'Ce140Di']), sum(sm_ad[, 'Pr140Di']))
+    # case duplicated masses
+    chs2 <- c(chs, "Ce141Di", "Pr140Di")
+    sm_ad <- adaptSpillmat(sm, chs2)
+    compare_sm_nms(sm_ad, chs2)
+    # Pr140Di should now receive spillover as Ce140Di
+    expect_equal(sum(sm_ad[, "Ce140Di"]), sum(sm_ad[, "Pr140Di"]))
     # Pr140 should not emmit any spillover
-    expect_equal(sum(sm_ad[ 'Pr140Di',]),1)
+    expect_equal(sum(sm_ad["Pr140Di", ]),1)
     # test that underlying spillover structure is not altered
-    expect_equal(sm[cnames,cnames], sm_ad[cnames,cnames])
+    expect_equal(sm[chs, chs], sm_ad[chs, chs])
     
-    # Case random channel order
-    cnames3 <- sample(cnames2)
-    sm_ad <- adaptCompensationSpillmat(sm, cnames3)
-    compare_smnames_helper(sm_ad, cnames3)
-    # Pr140 Di should now receive spillover as Ce140Di
-    expect_equal(sum(sm_ad[, 'Ce140Di']), sum(sm_ad[, 'Pr140Di']))
+    # case random channel order
+    chs3 <- sample(chs2)
+    sm_ad <- adaptSpillmat(sm, chs3)
+    compare_sm_nms(sm_ad, chs3)
+    # Pr140Di should now receive spillover as Ce140Di
+    expect_equal(sum(sm_ad[, "Ce140Di"]), sum(sm_ad[, "Pr140Di"]))
     # Pr140 should not emmit any spillover
-    expect_equal(sum(sm_ad[ 'Pr140Di',]),1)
+    expect_equal(sum(sm_ad["Pr140Di", ]),1)
     # test that underlying spillover structure is not altered
-    expect_equal(sm[cnames,cnames], sm_ad[cnames,cnames])
+    expect_equal(sm[chs, chs], sm_ad[chs, chs])
     
     # case duplicated masses, random channel order and subset
-    cnames4 <-sample(cnames3,10)
-    sm_ad <- adaptCompensationSpillmat(sm, cnames4)
-    compare_smnames_helper(sm_ad, cnames4)
+    chs4 <- sample(chs3, 10)
+    sm_ad <- adaptSpillmat(sm, chs4)
+    compare_sm_nms(sm_ad, chs4)
     # test that underlying spillover structure is not altered
-    cnames4_orig <- cnames[cnames %in% cnames4]
-    expect_equal(sm[cnames4_orig,cnames4_orig],
-                 sm_ad[cnames4_orig,cnames4_orig])
+    chs4_orig <- chs[chs %in% chs4]
+    expect_equal(sm[chs4_orig, chs4_orig], sm_ad[chs4_orig, chs4_orig])
 })
-
