@@ -2,7 +2,7 @@
 # check validity of input FCS files
 # ------------------------------------------------------------------------------
 
-check_FCS_fileInput <- function(input, n) {
+check_FCS_fileInput <- function(input, n=1) {
     invalid <- sum(!sapply(seq_len(n), function(i)
         flowCore::isFCSfile(input[[i, "datapath"]])))
     if (n == 1 && invalid == 1) {
@@ -31,23 +31,39 @@ check_FCS_fileInput <- function(input, n) {
 # FCS file editing
 # ------------------------------------------------------------------------------
 
-new_ff <- function(data, pars, desc) {
-    colnames(data) <- pars
-    params <- data.frame(list(name=pars, desc=desc))
-    params$minRange <- apply(data, 2, function(x) min(min(x), 0))
-    params$maxRange <- apply(data, 2, max)
-    params$range <- params$maxRange - params$minRange
-    params <- Biobase::AnnotatedDataFrame(params)
-    row.names(params) <- paste0('$P', seq_len(nrow(params)))
+alter_pars <- function(ff, pars) {
+    es <- exprs(ff)
+    colnames(es) <- pars
+    ps <- parameters(ff)
+    ps@data$name <- pars
+    ds <- description(ff)
+    ds[paste0("$P", seq_len(ncol(ff)), "N")] <- pars
+    flowFrame(es, ps, ds)
+}
 
-    desc <- list()
-    for (i in seq_len(nrow(params))){
-        nm <- row.names(params)[i]
-        desc[paste0(nm, 'N')] <- as.character(params$name[i])
-        desc[paste0(nm, 'S')] <- as.character(params$desc[i])
-        desc[paste0(nm, 'R')] <- params$range[i]
-    }
-    flowCore::flowFrame(data, params, desc)
+# ==============================================================================
+# get list of masses and metals from measurement parameters
+# ------------------------------------------------------------------------------
+
+get_ms_and_mets <- function(chs) {
+    ms <- gsub("[[:punct:][:alpha:]]", "", chs)
+    mets <- gsub("([[:punct:]]*)([[:digit:]]*)(Di)*", "", chs)
+    setNames(list(ms, mets), c("Mass", "Metal"))
+}
+
+# ==============================================================================
+# get named list of indices of duplicate masses
+# ------------------------------------------------------------------------------
+
+get_duplicate_ms <- function(ms) {
+    counts <- table(ms)
+    unique <- counts == 1
+    if (all(unique)) 
+        return()
+    d <- as.numeric(names(unique)[!unique])
+    d <- d[!is.na(d)]
+    n <- length(d)
+    setNames(lapply(d, function(i) ms == i), d)
 }
 
 # ==============================================================================
