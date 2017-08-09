@@ -2,23 +2,29 @@
 # COMPENSATION
 # ==============================================================================
 
-# get input flowFrames: 
-# use debarcoded samples or read input FCS files
-ffsComp <- reactive({
-    if (vals$alterPars) {
-        vals$newMp
+# get flowSet to compensated: 
+# initially, use normalized samples or read input FCS files
+# once duplicate masses or metal mismatches where checked,
+# the newly constructed data will be used
+fsComp <- reactive({
+    data <- NULL
+    if (!is.null(fs <- vals$fsComp_metsChecked)) {
+        data <- fs
+    } else if (!is.null(fs <- vals$fsComp_msChecked)) {
+        data <- fs
     } else if (vals$keepDataNorm) {
-        if (length(ffsNormed()) == 1) {
+        n <- length(ffsNormed())
+        if (n == 1) {
             ff <- ffsNormed()[[1]]
         } else {
             ff <- CATALYST::concatFCS(x=ffsNormed())
         }
         if (input$box_removeBeads) {
-            removed <- sapply(seq_along(ffsNorm()), function(i) 
+            removed <- sapply(seq_len(n), function(i) 
                 mhlDists()[[i]] < vals$mhlCutoffs[i])
-            ff[!removed, ]
+            data <- list(ff[!removed, ])
         } else {
-            list(ff)
+            data <- list(ff)
         }
     } else {
         req(input$fcsComp)
@@ -26,101 +32,47 @@ ffsComp <- reactive({
         # check validity of input FCS files
         valid <- check_FCS_fileInput(input$fcsComp, n)
         if (!valid) return()
-        vals$compFiles <- TRUE
-        lapply(seq_len(n), function(i) 
+        data <- lapply(seq_len(n), function(i) 
             flowCore::read.FCS(
                 filename=input$fcsComp[[i, "datapath"]],
                 transformation=FALSE,
                 truncate_max_range=FALSE))
     }
+    req(data)
+    as(data, "flowSet")
 })
 
-# render FCS file editing modal
-observe({
-    req(chInds(), !vals$checkPars)
-    inds <- chInds()
-    showModal(editFCS())
-    output$chList1 <- renderUI(chList(ffControls(),   inds[[1]], "ss"))
-    output$chList2 <- renderUI(chList(ffsComp()[[1]], inds[[2]], "mp"))
-    vals$checkPars <- TRUE
+# render fileInput for spillover matrix CSV
+output$uploadSpillMat <- renderUI({
+    req(input$checkbox_upldSm == 1)
+    fileInput(
+        inputId="inputSpillMat", 
+        label=NULL, 
+        accept=".csv")
 })
 
-# get indicies of masses matching between
-# multiplexed and single-stained flowFrames
-chInds <- reactive({
-    req(ffsComp(), ffControls())
-    chs1 <- flowCore::colnames(ffControls())
-    chs2 <- flowCore::colnames(ffsComp()[[1]])
-    ms1 <- gsub("[[:punct:][:alpha:]]", "", chs1)
-    ms2 <- gsub("[[:punct:][:alpha:]]", "", chs2)
-    ex1 <- is.na(as.numeric(ms1))
-    ex2 <- is.na(as.numeric(ms2))
-    ms <- intersect(ms1[!ex1], ms2[!ex2])
-    inds1 <- ms1 %in% ms
-    inds2 <- ms2 %in% ms
-    list(inds1, inds2)
+# render fileInput for single-stained controls
+output$uploadSs <- renderUI({
+    req(input$checkbox_estSm == 1)
+    fileInput(
+        inputId="controlsFCS", 
+        label="Upload single-stains (FCS)", 
+        accept=".fcs")
 })
 
-# color textInputs depending on (mis)match between metals
-observe({
-    req(input$ss1)
-    inds <- chInds()
-    chs1 <- flowCore::colnames(ffControls())  [inds[[1]]]
-    chs2 <- flowCore::colnames(ffsComp()[[1]])[inds[[2]]]
-    mets1 <- gsub("[[:punct:][:digit:]+Di]", "", chs1)
-    mets2 <- gsub("[[:punct:][:digit:]+Di]", "", chs2)
-    diff <- mets1 != mets2
-    n <- length(diff)
-    cols <- rep("#cce698", n)
-    cols[diff] <- "#ffcccc"
-    for (i in 1:2) {
-        id <- c("ss", "mp")[i] 
-        for (j in seq_len(n)) {
-            js$textInputCol(id=paste0(id, j), col=cols[j])
-        }
-    }
-})
-
-# bsButton: "Done":
-# alter parameter names of input flowFrames
-observeEvent(input$done, {
-    inds <- chInds()
-    chs1 <- flowCore::colnames(ffControls())  [inds[[1]]]
-    chs2 <- flowCore::colnames(ffsComp()[[1]])[inds[[2]]]
-    mets1 <- gsub("[[:punct:][:digit:]+Di]", "", chs1)
-    mets2 <- gsub("[[:punct:][:digit:]+Di]", "", chs2)
-    diff <- mets1 != mets2
-    n <- length(diff)
-    # single-stained
-    ss <- ffControls()
-    pars <- flowCore::colnames(ss)
-    pars[inds[[1]]] <- sapply(seq_len(n), 
-        function(i) input[[paste0("ss", i)]])
-    vals$newSs <- new_ff(
-        data=flowCore::exprs(ss),
-        pars=pars,
-        desc=ss@parameters@data$desc)
-    # multiplexed
-    mp <- ffsComp()
-    vals$newMp <- 
-        lapply(seq_along(mp), function(i) {
-            ff <- mp[[i]]
-            pars <- flowCore::colnames(ff)
-            pars[inds[[2]]] <- sapply(seq_len(n), 
-                function(j) input[[paste0("mp", j)]])
-            new_ff(
-                data=flowCore::exprs(ff),
-                pars=pars,
-                desc=ff@parameters@data$desc)
-        })
-    vals$alterPars <- TRUE
-    removeModal()
-})
-
-# expand sidebar once data has been uploaded
-output$compensationSidebar1 <- renderUI({
-    req(isTRUE(vals$compFiles))
-    compensationSidebar1
+# render fileInput for multiplexed data
+# once a spillover matrix (CSV) has been uploaded
+# or single-stains have been checked
+output$uploadMp <- renderUI({
+    if (is.null(vals$sm) && is.null(vals$ffControls_metsChecked))
+        return()
+    tagList(
+        hr(style="border-color:black"),
+        fileInput(
+            inputId="fcsComp", 
+            label="Upload multiplexed data (FCS)", 
+            multiple=TRUE,
+            accept=".fcs"))
 })
 
 # toggle checkboxes
@@ -134,37 +86,31 @@ observe({
 })
 
 # ------------------------------------------------------------------------------
-# spillover matrix selection & plotting
+# checkboxInput: "Estimate spill from controls"
 # ------------------------------------------------------------------------------
-
-# render fileInput for single-stained controls
-output$uploadControls <- renderUI({
-    req(input$checkbox_estSm == 1)
-    fileInput(
-            inputId="controlsFCS", 
-            label="Upload FCS", 
-            accept=".fcs")
-})
 
 # get flowFrame of single-stained controls
 ffControls <- reactive({
-    if (vals$alterPars) {
-        vals$newSs
-    } else {
-        req(input$controlsFCS)
-        flowCore::read.FCS(
-            filename=input$controlsFCS$datapath,
-            transformation=FALSE,
-            truncate_max_range=FALSE)
-    }
+    ff <- vals$ffControls_metsChecked
+    if (!is.null(ff)) return(ff)
+    ff <- vals$ffControls_msChecked
+    if (!is.null(ff)) return(ff)
+    req(input$controlsFCS)
+    flowCore::read.FCS(
+        filename=input$controlsFCS$datapath,
+        transformation=FALSE,
+        truncate_max_range=FALSE)
 })
 
-# render selectInput and bsButton
+# render selectInput: "Select single-positive channels"
 output$selectSinglePosChs <- renderUI({
-    req(input$checkbox_estSm == 1, ffControls())
+    req(input$checkbox_estSm == 1, 
+        !is.null(vals$fsComp_metsChecked))
     chs <- flowCore::colnames(ffControls())
     ms <- as.numeric(gsub("[[:alpha:][:punct:]]", "", chs))
-    selectSinglePosChsUI(choices=chs[!is.na(as.numeric(ms))])
+    tagList(
+        hr(style="border-color:black"),
+        selectSinglePosChsUI(choices=chs[!is.na(as.numeric(ms))]))
 })
 
 # ------------------------------------------------------------------------------
@@ -187,24 +133,24 @@ observeEvent(input$debarcodeComp, {
 })
 
 # estCutoffs()
-observeEvent(input$checkbox_estCutoffsComp, {
+observeEvent(input$checkbox_estCutofsComp, {
     vals$dbFrame2Comp <- CATALYST::estCutoffs(x=vals$dbFrame1Comp)
 })
 
 # toggle checkboxes
 observe({
-    req(input$checkbox_estCutoffsComp == 1)
+    req(input$checkbox_estCutofsComp == 1)
     updateCheckboxInput(session, "checkbox_adjustCutoffComp", value=FALSE)
     updateCheckboxInput(session, "checkbox_globalCutoffComp", value=FALSE)
 })
 observe({
     req(input$checkbox_adjustCutoffComp == 1)
-    updateCheckboxInput(session, "checkbox_estCutoffsComp",   value=FALSE)
+    updateCheckboxInput(session, "checkbox_estCutofsComp",   value=FALSE)
     updateCheckboxInput(session, "checkbox_globalCutoffComp", value=FALSE)
 })
 observe({
     req(input$checkbox_globalCutoffComp == 1)
-    updateCheckboxInput(session, "checkbox_estCutoffsComp",   value=FALSE)
+    updateCheckboxInput(session, "checkbox_estCutofsComp",   value=FALSE)
     updateCheckboxInput(session, "checkbox_adjustCutoffComp", value=FALSE)
 })
 
@@ -305,11 +251,11 @@ output$yieldPlotPanelComp <- renderUI({
 })
 
 # render plot
-output$yieldPlotComp <- renderPlot({
+output$yieldPlotComp <- renderPlotly({
     req(dbFrameComp())
     CATALYST::plotYields(
         x=dbFrameComp(), 
-        which=selectedYieldPlotComp())
+        which=selectedYieldPlotComp())[[1]]
 })
 
 # renderDataTable: IDs | Counts | Cutoffs | Yields
@@ -342,21 +288,11 @@ observeEvent(input$next_yieldPlotComp, {
 })
 
 # ------------------------------------------------------------------------------
-# get spillover matrix & plotSpillmat()
+# get spillover matrix, plotSpillmat() and compensate
 # ------------------------------------------------------------------------------
-
-# render fileInput for spillover matrix CSV
-output$uploadSpillMat <- renderUI({
-    req(input$checkbox_upldSm == 1)
-    fileInput(
-        inputId="inputSpillMat", 
-        label=NULL, 
-        accept=".csv")
-})
 
 # get spillover matrix
 spillMat <- reactive({
-    req(ffsComp())
     x <- input$checkbox_upldSm
     if (!is.null(x) && x == 1 && !is.null(input$inputSpillMat)) {
         read.csv(input$inputSpillMat$datapath, check.names=FALSE, row.names=1)
@@ -367,7 +303,7 @@ spillMat <- reactive({
     }
 })
 
-# store original spillover matrix
+# copy original spillover matrix for adjustments
 observeEvent(spillMat(), {
     vals$sm <- spillMat()
 })
@@ -385,17 +321,16 @@ output$plotSpillmat <- renderPlot({
 })
 
 # compensate input flowFrame(s)
-ffComped <- reactive({
+fsComped <- reactive({
     req(vals$sm)
-    print(is.list(ffsComp()))
-    print(compCytof(ffsComp()[[1]], vals$sm))
-    lapply(ffsComp(), CATALYST::compCytof, vals$sm)
+    fsApply(fsComp(), CATALYST::compCytof, vals$sm)
 })
 
-# render download button when data has been compensated
-output$compensationSidebar2 <- renderUI({
-    req(ffComped())
-    compensationSidebar2
+# render download buttons and bsButton "Go to debarcoding' 
+# when data has been compensated
+output$compensationSidebar <- renderUI({
+    req(fsComped())
+    compensationSidebar
 })
 
 # ------------------------------------------------------------------------------
@@ -417,7 +352,7 @@ selectedSmplComp <- reactive({
 observe({
     selected <- selectedSmplComp()
     req(selected)
-    choices <- colnames(ffsComp()[[selected]])
+    choices <- colnames(fsComp()[[selected]])
     ms <- gsub("[[:alpha:][:punct:]]", "", choices)
     ch1 <- choices[choices == input$scatterCh1]
     ch2 <- choices[choices == input$scatterCh2]
@@ -443,7 +378,7 @@ observe({
 # next / previous sample buttons
 # ------------------------------------------------------------------------------
 observe({
-    n <- length(ffsComp())
+    n <- length(fsComp())
     toggleState(id="prev_smplComp", condition=selectedSmplComp() != 1)
     toggleState(id="next_smplComp", condition=selectedSmplComp() != n)
 })
@@ -462,7 +397,7 @@ observeEvent(input$next_smplComp, {
 observe({
     selected <- selectedSmplComp()
     req(selected)
-    chs <- flowCore::colnames(isolate(vals$ffComped)[[selected]])
+    chs <- flowCore::colnames(isolate(vals$fsComped)[[selected]])
     # default to currently selected masses 
     ms <- gsub("[[:punct:][:alpha:]]", "", chs)
     currentMs <- sapply(
@@ -529,13 +464,13 @@ observe({
 
 # left scatter (uncompensated)
 output$compScatter1 <- renderPlot({ 
-    data <- ffsComp()[[selectedSmplComp()]]
+    data <- fsComp()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
     req(!is.null(data), x != "", y != "")
     CATALYST:::plotScatter(es=flowCore::exprs(data), x=x, y=y, cf=cfComp())
 })
 output$text_info1 <- renderText({ 
-    data <- ffsComp()[[selectedSmplComp()]]
+    data <- fsComp()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
     req(!is.null(data), x != "", y != "")
     text_info(data, isolate(input$cfComp), input$rect1, x, y)
@@ -543,13 +478,13 @@ output$text_info1 <- renderText({
 
 # left scatter (compensated)
 output$compScatter2 <- renderPlot({
-    data <- ffComped()[[selectedSmplComp()]]
+    data <- fsComped()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
     req(!is.null(data), x != "", y != "")
     CATALYST:::plotScatter(es=flowCore::exprs(data), x=x, y=y, cf=cfComp())
 })
 output$text_info2 <- renderText({ 
-    data <- ffComped()[[selectedSmplComp()]]
+    data <- fsComped()[[selectedSmplComp()]]
     x <- ch1(); y <- ch2()
     req(!is.null(data), x != "", y != "")
     text_info(data, isolate(input$cfComp), input$rect2, x, y)
@@ -562,7 +497,7 @@ output$text_info2 <- renderText({
 # get output file names
 smplNmsComp <- reactive({
     if (vals$keepDataNorm) {
-        gsub(".fcs", "_comped.fcs", identifier(ffsComped()))
+        gsub(".fcs", "_comped.fcs", identifier(fsComped()))
     } else {
         req(input$fcsComp)
         gsub(".fcs", "_comped.fcs", input$fcsComp$name, ignore.case=TRUE)
@@ -576,16 +511,17 @@ output$dwnld_comped <- downloadHandler(
     content=function(file) { 
         tmpdir <- tempdir()
         setwd(tmpdir)
-        ff <- ffComped()
+        comped <- fsComped()
         fileNms <- smplNmsComp()
         if (input$box_setToZero) {
-            lapply(seq_along(ff), function(i) {
-                flowCore::exprs(ff[[i]])[flowCore::exprs(ff[[i]]) < 0] <- 0
-                suppressWarnings(flowCore::write.FCS(ff[[i]], fileNms[i])) 
+            lapply(seq_along(comped), function(i) {
+                flowCore::exprs(comped[[i]])[
+                    flowCore::exprs(comped[[i]]) < 0] <- 0
+                suppressWarnings(flowCore::write.FCS(comped[[i]], fileNms[i])) 
             })
         } else {
-            lapply(seq_along(ff), function(i) {
-                suppressWarnings(flowCore::write.FCS(ff[[i]], fileNms[i]))
+            lapply(seq_along(comped), function(i) {
+                suppressWarnings(flowCore::write.FCS(comped[[i]], fileNms[i]))
             })
         }
         zip(zipfile=file, files=fileNms)

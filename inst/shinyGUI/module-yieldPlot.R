@@ -30,7 +30,7 @@ yieldPlotModule <- function(sampleIDs, module) {
             # plotting window
             fluidRow(
                 align="center",
-                plotOutput(outputId=paste0("yieldPlot", module)))
+                plotlyOutput(outputId=paste0("yieldPlot", module)))
         ),
         # summary table: IDs | Counts | Cutoffs | Yields
         column(
