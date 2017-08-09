@@ -103,4 +103,5 @@ setMethod(f="adaptSpillmat",
         # assure diagonal is all 1
         diag(sm) <- 1
         return(sm)  
-    })
+    }
+)
