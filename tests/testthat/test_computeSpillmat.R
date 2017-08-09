@@ -10,7 +10,7 @@ test_that("computeSpillmat() works.", {
     # Generate some dummy testdata with ss_exp as a template
     data(ss_exp)
     set.seed(12345)
-    ncells = 11
+    ncells = 100
     
     
     # generate a known spillover matrix
@@ -50,12 +50,13 @@ test_that("computeSpillmat() works.", {
     # debarcode
     re <- assignPrelim(x=ff_test, y=bc_ms, verbose=FALSE)
     
-    # check if debarcoding worked flawelessly
+    # set debarcoding to the constructed ids
     re@bc_ids = rep(as.character(sm_mass), ncells)
     # compute spillover matrix
     spillMat <- computeSpillmat(x=re)
 
-    expect_equal(spillMat, sm)
+    expect_equal(spillMat, sm, info='Test if spillover matrix can be reconstructed
+                 from simulated single cells wihthout noise.')
     
     ## Repeat the test with a constant amount of background
     bg=20
@@ -66,11 +67,33 @@ test_that("computeSpillmat() works.", {
     # debarcode
     re <- assignPrelim(x=ff_test, y=bc_ms, verbose=FALSE)
     
-    # check if debarcoding worked flawelessly
+    # set debarcoding to the constructed ids
     re@bc_ids = rep(as.character(sm_mass), ncells)
     # compute spillover matrix
     spillMat <- computeSpillmat(x=re)
     
-    expect_equal(spillMat, sm)
+    expect_equal(spillMat, sm, info='Test if spillover matrix can be reconstructed
+                 from simulated single cells wihthout noise
+                 but with background.')
+    
+    #### This is not really a unit test, but rather tests robustness
+    ## The test could also be removed...
+    ## Repeat the test with 20% noise
+    mat_sm_noise <- mat_sm *rnorm(ncol*ncells, 1, 0.2)
+    mat_sm_noise[mat_sm_noise < 0] = 0 
+    ff_test = flowCore::flowFrame(mat_sm_noise)
+    
+    # start debarcoding
+    bc_ms <- sm_mass
+    # debarcode
+    re <- assignPrelim(x=ff_test, y=bc_ms, verbose=FALSE)
+    
+    # set debarcoding to the constructed ids
+    re@bc_ids = rep(as.character(sm_mass), ncells)
+    # compute spillover matrix
+    spillMat <- computeSpillmat(x=re)
+    
+    expect_equal(spillMat, sm, info='Test if spillover matrix can be reconstructed
+                 from simulated single cells with 20% noise.')
 })
     
