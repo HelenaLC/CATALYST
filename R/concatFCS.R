@@ -20,6 +20,8 @@
 #' Specifies whether files should be ordered by time of acquisition.
 #' @param file_num logical. 
 #' Specifies whether a file number column should be added.
+#' @pars,desc optional character vector of channel names and descriptions
+#' to use when mergin files.
 #'
 #' @return 
 #' a \code{\link{flowFrame}} containing measurement intensities 
@@ -31,6 +33,7 @@
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom flowCore colnames exprs flowFrame flowSet fsApply isFCSfile
+#' @importFrom matrixStats colMaxs
 #' @importFrom methods as
 #' @export
 
@@ -38,7 +41,10 @@
 
 setMethod(f="concatFCS",
     signature=signature(x="flowSet"),
-    definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE) {
+    definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE, 
+        pars=NULL, desc=NULL) {
+        
+        ### check validity of pars and desc
         
         n <- length(x)
         if (by_time) {
@@ -52,28 +58,26 @@ setMethod(f="concatFCS",
         nPars <- ncol(x[[1]])
         nEvents <- as.numeric(keyword(x, "$TOT"))
         
-        # concatenate
-        es <- fsApply(x, exprs)
-        timeCol <- grep("time", colnames(x), ignore.case=TRUE)
-        start <- c(1, cumsum(nEvents)+1)
-        end <- start[-1]-1
-        for (i in seq_along(x)[-1]) {
-            inds <- start[i]:end[i]
-            es[inds, timeCol] <- es[inds, timeCol]+es[end[i-1], timeCol]
-        }
+        es <- concat_fs(x, nEvents)
         
         # get descriptions
         d <- description(x[[1]])
+        # alter parameters and descriptions
+        if (!is.null(pars))
+            d[paste0("$P", seq_len(nPars), "N")] <- pars
+        if (!is.null(desc))
+            d[paste0("$P", seq_len(nPars), "S")] <- desc
+
+        # alter some slots
         d$`$TOT` <- sum(nEvents)
-        d$`GUID` <- gsub("_\\d+.fcs", "_concat.fcs", 
-            d$ORIGINALGUID, ignore.case=TRUE)
+        d$`GUID` <- gsub("(_)*([[:digit:]]*)(.fcs)$", 
+            "_concat.fcs", d$ORIGINALGUID, ignore.case=TRUE)
         d <- d[!names(d) %in% c("$FIL", "FILENAME", "ORIGINALGUID")]
         d$`FILE LIST` <- paste(paste0(seq_len(n), 
             "-", keyword(x, "ORIGINALGUID")), collapse=",")
         d$`$BTIM` <- d$`$BTIM`
         d$`$ETIM` <- description(x[[n]])$`$ETIM`
         d$`$COM` <- "FCS files concatenated by CATALYST"
-        d[paste0("$P", seq_len(nPars), "R")] <- df$range
         d$transformation <- "applied"
         
         # add file number column
@@ -81,32 +85,39 @@ setMethod(f="concatFCS",
             nPars <- nPars+1
             es <- as.matrix(cbind(es, "FileNum"=
                     rep(seq_len(n)[o], nEvents[o])))
-            d[paste0("$P", nPars, "B")] <- 32
-            d[paste0("$P", nPars, "E")] <- 0
+            d[paste0("$P", nPars, "B")] <- "32"
+            d[paste0("$P", nPars, "E")] <- "0,0"
             d[paste0("$P", nPars, "N")] <- "FileNum"
-            d[paste0("$P", nPars, "R")] <- n-1
+            d[paste0("$P", nPars, "R")] <- 0
             d[paste0("$P", nPars, "S")] <- "File Number"
         }
         
-        # get parameters
-        pars <- colnames(es)
-        PnS <- d[paste0("$P", seq_len(nPars), "S")]
-        PnS[sapply(PnS, is.null)] <- NA
+        # get range
+        mins <- rep(0, nPars)
+        maxs <- as.integer(matrixStats::colMaxs(es))
+        d[paste0("$P", seq_len(nPars), "R")] <- maxs
+        d[paste0("flowCore_$P", seq_len(nPars), "Rmin")] <- paste(mins)
+        d[paste0("flowCore_$P", seq_len(nPars), "Rmax")] <- paste(maxs-1)
         
-        mins <- matrixStats::colMins(es)
-        maxs <- matrixStats::colMaxs(es)
+        # get parameters
+        PnS <- paste0("$P", seq_len(nPars), "S")
+        descr <- unlist(d[PnS])
+        inds <- PnS %in% names(descr)
+        newD <- rep(NA, nPars)
+        newD[inds] <- descr
+        newD <- as.list(setNames(newD, PnS))
         df <- data.frame(list(
-            name=colnames(es), 
-            desc=unlist(PnS), 
-            range=abs(maxs)-abs(mins),
+            name=colnames(es),
+            desc=PnS,
+            range=maxs,
             minRange=mins,
-            maxRange=maxs))
-        p <- Biobase::AnnotatedDataFrame(df)
+            maxRange=maxs-1))
+        md <- parameters(x[[1]])@varMetadata
+        p <- Biobase::AnnotatedDataFrame(data=df, varMetadata=md)
         rownames(p) <- paste0("$P", seq_len(nPars))
 
         # construct new flowFrame
         ff <- flowFrame(exprs=es, parameters=p, description=d)
-
         if (is.null(out_path)) return(ff)
         suppressWarnings(flowCore::write.FCS(ff, 
             file.path(out_path, description(ff)$GUID)))
