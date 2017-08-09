@@ -127,20 +127,20 @@ plot_yields <- function(id, x, seps, n_bcs, bc_labs) {
             seps, yields=t(yields(x))*max), id.var=seps)
         line$Sample <- rep(bc_labs, each=length(seps))
         
-        p <- ggplot() + 
+        p <- suppressWarnings(ggplot() + 
             geom_bar(data=hist, aes_string(x="seps", y="counts"), width=1/101, 
                 stat="identity", fill="lightgrey", col="white") +
             geom_line(data=line, size=.5, aes_string(x="seps", y="value",
                 col="as.factor(variable)", text="Sample")) +
             guides(colour=guide_legend(override.aes=list(size=1))) +
-            scale_colour_manual(values=cols, name=NULL, labels=bc_labs)
+            scale_colour_manual(values=cols, name=NULL, labels=bc_labs))
     } else {
         max <- max(counts(x)[id, ])
         df <- data.frame(Cutoff=seps, 
             Count=counts(x)[id, ], 
             yield=yields(x)[id, ]*max,
             fit=max*predict(smooth.spline(seps, yields(x)[id, ]), seps)$y)
-        df$Yield <- paste0(sprintf("%2.2f", round(df$yield, 2)), "%")
+        df$Yield <- paste0(sprintf("%2.2f", round(100*df$yield/max, 2)), "%")
         inds <- seq(1, nrow(df), 2)
         
         p <- ggplot(df) + 

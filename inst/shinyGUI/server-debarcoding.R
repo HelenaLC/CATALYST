@@ -8,17 +8,17 @@ ffDeba <- reactive({
         ff <- ffComped()
         if (input$box_setToZero)
             exprs(ff)[exprs(ff) < 0] <- 0
+        ff
     } else {
         req(input$fcsDeba)
         # check validity of input FCS files
-        valid <- check_FCS_fileInput(input$fcsDeba, n)
+        valid <- check_FCS_fileInput(input$fcsDeba)
         if (!valid) return()
-        ff <- read.FCS(
+        read.FCS(
             filename=input$fcsDeba$datapath,
             transformation=FALSE,
             truncate_max_range=FALSE)
     }
-    return(ff)
 })
 
 
@@ -211,12 +211,11 @@ eventPlotNEvents  <- reactive(as.numeric(input$n_events))
 mahalPlotCofactor <- reactive(input$mahalPlotCofactor)
 
 # render plots
-output$yieldPlotDeba <- renderPlot({
+output$yieldPlotDeba <- renderPlotly({
     req(dbFrameDeba())
     plotYields(
         x=dbFrameDeba(), 
-        which=selectedYieldPlotDeba(),
-        legend=FALSE)
+        which=selectedYieldPlotDeba())[[1]]
 })
 output$eventPlot <- renderPlot({
     req(dbFrameDeba())

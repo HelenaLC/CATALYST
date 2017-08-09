@@ -130,7 +130,7 @@ setMethod(f="computeSpillmat",
             for (j in spill_cols[[i]]) {
                 pos_j <- es[pos, j]
                 # further exclude events assigned to population
-                # for which interaction is calculated 
+                # for which interaction is calculated
                 neg_j <- es[neg[bc_ids(x)[neg] != ms[j]], j]
                 sij <- get_sij(pos_i, neg_i, pos_j, neg_j, method, trim)
                 SM[i, j] <- sij
