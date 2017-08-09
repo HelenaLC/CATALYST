@@ -182,7 +182,7 @@ box_beadGating <- function(samples) {
                         inputId="gateBeads", 
                         label=NULL,
                         icon=icon("share"),
-                        style="error",
+                        style="warning",
                         size="small",
                         disabled=TRUE)),
                 bsTooltip(
