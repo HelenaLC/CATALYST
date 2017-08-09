@@ -69,7 +69,6 @@
 #' (available at http://physics.nist.gov/Comp).
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats median
-
 # ------------------------------------------------------------------------------
 
 setMethod(f="computeSpillmat", 
@@ -95,6 +94,10 @@ setMethod(f="computeSpillmat",
         es <- exprs(x)
         n <- ncol(es)
         chs <- colnames(es)
+        
+        # TODO: use helper functions to guarantee that the 
+        # metals and masses are consistently parsed in the 
+        # whole CATALYST package
         ms <- as.numeric(regmatches(chs, gregexpr("[0-9]+", chs)))
         mets <- gsub("[[:digit:]]+Di", "", chs)
         
@@ -131,8 +134,8 @@ setMethod(f="computeSpillmat",
             for (j in spill_cols[[i]]) {
                 pos_j <- es[pos, j]
                 # further exclude events assigned to population
-                # for which interaction is calculated
-                neg_j <- es[neg[bc_ids(x)[neg] != ms[j]], j]
+                # for which interaction is calculated 
+                neg_j <- es[neg[bc_ids(x)[neg] != ms[j] & !(bc_ids(x)[neg] %in%  ms[ex[[j]]])], j]
                 sij <- get_sij(pos_i, neg_i, pos_j, neg_j, method, trim)
                 SM[i, j] <- sij
             } 
@@ -140,4 +143,5 @@ setMethod(f="computeSpillmat",
         #colnames(SM) <- rownames(SM) <- chs
         SM[SM < th] <- 0
         SM[bc_cols, !is.na(ms)]
-    })
+    }
+)
