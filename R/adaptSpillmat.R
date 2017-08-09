@@ -53,7 +53,7 @@ setMethod(f="adaptSpillmat",
         #input_sm <- make_symetric(input_sm)
         # get the output names, metals and masses
         n <- length(out_chs)
-        out_masses <- get_mass_from_channel(out_chs)
+        out_masses <- get_ms_from_chs(out_chs)
         out_metalchs <- out_chs[!is.na(out_masses)]
         input_sm_chs_col <- colnames(input_sm)
         input_sm_chs_row <- rownames(input_sm)
@@ -70,9 +70,9 @@ setMethod(f="adaptSpillmat",
         
         # check for new channels
         new_metalchs <- out_metalchs[!out_metalchs %in% input_sm_chs]
-        new_masses <- get_mass_from_channel(new_metalchs)
+        new_masses <- get_ms_from_chs(new_metalchs)
         
-        old_receiving_masses <- get_mass_from_channel(input_sm_chs_col)
+        old_receiving_masses <- get_ms_from_chs(input_sm_chs_col)
         
         test <- (length(new_metalchs) != 0) && 
             (any(inds <- old_receiving_masses %in% new_masses))
