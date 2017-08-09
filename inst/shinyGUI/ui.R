@@ -27,6 +27,7 @@ header$children[[3]]$children <- tagList(
 
 sidebar <- dashboardSidebar(
     sidebarMenu(
+        id="tabs",
         menuItem(
             text="Concatenation",
             tabName="concatenation",

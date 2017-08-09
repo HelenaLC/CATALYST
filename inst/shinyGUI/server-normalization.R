@@ -4,16 +4,20 @@
 
 # read input FCS
 ffsNorm <- reactive({
-    req(input$fcsNorm)
-    n <- nrow(input$fcsNorm)
-    # check validity of input FCS files
-    valid <- check_FCS_fileInput(input$fcsNorm, n)
-    if (!valid) return()
-    lapply(seq_len(n), function(i)
-        flowCore::read.FCS(
-            filename=input$fcsNorm[[i, "datapath"]],
-            transformation=FALSE,
-            truncate_max_range=FALSE))
+    if (vals$keepDataConcat) {
+        list(ffConcat())
+    } else {
+        req(input$fcsNorm)
+        n <- nrow(input$fcsNorm)
+        # check validity of input FCS files
+        valid <- check_FCS_fileInput(input$fcsNorm, n)
+        if (!valid) return()
+        lapply(seq_len(n), function(i)
+            flowCore::read.FCS(
+                filename=input$fcsNorm[[i, "datapath"]],
+                transformation=FALSE,
+                truncate_max_range=FALSE))
+    }
 })
 
 output$box2 <- renderUI({
@@ -162,8 +166,12 @@ observeEvent(input$nextSmplMhl, {
 
 # keep track of currently selected sample
 smplNmsNorm <- reactive({
-    req(input$fcsNorm)
-    input$fcsNorm$name
+    if (isTRUE(vals$keepDataConcat)) {
+        smplNmConcat()
+    } else {
+        req(input$fcsNorm)
+        input$fcsNorm$name
+    }
 })
 selectedSmplGating <- reactive({
     x <- input$selectSmplGating
