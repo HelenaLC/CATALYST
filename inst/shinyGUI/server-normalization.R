@@ -417,11 +417,11 @@ observe({
 })
 
 # bsButton "Go to debarcoding": propagate data 
-# & hide FCS fileInput from debarcoding tab
-observeEvent(input$goToComp, {
+# & hide FCS fileInput from compensation tab
+observeEvent(input$goToComp, {    
+    vals$keepDataNorm <- TRUE
     shinyjs::hide(id="fcsComp")
     updateTabItems(session, inputId="tabs", selected="compensation")
-    vals$keepDataNorm <- TRUE
 })
 
 # ------------------------------------------------------------------------------

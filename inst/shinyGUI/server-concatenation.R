@@ -52,9 +52,9 @@ output$concatOutput <- renderUI({
 # bsButton "Go to normalization": propagate data 
 # & disable FCS fileInput from normalization tab
 observeEvent(input$goToNorm, {
+    vals$keepDataConcat <- TRUE
     shinyjs::disable(id="fcsNorm")
     updateTabItems(session, inputId="tabs", selected="normalization")
-    vals$keepDataConcat <- TRUE
 })
 
 # ------------------------------------------------------------------------------
