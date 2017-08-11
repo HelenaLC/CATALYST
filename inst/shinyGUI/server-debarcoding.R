@@ -5,7 +5,7 @@
 # read input FCS
 ffDeba <- reactive({
     if (vals$keepDataComp) {
-        ff <- ffComped()
+        ff <- fsComped()
         if (input$box_setToZero)
             exprs(ff)[exprs(ff) < 0] <- 0
         ff
