@@ -89,9 +89,9 @@ setMethod(f="adaptSpillmat",
             sm_col <- out_chs[fil]
             sm_col_ms <- as.character(out_masses[fil])
             # add the spillover
-            old_rowchs = out_chs[out_chs %in% input_sm_chs_row]
+            old_rowchs <- out_chs[out_chs %in% input_sm_chs_row]
             sm[old_rowchs, sm_col] <- input_sm[old_rowchs, y_col[sm_col_ms]]
-            for (m in unique(sm_col_ms)){
+            for (m in unique(sm_col_ms)) {
                 mfil <- out_masses == m
                 # set the spillover between channels of the same mass to 0
                 # otherwise the linear system can get singular
