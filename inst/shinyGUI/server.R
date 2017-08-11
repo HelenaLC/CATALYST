@@ -7,14 +7,14 @@ shinyServer(function(input, output, session) {
     source("guides.R")
     output$debarcoding_guide  <- renderUI(debarcoding_guide)
     output$compensation_guide <- renderUI(compensation_guide)
-
+    
     source("server-concatenation.R", local=TRUE)
     source("server-normalization.R", local=TRUE)
     source("server-debarcoding.R",   local=TRUE)
     source("server-compensation.R",  local=TRUE)
     source("server-FCSchecking.R",   local=TRUE)
-
-# ------------------------------------------------------------------------------
+    
+    # ------------------------------------------------------------------------------
     
     vals <- reactiveValues(
         # logicals indicating whether data should be propagated
@@ -27,8 +27,6 @@ shinyServer(function(input, output, session) {
         dbFrame2Deba = NULL,    # dbFrame with deconvolution parameters applied
         mhlCutoffDeba = 30,     # default Mahalanobis distance cutoff
         # compensation
-        dbFrame1Comp = NULL, # preliminary dbFrame
-        dbFrame2Comp = NULL, # dbFrame with deconvolution parameters applied
         mhlCutoffComp = 30   # default Mahalanobis distance cutoff
     )
 })
