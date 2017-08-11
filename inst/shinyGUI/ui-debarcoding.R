@@ -34,7 +34,7 @@ debarcodingTab <- fluidPage(
 )
 
 # ------------------------------------------------------------------------------
-# 1st sidebar
+# 1st sidebar extension
 # ------------------------------------------------------------------------------
 
 debarcodingSidebar1 <- tagList(
@@ -51,7 +51,7 @@ debarcodingSidebar1 <- tagList(
         disabled=TRUE))
 
 # ------------------------------------------------------------------------------
-# 2nd sidebar
+# 2nd sidebar extension
 # ------------------------------------------------------------------------------
 
 debarcodingSidebar2 <- tagList(

@@ -27,5 +27,6 @@ source("module-debaPars.R")
 
 source("ui-concatenation.R")
 source("ui-normalization.R")   
-source("ui-debarcoding.R")
+source("ui-FCSchecking.R")
 source("ui-compensation.R")
+source("ui-debarcoding.R")

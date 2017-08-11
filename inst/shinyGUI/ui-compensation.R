@@ -2,120 +2,6 @@
 # compensation tab
 # ==============================================================================
 
-editMs <- function(id) {
-    # id := 'SS' or 'MP'
-    modalDialog(
-        fluidPage(
-                column(
-                    offset=2,
-                    width=4,
-                    align="center",
-                    uiOutput(paste0("duplicateMasses", id))),
-                column(
-                    width=4,
-                    align="center",
-                    uiOutput(paste0("duplicateMetals", id)))),
-        title=HTML(paste(strong("Duplicate masses detected"), 
-            "Please select which channels to keep.", sep="<br/>")),
-        footer=shinyBS::bsButton(
-            inputId=paste0("msChecked", id), 
-            label="Done"),
-        size="m")
-}
-
-editMets <- function(id, header1, header2) {
-    # id := 'FLvsSS' or 'SSvsMP'
-    # header1 := 'Fulidigm' or 'Single-stains'
-    # header2 := 'Single-stains' or 'Multiplexed'
-    modalDialog(
-        wellPanel(
-            style="background-color:white; border:0px; 
-                overflow-y:scroll; max-height:100vh",
-            fluidPage(
-                fluidRow(
-                    column(
-                        width=4,
-                        p(strong("Mass"))),
-                    column(
-                        width=4,
-                        p(strong(header1))),
-                    column(
-                        width=4,
-                        p(strong(header2)))),
-                fluidRow(
-                    column(
-                        width=4,
-                        align="center",
-                        uiOutput(paste0("masses", id))),
-                    column(
-                        width=3,
-                        align="center",
-                        uiOutput(paste0("metals1", id))),
-                    column(
-                        width=1,
-                        uiOutput(paste0("boxes1", id))),
-                    column(
-                        width=3,
-                        align="center",
-                        uiOutput(paste0("metals2", id))),
-                    column(
-                        width=1,
-                        uiOutput(paste0("boxes2", id)))))),
-        title=HTML(paste(sep="<br/>", strong("Metal mismatches detected"), 
-            "The metals selected here will effect spillover estimation.
-            Please check carefully and comfirm which metals were used.")),
-        footer=shinyBS::bsButton(
-            inputId=paste0("metsChecked", id), 
-            label="Done"),
-        size="m")
-}
-
-msList <- function(n, id) {
-    # n := number of channels
-    # id := 'FLvsSS' or 'SSvsMP'
-    l <- lapply(seq_len(n), function(i) {
-        div(style="height:40px; width:100%", 
-            verbatimTextOutput(
-                output=paste0("mass", id, i)))
-    })
-    do.call(tagList, l)
-}
-selectMs <- function(mets, inds, id) {
-    l <- lapply(seq_along(inds), function(i) {
-        selectInput(
-            inputId=paste0("metalSelection", id, i),
-            label=NULL,
-            choices=mets[inds[[i]]],
-            width="100%")
-    })
-    do.call(tagList, l)
-}
-metsList <- function(n, id1, id2) {
-    # n := number of channels
-    # id1 := 'FLvsSS' or 'SSvsMP'
-    # id2 := 'ref' or 'dat'
-    l <- lapply(seq_len(n), function(i) {
-        div(style="height:40px; width:100%", 
-            verbatimTextOutput(
-                output=paste0("metal", id1, id2, i)))
-    })
-    do.call(tagList, l)
-}
-boxList <- function(n, id1, id2) {
-    # n := number of channels
-    # id1 := 'FLvsSS' or 'SSvsMP'
-    # id2 := 'ref' or 'dat'
-    val <- id2 == "dat"
-    l <- lapply(seq_len(n), function(i) {
-        div(style="height:30px; margin:0; padding:0",
-            checkboxInput(
-                inputId=paste0("box", id1, id2, i),
-                label=NULL,
-                value=val))
-    })
-    do.call(tagList, l)
-}
-
 compensationTab <- fluidPage(
     shinyjs::extendShinyjs(text=restyleMetals),
     tags$style("#plotSpillmat{height:100vh !important; width:100%}"),
@@ -198,8 +84,7 @@ selectSinglePosChsUI <- function(choices) {
             label="Debarcode", 
             style="warning",
             size="small",
-            block=TRUE)
-    )
+            block=TRUE))
 }
 
 # ------------------------------------------------------------------------------
@@ -264,6 +149,18 @@ panel_scatters <- function(samples) {
                     label=NULL, 
                     choices=NULL,
                     width="120px")),
+            div(style="display:inline-block; vertical-align:center",
+                bsButton(
+                    inputId="viewCompScatter", 
+                    label=NULL,
+                    icon=icon("share"),
+                    style="primary",
+                    size="extra-small")),
+            bsTooltip(
+                id="viewCompScatter", 
+                title="View", 
+                placement="right", 
+                trigger="hover"),
             div(style="display:inline-block",
                 h5(strong(" Cofactor:"), align="right")),
             div(style="display:inline-block; vertical-align:top",
@@ -339,9 +236,9 @@ panel_scatters <- function(samples) {
                 width=12, 
                 fluidPage( 
                     tags$head(tags$style("#text_info1 {
-                        font-size:20px; color:blue; background-color:white")), 
+                        font-size:14px; color:blue}")), 
                     tags$head(tags$style("#text_info2 {
-                        font-size:20px; color:blue; background-color:white")), 
+                        font-size:14px; color:blue}")), 
                     tags$head(tags$style("#compScatter1{
                         float:center; height:100vh !important}")),
                     tags$head(tags$style("#compScatter2{
@@ -357,11 +254,9 @@ panel_scatters <- function(samples) {
                             fluidRow(
                                 align="left",
                                 column(
-                                    width=12,
+                                    width=6,
                                     offset=3,
-                                    shinydashboard::box(
-                                        verbatimTextOutput("text_info1"),
-                                        width=6)))),
+                                    verbatimTextOutput("text_info1")))),
                         column(
                             width=6, 
                             fluidRow(
@@ -371,14 +266,12 @@ panel_scatters <- function(samples) {
                             fluidRow(
                                 align="left",
                                 column(
-                                    width=12,
+                                    width=6,
                                     offset=3,
-                                    shinydashboard::box(
-                                        verbatimTextOutput("text_info2"),
-                                        width=6))))
+                                    verbatimTextOutput("text_info2"))))
                     )
-                    )
-                    )
+                )
             )
         )
+    )
 }
