@@ -3,9 +3,8 @@
 # ------------------------------------------------------------------------------
 get_spill_cols <- function(ms, mets, l=CATALYST::isotope_list) {
     ms <- as.numeric(ms)
-    spill_cols <- list()
+    spill_cols <- vector("list", length(ms))
     for (i in seq_along(ms)) {
-        if (is.na(ms[i])) next
         p1 <- m1 <- ox <- iso <- NULL
         if ((ms[i] + 1)  %in% ms) p1 <- which(ms == (ms[i] + 1))
         if ((ms[i] - 1)  %in% ms) m1 <- which(ms == (ms[i] - 1)) 
@@ -125,7 +124,7 @@ get_mets_from_chs <- function(chs) {
 # expected spillover among the new channels.
 # ------------------------------------------------------------------------------
 
-warn_new_intearctions <- function(chs_new, sm){
+warn_new_intearctions <- function(chs_new, sm) {
     chs_emitting  <- rownames(sm)
     chs_receiving <- colnames(sm)
     chs <- list(chs_new, chs_emitting, chs_receiving)
@@ -142,7 +141,7 @@ warn_new_intearctions <- function(chs_new, sm){
     for (i in order(ms$new)) {
         # check if the provided spillovermatrix had the 
         # current channel measured as a spill emitter
-        is_new_emitting <- !chs_new[i] %in% chs_emitting
+        is_new_emitting <- !chs$new[i] %in% chs$emitting
         cur_spillms <- ms$new[spill_cols[[i]]]
         
         if (is_new_emitting) {
@@ -166,8 +165,8 @@ warn_new_intearctions <- function(chs_new, sm){
                     "have not been estimated:")
                 first <- FALSE
             }
-            message(chs_new[i], " -> ", paste(
-                chs_new[ms$new %in% mass_new_rec], collapse=", "))
+            message(chs$new[i], " -> ", paste(
+                chs$new[ms$new %in% mass_new_rec], collapse=", "))
         }
     }
 }
