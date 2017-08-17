@@ -46,13 +46,11 @@ compensationTab <- fluidPage(
 
 compensationSidebar <- tagList(
     hr(style="border-color:black"),
-    checkboxInput(
-        inputId="box_setToZero", 
-        label="Should negative values be set to zero?"),
     tags$style(type="text/css", "#dwnld_comped {
-        display:inline-block; color:white; width:35%; float:left}"),
+        display:inline-block; color:white; width:33%; float:left}"),
     tags$style(type="text/css", "#dwnld_spillMat {
-        display:inline-block; color:white; width:35%; margin-left:5px}"),
+        display:inline-block; color:white; width:33%; margin-left:1%}"),
+    # download handlers
     downloadButton(
         outputId="dwnld_comped", 
         label="Compensated data",
@@ -62,7 +60,7 @@ compensationSidebar <- tagList(
         label="Spillover matrix", 
         class="btn-success"),
     # bsButton: "Go to debarcoding"
-    div(style=" display:inline-block; width:25%; float:right",
+    div(style="display:inline-block; width:33%; float:right",
         bsButton(
             inputId="goToDeba",
             label="Go to debarcoding",
@@ -78,13 +76,16 @@ selectSinglePosChsUI <- function(choices) {
             inputId="singlePosChs", 
             label="Select single-positive channels", 
             choices=choices,
-            multiple=TRUE, selectize=FALSE, size=12),
+            multiple=TRUE, 
+            selectize=FALSE, 
+            size=12),
         bsButton(
             inputId="debarcodeComp", 
             label="Debarcode", 
             style="warning",
             size="small",
-            block=TRUE))
+            block=TRUE)
+    )
 }
 
 # ------------------------------------------------------------------------------
@@ -173,8 +174,8 @@ panel_scatters <- function(samples) {
         ),
         # display current spill & spill adjustment
         fluidRow(
-            tags$head(tags$style(type="text/css", "#text_spill {
-                height:35px; width:92px; color:red; font-size:14px; padding:6px")), 
+            tags$head(tags$style(type="text/css", "#text_spill {color:red;
+                height:35px; width:92px; font-size:14px; padding:6px")), 
             align="center",
             div(style="display:inline-block",
                 h5(strong("Spillover:"), align="right")),
@@ -212,7 +213,8 @@ panel_scatters <- function(samples) {
                     icon=icon("reply"),
                     style="warning",
                     size="extra-small")),
-            bsTooltip(id="revert", 
+            bsTooltip(
+                id="revert", 
                 title="Revert", 
                 placement="right", 
                 trigger="hover"),

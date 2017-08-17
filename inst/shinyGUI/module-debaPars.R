@@ -31,7 +31,7 @@ debaParsModule <- function(module) {
                 inputId=paste0("button_mhlCutoff", module),
                 label=NULL,
                 icon=icon("share"),
-                style="default",
+                style="primary",
                 size="extra-small")),
         bsTooltip(
             id=paste0("button_mhlCutoff", module),
@@ -61,7 +61,7 @@ adjustCutoffUI <- function(dbFrame, choices, module) {
                     inputId=paste0("button_adjustCutoff", module),
                     label=NULL,
                     icon=icon("share"),
-                    style="warning",
+                    style="primary",
                     size="extra-small"),
                 bsTooltip(
                     id=paste0("button_adjustCutoff", module),
@@ -84,7 +84,7 @@ globalCutoffUI <- function(module) {
                 inputId=paste0("button_globalCutoff", module),
                 label=NULL, 
                 icon=icon("share"), 
-                style="warning",
+                style="primary",
                 size="extra-small")),
         bsTooltip(
             id=paste0("button_globalCutoff", module),

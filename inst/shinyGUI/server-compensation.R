@@ -7,39 +7,41 @@
 # once duplicate masses or metal mismatches where checked,
 # the newly constructed data will be used
 fsComp <- reactive({
-    data <- NULL
     if (!is.null(fs <- vals$fsComp_metsChecked)) {
-        data <- fs
+        return(fs)
     } else if (!is.null(fs <- vals$fsComp_msChecked)) {
-        data <- fs
-    } else if (vals$keepDataNorm) {
-        n <- length(ffsNormed())
-        if (n == 1) {
-            ff <- ffsNormed()[[1]]
-        } else {
-            ff <- CATALYST::concatFCS(x=ffsNormed())
-        }
-        if (input$box_removeBeads) {
-            removed <- sapply(seq_len(n), function(i) 
-                mhlDists()[[i]] < vals$mhlCutoffs[i])
-            data <- list(ff[!removed, ])
-        } else {
-            data <- list(ff)
-        }
+        return(fs)
     } else {
-        req(input$fcsComp)
-        n <- nrow(input$fcsComp)
-        # check validity of input FCS files
-        valid <- check_FCS_fileInput(input$fcsComp, n)
-        if (!valid) return()
-        data <- lapply(seq_len(n), function(i) 
-            flowCore::read.FCS(
-                filename=input$fcsComp[[i, "datapath"]],
-                transformation=FALSE,
-                truncate_max_range=FALSE))
+        if (vals$keepDataNorm) {
+            n <- length(ffsNormed())
+            ffs <- ffsNormed()
+            if (input$box_removeBeads) {
+                for (i in seq_len(n)) {
+                    removed <- mhlDists()[[i]] < vals$mhlCutoffs[i]
+                    ffs[[i]] <- ffs[[i]][!removed, ]
+                }
+            }
+            fs <- as(ffs, "flowSet")
+            nms <- gsub(".fcs", "_normed.fcs", smplNmsNorm(), ignore.case=TRUE)
+        } else {
+            req(input$fcsComp)
+            n <- nrow(input$fcsComp)
+            # check validity of input FCS files
+            valid <- check_FCS_fileInput(input$fcsComp, n)
+            if (!valid) return()
+            ffs <- lapply(seq_len(n), function(i) 
+                flowCore::read.FCS(
+                    filename=input$fcsComp[[i, "datapath"]],
+                    transformation=FALSE,
+                    truncate_max_range=FALSE))
+            fs <- as(ffs, "flowSet")
+            nms <- input$fcsComp$name
+        }
+        for (i in seq_len(n))
+            description(fs[[i]])[c("GUID", "ORIGINALGUID")] <- 
+                identifier(fs[[i]]) <- nms[i]
+        return(fs)
     }
-    req(data)
-    as(data, "flowSet")
 })
 
 # render fileInput for spillover matrix CSV
@@ -64,14 +66,18 @@ output$uploadSs <- renderUI({
 # once a spillover matrix (CSV) has been uploaded
 # or single-stains have been checked
 output$uploadMp <- renderUI({
-    if (!is.null(vals$sm) || !is.null(vals$ffControls_metsChecked))
+    req(!vals$keepDataNorm, spillMat())
         tagList(
             hr(style="border-color:black"),
             fileInput(
                 inputId="fcsComp", 
                 label="Upload multiplexed data (FCS)", 
                 multiple=TRUE,
-                accept=".fcs"))
+                accept=".fcs"),
+            checkboxInput(
+                inputId="nnls",
+                label="Compensate using non-negative linear least squares",
+                value=TRUE))
 })
 
 # toggle checkboxes
@@ -122,7 +128,7 @@ observe({
 
 observeEvent(input$debarcodeComp, {
     disable(id="debarcodeComp")
-    showNotification(h5("Assigning preliminary IDs..."), 
+    showNotification(h4(strong("Assigning preliminary IDs...")), 
         duration=NULL, closeButton=FALSE, id="msg", type="message")
     ms <- as.numeric(get_ms_from_chs(input$singlePosChs))
     vals$dbFrame1Comp <- CATALYST::assignPrelim(x=ffControls(), y=ms)
@@ -345,8 +351,17 @@ output$plotSpillmat <- renderPlot({
 
 # compensate input flowFrame(s)
 fsComped <- reactive({
-    req(vals$sm)
-    fsApply(fsComp(), CATALYST::compCytof, vals$sm)
+    req(vals$sm, fsComp())
+    showNotification(h4(strong("Compensating...")), id="msg",
+        type="message", duration=NULL, closeButton=FALSE)
+    if (input$nnls) method <- "nnls" else method <- "flow"
+    fs <- fsApply(fsComp(), function(ff) 
+        CATALYST::compCytof(ff, vals$sm, NULL, method))
+    nms <- keyword(fs, "ORIGINALGUID")
+    for (i in seq_along(fs))
+        description(fs[[i]])$GUID <- identifier(fs[[i]]) <- nms[i]
+    removeNotification(id="msg")
+    return(fs)
 })
 
 # render download buttons and bsButton "Go to debarcoding' 
@@ -371,13 +386,13 @@ observeEvent(input$goToDeba, {
 # render UI
 output$panel_scatters <- renderUI({
     req(spillMat())
-    panel_scatters(samples=input$fcsComp$name)
+    panel_scatters(samples=smplNmsComp())
 })
 
 # keep track of currently selected sample
 selectedSmplComp <- reactive({
     req(input$select_smplComp)
-    match(input$select_smplComp, input$fcsComp$name)
+    match(input$select_smplComp, smplNmsComp())
 })
 
 # ------------------------------------------------------------------------------
@@ -391,12 +406,12 @@ observe({
 observeEvent(input$prev_smplComp, { 
     updateSelectInput(session, 
         inpudId="select_smplComp", 
-        selected=input$fcsComp$name[selectedSmplComp()-1]) 
+        selected=smplNmsComp()[selectedSmplComp()-1]) 
 })
 observeEvent(input$next_smplComp, { 
     updateSelectInput(session, 
         inputId="select_smplComp", 
-        selected=input$fcsComp$name[selectedSmplComp()+1]) 
+        selected=smplNmsComp()[selectedSmplComp()+1]) 
 })
 
 # update channel selection choices upon sample change
@@ -470,7 +485,7 @@ observe({
     updateNumericInput(session, inputId="cfComp", value=5)
 })
 
-observeEvent(c(input$viewCompScatter, input$flipAxes), {
+observeEvent(c(input$viewCompScatter, input$flipAxes, vals$sm), {
     x <- ch1(); y <- ch2()
     req(x, y)
     selected <- selectedSmplComp()
@@ -490,14 +505,12 @@ observeEvent(c(input$viewCompScatter, input$flipAxes), {
 # download handlers
 # ------------------------------------------------------------------------------
 
-# get output file names
+# get sample and output file names
 smplNmsComp <- reactive({
-    if (vals$keepDataNorm) {
-        gsub(".fcs", "_comped.fcs", identifier(fsComped()))
-    } else {
-        req(input$fcsComp)
-        gsub(".fcs", "_comped.fcs", input$fcsComp$name, ignore.case=TRUE)
-    }
+    keyword(fsComp(), "ORIGINALGUID")
+})
+outNmsComp <- reactive({
+    gsub(".fcs", "_comped.fcs", smplNmsComp(), ignore.case=TRUE)
 })
 
 output$dwnld_comped <- downloadHandler(
@@ -508,18 +521,10 @@ output$dwnld_comped <- downloadHandler(
         tmpdir <- tempdir()
         setwd(tmpdir)
         comped <- fsComped()
-        fileNms <- smplNmsComp()
-        if (input$box_setToZero) {
-            lapply(seq_along(comped), function(i) {
-                flowCore::exprs(comped[[i]])[
-                    flowCore::exprs(comped[[i]]) < 0] <- 0
-                suppressWarnings(flowCore::write.FCS(comped[[i]], fileNms[i])) 
-            })
-        } else {
-            lapply(seq_along(comped), function(i) {
-                suppressWarnings(flowCore::write.FCS(comped[[i]], fileNms[i]))
-            })
-        }
+        fileNms <- outNmsComp()
+        lapply(seq_along(comped), function(i) {
+            suppressWarnings(flowCore::write.FCS(comped[[i]], fileNms[i]))
+        })
         zip(zipfile=file, files=fileNms)
     },
     contentType="application/zip"
