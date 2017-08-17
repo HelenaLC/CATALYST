@@ -155,7 +155,7 @@ box_beadGating <- function(samples) {
             fluidRow(
                 align="center",
                 # previous sample button
-                div(style="display:inline-block; vertical-align:center",
+                div(style="display:inline-block; vertical-align:middle",
                     bsButton(
                         inputId="prevSmplGating", 
                         label=NULL,
@@ -170,26 +170,20 @@ box_beadGating <- function(samples) {
                         choices=samples,
                         width="100%")),
                 # next sample button
-                div(style="display:inline-block; vertical-align:center",
+                div(style="display:inline-block; vertical-align:middle",
                     bsButton(
                         inputId="nextSmplGating", 
                         label=NULL,
                         icon=icon("chevron-right"),
                         style="default",
                         size="extra-small")),
-                div(style="display:inline-block; vertical-align:top",
+                div(style="display:inline-block; vertical-align:middle",
                     bsButton(
                         inputId="gateBeads", 
-                        label=NULL,
-                        icon=icon("share"),
-                        style="warning",
-                        size="small",
-                        disabled=TRUE)),
-                bsTooltip(
-                    id="gateBeads", 
-                    title="Gate",
-                    placement="right", 
-                    trigger="hover")
+                        label="Gate",
+                        style="primary",
+                        size="extra-small",
+                        disabled=TRUE))
             ),
             # beads vs. dna scatters
             fluidRow(
@@ -217,10 +211,22 @@ box_smoothedBeads <-
 # ------------------------------------------------------------------------------
 # bead removal box 
 # ------------------------------------------------------------------------------
-mhlCutoffNormUI <- function(samples, selected, maxMhlDist) {
+box_beadRemoval <- 
+    shinydashboard::box(
+        width=12,
+        collapsible=TRUE,
+        fluidPage(
+            fluidRow(
+                align="center",
+                uiOutput(outputId="mhlCutoffNormUI")),
+            fluidRow(
+                tags$style("#beadsVsBeads{height:100vh !important}"),
+                plotOutput(outputId="beadsVsBeads", width="100%"))))
+
+mhlCutoffNormUI <- function(samples, maxDist) {
     tagList(
         # previous sample button
-        div(style="display:inline-block; vertical-align:center",
+        div(style="display:inline-block; vertical-align:middle",
             bsButton(
                 inputId="prevSmplMhl", 
                 label=NULL,
@@ -233,10 +239,10 @@ mhlCutoffNormUI <- function(samples, selected, maxMhlDist) {
                 inputId="selectSmplMhl",
                 label=NULL,
                 choices=samples,
-                selected=samples[selected],
+                selected=samples[1],
                 width="100%")),
         # next sample button
-        div(style="display:inline-block; vertical-align:center",
+        div(style="display:inline-block; vertical-align:middle",
             bsButton(
                 inputId="nextSmplMhl", 
                 label=NULL,
@@ -248,16 +254,16 @@ mhlCutoffNormUI <- function(samples, selected, maxMhlDist) {
                 inputId="mhlCutoffNorm", 
                 label=NULL, 
                 min=0, 
-                max=maxMhlDist, 
+                max=maxDist, 
                 value=NULL,
                 step=1,
                 width="100%")),
-        div(style="display:inline-block; vertical-align:center",
+        div(style="display:inline-block; vertical-align:middle",
             bsButton(
                 inputId="applyMhlCutoffNorm", 
                 label=NULL,
                 icon=icon("share"),
-                style="default",
+                style="primary",
                 size="extra-small")),
         bsTooltip(
             id="applyMhlCutoffNorm", 
@@ -265,15 +271,3 @@ mhlCutoffNormUI <- function(samples, selected, maxMhlDist) {
             placement="right", 
             trigger="hover")
 )}  
-
-box_beadRemoval <- 
-    shinydashboard::box(
-        width=12,
-        collapsible=TRUE,
-        fluidPage(
-            fluidRow(
-                align="center",
-                uiOutput(outputId="mhlCutoffNormUI")),
-            fluidRow(
-                tags$style("#beadsVsBeads{height:100vh !important}"),
-                plotOutput(outputId="beadsVsBeads", width="100%"))))

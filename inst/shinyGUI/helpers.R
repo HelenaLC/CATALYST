@@ -70,7 +70,7 @@ get_duplicate_ms <- function(ms) {
 # check validity of barcoding scheme CSV
 # ------------------------------------------------------------------------------
 
-checkKey <- function(key, ff) {
+check_key <- function(key, ff) {
     if (any(rownames(key) == "") || 
             length(unique(rownames(key))) != nrow(key)) {
         showNotification(
@@ -106,15 +106,13 @@ checkKey <- function(key, ff) {
 # ------------------------------------------------------------------------------
 
 summary_tbl <- function(x) {
-    
-    # better way to do this?
     ids <- rownames(bc_key(x))
     yields <- yields(x)[cbind(seq_len(nrow(bc_key(x))), 
         findInterval(sep_cutoffs(x), seq(0, 1, .01)))]
-    tbl <- matrix(c(paste0("<b>", ids, "</b>"), 
-        sapply(ids, function(k) sum(bc_ids(x) == k)), 
-        sep_cutoffs(x), round(yields, 4) * 100), ncol=4)
-    colnames(tbl) <- c("ID", "Count", "Cutoff", "Yield")
+    yields <- sprintf("%2.2f", round(100*yields, 4))
+    tbl <- matrix(c(paste0("<b>", ids, "</b>"), sapply(ids, function(k) 
+        sum(bc_ids(x) == k)), sep_cutoffs(x), yields), ncol=4,
+        dimnames=list(NULL, c("ID", "Count", "Cutoff", "Yield")))
     cols <- colorRampPalette(
         RColorBrewer::brewer.pal(11, "RdYlGn")[-c(1, 11)])(100)
     if (nrow(bc_key(x)) < 21) {
