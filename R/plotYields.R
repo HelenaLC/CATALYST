@@ -58,6 +58,8 @@
 #' @importFrom reshape2 melt
 #' @importFrom grDevices colorRampPalette pdf dev.off
 #' @importFrom htmltools save_html
+#' @importFrom magrittr %>%
+#' @importFrom plotly config hide_legend layout
 
 # ------------------------------------------------------------------------------
 
@@ -93,13 +95,13 @@ setMethod(f="plotYields",
             }
             if (id == 0) {
                 ps[[i]] <- ggplotly(ps[[i]], tooltip="text") %>% 
-                    config(displayModeBar=FALSE)
+                    plotly::config(displayModeBar=FALSE)
                 ps[[i]] <- hide_legend(ps[[i]])
             } else {
                 ps[[i]] <- ggplotly(ps[[i]], 
                     tooltip=c("Cutoff","Yield","Count")) %>% 
                     config(displayModeBar=FALSE)
-                ps[[i]] <- layout(ps[[i]], margin=list(t=75))
+                ps[[i]] <- plotly::layout(ps[[i]], margin=list(t=75))
             }
         }
         if (!is.null(out_path)) {
