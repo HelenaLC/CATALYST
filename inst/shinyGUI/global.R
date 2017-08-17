@@ -16,7 +16,7 @@ restyleMetals <- "shinyjs.restyleMetal=function(pars){
     $('#'+pars.id).css('background-color',pars.col);}"
 
 # force collapse shinydashboard::box
-collapseBox <- "shinyjs.collapse=function(boxId){
+collapseBox <- "shinyjs.collapse=function(id){
     $('#'+id).closest('.box').not('.collapsed-box')
     .find('[data-widget=collapse]').click();}"
 
