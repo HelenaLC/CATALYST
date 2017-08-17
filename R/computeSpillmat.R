@@ -135,7 +135,8 @@ setMethod(f="computeSpillmat",
                 pos_j <- es[pos, j]
                 # further exclude events assigned to population
                 # for which interaction is calculated 
-                neg_j <- es[neg[bc_ids(x)[neg] != ms[j] & !(bc_ids(x)[neg] %in%  ms[ex[[j]]])], j]
+                neg_j <- es[neg[bc_ids(x)[neg] != ms[j] & 
+                        !(bc_ids(x)[neg] %in%  ms[ex[[j]]])], j]
                 sij <- get_sij(pos_i, neg_i, pos_j, neg_j, method, trim)
                 SM[i, j] <- sij
             } 
