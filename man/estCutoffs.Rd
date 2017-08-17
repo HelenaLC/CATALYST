@@ -43,8 +43,8 @@ w = RSS(log-logistic) / (RSS(log-logistic) + RSS(linear))}
 and the cutoffs for both functions are defined as:
 \deqn{c_{linear}=-\frac{\beta_0}{2\beta_1}}{
 c(linear) = - beta0 / (2 * beta1)}
-\deqn{c_{log-logistic}=\underset{x}{argmin}\frac{\vert f'(x)\vert}{f(x)}>0.1}{
-c(log-logistic) = argmin x \{ | f'(x) | / f(x) > 0.1 \}}
+\deqn{c_{log-logistic}=\underset{x}{argmin}\frac{\vert f'(x)\vert}{
+f(x)}>0.1}{c(log-logistic) = argmin x \{ | f'(x) | / f(x) > 0.1 \}}
 The final cutoff estimate is defined as the weighted mean 
 between these estimates:
 \deqn{c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}}{
