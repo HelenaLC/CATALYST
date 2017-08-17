@@ -10,5 +10,7 @@
 #' @export
 # ==============================================================================
 launchGUI <- function() {
-    runApp(appDir=system.file("shinyGUI", package="CATALYST"), launch.browser=TRUE)
+    runApp(
+        appDir=system.file("shinyGUI", package="CATALYST"), 
+        launch.browser=TRUE)
 }
