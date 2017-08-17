@@ -30,7 +30,7 @@ such that it is compatible with data having the column names provided.
 }
 \details{
 The rules how the spillover matrix is adapted 
-are explained in \link{\code{compCytof}}.
+are explained in \code{\link{compCytof}}.
 }
 \examples{
 # get single-stained control samples
@@ -43,7 +43,8 @@ re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
 # estimate spillover matrix and adapt it
 spillMat <- computeSpillmat(x = re)
-adaptCompensationSpillmat(spillMat, colnames(ss_exp))
+chs <- flowCore::colnames(ss_exp)
+adaptSpillmat(spillMat, chs)
 
 }
 \author{
