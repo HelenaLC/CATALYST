@@ -19,6 +19,8 @@
 #' in this location. If \code{x} is a character string, file names will be 
 #' inherited from uncompensated FCS files and given extension "_comped".
 #' Defaults to NULL. 
+#' @param method
+#' one of "flow" or "nnls".
 #' 
 #' @details
 #' If the spillover matrix (SM) does not contain the same set of columns as 
@@ -62,6 +64,7 @@
 #' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
 #' @importFrom flowCore flowFrame colnames exprs compensate
 #' @importFrom nnls nnls
+#' @importFrom stats setNames
 #' @export
 # ------------------------------------------------------------------------------
 
@@ -96,7 +99,7 @@ setMethod(f="compCytof",
 #' @rdname compCytof
 setMethod(f="compCytof",
     signature=signature(x="character", y="matrix"),
-    definition=function(x, y, out_path=NULL) {
+    definition=function(x, y, out_path=NULL, method="flow") {
         
         if (!file.exists(x))
             stop("x is neither a flowFrame nor a valid file/folder path.")
@@ -106,13 +109,14 @@ setMethod(f="compCytof",
         ffs <- lapply(fcs, flowCore::read.FCS)
         
         if (is.null(out_path)) {
-            lapply(ffs, function(i) compCytof(i, y))
+            lapply(ffs, function(i) compCytof(i, y, out_path, method))
         } else {
             out_nms <- gsub(x, out_path, 
                 gsub(".fcs", "_comped.fcs", ignore.case=TRUE, fcs))
-            for (i in seq_along(ffs))
-                suppressWarnings(flowCore::write.FCS(
-                    compCytof(ffs[[i]], y), out_nms[i]))
+            for (i in seq_along(ffs)) {
+                comped <- compCytof(ffs[[i]], y, out_path, method)
+                suppressWarnings(flowCore::write.FCS(comped, out_nms[i]))
+            }
         }
     })
 
@@ -120,6 +124,6 @@ setMethod(f="compCytof",
 #' @rdname compCytof
 setMethod(f="compCytof",
     signature=signature(x="ANY", y="data.frame"),
-    definition=function(x, y, out_path=NULL) {
-        compCytof(x, as.matrix(y), out_path)
+    definition=function(x, y, out_path=NULL, method="flow") {
+        compCytof(x, as.matrix(y), out_path, method)
     })
