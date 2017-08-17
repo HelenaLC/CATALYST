@@ -5,10 +5,8 @@
 # read input FCS
 ffDeba <- reactive({
     if (vals$keepDataComp) {
-        ff <- fsComped()
-        if (input$box_setToZero)
-            exprs(ff)[exprs(ff) < 0] <- 0
-        ff
+        fs <- fsComped()
+        concatFCS(fs)
     } else {
         req(input$fcsDeba)
         # check validity of input FCS files
@@ -42,9 +40,17 @@ output$selectBcChs <- renderUI({
 # check validity of debarcoding scheme CSV
 observe({
     req(input$debaSchemeCsv)
+    match <- grep("(.csv)$", input$debaSchemeCsv$name, ignore.case=TRUE)
+    isCSV <- length(match) == 1
+    if (!isCSV) {
+        showNotification(
+            h4(strong("Input debarcoding scheme should be a CSV file.")),
+            duration=NULL, type="error")
+        return()
+    }
     key <- read.csv(input$debaSchemeCsv$datapath, 
         check.names=FALSE, row.names=1)
-    vals$debaKeyIsValid <- checkKey(key, ffDeba())
+    vals$debaKeyIsValid <- check_key(key, ffDeba())
 })
 
 # get debarcoding scheme
@@ -62,7 +68,7 @@ observe({
 })
 
 observeEvent(input$debarcodeDeba, {
-    showNotification(h5("Assigning preliminary IDs..."), 
+    showNotification(h4(strong("Assigning preliminary IDs...")), 
         duration=NULL, closeButton=FALSE, id="msg", type="message")
     vals$dbFrame1Deba <- CATALYST::assignPrelim(ffDeba(), debaKey())
     removeNotification(id="msg")
@@ -333,17 +339,6 @@ observe({
     updateSelectInput(session, "select_eventPlot", selected=x)
 })
 
-# bsButton "Go to compensation"
-observeEvent(input$goToComp, {
-    shinyjs::hide(id="fcsComp")
-    updateTabItems(session, inputId="tabs", selected="compensation")
-    vals$keepDataDeba <- TRUE
-})
-
-# ------------------------------------------------------------------------------
-# download handlers
-# ------------------------------------------------------------------------------
-
 # toggle checkboxes
 observe({
     req(input$box_IDsAsNms == 1)
@@ -354,6 +349,13 @@ observe({
     updateCheckboxInput(session, "box_IDsAsNms", value=FALSE)
 })
 
+# toggle fileInput: "Upload naming sheet (CSV)"
+observe(toggle(id="input_upldNms", condition=input$box_upldNms))
+
+# ------------------------------------------------------------------------------
+# download handlers
+# ------------------------------------------------------------------------------
+
 smplNmsDeba <- reactive({
     req(dbFrameDeba())
     if (input$box_IDsAsNms) {
@@ -363,9 +365,6 @@ smplNmsDeba <- reactive({
         read.csv(input$input_upldNms$datapath, header=FALSE)
     }
 })
-
-# toggle fileInput: "Upload naming sheet (CSV)"
-observe(toggle(id="input_upldNms", condition=input$box_upldNms))
 
 # toggle downloadButton
 observe({
@@ -380,27 +379,41 @@ output$dwnld_debaFcs <- downloadHandler(
         paste0(format(Sys.Date(), "%y%m%d"), "-debarcoding.zip")
     },
     content =function(file) { 
-        nms <- smplNmsDeba()
-        dbFrame <- dbFrameDeba()
-        ids <- rownames(bc_key(dbFrame))
-        inds <- c(0, ids) %in% sort(unique(bc_ids(dbFrame)))
-        key <- debaKey()
+        ids <- rownames(bc_key(dbFrameDeba()))
+        nBcs <- length(ids)
+        # get unique IDs
+        uniqueIds <- sort(unique(bc_ids(dbFrameDeba())))
+        nFiles <- length(uniqueIds)
+        inds <- c(0, ids) %in% uniqueIds
         tmpdir <- tempdir()
         setwd(tmpdir)
-        
+        # ----------------------------------------------------------------------
+        # debarcoding summary table: 
+        # IDs | Counts | Cutoffs | Yields
+        cutoffs <- sep_cutoffs(dbFrameDeba())
+        yields <- yields(dbFrameDeba())[cbind(seq_len(nBcs), 
+            findInterval(cutoffs, seq(0, 1, .01)))]
+        yields <- round(100*yields, 4)
+        tbl <- matrix(cbind(ids, sapply(ids, function(id) 
+            sum(bc_ids(dbFrameDeba()) == id)), cutoffs, yields), ncol=4,
+            dimnames=list(NULL, c("ID", "Count","Cutoff", "Yield [%]")))
+        tblNm <- paste0(format(Sys.Date(), "%y%m%d"), "-debarcoding.csv") 
+        write.csv(tbl, file.path(tmpdir, tblNm), row.names=FALSE)
+        # ----------------------------------------------------------------------
+        # population-wise FCS files
+        # ----------------------------------------------------------------------
+        # get output file names
         if (input$box_IDsAsNms) {
-            CATALYST::outFCS(
-                x=dbFrame, 
-                y=ffDeba(), 
-                out_path=tmpdir) 
-            fileNms <- nms[inds]
+            smplNms <- smplNmsDeba()
         } else if (input$box_upldNms) {
-            if (nrow(nms) < nrow(key)) {
-                showNotification(paste("Only", nrow(nms), 
-                    "sample names provided but", nrow(key), "needed."),
+            # check that a name has been supplied for all sample
+            # & that sample IDs match with the input barcoding scheme
+            if (nrow(smplNmsDeba()) < nBcs) {
+                showNotification(paste("Only", nrow(smplNmsDeba()), 
+                    "sample names provided but", nBcs, "needed."),
                     type="error", closeButton=FALSE)
                 return()
-            } else if (sum(nms[, 1] %in% ids) != length(ids)) {
+            } else if (sum(smplNmsDeba()[, 1] %in% ids) != nBcs) {
                 showNotification(
                     "Couldn't find a file name for all samples.\n
                     Please make sure all sample IDs occur\n
@@ -408,31 +421,39 @@ output$dwnld_debaFcs <- downloadHandler(
                     type="error", closeButton=FALSE)
                 return()
             }
-            CATALYST::outFCS(
-                x=dbFrame, 
-                y=ffDeba(),
-                out_path=tmpdir, 
-                out_nms=paste0(nms[, 2], "_", ids))
-            fileNms <- c("Unassigned", paste0(nms[, 2], "_", ids))[inds]
+            smplNms <- c("Unassigned", paste0(smplNmsDeba()[, 2], "_", ids))
         }
-        write.csv()
-        fileNms <- c("summary_table.csv", paste0(fileNms, ".fcs"))
+        smplNms <- paste0(smplNms[inds], ".fcs")
+        # match assignments with IDs
+        inds <- match(bc_ids(dbFrameDeba()), uniqueIds)
+        # write population-wise FCS file
+        withProgress(message="Debarcoding samples...", value=0, {
+            for (i in seq_along(ids)) {
+                suppressWarnings(flowCore::write.FCS(
+                    x=ffDeba()[inds == i, ], 
+                    filename=file.path(tmpdir, smplNms[i])))
+                incProgress(1/nFiles, detail=paste0(i, "/", nFiles))
+            }
+        })
+        showNotification(h4(strong("Writing FCS files...")),
+            id="msg", duration=NULL, closeButton=NULL, type="default")
+        fileNms <- c(tblNm, smplNms)
         zip(zipfile=file, files=fileNms) 
+        removeNotification(id="msg")
         }, 
     contentType="application/zip")                        
 
 output$dwnld_debaPlots <- downloadHandler(
     filename=function() { "yield_event_plots.zip" },
     content =function(file) { 
-        dbFrame <- dbFrameDeba
         tmpdir <- tempdir()
         setwd(tmpdir)
         CATALYST::plotYields(
-            x=dbFrame, 
+            x=dbFrameDeba(), 
             which=yieldPlotChoices(), 
             out_path=tmpdir)
         CATALYST::plotEvents(
-            x=dbFrame, 
+            x=dbFrameDeba(), 
             out_path=tmpdir, 
             n_events=250)
         zip(zipfile=file,

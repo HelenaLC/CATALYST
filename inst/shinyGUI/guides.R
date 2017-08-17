@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------------------------------
 debarcoding_guide <- fluidPage(
     tags$style(HTML("li{
-        list-style-type:decimal; 
+        list-style-type:square; 
         padding-bottom:5px; 
         padding-top:5px}")),
     h1("Single-cell deconvolution", 
@@ -19,11 +19,7 @@ debarcoding_guide <- fluidPage(
             tags$li(strong("Upload FCS"), "- the measurement data you wish to debarcode"),
             tags$li(strong("Upload barcoding scheme (CSV)"), "- a binary matrix 
                 with barcode masses as column and sample IDs as row names
-                that specifies which channels are to be positive for each sample", 
-                HTML("<u>or</u>"), strong("Select single-positive channels"),
-                "in the case of single antibody stained samples",
-                div(style="display:inline; color:firebrick", 
-                    "- these may be used to estimate a spillover matrix")),
+                that specifies which channels are to be positive for each sample"),
             tags$li(strong("Debarcode", style="color:orange"), 
                 "to assign a preliminary ID to each event"),
             tags$li(strong("Estimate separation cutoffs"), 

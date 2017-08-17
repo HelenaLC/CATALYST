@@ -136,6 +136,24 @@ lengthCol <- reactive({
     grep("length", chs(), ignore.case=TRUE)
 })
 
+# keep track of currently selected sample
+smplNmsNorm <- reactive({
+    if (isTRUE(vals$keepDataConcat)) {
+        smplNmConcat()
+    } else {
+        req(input$fcsNorm)
+        input$fcsNorm$name
+    }
+})
+selectedSmplGating <- reactive({
+    x <- input$selectSmplGating
+    match(x, smplNmsNorm())
+})
+selectedSmplMhl <- reactive({
+    x <- input$selectSmplMhl
+    match(x, smplNmsNorm())
+})
+
 # next / previous sample buttons
 observe({
     n <- length(ffsNorm())
@@ -164,30 +182,10 @@ observeEvent(input$nextSmplMhl, {
         selected=smplNmsNorm()[selectedSmplMhl()+1]) 
 })
 
-# keep track of currently selected sample
-smplNmsNorm <- reactive({
-    if (isTRUE(vals$keepDataConcat)) {
-        smplNmConcat()
-    } else {
-        req(input$fcsNorm)
-        input$fcsNorm$name
-    }
-})
-selectedSmplGating <- reactive({
-    x <- input$selectSmplGating
-    if (is.null(x)) return(1)
-    which(smplNmsNorm() == x)
-})
-selectedSmplMhl <- reactive({
-    x <- input$selectSmplMhl
-    if (is.null(x)) return(1)
-    which(smplNmsNorm() == x)
-})
-
 # ------------------------------------------------------------------------------
-# Bead gating
+# bead gating
 # ------------------------------------------------------------------------------
-# render gating panel when beads have been selected
+# render gating panel once beads have been selected
 output$box_beadGating <- renderUI({
     req(beadCols(), smplNmsNorm())
     box_beadGating(samples=smplNmsNorm())
@@ -195,7 +193,7 @@ output$box_beadGating <- renderUI({
 
 # initialize plot list
 output$beadScatters <- renderUI({
-    req(beadCols())
+    req(beadCols(), dnaCol())
     n <- length(beadCols())
     w <- paste0(100/n-1, "%")
     plotList <- lapply(seq_len(n), function(i) {
@@ -209,20 +207,24 @@ output$beadScatters <- renderUI({
     do.call(tagList, plotList)
 })
 
+# render DNA vs. bead scatters
 observe({
-    req(beadCols(), dnaCol())
-    for (i in seq_along(beadCols())) {
+    req(selectedSmplGating())
+    showNotification(h4(strong("Rendering DNA vs. bead scatters...")),
+        id="id", type="message", duration=10, closeButton=FALSE)
+    es <- exprs(ffsNorm()[[selectedSmplGating()]])
+    # downsample to 25k events for plotting
+    if (nrow(es) > 25e3) 
+        es <- es[sample(nrow(es), 25e3), ]
+    for (i in seq_along(beadCols()))
         local({
             j <- i
             plotId <- paste0("beadScatter", j)
-            output[[plotId]] <- renderPlot(
-                CATALYST:::plotScatter(
-                    es=exprs(ffsNorm()[[selectedSmplGating()]]), 
-                    x=beadCols()[j], y=dnaCol(), cf=5))
+            output[[plotId]] <- renderPlot(CATALYST:::plotScatter(
+                es=es, x=beadCols()[j], y=dnaCol(), cf=5))
         })
-    }
 })
-  
+
 # initialize list of gates, bead indices,
 # and vector of Mahalanobis distance cutoffs
 observeEvent(beadCols(), {
@@ -241,6 +243,9 @@ observe({
 
 # bsButton: "Gate"
 observeEvent(input$gateBeads, {
+    disable(id="gateBeads")
+    showNotification(h4(strong("Identifying bead events...")), 
+        id="id", type="message", duration=NULL, closeButton=FALSE)
     x <- selectedSmplGating()
     n <- length(beadCols())
     es <- flowCore::exprs(ffsNorm()[[x]])
@@ -256,13 +261,17 @@ observeEvent(input$gateBeads, {
             yvar=chs()[dnaCol()])[, ncol(es)+1])
     gated <- do.call(cbind, gated)
     vals$beadInds[[x]] <- apply(gated, 1, function(i) sum(i) == length(i))
+    removeNotification(id="id")
+    enable(id="gateBeads")
 })
 
 # normalize input flowFrames when all samples have been gated
 ffsNormed <- reactive({
     # check that all samples have been gated
-    req(vals$beadInds, !any(vapply(vals$beadInds, is.null, logical(1))))
-    lapply(seq_along(ffsNorm()), function(i) {
+    req(vals$beadInds, !vapply(vals$beadInds, is.null, logical(1)))
+    showNotification(h4(strong("Normalizing...")), 
+        id="id", type="message", duration=NULL, closeButton=FALSE)
+    ffsNormed <- lapply(seq_along(ffsNorm()), function(i) {
         es <- flowCore::exprs(ffsNorm()[[i]])
         # get bead slopes and linearly interpolate at non-bead events
         bead_es <- es[vals$beadInds[[i]], beadCols()]
@@ -276,6 +285,8 @@ ffsNormed <- reactive({
             flowCore::exprs(ffNormed)[, -ex] * slopes
         ffNormed
     })
+    removeNotification(id="id")
+    return(ffsNormed)
 })
 
 # compute Mahalanobis distances from identified beads
@@ -308,7 +319,7 @@ output$howManyGated <- renderText({
 })
 
 # ------------------------------------------------------------------------------
-# # valueBox: "gating yield"
+# valueBox: "gating yield"
 # ------------------------------------------------------------------------------
 output$gatingYield <- renderText({
     if (is.null(beadCols())) 
@@ -325,7 +336,7 @@ output$gatingYield <- renderText({
 })
 
 # ------------------------------------------------------------------------------
-# Plot smoothed beads vs. time
+# plot smoothed beads vs. time
 # ------------------------------------------------------------------------------
 # render UI once ffsNorm have been normalized
 output$box_smoothedBeads <- renderUI({
@@ -367,21 +378,27 @@ output$plot_smoothedBeads <- renderPlot(grid.arrange(smoothedBeads()))
 # ------------------------------------------------------------------------------
 # bead removal
 # ------------------------------------------------------------------------------
-# render sample selection, sliderInput & actionButton
-output$mhlCutoffNormUI <- renderUI({
-    req(input$box_removeBeads == 1, mhlDists())
-    x <- selectedSmplMhl()
-    mhlCutoffNormUI(
-        samples=smplNmsNorm(), 
-        selected=x,
-        maxMhlDist=ceiling(max(mhlDists()[[x]])))
-})
-
 # render beads vs. beads panel
 output$box_beadRemoval <- renderUI({
     req(input$box_removeBeads == 1, mhlDists())
     js$collapse("smoothedBeads")
     box_beadRemoval
+})
+
+# render sample selection, sliderInput & actionButton
+output$mhlCutoffNormUI <- renderUI({
+    req(input$box_removeBeads == 1)
+    maxMhlDist <- ceiling(max(mhlDists()[[1]]))
+    mhlCutoffNormUI(samples=smplNmsNorm(), maxDist=maxMhlDist)
+})
+
+# update max value of sliderInput according to selected sample
+observe({
+    req(mhlDists(), selectedSmplMhl())
+    maxMhlDist <- ceiling(max(mhlDists()[[selectedSmplMhl()]]))
+    updateSliderInput(session,
+        inputId="mhlCutoffNorm",
+        max=maxMhlDist)
 })
 
 # apply cutoff to currently selected sample
@@ -393,14 +410,12 @@ observeEvent(input$applyMhlCutoffNorm, {
 # render beads vs. beads plot color coded according to 
 # Mahalanobis distance from identified beads
 output$beadsVsBeads <- renderPlot({
-    req(mhlDists())
+    req(mhlDists(), selectedSmplMhl())
     x <- selectedSmplMhl()
     es <- asinh(exprs(ffsNorm()[[x]])[, beadCols()]/5)
-    tmp <- CATALYST:::get_axes(es, 5)
-    tcks <- tmp[[1]]
-    labs <- tmp[[2]]
+    axes <- setNames(CATALYST:::get_axes(es, 5), c("tcks", "labs"))
     CATALYST:::plotBeadsVsBeads(
-        es, mhlDists()[[x]], vals$mhlCutoffs[x], tcks, labs)
+        es, mhlDists()[[x]], vals$mhlCutoffs[x], axes$tcks, axes$labs)
 })
 
 # ------------------------------------------------------------------------------
@@ -435,7 +450,7 @@ output$dwnld_normResults <- downloadHandler(
         setwd(dir)
         # plot smoothed beads before vs. after normalization
         gt <- smoothedBeads()
-        ggsave("beads_before_vs_after.pdf", width=12, height=8, plot=gt)
+        ggsave("beads_before_vs_after.png", width=12, height=8, plot=gt)
         # write FCS files of normalized data,
         # beads, and removed events
         raw <- ffsNorm()
@@ -472,7 +487,7 @@ output$dwnld_normResults <- downloadHandler(
             })
         }
         zip(zipfile=file, 
-            files=c("beads_before_vs_after.pdf", outNms)) 
+            files=c("beads_before_vs_after.png", outNms)) 
     },
     contentType="application/zip"
 )

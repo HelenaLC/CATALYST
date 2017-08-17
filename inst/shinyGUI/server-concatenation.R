@@ -80,7 +80,7 @@ smplNmConcat <- reactive({
     # assure suffix is ".fcs"
     nm <- gsub("([.][[:alpha:]]*$)", "", nm, ignore.case=TRUE)
     if (nchar(nm) == 0)
-        nm <- paste0(format(Sys.Date(), "%y%m%d"), "_normalization.zip")
+        nm <- paste0(format(Sys.Date(), "%y%m%d"), "_concat")
     paste0(nm, ".fcs")
 })
 
@@ -159,8 +159,8 @@ output$dwnldConcat <- downloadHandler(
         # make flowFrame
         colnames(es) <- pars
         ff <- flowFrame(exprs=es, parameters=p, description=d)
+        identifier(ff) <- smplNmConcat()
         #write.FCS(ff, file)
-        write.FCS(ff, "/Users/HLC/Downloads/170731_concat.fcs")
-        read.FCS("/Users/HLC/Downloads/170731_concat.fcs")
+        suppressWarnings(write.FCS(ff, file))
     }
 )
