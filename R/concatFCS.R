@@ -32,7 +32,8 @@
 #' concatFCS(raw_data)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @importFrom flowCore colnames exprs flowFrame flowSet fsApply isFCSfile
+#' @importFrom flowCore colnames description exprs 
+#' flowFrame flowSet fsApply isFCSfile keyword parameters
 #' @importFrom matrixStats colMaxs
 #' @importFrom methods as
 #' @export
