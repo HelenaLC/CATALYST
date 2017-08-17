@@ -57,7 +57,6 @@ make_symetric <- function(x) {
 # ==============================================================================
 # plot for estTrim()
 # ------------------------------------------------------------------------------
-
 plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
     opt <- trms[which.min(text$e)]
     ggplot(df, aes_string(x="t", y="m")) +
@@ -108,11 +107,9 @@ check_spillMat <- function(sm) {
 # ==============================================================================
 # Helper functions to get mass and metal from a channel name
 # ------------------------------------------------------------------------------
-
 get_ms_from_chs <- function(chs) {
     gsub("[[:punct:][:alpha:]]", "", chs)
 }
-
 get_mets_from_chs <- function(chs) { 
     gsub("([[:punct:]]*)([[:digit:]]*)(Di)*", "", chs)
 }
@@ -123,12 +120,11 @@ get_mets_from_chs <- function(chs) {
 # where the spillovermatrix has no information about a potential
 # expected spillover among the new channels.
 # ------------------------------------------------------------------------------
-
 warn_new_intearctions <- function(chs_new, sm) {
     chs_emitting  <- rownames(sm)
     chs_receiving <- colnames(sm)
     chs <- list(chs_new, chs_emitting, chs_receiving)
-    chs <- setNames(chs, c("new", "emitting", "receiving"))
+    chs <- stats::setNames(chs, c("new", "emitting", "receiving"))
     
     # get the metals and masses from the names
     mets <- lapply(chs, get_mets_from_chs)
