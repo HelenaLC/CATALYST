@@ -102,16 +102,12 @@ get_axes <- function(df, cf) {
 # bead vs. dna scatter
 # ------------------------------------------------------------------------------
 plotScatter <- function(es, x, y, cf) {
-    # downsample for plotting
-    if (nrow(es) > 1e5)
-        es <- es[sample(nrow(es), 1e5), ]
-    
     # transform and get channel names
     df <- data.frame(asinh(es[, c(x, y)]/cf))
     chs <- colnames(df)
     
     # get axis limits and labels
-    temp <- CATALYST:::get_axes(df, cf)
+    temp <- get_axes(df, cf)
     tcks <- temp[[1]]
     labs <- temp[[2]]
     
@@ -128,7 +124,8 @@ plotScatter <- function(es, x, y, cf) {
             plot.margin=unit(c(0, 0, .5, .5), "cm"),
             axis.ticks=element_line(size=.5),
             axis.title=element_text(size=14, face="bold"),
-            axis.text.x=element_text(size=12, color="black", angle=30, hjust=1, vjust=1),
+            axis.text.x=element_text(
+                size=12, color="black", angle=30, hjust=1, vjust=1),
             axis.text.y=element_text(size=12, color="black", angle=30))
 }
 
@@ -295,7 +292,7 @@ arrangeSmoothed <- function(p1, p2, out_path=NULL, shiny=FALSE) {
         gt
     } else if (!is.null(out_path)) {
         ggsave(width=15, height=12.5,
-            file.path(out_path, "beads_before_vs_after.pdf"))
+            file.path(out_path, "beads_before_vs_after.png"))
     } else {
         grid.draw(gt)
     }
@@ -365,7 +362,8 @@ plotBeadsVsBeads <- function(
                 panel.grid.major=element_blank(),
                 axis.ticks=element_line(size=.5),
                 axis.title=element_text(size=14, face="bold"),
-                axis.text.x=element_text(size=12, color="black", angle=30, hjust=1, vjust=1),
+                axis.text.x=element_text(
+                    size=12, color="black", angle=30, hjust=1, vjust=1),
                 axis.text.y=element_text(size=12, color="black", angle=30))
         if (first) {
             ps[[i]] <- ps[[i]] + 
