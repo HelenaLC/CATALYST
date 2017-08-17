@@ -18,7 +18,7 @@
 #' or Ir191, will be interpreted as masses with associated metals.
 #' @details
 #' The rules how the spillover matrix is adapted 
-#' are explained in \link{\code{compCytof}}.
+#' are explained in \code{\link{compCytof}}. 
 #' 
 #' @return 
 #' An adapted spillover matrix with column and row names 
@@ -35,7 +35,8 @@
 #' re <- applyCutoffs(x = re)
 #' # estimate spillover matrix and adapt it
 #' spillMat <- computeSpillmat(x = re)
-#' adaptCompensationSpillmat(spillMat, colnames(ss_exp))
+#' chs <- flowCore::colnames(ss_exp)
+#' adaptSpillmat(spillMat, chs)
 #'
 #' @author 
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
