@@ -13,9 +13,10 @@ compCytof(x, y, ...)
 \S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL,
   method = "flow")
 
-\S4method{compCytof}{character,matrix}(x, y, out_path = NULL)
+\S4method{compCytof}{character,matrix}(x, y, out_path = NULL,
+  method = "flow")
 
-\S4method{compCytof}{ANY,data.frame}(x, y, out_path = NULL)
+\S4method{compCytof}{ANY,data.frame}(x, y, out_path = NULL, method = "flow")
 }
 \arguments{
 \item{x}{a \code{\link{flowFrame}} OR a character string specifying 
@@ -29,6 +30,8 @@ the location of FCS files that should be compensates.}
 in this location. If \code{x} is a character string, file names will be 
 inherited from uncompensated FCS files and given extension "_comped".
 Defaults to NULL.}
+
+\item{method}{one of "flow" or "nnls".}
 }
 \value{
 Compensates the input \code{\link{flowFrame}} or, 
