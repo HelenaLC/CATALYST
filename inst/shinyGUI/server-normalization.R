@@ -26,7 +26,7 @@ output$box2 <- renderUI({
     box2
 })
 output$box3 <- renderUI({
-    req(input$box_normToCurrent)
+    req(input$box_normToCurrent | !is.null(input$fcsNormTo))
     js$collapse("box_2")
     box3
 })
