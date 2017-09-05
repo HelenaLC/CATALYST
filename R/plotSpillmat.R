@@ -89,22 +89,18 @@ plotSpillmat <- function(bc_ms, SM, annotate=TRUE,
         spill_labs[df$spill == 0 | df$spill == 100] <- ""
         
         row_sums <- round(rowSums(t(matrix(df$spill, n)))-100, 2)
-        col_sums <- round(colSums(t(matrix(df$spill, n)))-100, 2)
         row_labs <- format(row_sums, digits=2)
-        col_labs <- format(col_sums, digits=2)
         
         p <- p + geom_text(aes_string(label="spill_labs"), size=3) +
             annotate("text", rep(n+1.15, n), 1:n, label=rev(row_labs), 
-                fontface="bold", size=2.5, col=rev(lab_cols)) +
-            annotate("text", 1:n+.1, rep(n+1, n), label=col_labs,      
-                fontface="bold", size=2.5, angle=30) 
+                fontface="bold", size=2.5, col=rev(lab_cols))
     }
     
     p <- ggplot_gtable(ggplot_build(p))
     p$layout$clip[p$layout$name == "panel"] <- "off"
     
     if (!is.null(out_path)) {
-        pdf(file.path(out_path, paste0("SpillMat", name_ext, ".pdf")), 8.1, 8)
+        pdf(file.path(out_path, paste0("SpillMat", name_ext, ".pdf")), 8.25, 8)
         grid::grid.draw(p)
         dev.off()
     } else {
