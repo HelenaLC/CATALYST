@@ -35,6 +35,7 @@ compensationTab <- fluidPage(
                 inputId="checkbox_estSm", 
                 label="Estimate spill from controls"),
             uiOutput(outputId="uploadSs"),
+            uiOutput(outputId="compMethod"),
             uiOutput(outputId="uploadMp"),
             uiOutput(outputId="selectSinglePosChs"),
             uiOutput(outputId="debaParsComp"),
