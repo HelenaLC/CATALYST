@@ -87,8 +87,8 @@ setMethod(f="compCytof",
         }
         
         if (!is.null(out_path)) {
-            outNm <- file.path(out_path, 
-                paste0(flowCore::identifier(x), "_comped.fcs"))
+            outNm <- file.path(out_path, paste0(gsub(".fcs", "_comped.fcs", 
+                flowCore::identifier(x), ignore.case=TRUE)))
             suppressWarnings(flowCore::write.FCS(ff_comped, outNm))
         } else {
             ff_comped
@@ -100,7 +100,6 @@ setMethod(f="compCytof",
 setMethod(f="compCytof",
     signature=signature(x="character", y="matrix"),
     definition=function(x, y, out_path=NULL, method="flow") {
-        
         if (!file.exists(x))
             stop("x is neither a flowFrame nor a valid file/folder path.")
         fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
@@ -111,12 +110,8 @@ setMethod(f="compCytof",
         if (is.null(out_path)) {
             lapply(ffs, function(i) compCytof(i, y, out_path, method))
         } else {
-            out_nms <- gsub(x, out_path, 
-                gsub(".fcs", "_comped.fcs", ignore.case=TRUE, fcs))
-            for (i in seq_along(ffs)) {
-                comped <- compCytof(ffs[[i]], y, out_path, method)
-                suppressWarnings(flowCore::write.FCS(comped, out_nms[i]))
-            }
+            for (i in seq_along(ffs))
+                compCytof(ffs[[i]], y, out_path, method)
         }
     })
 
