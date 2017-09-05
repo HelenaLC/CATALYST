@@ -62,22 +62,40 @@ output$uploadSs <- renderUI({
         accept=".fcs")
 })
 
+# render checkboxInputs for compensation method
+output$compMethod <- renderUI({
+    req(vals$sm)
+    tagList(
+        hr(style="border-color:black"),
+        checkboxInput(
+            inputId="nnlsComp",
+            label="NNLS compensation"),
+        checkboxInput(
+            inputId="flowComp",
+            label="Flow compensation"))
+})
+
+# toggle checkboxes
+observe({
+    req(input$nnlsComp == 1)
+    updateCheckboxInput(session, "flowComp", value=FALSE)
+})
+observe({
+    req(input$flowComp == 1)
+    updateCheckboxInput(session, "nnlsComp", value=FALSE)
+})
+
 # render fileInput for multiplexed data
 # once a spillover matrix (CSV) has been uploaded
 # or single-stains have been checked
 output$uploadMp <- renderUI({
-    req(!vals$keepDataNorm, spillMat())
-        tagList(
-            hr(style="border-color:black"),
-            fileInput(
-                inputId="fcsComp", 
-                label="Upload multiplexed data (FCS)", 
-                multiple=TRUE,
-                accept=".fcs"),
-            checkboxInput(
-                inputId="nnls",
-                label="Compensate using non-negative linear least squares",
-                value=TRUE))
+    req(!vals$keepDataNorm, 
+        !is.null(vals$sm) || !is.null(vals$ffControls_metsChecked))
+    fileInput(
+        inputId="fcsComp", 
+        label="Upload multiplexed data (FCS)", 
+        multiple=TRUE,
+        accept=".fcs")
 })
 
 # toggle checkboxes
@@ -351,10 +369,10 @@ output$plotSpillmat <- renderPlot({
 
 # compensate input flowFrame(s)
 fsComped <- reactive({
-    req(vals$sm, fsComp())
+    req(vals$sm, fsComp(), input$nnlsComp == 1 | input$flowComp == 1)
     showNotification(h4(strong("Compensating...")), id="msg",
         type="message", duration=NULL, closeButton=FALSE)
-    if (input$nnls) method <- "nnls" else method <- "flow"
+    if (input$nnlsComp) method <- "nnls" else method <- "flow"
     fs <- fsApply(fsComp(), function(ff) 
         CATALYST::compCytof(ff, vals$sm, NULL, method))
     nms <- keyword(fs, "ORIGINALGUID")
