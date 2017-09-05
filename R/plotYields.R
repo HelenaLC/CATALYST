@@ -87,7 +87,7 @@ setMethod(f="plotYields",
                     p <- paste0(sprintf("%2.2f", yields(x)
                         [id, findInterval(sep_cutoffs(x)[id], seps)]*100), "%")
                     ps[[i]] <- ps[[i]] + ggtitle(paste(bc_labs[ids == id], 
-                        paste("(separation cutoff ", sep_cutoffs(x)[id],
+                        paste("(cutoff ", sep_cutoffs(x)[id],
                         " with", p, "yield)"), sep="<br>"))
                 }
             } else if (id != 0) {
@@ -101,7 +101,6 @@ setMethod(f="plotYields",
                 ps[[i]] <- ggplotly(ps[[i]], 
                     tooltip=c("Cutoff","Yield","Count")) %>% 
                     config(displayModeBar=FALSE)
-                ps[[i]] <- plotly::layout(ps[[i]], margin=list(t=75))
             }
         }
         if (!is.null(out_path)) {
