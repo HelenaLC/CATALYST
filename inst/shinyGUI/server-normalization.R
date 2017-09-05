@@ -94,7 +94,7 @@ observeEvent(input$button_customBeads, {
     req(input$input_customBeads)
     # check validity of input bead masses
     ms <- gsub("[[:alpha:][:punct:]]", "", chs())
-    beadMs <- gsub("[[:alpha:][:punct:]]", "", unlist(x))
+    beadMs <- gsub("[[:alpha:][:punct:]]", "", unlist(input$input_customBeads))
     valid <- beadMs %in% ms
     if (sum(valid) != length(beadMs)) {
         showNotification(type="error", closeButton=FALSE,
