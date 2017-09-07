@@ -67,6 +67,7 @@ output$compMethod <- renderUI({
     req(vals$sm)
     tagList(
         hr(style="border-color:black"),
+        h5(strong("Select method")),
         checkboxInput(
             inputId="nnlsComp",
             label="NNLS compensation"),
@@ -119,6 +120,9 @@ ffControls <- reactive({
     ff <- vals$ffControls_msChecked
     if (!is.null(ff)) return(ff)
     req(input$controlsFCS)
+    # check validity of input FCS file
+    valid <- check_FCS_fileInput(input$controlsFCS, 1)
+    if (!valid) return()
     flowCore::read.FCS(
         filename=input$controlsFCS$datapath,
         transformation=FALSE,
@@ -148,7 +152,7 @@ observeEvent(input$debarcodeComp, {
     disable(id="debarcodeComp")
     showNotification(h4(strong("Assigning preliminary IDs...")), 
         duration=NULL, closeButton=FALSE, id="msg", type="message")
-    ms <- as.numeric(get_ms_from_chs(input$singlePosChs))
+    ms <- as.numeric(CATALYST:::get_ms_from_chs(input$singlePosChs))
     vals$dbFrame1Comp <- CATALYST::assignPrelim(x=ffControls(), y=ms)
     removeNotification(id="msg")
     # render deconvolution parameter UI
@@ -156,7 +160,7 @@ observeEvent(input$debarcodeComp, {
         debaParsModule(module="Comp"),
         bsButton(
             inputId="compensate", 
-            label="Compensate", 
+            label="Estimate spillover", 
             style="warning",
             size="small",
             block=TRUE)))

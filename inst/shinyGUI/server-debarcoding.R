@@ -6,7 +6,9 @@
 ffDeba <- reactive({
     if (vals$keepDataComp) {
         fs <- fsComped()
-        concatFCS(fs)
+        print(fs)
+        
+        CATALYST::concatFCS(fs)
     } else {
         req(input$fcsDeba)
         # check validity of input FCS files
