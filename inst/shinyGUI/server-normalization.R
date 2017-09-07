@@ -68,7 +68,9 @@ baseline <- reactive({
             filename=input$fcsNormTo$datapath,
             transformation=FALSE,
             truncate_max_range=FALSE)
-        colMeans(flowCore::exprs(ref_ff)[, beadCols()])
+        chs <- flowCore::colnames(ref_ff)
+        beadCols <- CATALYST:::get_bead_cols(chs, beads())
+        colMeans(flowCore::exprs(ref_ff)[, beadCols])
     } else {
         x <- input$box_normToCurrent
         if (!is.null(x) && x &&
@@ -229,9 +231,9 @@ observe({
 # and vector of Mahalanobis distance cutoffs
 observeEvent(beadCols(), {
     n <- length(ffsNorm())
-    vals$beadGates =vector("list", n)
-    vals$beadInds  =vector("list", n)
-    vals$mhlCutoffs=rep(0, n)
+    vals$beadGates <- vector("list", n)
+    vals$beadInds <- vector("list", n)
+    vals$mhlCutoffs <- rep(0, n)
 })
 
 # enable gating button only if all gates have been drawn
@@ -268,7 +270,8 @@ observeEvent(input$gateBeads, {
 # normalize input flowFrames when all samples have been gated
 ffsNormed <- reactive({
     # check that all samples have been gated
-    req(vals$beadInds, !vapply(vals$beadInds, is.null, logical(1)))
+    req(vals$beadInds, !any(vapply(vals$beadInds, is.null, logical(1))))
+    print(length(vals$beadInds))
     showNotification(h4(strong("Normalizing...")), 
         id="id", type="message", duration=NULL, closeButton=FALSE)
     ffsNormed <- lapply(seq_along(ffsNorm()), function(i) {
