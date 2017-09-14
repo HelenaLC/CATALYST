@@ -36,7 +36,7 @@ get_ids <- function(bcs, bc_key, ids, verbose) {
         # exclude events whose pos. barcodes are still very low 
         # (using bcs, not normalized bcs)
         ex <- bcs[cbind(seq_len(N), bc_orders[, n_pos_bcs])] < cutoff
-        bc_ids[is.na(bc_ids) || ex] <- 0
+        bc_ids[is.na(bc_ids) | ex] <- 0
         
         # NON-CONSTANT NUMBER OF 1'S
         # difference b/w the kth and (k–1)th highest 
