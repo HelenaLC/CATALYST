@@ -56,54 +56,20 @@ plotSpillmat <- function(bc_ms, SM, annotate=TRUE,
     bc_cols <- which(ms %in% bc_ms)
     bc_range <- min(bc_cols) : max(bc_cols)
     SM <- make_symetric(SM)[bc_range, bc_range]
-    diag(SM) <- 1
-    n <- length(bc_range)
-    axis_labs <- nms[bc_range]
-    lab_cols <- rep("grey", n)
-    lab_cols[axis_labs %in% nms[bc_cols]] <- "black"
-    
-    df <- data.frame(c1=rep(1:n, n), 
-        c2=rev(rep(1:n, each=n)), 
-        spill=round(100*c(t(SM)), 1))
-    
-    max <- ceiling(max(df$spill[df$spill != 100])/.25)*.25
-    
-    if (is.null(palette)) 
-        palette <- c("white","lightcoral", "red2", "darkred")
-    if (!palette[1] %in% c("white", "#FFFFFF"))
-        palette <- c("white", palette)
-    pal <- colorRampPalette(palette)(max*100)
-    
-    p <- ggplot(df, aes_string(x="c1", y="c2")) + 
-        geom_tile(aes_string(fill="spill"), col="lightgrey", size=.1) + 
-        scale_fill_gradientn(colors=pal, limits=c(0, max), guide=FALSE) +
-        scale_x_discrete(limits=1:n, expand=c(0,0), labels=axis_labs) +
-        scale_y_discrete(limits=1:n, expand=c(0,0), labels=rev(axis_labs)) +
-        coord_fixed() + xlab(NULL) + ylab(NULL) + theme_bw() + theme(
-            panel.grid.major=element_blank(), panel.border=element_blank(),
-            axis.text.x=element_text(vjust=.5, angle=90, color="black"),
-            axis.text.y=element_text(vjust=.5, color=rev(lab_cols)))
-    
-    if (annotate) {
-        spill_labs <- sprintf("%.1f", df$spill)
-        spill_labs[df$spill == 0 | df$spill == 100] <- ""
-        
-        row_sums <- round(rowSums(t(matrix(df$spill, n)))-100, 2)
-        row_labs <- format(row_sums, digits=2)
-        
-        p <- p + geom_text(aes_string(label="spill_labs"), size=3) +
-            annotate("text", rep(n+1.15, n), 1:n, label=rev(row_labs), 
-                fontface="bold", size=2.5, col=rev(lab_cols))
-    }
-    
-    p <- ggplot_gtable(ggplot_build(p))
-    p$layout$clip[p$layout$name == "panel"] <- "off"
-    
+    SM <- round(SM*100, 3)
+    max <- ceiling(max(SM[SM != 100])/.25)*.25
+    suppressWarnings(p <- heatmaply(SM, 
+        dendrogram="none", margins=c(100,100,0,0),
+        colors=c("white", brewer.pal(9, "Reds")[-1]), 
+        limits=c(0, max), na.value="lightgrey", grid_color="white",
+        xlab="Receiving", ylab="Emitting",
+        colRow=lab_cols,
+        label_names=c("Emitting", "Receiving", "Spillover")))
+
     if (!is.null(out_path)) {
-        pdf(file.path(out_path, paste0("SpillMat", name_ext, ".pdf")), 8.25, 8)
-        grid::grid.draw(p)
-        dev.off()
+        htmlwidgets::saveWidget(p, file.path(out_path, 
+            paste0("SpillMat", name_ext, ".html")))
     } else {
-        grid::grid.draw(p)
+        p
     }
 }
