@@ -356,7 +356,7 @@ observeEvent(spillMat(), {
 })
 
 # plotSpillmat()
-output$plotSpillmat <- renderPlot({
+output$plotSpillmat <- renderPlotly({
     req(vals$sm)
     if (input$checkbox_upldSm) {
         ms <- CATALYST:::get_ms_from_chs(colnames(vals$sm))

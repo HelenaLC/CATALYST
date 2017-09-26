@@ -111,7 +111,7 @@ setMethod(f="normCytof",
                 stop("'norm_to' should be a single character or flowFrame.")
             if (sum(flowCore::isFCSfile(norm_to)) != 1) 
                 stop(norm_to, " is not a valid FCS file.")
-            norm_to <- flowCore::read.FCS(norm_to)
+            norm_to <- flowCore::read.FCS(norm_to) 
         }
         es2 <- flowCore::exprs(norm_to)
         es2_t <- asinh(es2/5)
