@@ -4,7 +4,7 @@
 
 compensationTab <- fluidPage(
     shinyjs::extendShinyjs(text=restyleMetals),
-    tags$style("#plotSpillmat{height:100vh !important; width:100%}"),
+    tags$style("#plotSpillmat{height:100vh !important}"),
     tags$style("#yieldPlotComp{height:70vh !important}"),
     tags$style("#summaryTblComp{height:100vh !important}"),
     sidebarLayout(
@@ -21,7 +21,7 @@ compensationTab <- fluidPage(
                    uiOutput("yieldPlotPanelComp")),
                 tabPanel(
                     title="Spillover matrix", 
-                    plotOutput("plotSpillmat")),
+                    plotlyOutput("plotSpillmat")),
                 tabPanel(
                     title="Before vs. after scatters", 
                     uiOutput("panel_scatters")))),
