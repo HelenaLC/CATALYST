@@ -104,7 +104,8 @@ setMethod(f="plotYields",
             }
         }
         if (!is.null(out_path)) {
-            outNm <- paste0(paste0("yield_plot", name_ext, ".html"))
+            outNm <- file.path(out_path, 
+                paste0("yield_plot", name_ext, ".html"))
             htmltools::save_html(html=ps, file=outNm)
         } else {
             ps
