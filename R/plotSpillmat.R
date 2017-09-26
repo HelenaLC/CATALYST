@@ -94,7 +94,7 @@ plotSpillmat <- function(bc_ms, SM,
        htmltools::save_html(p, file.path(out_path, 
             paste0("SpillMat", name_ext, ".html")))
     } else {
-        ggplotly(p, 840, 840,
+        ggplotly(p, width=720, height=720,
             tooltip=c("Emitting", "Receiving", "Spillover")) %>%
             layout(margin=list(l=72, b=58))
     }
