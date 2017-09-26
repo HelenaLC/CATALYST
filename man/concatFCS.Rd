@@ -37,7 +37,7 @@ Specifies whether files should be ordered by time of acquisition.}
 Specifies whether a file number column should be added.}
 
 \item{pars, desc}{optional character vector of channel names and descriptions
-to use when mergin files.}
+to use when merging files.}
 }
 \value{
 a \code{\link{flowFrame}} containing measurement intensities 
