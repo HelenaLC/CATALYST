@@ -243,9 +243,9 @@ panel_scatters <- function(samples) {
                     tags$head(tags$style("#text_info2 {
                         font-size:14px; color:blue}")), 
                     tags$head(tags$style("#compScatter1{
-                        float:center; height:100vh !important}")),
+                        float:center; height:75vh !important}")),
                     tags$head(tags$style("#compScatter2{
-                        float:center; height:100vh !important}")),
+                        float:center; height:75vh !important}")),
                     fluidRow(
                         align="center",
                         column(
