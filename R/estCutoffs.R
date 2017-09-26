@@ -74,7 +74,11 @@ setMethod(f="estCutoffs",
         
         for (i in seq_len(n_bcs)) {
             df <- data.frame(x=sep_cutoffs, y=as.vector(yields(x)[i, ]))
-            fit <- drc::drm(y~x, data=df, fct=drc::LL.3())
+            fit <- tryCatch(
+                drc::drm(y~x, data=df, fct=drc::LL.3()), 
+                error=function(e) e)
+            if (inherits(fit, "error")) 
+                next
             b <- fit$coefficients[1]
             d <- fit$coefficients[2]
             e <- fit$coefficients[3]
@@ -94,3 +98,4 @@ setMethod(f="estCutoffs",
         sep_cutoffs(x) <- ests
         x
     })
+            
