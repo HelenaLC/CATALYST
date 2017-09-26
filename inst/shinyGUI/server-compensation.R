@@ -64,7 +64,7 @@ output$uploadSs <- renderUI({
 
 # render checkboxInputs for compensation method
 output$compMethod <- renderUI({
-    req(vals$sm)
+    req(spillMat())
     tagList(
         hr(style="border-color:black"),
         h5(strong("Select method")),
@@ -511,14 +511,15 @@ observeEvent(c(input$viewCompScatter, input$flipAxes, vals$sm), {
     x <- ch1(); y <- ch2()
     req(x, y)
     selected <- selectedSmplComp()
-    uncomped <- fsComp()[[selected]]
-    comped <- fsComped()[[selected]]
+    uncomped <- flowCore::exprs(fsComp()[[selected]])
+    comped <- flowCore::exprs(fsComped()[[selected]])
+    inds <- sample(seq_len(nrow(uncomped)), 1e4)
     output$compScatter1 <- renderPlot(CATALYST:::plotScatter(
-        es=flowCore::exprs(uncomped), x=x, y=y, cf=cfComp()))
+        es=uncomped[inds, ], x=x, y=y, cf=cfComp()))
     output$text_info1 <- renderText(text_info(uncomped, 
         isolate(input$cfComp), input$rect1, x, y))
     output$compScatter2 <- renderPlot(CATALYST:::plotScatter(
-        es=flowCore::exprs(comped), x=x, y=y, cf=cfComp()))
+        es=comped[inds, ], x=x, y=y, cf=cfComp()))
     output$text_info2 <- renderText(text_info(comped, 
         isolate(input$cfComp), input$rect2, x, y))
 })
