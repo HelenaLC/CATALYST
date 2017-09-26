@@ -51,9 +51,9 @@ setMethod(f="plotMahal",
                 "Plotting all inter-barcode interactions is infeasible.\n",
                 "Using the default 'mhl_cutoff' value of 30 is recommended.")
         
-        inds <- bc_ids(x) == which
-        if (sum(inds) > 5e3) 
-            inds <- inds[sample(which(inds), 5e3)]
+        inds <- which(bc_ids(x) == which)
+        if (length(inds) > 5e3) 
+            inds <- sample(inds, 5e3)
         nms <- colnames(exprs(x))
         ms <- as.numeric(get_ms_from_chs(nms))
         bc_cols <- ms %in% colnames(bc_key(x))
@@ -67,8 +67,8 @@ setMethod(f="plotMahal",
             aspect.ratio=1)
         
         max <- ceiling(max(mhl_dists(x)[inds])/5)*5
-        axes_min <- floor(min(es)/.1)*.1
-        axes_max <- ceiling(max(es)/.1)*.1
+        axes_min <- floor(  min(es, na.rm=TRUE)/.1)*.1
+        axes_max <- ceiling(max(es, na.rm=TRUE)/.1)*.1
         lims <- c(axes_min, axes_max)
         
         n <- ncol(bc_key(x))
