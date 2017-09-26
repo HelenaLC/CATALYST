@@ -511,15 +511,15 @@ observeEvent(c(input$viewCompScatter, input$flipAxes, vals$sm), {
     x <- ch1(); y <- ch2()
     req(x, y)
     selected <- selectedSmplComp()
-    uncomped <- flowCore::exprs(fsComp()[[selected]])
-    comped <- flowCore::exprs(fsComped()[[selected]])
+    uncomped <- fsComp()[[selected]]
+    comped <- fsComped()[[selected]]
     inds <- sample(seq_len(nrow(uncomped)), 1e4)
     output$compScatter1 <- renderPlot(CATALYST:::plotScatter(
-        es=uncomped[inds, ], x=x, y=y, cf=cfComp()))
+        es=flowCore::exprs(uncomped)[inds, ], x=x, y=y, cf=cfComp()))
     output$text_info1 <- renderText(text_info(uncomped, 
         isolate(input$cfComp), input$rect1, x, y))
     output$compScatter2 <- renderPlot(CATALYST:::plotScatter(
-        es=comped[inds, ], x=x, y=y, cf=cfComp()))
+        es=flowCore::exprs(comped)[inds, ], x=x, y=y, cf=cfComp()))
     output$text_info2 <- renderText(text_info(comped, 
         isolate(input$cfComp), input$rect2, x, y))
 })
