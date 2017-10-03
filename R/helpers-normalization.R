@@ -291,8 +291,10 @@ arrangeSmoothed <- function(p1, p2, out_path=NULL, shiny=FALSE) {
     if (shiny) {
         gt
     } else if (!is.null(out_path)) {
-        ggsave(width=15, height=12.5,
-            file.path(out_path, "beads_before_vs_after.png"))
+        png(file.path(out_path, "beads_before_vs_after.png"), 
+            width=1500, height=1200, res=150)
+        grid.draw(gt)
+        dev.off()
     } else {
         grid.draw(gt)
     }
