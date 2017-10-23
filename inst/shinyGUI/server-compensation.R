@@ -46,7 +46,7 @@ fsComp <- reactive({
 
 # render fileInput for spillover matrix CSV
 output$uploadSpillMat <- renderUI({
-    req(input$checkbox_upldSm == 1)
+    req(input$checkbox_upldSm)
     fileInput(
         inputId="inputSpillMat", 
         label=NULL, 
@@ -55,7 +55,7 @@ output$uploadSpillMat <- renderUI({
 
 # render fileInput for single-stained controls
 output$uploadSs <- renderUI({
-    req(input$checkbox_estSm == 1)
+    req(input$checkbox_estSm)
     fileInput(
         inputId="controlsFCS", 
         label="Upload single-stains (FCS)", 
@@ -78,11 +78,11 @@ output$compMethod <- renderUI({
 
 # toggle checkboxes
 observe({
-    req(input$nnlsComp == 1)
+    req(input$nnlsComp)
     updateCheckboxInput(session, "flowComp", value=FALSE)
 })
 observe({
-    req(input$flowComp == 1)
+    req(input$flowComp)
     updateCheckboxInput(session, "nnlsComp", value=FALSE)
 })
 
@@ -101,11 +101,11 @@ output$uploadMp <- renderUI({
 
 # toggle checkboxes
 observe({
-    req(input$checkbox_estSm == 1)
+    req(input$checkbox_estSm)
     updateCheckboxInput(session, "checkbox_upldSm", value=FALSE)
 })
 observe({
-    req(input$checkbox_upldSm == 1)
+    req(input$checkbox_upldSm)
     updateCheckboxInput(session, "checkbox_estSm", value=FALSE)
 })
 
@@ -131,7 +131,7 @@ ffControls <- reactive({
 
 # render selectInput: "Select single-positive channels"
 output$selectSinglePosChs <- renderUI({
-    req(input$checkbox_estSm == 1, 
+    req(input$checkbox_estSm, 
         !is.null(vals$fsComp_metsChecked))
     chs <- flowCore::colnames(ffControls())
     ms <- as.numeric(CATALYST:::get_ms_from_chs(chs))
@@ -174,17 +174,17 @@ observeEvent(input$checkbox_estCutoffsComp, {
 
 # toggle checkboxes
 observe({
-    req(input$checkbox_estCutoffsComp == 1)
+    req(input$checkbox_estCutoffsComp)
     updateCheckboxInput(session, "checkbox_adjustCutoffComp", value=FALSE)
     updateCheckboxInput(session, "checkbox_globalCutoffComp", value=FALSE)
 })
 observe({
-    req(input$checkbox_adjustCutoffComp == 1)
+    req(input$checkbox_adjustCutoffComp)
     updateCheckboxInput(session, "checkbox_estCutoffsComp",   value=FALSE)
     updateCheckboxInput(session, "checkbox_globalCutoffComp", value=FALSE)
 })
 observe({
-    req(input$checkbox_globalCutoffComp == 1)
+    req(input$checkbox_globalCutoffComp)
     updateCheckboxInput(session, "checkbox_estCutoffsComp",   value=FALSE)
     updateCheckboxInput(session, "checkbox_adjustCutoffComp", value=FALSE)
 })
@@ -372,17 +372,36 @@ output$plotSpillmat <- renderPlotly({
 # ------------------------------------------------------------------------------
 
 # compensate input flowFrame(s)
-fsComped <- reactive({
-    req(vals$sm, fsComp(), input$nnlsComp == 1 | input$flowComp == 1)
-    showNotification(h4(strong("Compensating...")), id="msg",
-        type="message", duration=NULL, closeButton=FALSE)
-    if (input$nnlsComp) method <- "nnls" else method <- "flow"
+nnlsComped <- reactive({
+    req(vals$sm, fsComp(), input$nnlsComp)
+    showNotification(h4(strong("Compensating using NNLS...")), 
+        id="msg", type="message", duration=NULL, closeButton=FALSE)
     fs <- fsApply(fsComp(), function(ff) 
-        CATALYST::compCytof(ff, vals$sm, NULL, method))
+        CATALYST::compCytof(ff, vals$sm, NULL, "nnls"))
+    removeNotification(id="msg")
+    return(fs)
+})
+flowComped <- reactive({
+    req(vals$sm, fsComp(), input$flowComp)
+    showNotification(h4(strong("Compensating using method 'flow'...")), 
+        id="msg", type="message", duration=NULL, closeButton=FALSE)
+    fs <- fsApply(fsComp(), function(ff) 
+        CATALYST::compCytof(ff, vals$sm, NULL, "flow"))
+    removeNotification(id="msg")
+    return(fs)
+})
+fsComped <- reactive({
+    req(any(!is.null(nnlsComped()), !is.null(flowComped())))
+    if (input$nnlsComp) {
+        fs <- nnlsComped() 
+    } else if (input$flowComp) {
+        fs <- flowComped()
+    } else {
+        return(NULL)
+    }
     nms <- keyword(fs, "ORIGINALGUID")
     for (i in seq_along(fs))
         description(fs[[i]])$GUID <- identifier(fs[[i]]) <- nms[i]
-    removeNotification(id="msg")
     return(fs)
 })
 
@@ -507,7 +526,7 @@ observe({
     updateNumericInput(session, inputId="cfComp", value=5)
 })
 
-observeEvent(c(input$viewCompScatter, input$flipAxes, vals$sm), {
+observeEvent(c(input$viewCompScatter, input$flipAxes, vals$sm, ch1(), ch2()), {
     x <- ch1(); y <- ch2()
     req(x, y)
     selected <- selectedSmplComp()

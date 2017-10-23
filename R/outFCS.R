@@ -50,7 +50,7 @@ setMethod(f="outFCS",
         stopifnot(is.character(out_path), length(out_path) == 1L)
         smpl_nms <- rownames(bc_key(x))
         if (is.null(out_nms)) {
-            out_nms <- rownames(bc_key(x))
+            out_nms <- smpl_nms
         } else if (is.character(out_nms)) {
             if (is.null(dim(out_nms))) {
                 if (length(out_nms) != nrow(bc_key(x)))
@@ -69,16 +69,15 @@ setMethod(f="outFCS",
                 out_nms <- paste0(nms_tbl[,2], "_", smpl_nms)
             }
         }
-        ids <- sort(unique(bc_ids(x)))
+        ids <- unique(bc_ids(x))
         inds <- match(bc_ids(x), ids)
-        for (i in seq_along(ids)) {
-            id <- ids[i]
+        for (id in ids) {
             if (id == "0") {
                 nm <- "Unassigned"
             } else {
-                nm <- out_nms[smpl_nms == id]
+                nm <- out_nms[match(id, smpl_nms)]
             }
-            suppressWarnings(flowCore::write.FCS(x=y[inds == i, ], 
+            suppressWarnings(flowCore::write.FCS(x=y[inds == match(id, ids), ], 
                 filename=file.path(out_path, paste0(nm, ".fcs"))))
         }
         if (verbose) {
