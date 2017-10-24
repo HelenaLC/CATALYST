@@ -44,46 +44,33 @@ fsComp <- reactive({
     }
 })
 
-# render fileInput for spillover matrix CSV
-output$uploadSpillMat <- renderUI({
-    req(input$checkbox_upldSm)
-    fileInput(
-        inputId="inputSpillMat", 
-        label=NULL, 
-        accept=".csv")
+# render fileInput for spillover matrix CSV or single-stains FCS
+# according to radioButtons selection
+output$upload_or_est_sm_UI <- renderUI({
+    switch(input$upload_or_est_sm, 
+        upload_sm=fileInput(
+            inputId="inputSpillMat", 
+            label="Upload spillover matrix (CSV)", 
+            accept=".csv"),
+        est_sm=fileInput(
+            inputId="controlsFCS", 
+            label="Upload single-stains (FCS)", 
+            accept=".fcs"))
 })
 
-# render fileInput for single-stained controls
-output$uploadSs <- renderUI({
-    req(input$checkbox_estSm)
-    fileInput(
-        inputId="controlsFCS", 
-        label="Upload single-stains (FCS)", 
-        accept=".fcs")
-})
-
-# render checkboxInputs for compensation method
-output$compMethod <- renderUI({
+# render radioButtons for compensation method selection
+output$compensation_method_selection <- renderUI({
     req(spillMat())
     tagList(
         hr(style="border-color:black"),
-        h5(strong("Select method")),
-        checkboxInput(
-            inputId="nnlsComp",
-            label="NNLS compensation"),
-        checkboxInput(
-            inputId="flowComp",
-            label="Flow compensation"))
-})
-
-# toggle checkboxes
-observe({
-    req(input$nnlsComp)
-    updateCheckboxInput(session, "flowComp", value=FALSE)
-})
-observe({
-    req(input$flowComp)
-    updateCheckboxInput(session, "nnlsComp", value=FALSE)
+        radioButtons(
+            inputId="compensation_method", 
+            label="Select method:",
+            choices=c(
+                "NNLS compensation" = "nnls", 
+                "Flow compensation" = "flow")
+        )
+    )
 })
 
 # render fileInput for multiplexed data
@@ -97,16 +84,6 @@ output$uploadMp <- renderUI({
         label="Upload multiplexed data (FCS)", 
         multiple=TRUE,
         accept=".fcs")
-})
-
-# toggle checkboxes
-observe({
-    req(input$checkbox_estSm)
-    updateCheckboxInput(session, "checkbox_upldSm", value=FALSE)
-})
-observe({
-    req(input$checkbox_upldSm)
-    updateCheckboxInput(session, "checkbox_estSm", value=FALSE)
 })
 
 # ------------------------------------------------------------------------------
@@ -131,7 +108,7 @@ ffControls <- reactive({
 
 # render selectInput: "Select single-positive channels"
 output$selectSinglePosChs <- renderUI({
-    req(input$checkbox_estSm, 
+    req(input$upload_or_est_sm == "est_sm", 
         !is.null(vals$fsComp_metsChecked))
     chs <- flowCore::colnames(ffControls())
     ms <- as.numeric(CATALYST:::get_ms_from_chs(chs))
@@ -144,7 +121,7 @@ output$selectSinglePosChs <- renderUI({
 # bsButton: "Debarcode"
 # ------------------------------------------------------------------------------
 observe({
-    test <- input$checkbox_estSm == 1 && !is.null(input$singlePosChs)
+    test <- input$upload_or_est_sm == "est_sm" && !is.null(input$singlePosChs)
     toggleState(id="debarcodeComp", condition=test)
 })
 
@@ -155,6 +132,11 @@ observeEvent(input$debarcodeComp, {
     ms <- as.numeric(CATALYST:::get_ms_from_chs(input$singlePosChs))
     vals$dbFrame1Comp <- CATALYST::assignPrelim(x=ffControls(), y=ms)
     removeNotification(id="msg")
+    # estCutoffs()
+    showNotification("Estimating separation cutoffs...",
+        id="estimating_sep_cutoffs", duration=NULL, closeButton=FALSE)
+    vals$cutoff_ests_comp <- sep_cutoffs(CATALYST::estCutoffs(x=vals$dbFrame1Comp))
+    removeNotification(id="estimating_sep_cutoffs")
     # render deconvolution parameter UI
     output$debaParsComp <- renderUI(tagList(
         debaParsModule(module="Comp"),
@@ -167,51 +149,32 @@ observeEvent(input$debarcodeComp, {
     enable(id="debarcodeComp")
 })
 
-# estCutoffs()
-observeEvent(input$checkbox_estCutoffsComp, {
-    vals$dbFrame2Comp <- CATALYST::estCutoffs(x=vals$dbFrame1Comp)
-})
-
-# toggle checkboxes
-observe({
-    req(input$checkbox_estCutoffsComp)
-    updateCheckboxInput(session, "checkbox_adjustCutoffComp", value=FALSE)
-    updateCheckboxInput(session, "checkbox_globalCutoffComp", value=FALSE)
-})
-observe({
-    req(input$checkbox_adjustCutoffComp)
-    updateCheckboxInput(session, "checkbox_estCutoffsComp",   value=FALSE)
-    updateCheckboxInput(session, "checkbox_globalCutoffComp", value=FALSE)
-})
-observe({
-    req(input$checkbox_globalCutoffComp)
-    updateCheckboxInput(session, "checkbox_estCutoffsComp",   value=FALSE)
-    updateCheckboxInput(session, "checkbox_adjustCutoffComp", value=FALSE)
-})
-
 # ------------------------------------------------------------------------------
 # cutoff adjustment
 # ------------------------------------------------------------------------------
-
-# toggle adjustCutoffsUI
-observe({
-    toggle(
-        id="adjustCutoffUIComp", 
-        condition=input$checkbox_adjustCutoffComp)
+# render UI for cutoff adjustment or input for global cutoff
+output$deba_cutoffs_UIComp <- renderUI({
+    switch(input$deba_cutoffsComp,
+        est_cutoffs=NULL,
+        adjust_cutoffs=
+            adjustCutoffUI(
+                dbFrame=vals$dbFrame2Comp, 
+                choices=adjustCutoffChoicesComp(),
+                module="Comp"),
+        global_cutoff=
+            globalCutoffUI(module="Comp"))
 })
 
-# get selectInput choices
+# use cutoff estimates
+observeEvent(input$deba_cutoffsComp == "est_cutoffs", ignoreInit=TRUE, {
+    sep_cutoffs(vals$dbFrame1Comp) <- vals$cutoff_ests_comp
+    vals$dbFrame2Comp <- vals$dbFrame1Comp
+})
+
+# get selectInput choices for cutoff adjustment
 adjustCutoffChoicesComp <- reactive({
     req(dbFrameComp())
     rownames(bc_key(dbFrameComp()))
-})
-
-# render adjustCutoffsUI
-output$adjustCutoffUIComp <- renderUI({
-    adjustCutoffUI(
-        dbFrame=vals$dbFrame2Comp, 
-        choices=adjustCutoffChoicesComp(),
-        module="Comp")
 })
 
 # synchronize selectInput & numericInput w/ yield plot
@@ -235,23 +198,9 @@ observeEvent(input$button_adjustCutoffComp, {
         as.numeric(input$input_adjustCutoffComp)
 })
 
-# ------------------------------------------------------------------------------
-# global separation cutoff
-# ------------------------------------------------------------------------------
-
-# toggle globalCutoffUI
-observe({
-    toggle(
-        id="globalCutoffUIComp", 
-        condition=input$checkbox_globalCutoffComp)
-})
-
-# render globalCutoffUI
-output$globalCutoffUIComp <- renderUI(globalCutoffUI(module="Comp"))
-
 # set global cutoff upon bsButton click
 observeEvent(input$button_globalCutoffComp, {
-    sep_cutoffs(vals$dbFrame2Comp) <- as.numeric(input$input_globalCutoffComp)
+    sep_cutoffs(vals$dbFrame2Comp) <- input$input_globalCutoffComp
 })
 
 # sliderInput: "Mahalanobis distance threshold"
@@ -334,8 +283,8 @@ spillMatEst <- eventReactive(input$compensate, {
 
 # get spillover matrix
 spillMat <- reactive({
-    x <- input$checkbox_upldSm
-    if (!is.null(x) && x == 1 && !is.null(input$inputSpillMat)) {
+    x <- input$upload_or_est_sm
+    if (x == "upload_sm" && !is.null(input$inputSpillMat)) {
         # validity check
         isCSV <- length(grep("(.csv)$", input$inputSpillMat$name)) == 1
         if (!isCSV) {
@@ -358,10 +307,11 @@ observeEvent(spillMat(), {
 # plotSpillmat()
 output$plotSpillmat <- renderPlotly({
     req(vals$sm)
-    if (input$checkbox_upldSm) {
+    x <- input$upload_or_est_sm
+    if (x == "upload_sm") {
         ms <- CATALYST:::get_ms_from_chs(colnames(vals$sm))
         CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
-    } else if (input$checkbox_estSm) {
+    } else if (x == "est_sm") {
         ms <- rownames(bc_key(dbFrameComp()))
         CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
     }
@@ -373,7 +323,7 @@ output$plotSpillmat <- renderPlotly({
 
 # compensate input flowFrame(s)
 nnlsComped <- reactive({
-    req(vals$sm, fsComp(), input$nnlsComp)
+    req(input$compensation_method == "nnls", fsComp(), vals$sm)
     showNotification(h4(strong("Compensating using NNLS...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
     fs <- fsApply(fsComp(), function(ff) 
@@ -382,7 +332,7 @@ nnlsComped <- reactive({
     return(fs)
 })
 flowComped <- reactive({
-    req(vals$sm, fsComp(), input$flowComp)
+    req(input$compensation_method == "flow", fsComp(), vals$sm)
     showNotification(h4(strong("Compensating using method 'flow'...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
     fs <- fsApply(fsComp(), function(ff) 
@@ -391,14 +341,8 @@ flowComped <- reactive({
     return(fs)
 })
 fsComped <- reactive({
-    req(any(!is.null(nnlsComped()), !is.null(flowComped())))
-    if (input$nnlsComp) {
-        fs <- nnlsComped() 
-    } else if (input$flowComp) {
-        fs <- flowComped()
-    } else {
-        return(NULL)
-    }
+    req(method <- input$compensation_method)
+    fs <- switch(method, nnls=nnlsComped(), flow=flowComped())
     nms <- keyword(fs, "ORIGINALGUID")
     for (i in seq_along(fs))
         description(fs[[i]])$GUID <- identifier(fs[[i]]) <- nms[i]
@@ -479,7 +423,6 @@ observe({
 })
 
 # ------------------------------------------------------------------------------
-
 # bsButton: Swap x- and y-axis
 observeEvent(input$flipAxes, priority=1, {
     ch1 <- ch1()
@@ -526,21 +469,46 @@ observe({
     updateNumericInput(session, inputId="cfComp", value=5)
 })
 
-observeEvent(c(input$viewCompScatter, input$flipAxes, vals$sm, ch1(), ch2()), {
-    x <- ch1(); y <- ch2()
-    req(x, y)
-    selected <- selectedSmplComp()
-    uncomped <- fsComp()[[selected]]
-    comped <- fsComped()[[selected]]
-    inds <- sample(seq_len(nrow(uncomped)), 1e4)
-    output$compScatter1 <- renderPlot(CATALYST:::plotScatter(
-        es=flowCore::exprs(uncomped)[inds, ], x=x, y=y, cf=cfComp()))
-    output$text_info1 <- renderText(text_info(uncomped, 
-        isolate(input$cfComp), input$rect1, x, y))
-    output$compScatter2 <- renderPlot(CATALYST:::plotScatter(
-        es=flowCore::exprs(comped)[inds, ], x=x, y=y, cf=cfComp()))
-    output$text_info2 <- renderText(text_info(comped, 
-        isolate(input$cfComp), input$rect2, x, y))
+# sample 1e4 events per sample
+inds <- eventReactive(fsComp(), {
+    nEvents <- pmin(fsApply(fsComp(), nrow), 1e4)
+    lapply(nEvents, function(i) sample(i, 1e4))
+})
+
+# subset raw and compensated data
+es0 <- reactive({
+    req(fsComp(), inds())
+    lapply(seq_along(fsComp()), function(i)
+        exprs(fsComp()[[i]][inds()[[i]], ]))
+})
+esC <- reactive({
+    req(fsComped(), inds())
+    lapply(seq_along(fsComped()), function(i)
+        exprs(fsComped()[[i]][inds()[[i]], ]))
+})
+
+# render scatter plots and text outputs
+output$compScatter1 <- renderPlot({
+    req(es0(), ch1(), ch2(), cfComp())
+    exprs <- es0()[[selectedSmplComp()]]
+    CATALYST:::plotScatter(exprs, ch1(), ch2(), cfComp())
+})
+output$compScatter2 <- renderPlot({
+    req(esC(), ch1(), ch2(), cfComp())
+    exprs <- esC()[[selectedSmplComp()]]
+    CATALYST:::plotScatter(exprs, ch1(), ch2(), cfComp())
+})
+output$text_info1 <- renderText({
+    req(fsComp(), selectedSmplComp(), 
+        cfComp(), input$rect1, ch1(), ch2())
+    ff <- fsComp()[[selectedSmplComp()]]
+    text_info(ff, cfComp(), input$rect1, ch1(), ch2())
+})
+output$text_info2 <- renderText({
+    req(fsComped(), selectedSmplComp(), 
+        cfComp(), input$rect1, ch1(), ch2())
+    ff <- fsComped()[[selectedSmplComp()]]
+    text_info(ff, cfComp(), input$rect2, ch1(), ch2())
 })
 
 # ------------------------------------------------------------------------------
@@ -573,10 +541,10 @@ output$dwnld_comped <- downloadHandler(
 )
 
 output$dwnld_spillMat <- downloadHandler(
-    filename=function() { 
+    filename=function() {
         paste0(format(Sys.Date(), "%y%m%d"), "_spillMat.csv") 
     },
-    content=function(file) {  
+    content=function(file) {
         write.csv(vals$sm, file)
     }
 )
