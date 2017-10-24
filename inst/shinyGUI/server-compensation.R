@@ -446,7 +446,7 @@ observe({
 })
 observeEvent(input$prev_smplComp, { 
     updateSelectInput(session, 
-        inpudId="select_smplComp", 
+        inputId="select_smplComp", 
         selected=smplNmsComp()[selectedSmplComp()-1]) 
 })
 observeEvent(input$next_smplComp, { 
