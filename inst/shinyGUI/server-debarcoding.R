@@ -70,59 +70,46 @@ observe({
 })
 
 observeEvent(input$debarcodeDeba, {
+    # assignPrelim()
     showNotification(h4(strong("Assigning preliminary IDs...")), 
         duration=NULL, closeButton=FALSE, id="msg", type="message")
     vals$dbFrame1Deba <- CATALYST::assignPrelim(ffDeba(), debaKey())
     removeNotification(id="msg")
+    # estCutoffs()
+    showNotification("Estimating separation cutoffs...",
+        id="estimating_sep_cutoffs", duration=NULL, closeButton=FALSE)
+    vals$cutoff_ests_deba <- sep_cutoffs(CATALYST::estCutoffs(x=vals$dbFrame1Deba))
+    removeNotification(id="estimating_sep_cutoffs")
+    # extend sidebar
     output$debarcodingSidebar2 <- renderUI(debarcodingSidebar2)
-})
-
-# ------------------------------------------------------------------------------
-# toggle checkboxes
-observe({
-    req(input$checkbox_estCutoffsDeba == 1)
-    updateCheckboxInput(session, "checkbox_adjustCutoffDeba", value=FALSE)
-    updateCheckboxInput(session, "checkbox_globalCutoffDeba", value=FALSE)
-})
-observe({
-    req(input$checkbox_adjustCutoffDeba == 1)
-    updateCheckboxInput(session, "checkbox_estCutoffsDeba",   value=FALSE)
-    updateCheckboxInput(session, "checkbox_globalCutoffDeba", value=FALSE)
-})
-observe({
-    req(input$checkbox_globalCutoffDeba == 1)
-    updateCheckboxInput(session, "checkbox_estCutoffsDeba",   value=FALSE)
-    updateCheckboxInput(session, "checkbox_adjustCutoffDeba", value=FALSE)
-})
-
-# estCutoffs()
-observeEvent(input$checkbox_estCutoffsDeba, {
-    vals$dbFrame2Deba <- CATALYST::estCutoffs(x=vals$dbFrame1Deba)
 })
 
 # ------------------------------------------------------------------------------
 # cutoff adjustment
 # ------------------------------------------------------------------------------
-
-# toggle adjustCutoffsUI
-observe({
-    toggle(
-        id="adjustCutoffUIDeba", 
-        condition=input$checkbox_adjustCutoffDeba)
+# render UI for cutoff adjustment or input for global cutoff
+output$deba_cutoffs_UIDeba <- renderUI({
+    switch(input$deba_cutoffsDeba,
+        est_cutoffs=NULL,
+        adjust_cutoffs=
+            adjustCutoffUI(
+                dbFrame=vals$dbFrame2Deba, 
+                choices=adjustCutoffChoicesDeba(),
+                module="Deba"),
+        global_cutoff=
+            globalCutoffUI(module="Deba"))
 })
 
-# get selectInput choices
+# use cutoff estimates
+observeEvent(input$deba_cutoffsDeba == "est_cutoffs", ignoreInit=TRUE, {
+    sep_cutoffs(vals$dbFrame1Deba) <- vals$cutoff_ests_deba
+    vals$dbFrame2Deba <- vals$dbFrame1Deba
+})
+
+# get selectInput choices for cutoff adjustment
 adjustCutoffChoicesDeba <- reactive({
     req(dbFrameDeba())
     rownames(bc_key(dbFrameDeba()))
-})
-
-# render adjustCutoffsUI
-output$adjustCutoffUIDeba <- renderUI({
-    adjustCutoffUI(
-        dbFrame=vals$dbFrame2Deba, 
-        choices=adjustCutoffChoicesDeba(),
-        module="Deba")
 })
 
 # synchronize selectInput & numericInput w/ yield plot
@@ -145,20 +132,6 @@ observeEvent(input$button_adjustCutoffDeba, {
     sep_cutoffs(vals$dbFrame2Deba)[x] <- 
         as.numeric(input$input_adjustCutoffDeba)
 })
-
-# ------------------------------------------------------------------------------
-# global separation cutoff
-# ------------------------------------------------------------------------------
-
-# toggle globalCutoffUI
-observe({
-    toggle(
-        id="globalCutoffUIDeba", 
-        condition=input$checkbox_globalCutoffDeba)
-})
-
-# render globalCutoffUI
-output$globalCutoffUIDeba <- renderUI(globalCutoffUI(module="Deba"))
 
 # set global cutoff upon bsButton click
 observeEvent(input$button_globalCutoffDeba, {
