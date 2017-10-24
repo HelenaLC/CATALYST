@@ -27,15 +27,14 @@ compensationTab <- fluidPage(
                     uiOutput("panel_scatters")))),
         sidebarPanel(
             width=3,
-            checkboxInput(
-                inputId="checkbox_upldSm", 
-                label="Upload spillover matrix (CSV)"),
-            uiOutput(outputId="uploadSpillMat"),
-            checkboxInput(
-                inputId="checkbox_estSm", 
-                label="Estimate spill from controls"),
-            uiOutput(outputId="uploadSs"),
-            uiOutput(outputId="compMethod"),
+            radioButtons(
+                inputId="upload_or_est_sm",
+                label=NULL,
+                choices=c(
+                    "Use pre-acquired spillover matrix" = "upload_sm",
+                    "Estimate spill from controls" = "est_sm")),
+            uiOutput(outputId="upload_or_est_sm_UI"),
+            uiOutput(outputId="compensation_method_selection"),
             uiOutput(outputId="uploadMp"),
             uiOutput(outputId="selectSinglePosChs"),
             uiOutput(outputId="debaParsComp"),
@@ -44,7 +43,6 @@ compensationTab <- fluidPage(
 # ------------------------------------------------------------------------------
 # sidebar extension
 # ------------------------------------------------------------------------------
-
 compensationSidebar <- tagList(
     hr(style="border-color:black"),
     tags$style(type="text/css", "#dwnld_comped {
@@ -70,7 +68,9 @@ compensationSidebar <- tagList(
 )
 
 # ------------------------------------------------------------------------------
-
+# UI for selection of single positive channels 
+# & bsButton "Deconvolute single-stains"
+# ------------------------------------------------------------------------------
 selectSinglePosChsUI <- function(choices) {
     tagList(
         selectInput(
@@ -82,7 +82,7 @@ selectSinglePosChsUI <- function(choices) {
             size=12),
         bsButton(
             inputId="debarcodeComp", 
-            label="Debarcode", 
+            label="Deconvolute single-stains", 
             style="warning",
             size="small",
             block=TRUE)
@@ -119,22 +119,9 @@ panel_scatters <- function(samples) {
                     style="default",
                     size="extra-small"))
         ), 
-        # channel selection, flip axes button, 
-        # cofactor input & view button
+        # channel selection, flip axes button & cofactor input
         fluidRow(
             align="center",
-            div(style="display:inline-block; vertical-align:center",
-                bsButton(
-                    inputId="flipAxes", 
-                    label=NULL,
-                    icon=icon("exchange"),
-                    style="primary",
-                    size="extra-small")),
-            bsTooltip(
-                id="flipAxes", 
-                title="Swap axes", 
-                placement="right", 
-                trigger="hover"),
             div(style="display:inline-block",
                 h5(strong(" X-axis:"), align="right")),
             div(style="display:inline-block; vertical-align:top",
@@ -153,14 +140,14 @@ panel_scatters <- function(samples) {
                     width="120px")),
             div(style="display:inline-block; vertical-align:center",
                 bsButton(
-                    inputId="viewCompScatter", 
+                    inputId="flipAxes", 
                     label=NULL,
-                    icon=icon("share"),
+                    icon=icon("exchange"),
                     style="primary",
                     size="extra-small")),
             bsTooltip(
-                id="viewCompScatter", 
-                title="View", 
+                id="flipAxes", 
+                title="Swap axes", 
                 placement="right", 
                 trigger="hover"),
             div(style="display:inline-block",
