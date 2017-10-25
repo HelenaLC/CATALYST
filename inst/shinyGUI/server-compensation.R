@@ -469,10 +469,11 @@ observe({
     updateNumericInput(session, inputId="cfComp", value=5)
 })
 
-# sample 1e4 events per sample
+# sample 5e3 events per sample
 inds <- eventReactive(fsComp(), {
-    nEvents <- pmin(fsApply(fsComp(), nrow), 1e4)
-    lapply(nEvents, function(i) sample(i, 1e4))
+    nEvents <- fsApply(fsComp(), nrow)
+    n <- pmin(nEvents, 5e3)
+    lapply(seq_along(n), function(i) sample(nEvents[i], n[i]))
 })
 
 # subset raw and compensated data
