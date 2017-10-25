@@ -354,17 +354,13 @@ output$dwnld_debaFcs <- downloadHandler(
         paste0(format(Sys.Date(), "%y%m%d"), "-debarcoding.zip")
     },
     content =function(file) { 
-        ids <- rownames(bc_key(dbFrameDeba()))
-        nBcs <- length(ids)
-        # get unique IDs
-        uniqueIds <- sort(unique(bc_ids(dbFrameDeba())))
-        nFiles <- length(uniqueIds)
-        inds <- c(0, ids) %in% uniqueIds
         tmpdir <- tempdir()
         setwd(tmpdir)
         # ----------------------------------------------------------------------
         # debarcoding summary table: 
         # IDs | Counts | Cutoffs | Yields
+        ids <- rownames(bc_key(dbFrameDeba()))
+        nBcs <- nrow(bc_key(dbFrameDeba()))
         cutoffs <- sep_cutoffs(dbFrameDeba())
         yields <- yields(dbFrameDeba())[cbind(seq_len(nBcs), 
             findInterval(cutoffs, seq(0, 1, .01)))]
@@ -398,22 +394,25 @@ output$dwnld_debaFcs <- downloadHandler(
             }
             smplNms <- c("Unassigned", paste0(smplNmsDeba()[, 2], "_", ids))
         }
-        smplNms <- paste0(smplNms[inds], ".fcs")
+        unique_ids <- unique(bc_ids(dbFrameDeba()))
+        nFiles <- length(unique_ids)
+        inds <- match(bc_ids(dbFrameDeba()), unique_ids)
+        out_nms <- paste0(smplNms, ".fcs")
+        out_nms <- out_nms[match(unique_ids, c(0, ids))]
         # match assignments with IDs
-        inds <- match(bc_ids(dbFrameDeba()), uniqueIds)
         # write population-wise FCS file
         withProgress(message="Debarcoding samples...", value=0, {
-            for (i in seq_along(ids)) {
+            for (i in seq_along(unique_ids)) {
                 suppressWarnings(flowCore::write.FCS(
                     x=ffDeba()[inds == i, ], 
-                    filename=file.path(tmpdir, smplNms[i])))
+                    filename=file.path(tmpdir, out_nms[i])))
                 incProgress(1/nFiles, detail=paste0(i, "/", nFiles))
             }
         })
         showNotification(h4(strong("Writing FCS files...")),
             id="msg", duration=NULL, closeButton=NULL, type="default")
         fileNms <- c(tblNm, smplNms)
-        zip(zipfile=file, files=fileNms) 
+        zip(zipfile=file, files=out_nms) 
         removeNotification(id="msg")
         }, 
     contentType="application/zip")                        
