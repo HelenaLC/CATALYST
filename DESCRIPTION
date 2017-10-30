@@ -1,7 +1,7 @@
 Package: CATALYST
 Type: Package
 Title: Cytometry dATa anALYSis Tools
-Version: 1.1.5
+Version: 1.2.0
 Author: Helena Lucia Crowell <crowellh@student.ethz.ch>, Mark D Robinson <mark.robinson@imls.uzh.ch>, Vito RT Zanotelli <vito.zanotelli@uzh.ch>, Stéphane Chevrier, Bernd Bodenmiller
 biocViews: MassSpectrometry, Preprocessing, StatisticalMethod, SingleCell, Normalization
 Maintainer: Helena Lucia Crowell <crowellh@student.ethz.ch>
