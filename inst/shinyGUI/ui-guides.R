@@ -29,10 +29,10 @@ guidesTab <- fluidPage(
             i) concatenation, ii) normalization using bead standards, 
             iii) single-cell deconvolution, and iv) bead-based compensation.",
             strong(style="color:firebrick", "The preprint to this project 
-                is accesible on", strong("bioRxiv"), "at",
-                a("Chevrier et al., 2017:", em("Channel crosstalk correction 
-                in suspension and imaging mass cytometry."), 
-                href="https://www.biorxiv.org/content/early/2017/09/07/185744")))))
+                is accesible on"), strong("bioRxiv"), 
+            strong(style="color:firebrick", "at"), a("Chevrier et al., 2017:", 
+                em("Channel crosstalk correction in suspension and imaging mass cytometry."), 
+                href="https://www.biorxiv.org/content/early/2017/09/07/185744"))))
 
 # ------------------------------------------------------------------------------
 # concatenation
