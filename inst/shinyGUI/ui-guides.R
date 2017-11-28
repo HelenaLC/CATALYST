@@ -17,16 +17,22 @@ guidesTab <- fluidPage(
                     uiOutput("normalization_guide")),
 
                 tabPanel(
-                    title="Debarcoding", 
-                    uiOutput("debarcoding_guide")),
-                tabPanel(
                     title="Compensation", 
-                    uiOutput("compensation_guide")))),
+                    uiOutput("compensation_guide")),
+                tabPanel(
+                    title="Debarcoding", 
+                    uiOutput("debarcoding_guide")))),
         sidebarPanel(
-            width=3
-        )
-    )
-)
+            width=3,
+            "We designed CATALYST (Cytometry dATa anALYSis Tools) 
+            to provide tools for preprocessing of cytometry data, including 
+            i) concatenation, ii) normalization using bead standards, 
+            iii) single-cell deconvolution, and iv) bead-based compensation.",
+            strong(style="color:firebrick", "The preprint to this project 
+                is accesible on", strong("bioRxiv"), "at",
+                a("Chevrier et al., 2017:", em("Channel crosstalk correction 
+                in suspension and imaging mass cytometry."), 
+                href="https://www.biorxiv.org/content/early/2017/09/07/185744")))))
 
 # ------------------------------------------------------------------------------
 # concatenation
