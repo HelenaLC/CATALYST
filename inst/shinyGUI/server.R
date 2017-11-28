@@ -3,10 +3,10 @@ options(shiny.maxRequestSize=5000*1024^2)
 
 shinyServer(function(input, output, session) {
     
-    #source("helpers.R")
-    source("guides.R")
-    output$debarcoding_guide  <- renderUI(debarcoding_guide)
-    output$compensation_guide <- renderUI(compensation_guide)
+    output$concatenation_guide <- renderUI(concatenation_guide)
+    output$normalization_guide <- renderUI(normalization_guide)
+    output$debarcoding_guide   <- renderUI(debarcoding_guide)
+    output$compensation_guide  <- renderUI(compensation_guide)
     
     source("server-concatenation.R", local=TRUE)
     source("server-normalization.R", local=TRUE)

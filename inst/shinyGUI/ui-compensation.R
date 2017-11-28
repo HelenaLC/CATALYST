@@ -14,9 +14,6 @@ compensationTab <- fluidPage(
             tabBox(
                 width=12,
                 tabPanel(
-                    title=icon("info-circle"), 
-                    uiOutput("compensation_guide")),
-                tabPanel(
                    title="Yield plot",
                    uiOutput("yieldPlotPanelComp")),
                 tabPanel(

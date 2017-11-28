@@ -25,6 +25,7 @@ source("helpers.R")
 source("module-yieldPlot.R")
 source("module-debaPars.R")
 
+source("ui-guides.R")
 source("ui-concatenation.R")
 source("ui-normalization.R")   
 source("ui-FCSchecking.R")
