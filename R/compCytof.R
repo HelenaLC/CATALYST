@@ -87,8 +87,9 @@ setMethod(f="compCytof",
         }
         
         if (!is.null(out_path)) {
-            outNm <- file.path(out_path, paste0(gsub(".fcs", "_comped.fcs", 
-                flowCore::identifier(x), ignore.case=TRUE)))
+            fileNm <- gsub("[[:alpha:]]*/", "", description(x)$FILENAME)
+            outNm <- file.path(out_path, paste0(gsub(".fcs", 
+                "_comped.fcs", fileNm, ignore.case=TRUE)))
             suppressWarnings(flowCore::write.FCS(ff_comped, outNm))
         } else {
             ff_comped
