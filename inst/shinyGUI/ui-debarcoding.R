@@ -10,9 +10,6 @@ debarcodingTab <- fluidPage(
             tabBox(
                 width=12, 
                 tabPanel(
-                    title=icon("info-circle"), 
-                    uiOutput("debarcoding_guide")),
-                tabPanel(
                     title="Yield plot", 
                     uiOutput("yieldPlotPanelDeba")),
                 tabPanel(

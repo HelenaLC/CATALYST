@@ -1,4 +1,7 @@
-header <- dashboardHeader(title=tagList("CATALYST", icon("rocket")))
+header <- dashboardHeader(
+    title=tagList("CATALYST", icon("rocket"))
+
+)
 
 header$children[[3]]$children <- tagList(
     tags$a(
@@ -29,6 +32,10 @@ sidebar <- dashboardSidebar(
     sidebarMenu(
         id="tabs",
         menuItem(
+            text="Guides",
+            tabName="guides",
+            icon=icon("question-circle")),
+        menuItem(
             text="Concatenation",
             tabName="concatenation",
             icon=icon("clone")),
@@ -49,6 +56,7 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
     tabItems(
+        tabItem(tabName="guides",        guidesTab),
         tabItem(tabName="concatenation", concatenationTab),
         tabItem(tabName="normalization", normalizationTab),
         tabItem(tabName="compensation",  compensationTab),
