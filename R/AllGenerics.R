@@ -185,6 +185,13 @@ setGeneric(name="computeSpillmat",
     package="CATALYST",
     def=function(x, ...) standardGeneric("computeSpillmat"))
 
+#' @rdname plotSpillmat
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotSpillmat", 
+    package="CATALYST",
+    def=function(bc_ms, SM, ...) standardGeneric("plotSpillmat"))
+
 #' @rdname adaptSpillmat
 #' @param ... optional arguments.
 #' @export
@@ -198,3 +205,100 @@ setGeneric(name="adaptSpillmat",
 setGeneric(name="compCytof", 
     package="CATALYST",
     def=function(x, y, ...) standardGeneric("compCytof"))
+
+
+# ==============================================================================
+# Generics to access slots in a daFrame
+# ------------------------------------------------------------------------------
+
+#' @rdname daFrame-methods
+#' @name daFrame-methods
+#' @export
+setGeneric(name="data", 
+    package="CATALYST", 
+    def=function(x) standardGeneric("data"))
+
+#' @rdname daFrame-methods
+#' @export
+setGeneric(name="panel",      
+    package="CATALYST", 
+    def=function(x) standardGeneric("panel"))
+
+#' @rdname daFrame-methods
+#' @export
+setGeneric(name="metadata",  
+    package="CATALYST", 
+    def=function(x) standardGeneric("metadata"))
+
+#' @rdname daFrame-methods
+#' @export
+setGeneric(name="cluster_ids",  
+    package="CATALYST", 
+    def=function(x) standardGeneric("cluster_ids"))
+
+#' @rdname daFrame-methods
+#' @export
+setGeneric(name="merging_ids",  
+    package="CATALYST", 
+    def=function(x) standardGeneric("merging_ids"))
+
+# ==============================================================================
+# Generics for differential analysis
+# ------------------------------------------------------------------------------
+
+#' @rdname plotCounts
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotCounts", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotCounts"))
+
+#' @rdname plotExprs
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotExprs", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotExprs"))
+
+#' @rdname plotMDS
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotMDS", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotMDS"))
+
+#' @rdname plotClusteringHeatmap
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotClusteringHeatmap", 
+    package="CATALYST",
+    def=function(x, cluster_ids, ...) standardGeneric("plotClusteringHeatmap"))
+
+#' @rdname plotProportions
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotProportions", 
+    package="CATALYST",
+    def=function(fs, md, cluster_ids, ...) standardGeneric("plotProportions"))
+
+#' @rdname plotDeltaArea
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotDeltaArea", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotDeltaArea"))
+
+#' @rdname plotNRS
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotNRS", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotNRS"))
+
+#' @rdname differentialAbundance
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="differentialAbundance", 
+    package="CATALYST",
+    def=function(fs, md, cluster_ids, K, ...) 
+        standardGeneric("differentialAbundance"))
