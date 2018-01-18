@@ -1,7 +1,6 @@
 # ==============================================================================
 # Plot spillover matrix heat map
 # ------------------------------------------------------------------------------
-
 #' @rdname plotSpillmat
 #' @title Spillover matrix heat map
 #' 
@@ -45,59 +44,61 @@
 #' @importFrom htmlwidgets saveWidget
 #' @importFrom plotly ggplotly
 #' @export
+# ------------------------------------------------------------------------------
 
-# ==============================================================================
-
-plotSpillmat <- function(bc_ms, SM, 
-    out_path=NULL, name_ext=NULL, annotate=TRUE) {
+setMethod(f="plotSpillmat",
+    signature=signature(bc_ms="numeric", SM="matrix"),
+    definition=function(bc_ms, SM, 
+        out_path=NULL, name_ext=NULL, annotate=TRUE) {
     
-    nms <- colnames(SM)
-    ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
-    bc_cols <- which(ms %in% bc_ms)
-    bc_range <- min(bc_cols) : max(bc_cols)
-    SM <- make_symetric(SM)[bc_range, bc_range]
-    n <- length(bc_range)
-    axis_labs <- nms[bc_range]
-    ex <- !axis_labs %in% nms[bc_cols]
-    lab_cols <- rep("black", n)
-    lab_cols[ex] <- "grey"
-    
-    df <- reshape2::melt(100*SM)
-    colnames(df) <- c("Emitting", "Receiving", "spill")
-    df$Spillover <- paste0(sprintf("%2.3f", df$spill), "%")
-    max <- ceiling(max(100*SM[row(SM) != col(SM)])/.25)*.25
-    overallReceived <- paste0(sprintf("%2.2f", 
-        rowSums(t(matrix(df$spill, n)))-100, "%"))
-    overallReceived[ex] <- NA
-    
-    p <- ggplot(df, aes_string(x="Receiving", y="Emitting", group="Spillover")) + 
-        geom_tile(aes_string(fill="spill"), col="lightgrey") + 
-        scale_fill_gradientn(colors=c("white", "lightcoral", "red2", "darkred"), 
-            limits=c(0, max), na.value="lightgrey", guide=FALSE) +
-        scale_x_discrete(limits=colnames(SM), expand=c(0,0)) +
-        scale_y_discrete(limits=rev(rownames(SM)), expand=c(0,0)) +
-        coord_fixed() + labs(x=NULL, y=NULL) + theme_bw() + theme(
-            panel.grid=element_blank(), panel.border=element_blank(),
-            axis.text.x=element_text(angle=45))
-    
-    if (annotate) {
-        spill_labs <- sprintf("%.1f", df$spill)
-        spill_labs[df$spill == 0 | df$spill == 100] <- ""
-        if (is.null(out_path)) size <- 3 else size <- 2
-        p <- p + geom_text(aes_string(label="spill_labs"), size=size)
+        nms <- colnames(SM)
+        ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
+        bc_cols <- which(ms %in% bc_ms)
+        bc_range <- min(bc_cols) : max(bc_cols)
+        SM <- make_symetric(SM)[bc_range, bc_range]
+        n <- length(bc_range)
+        axis_labs <- nms[bc_range]
+        ex <- !axis_labs %in% nms[bc_cols]
+        lab_cols <- rep("black", n)
+        lab_cols[ex] <- "grey"
+        
+        df <- reshape2::melt(100*SM)
+        colnames(df) <- c("Emitting", "Receiving", "spill")
+        df$Spillover <- paste0(sprintf("%2.3f", df$spill), "%")
+        max <- ceiling(max(100*SM[row(SM) != col(SM)])/.25)*.25
+        overallReceived <- paste0(sprintf("%2.2f", 
+            rowSums(t(matrix(df$spill, n)))-100, "%"))
+        overallReceived[ex] <- NA
+        
+        p <- ggplot(df, aes_string(x="Receiving", y="Emitting", group="Spillover")) + 
+            geom_tile(aes_string(fill="spill"), col="lightgrey") + 
+            scale_fill_gradientn(colors=c("white", "lightcoral", "red2", "darkred"), 
+                limits=c(0, max), na.value="lightgrey", guide=FALSE) +
+            scale_x_discrete(limits=colnames(SM), expand=c(0,0)) +
+            scale_y_discrete(limits=rev(rownames(SM)), expand=c(0,0)) +
+            coord_fixed() + labs(x=NULL, y=NULL) + theme_bw() + theme(
+                panel.grid=element_blank(), panel.border=element_blank(),
+                axis.text.x=element_text(angle=45))
+        
+        if (annotate) {
+            spill_labs <- sprintf("%.1f", df$spill)
+            spill_labs[df$spill == 0 | df$spill == 100] <- ""
+            if (is.null(out_path)) size <- 3 else size <- 2
+            p <- p + geom_text(aes_string(label="spill_labs"), size=size)
+        }
+        
+        if (!is.null(out_path)) {
+            p <- ggplotly(p, width=720, height=720,
+                tooltip=c("Emitting", "Receiving", "Spillover")) %>%
+                layout(margin=list(l=72, b=58))
+            htmltools::save_html(p, file.path(out_path, 
+                paste0("SpillMat", name_ext, ".html")))
+        } else {
+            ggplotly(p, width=720, height=720,
+                tooltip=c("Emitting", "Receiving", "Spillover")) %>%
+                layout(margin=list(l=72, b=58))
+        }
     }
-
-    if (!is.null(out_path)) {
-        p <- ggplotly(p, width=720, height=720,
-            tooltip=c("Emitting", "Receiving", "Spillover")) %>%
-            layout(margin=list(l=72, b=58))
-       htmltools::save_html(p, file.path(out_path, 
-            paste0("SpillMat", name_ext, ".html")))
-    } else {
-        ggplotly(p, width=720, height=720,
-            tooltip=c("Emitting", "Receiving", "Spillover")) %>%
-            layout(margin=list(l=72, b=58))
-    }
-}
+)
 
 

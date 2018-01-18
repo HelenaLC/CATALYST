@@ -1,7 +1,6 @@
 # ==============================================================================
 # Debarcoding frame class
 # ------------------------------------------------------------------------------
-
 #' @rdname dbFrame-class
 #' @name dbFrame-class
 #' 
@@ -63,7 +62,6 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom methods new
 #' @export
-
 # ------------------------------------------------------------------------------
 
 dbFrame <- setClass(Class="dbFrame", package="CATALYST", slots=c(
@@ -108,5 +106,59 @@ setValidity(Class="dbFrame",
             return(message(n-valid, "/", n, " 'bc_ids' are invalid.\n",
                 "'bc_ids' should be either 0 = \"unassigned\"\n",
                 "or occur as rownames in the 'bc_key'."))
+        return(TRUE)
+    })
+
+# ==============================================================================
+# Differential analysis frame class
+# ------------------------------------------------------------------------------
+#' @rdname daFrame-class
+#' @name daFrame-class
+#' 
+#' @title Differential analysis frame class
+#' @description 
+#' Represents the data returned by and used throughout differential analysis.
+#' 
+#' @details Objects of class \code{daFrame} 
+#' hold all data required for differential analysis:
+#' 
+#' @slot data a \link{\code{flowSet}} holding all samples. 
+#' @slot panel 
+#' @slot metadata
+#' @slot cluster_ids 
+#' @slot merging_ids 
+#'
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @importFrom methods new
+#' @export
+# ------------------------------------------------------------------------------
+
+dbFrame <- setClass(
+    Class="daFrame", 
+    package="CATALYST", 
+    slots=c(
+        data="flowSet",
+        panel="data.frame",
+        metadata="data.frame",
+        cluster_ids="numeric",
+        merging_ids="numeric"))
+
+# ------------------------------------------------------------------------------
+
+setValidity(Class="daFrame", 
+    method=function(object){
+        n <- nrow(exprs(object))
+        ms <- gsub("[[:alpha:][:punct:]]", "", colnames(exprs(object)))
+        # check panel & metadata column names
+        if (5 != sum(colnames(panel(object)) %in% 
+                c("Metal", "Isotope", "Antigen", "Lineage", "Functional")))
+            return(message(""))
+        if (3 != sum(colnames(metadata(object)) %in% 
+                c("file_name", "sample_id", "condition")))
+            return(message(""))
+        # check that all flowSet file names 
+        # occur in metadata file_name column
+        if (!all(keyword(fs, "FILENAME") %in% md$file_name))
+            return(message(""))
         return(TRUE)
     })
