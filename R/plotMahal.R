@@ -111,7 +111,7 @@ setMethod(f="plotMahal",
             }
         }
         m <- matrix(NA, n, n)
-        m[lower.tri(m, diag=TRUE)] <- seq_len(p)
+        m[lower.tri(m, diag=TRUE)] <- seq_len(p-1)
         ps[[p]] <- lgd
         m <- rbind(rep(p, n), m)
         
