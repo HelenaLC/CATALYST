@@ -31,19 +31,7 @@ Compares the proportions of cell types across experimental conditions
 and aims to highlight populations that are present at different ratios.
 }
 \details{
-The blocking variable is patient ID \eqn{i = 1, ..., n}.
-\eqn{j = 1, ..., n_i} indicates the sample ID.
 
-We assume that for a given cell population, cell counts \eqn{Y_{ij}}
-follow a binomial distribution \eqn{Y_{ij} ~ Bin(m_{ij}, \pi_{ij})}, 
-where \eqn{m_{ij}} is the total number of cells in the sample of
-patient i and condition j.
-
-The generalized linear mixed model with observation-level random effect
-\eqn{\epsilon_{ij}} is defined as follows:
-
-\deqn{E(Y_{ij} | \beta_0, \beta_1, \epsilon_{ij}) = 
-logit^{-1}(\beta_0 + \beta_1 x_{ij} + \epsilon_{ij})}
 }
 \examples{
 

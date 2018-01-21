@@ -119,46 +119,133 @@ setValidity(Class="dbFrame",
 #' @description 
 #' Represents the data returned by and used throughout differential analysis.
 #' 
+#' @slot assays 
+#' list of length one containing cofactor 5 arcsinh-transformed expressions 
+#' of lineage and functional markers as specified in the metadata-table.
+#' @slot rowData 
+#' data.frame containing cluster codes (column \code{cluster_codes}) and IDs 
+#' (column \code{cluster_ids}) for the initial \code{\link{FlowSOM}}-clustering 
+#' (k=100), and \code{\link{ConsensusClusterPlus}} metaclustering (k=20-2).
+#' @slot colData 
+#' binary table indicating, for each antigen, 
+#' whether it is a lineage or functional marker.
+#' @slot metadata 
+#' contains the original metadata- and panel-table, the number of events 
+#' measured per sample (\code{n_events}), a 100 x p matrix of SOM codes, 
+#' where n = no. of lineage + no. of functional markers
+#' 
 #' @details Objects of class \code{daFrame} 
 #' hold all data required for differential analysis:
-#' 
-#' @slot data a \link{\code{flowSet}} holding all samples. 
-#' @slot panel 
-#' @slot metadata
-#' @slot cluster_ids 
-#' @slot merging_ids 
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @import ConsensusClusterPlus SummarizedExperiment Rtsne
+#' @importFrom flowCore colnames exprs fsApply parameters pData
+#' @importFrom FlowSOM BuildSOM ReadInput
 #' @importFrom methods new
 #' @export
 # ------------------------------------------------------------------------------
-
-dbFrame <- setClass(
+# class definition
+setClass(
     Class="daFrame", 
-    package="CATALYST", 
-    slots=c(
-        data="flowSet",
-        panel="data.frame",
-        metadata="data.frame",
-        cluster_ids="numeric",
-        merging_ids="numeric"))
+    contains="SummarizedExperiment")
 
 # ------------------------------------------------------------------------------
-
-setValidity(Class="daFrame", 
-    method=function(object){
-        n <- nrow(exprs(object))
-        ms <- gsub("[[:alpha:][:punct:]]", "", colnames(exprs(object)))
-        # check panel & metadata column names
-        if (5 != sum(colnames(panel(object)) %in% 
-                c("Metal", "Isotope", "Antigen", "Lineage", "Functional")))
-            return(message(""))
-        if (3 != sum(colnames(metadata(object)) %in% 
-                c("file_name", "sample_id", "condition")))
-            return(message(""))
-        # check that all flowSet file names 
-        # occur in metadata file_name column
-        if (!all(keyword(fs, "FILENAME") %in% md$file_name))
-            return(message(""))
-        return(TRUE)
+# constructor
+#' @rdname daFrame-class
+#' 
+#' @param fs a \code{\link{flowSet}} holding all samples.
+#' @param panel a data.frame with the following columns:
+#' \itemize{
+#' \item \code{file_name}: the .fcs file name
+#' \item \code{sample_id}: a unique sample identifier
+#' \item \code{condition}: brief sample description (e.g. REF)
+#' \item \code{patient_id}: the patient ID}
+#' 
+#' @param md a data.frame with the following columns:
+#' \itemize{
+#' \item \code{Metal} and \code{Isotope}: 
+#' symbol and atomic mass of the element conjugated to the antibody
+#' \item \code{Antigen}: the targeted protein marker
+#' \item \code{Lineage} and \code{Functional}: 0 or 1 to indicate 
+#' whether an antibody is a lineage or funcitonal marker}
+#' 
+#' @export
+daFrame <- function(fs, panel, md) {
+    # replace problematic characters
+    pd <- pData(parameters(fs[[1]]))
+    pd$desc <- gsub("-", "_", pd$desc)
+    panel$Antigen <- gsub("-", "_", panel$Antigen)
+    
+    # arcsinh-transformation & column subsetting
+    l <- panel$Antigen[as.logical(panel$Lineage)]
+    f <- panel$Antigen[as.logical(panel$Functional)]
+    fs <- fsApply(fs, function(ff) {
+        flowCore::colnames(ff) <- pd$desc
+        exprs(ff) <- asinh(flowCore::exprs(ff[, c(l,f)])/5)
+        return(ff)
     })
+    es <- fsApply(fs, exprs)
+    n_events <- fsApply(fs, nrow)
+    n_events <- setNames(as.numeric(n_events), md$sample_id)
+ 
+    # flowSOM clustering
+    fsom <- ReadInput(fs, transform=FALSE, scale=FALSE)
+    som <- BuildSOM(fsom, colsToUse=l, silent=TRUE)
+    codes <- som$map$codes
+    ids <- som$map$mapping[, 1]
+    
+    # metaclustering
+    mc <- suppressMessages(ConsensusClusterPlus(t(codes), 
+        maxK=20, reps=100, distance="euclidean", plot="png"))
+    
+    # get cluster codes and ids for k = 100, 2-20
+    cluster_codes <- matrix(0, 100, 20)
+    cluster_ids <- matrix(0, sum(n_events), 20)
+    for (k in seq_len(20)[-1]) {
+        cluster_codes[, k-1] <- mc[[k]]$consensusClass
+        cluster_ids[, k-1] <-  cluster_codes[, k-1][ids] }
+    cluster_codes <- data.frame(seq_len(100), cluster_codes)
+    cluster_ids <- data.frame(ids, cluster_ids)
+    col_nms <- paste0("k", c(100, 2:20))
+    colnames(cluster_codes) <- colnames(cluster_ids) <- col_nms
+    
+    # construct SummarizedExperiment
+    inds <- panel$Lineage | panel$Functional
+    row_data <- DataFrame(
+        condition=rep(md$condition, n_events),
+        sample_id=rep(md$sample_id, n_events))
+    col_data <- DataFrame(
+        lineage=panel$Lineage[inds],
+        functional=panel$Functional[inds],
+        row.names=colnames(es))
+    metadata <- list(md, 
+        panel=panel, 
+        n_events=n_events,
+        SOM_codes=codes,
+        cluster_codes=cluster_codes, 
+        cluster_ids=cluster_ids)
+    new("daFrame", 
+        SummarizedExperiment(
+            assays=es,
+            rowData=row_data,
+            colData=col_data,
+            metadata=metadata))
+}
+
+# validity
+# ------------------------------------------------------------------------------
+# setValidity(Class="daFrame", 
+#     method=function(object){
+#         # check panel & metadata column names
+#         if (5 != sum(colnames(panel(object)) %in% 
+#                 c("Metal", "Isotope", "Antigen", "Lineage", "Functional")))
+#             return(message(""))
+#         if (3 != sum(colnames(metadata(object)) %in% 
+#                 c("file_name", "sample_id", "condition")))
+#             return(message(""))
+#         # check that all flowSet file names 
+#         # occur in metadata file_name column
+#         if (!all(keyword(fs, "FILENAME") %in% md$file_name))
+#             return(message(""))
+#         return(TRUE)
+#     })

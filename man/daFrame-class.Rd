@@ -3,8 +3,29 @@
 \docType{class}
 \name{daFrame-class}
 \alias{daFrame-class}
-\alias{dbFrame}
+\alias{daFrame}
 \title{Differential analysis frame class}
+\usage{
+daFrame(fs, panel, md)
+}
+\arguments{
+\item{fs}{a \code{\link{flowSet}} holding all samples.}
+
+\item{panel}{a data.frame with the following columns:
+\itemize{
+\item \code{file_name}: the .fcs file name
+\item \code{sample_id}: a unique sample identifier
+\item \code{condition}: brief sample description (e.g. REF)
+\item \code{patient_id}: the patient ID}}
+
+\item{md}{a data.frame with the following columns:
+\itemize{
+\item \code{Metal} and \code{Isotope}: 
+symbol and atomic mass of the element conjugated to the antibody
+\item \code{Antigen}: the targeted protein marker
+\item \code{Lineage} and \code{Functional}: 0 or 1 to indicate 
+whether an antibody is a lineage or funcitonal marker}}
+}
 \description{
 Represents the data returned by and used throughout differential analysis.
 }
@@ -15,13 +36,19 @@ hold all data required for differential analysis:
 \section{Slots}{
 
 \describe{
-\item{\code{data}}{a \link{\code{flowSet}} holding all samples.}
+\item{\code{assays}}{list of length one containing cofactor 5 arcsinh-transformed expressions 
+of lineage and functional markers as specified in the metadata-table.}
 
-\item{\code{panel}}{}
+\item{\code{rowData}}{data.frame containing cluster codes (column \code{cluster_codes}) and IDs 
+(column \code{cluster_ids}) for the initial \code{\link{FlowSOM}}-clustering 
+(k=100), and \code{\link{ConsensusClusterPlus}} metaclustering (k=20-2).}
 
-\item{\code{cluster_ids}}{}
+\item{\code{colData}}{binary table indicating, for each antigen, 
+whether it is a lineage or functional marker.}
 
-\item{\code{merging_ids}}{}
+\item{\code{metadata}}{contains the original metadata- and panel-table, the number of events 
+measured per sample (\code{n_events}), a 100 x p matrix of SOM codes, 
+where n = no. of lineage + no. of functional markers}
 }}
 
 \author{

@@ -11,8 +11,8 @@
 #' @param x a \code{\link{daFrame}}.
 #' 
 #' @return 
-#' Plots a multi-dimensional scaling (MDS) plot 
-#' on median marker expression values.
+#' Plots a multi-dimensional scaling (MDS) 
+#' plot on median marker expression values.
 #'
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al.
@@ -23,38 +23,28 @@
 #' @examples
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import ggplot2
-#' @importFrom flowCore flowSet fsApply
+#' @import ggplot2 ggrepel
+#' @importFrom dplyr group_by summarize_all
+#' @importFrom ggrepel geom_label_repel
 #' @importFrom limma plotMDS
 # ==============================================================================
 
 setMethod(f="plotMDS", 
     signature=signature(x="daFrame"), 
     definition=function(x) {
-        # get parameters descriptions, replace dash by underscore
-        d <- parameters(data(x)[[1]])$desc
-        d <- gsub("-", "_", d)
-        # get expressions, use antigens as column names
-        es <- fsApply(data(x), exprs)
-        colnames(es) <- d
-        # extract lineage & functional markers
-        inds <- panel(x)$Antigen[panel(x)$Lineage | panel(x)$Functional]
-        # arcsinh transformation & column subsetting
-        es <- asinh(es[, inds]/5)
-        # compute median expressions
-        n_events <- fsApply(data(x), nrow)
-        df <- data.frame(sample_id=rep(metadata(x)$sample_id, n_events), es)
-        tibble <- df %>% group_by(sample_id) %>% summarize_all(funs(median))
+        tibble <- data.frame(sample_id=sample_ids(x), exprs(x)) %>% 
+            group_by(sample_id) %>% summarize_all(funs(median))
         med_es <- t(tibble[, -1])
         colnames(med_es) <- tibble$sample_id
-        mds <- limma::plotMDS(med_es, plot=FALSE)
+        mds <- plotMDS(med_es, plot=FALSE)
+        md <- metadata(x)[[1]]
         df <- data.frame(MDS1=mds$x, MDS2=mds$y, 
-            sample_id=metadata(x)$sample_id, 
-            condition=metadata(x)$condition)
-
+            sample_id=md$sample_id, 
+            condition=md$condition)
         r <- diff(range(df$MDS2)) / diff(range(df$MDS1))
         ggplot(df, aes_string(x="MDS1", y="MDS2", col="condition")) + 
             geom_point(size=10, alpha=.75) + 
+            guides(col=guide_legend(overide.aes=list(alpha=1))) +
             geom_label_repel(aes_string(label="sample_id"), show.legend=FALSE) + 
             theme_void() + theme(aspect.ratio=r,
                 panel.grid.minor=element_blank(),

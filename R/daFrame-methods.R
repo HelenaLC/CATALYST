@@ -5,21 +5,14 @@
 #' @title 
 #' Extraction and replacement methods for objects of class \code{daFrame}
 #' @aliases 
-#' daFrame-methods data panel metadata cluster_ids 
-#' merging_ids cluster_ids<- merging_ids<-
+#' daFrame-methods exprs lineage functional conditions 
+#' sample_ids cluster_ids merging_codes merging_ids
 #' 
 #' @description
 #' Methods for replacing and accessing slots in a \code{\link{daFrame}}.
 #' @return
-#' \describe{
-#' \item{\code{data}}{extracts the raw data.}
-#' \item{\code{panel}}{extracts the panel.}
-#' \item{\code{metadata}}{extracts the metadata.}
-#' \item{\code{cluster_ids}}{extracts current cluster assignments.}
-#' \item{\code{merging_ids}}{extracts second layer of cluster assignments.}
-#' }
+#' 
 #' @param x,object a \code{\link{daFrame}}.
-#' @param value the replacement value.
 #' 
 #' @examples 
 #' 
@@ -29,26 +22,41 @@
 # Access slots in a daFrame
 # ------------------------------------------------------------------------------
 #' @rdname daFrame-methods
-setMethod(f="data",
+#' @importFrom Biobase exprs
+#' @export
+setMethod(f="exprs",
     signature="daFrame",
-    definition=function(x) return(x@data))
+    definition=function(object) return(unlist(assays(object))))
 
 #' @rdname daFrame-methods
-setMethod(f="panel",      
+setMethod(f="lineage",      
     signature="daFrame", 
-    definition=function(x) return(x@panel))
+    definition=function(x) return(colnames(x)[as.logical(x$lineage)]))
 
 #' @rdname daFrame-methods
-setMethod(f="metadata",      
+setMethod(f="functional",      
     signature="daFrame", 
-    definition=function(x) return(x@metadata)) 
+    definition=function(x) return(colnames(x)[as.logical(x$functional)])) 
 
 #' @rdname daFrame-methods
-setMethod(f="cluster_ids",      
+#' @importFrom BiocGenerics conditions
+#' @export
+setMethod(f="conditions",      
     signature="daFrame", 
-    definition=function(x) return(x@cluster_ids))
+    definition=function(object) return(rowData(object)$condition))
 
 #' @rdname daFrame-methods
-setMethod(f="merging_ids",  
+setMethod(f="sample_ids",  
     signature="daFrame", 
-    definition=function(x) return(x@merging_ids))
+    definition=function(x) return(rowData(x)$sample_id))
+
+
+#' @rdname daFrame-methods
+setMethod(f="cluster_codes",  
+    signature="daFrame", 
+    definition=function(x) return(metadata(x)$cluster_codes))
+
+#' @rdname daFrame-methods
+setMethod(f="cluster_ids",  
+    signature="daFrame", 
+    definition=function(x) return(metadata(x)$cluster_ids))

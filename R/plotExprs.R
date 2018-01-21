@@ -22,27 +22,20 @@
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2
-#' @importFrom flowCore exprs fsApply parameters
+#' @importFrom reshape2 melt
 # ==============================================================================
 
 setMethod(f="plotExprs", 
     signature=signature(x="daFrame"), 
     definition=function(x) {
-        # arcsinh-transformation & column subsetting
-        d <- parameters(data(x)[[1]])$desc
-        inds <- d %in% panel(x)$Antigen[panel(x)$Lineage | panel(x)$Functional]
-        es <- fsApply(fs, function(ff) asinh(exprs(ff)[, inds]/5))
-        # set antigens only as column names
-        colnames(es) <- d[inds]
-        n_events <- fsApply(data(x), nrow)
-        df <- data.frame(es,
-            sample_id=rep(md$sample_id, n_events),
-            condition=rep(md$condition, n_events))
-        df <- melt(df, id.var=c("sample_id", "condition"), 
+        df <- data.frame(exprs(x), 
+            sample_id=sample_ids(x), 
+            condition=conditions(x))
+        df <- melt(df, id.var=c("sample_id", "condition"),
             variable.name="antigen", value.name="expression")
         ggplot(df, aes_string(x="expression", 
-            col="condition", group="sample_id")) + 
-            facet_wrap(~antigen, ncol=5, scales="free") + 
+            col="condition", group="sample_id"), fill=NULL) + 
+            facet_wrap(~antigen, ncol=5, scales="free") +
             geom_density() + theme_classic() + theme(
                 panel.grid=element_blank(), 
                 strip.background=element_blank(),
