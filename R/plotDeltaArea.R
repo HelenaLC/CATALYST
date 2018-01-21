@@ -15,7 +15,7 @@
 #' The delta area represents the amount of extra cluster stability gained when 
 #' clustering into k groups as compared to k-1 groups. It can be expected that 
 #' high stability of clusters can be reached when clustering into the number of 
-#' groups that best fits the data. The ???natural??? number of clusters present in 
+#' groups that best fits the data. The "natural" number of clusters present in 
 #' the data should thus corresponds to the value of k where there is no longer 
 #' a considerable increase in stability (pleateau onset).
 #'

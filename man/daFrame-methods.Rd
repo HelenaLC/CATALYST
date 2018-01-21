@@ -3,58 +3,57 @@
 \docType{methods}
 \name{daFrame-methods}
 \alias{daFrame-methods}
-\alias{panel}
-\alias{metadata}
+\alias{functional}
+\alias{sample_ids}
+\alias{cluster_codes}
 \alias{cluster_ids}
-\alias{merging_ids}
-\alias{data,daFrame-method}
+\alias{exprs,daFrame-method}
 \alias{daFrame-methods}
-\alias{data}
-\alias{panel}
-\alias{metadata}
+\alias{exprs}
+\alias{lineage}
+\alias{functional}
+\alias{conditions}
+\alias{sample_ids}
 \alias{cluster_ids}
+\alias{merging_codes}
 \alias{merging_ids}
-\alias{cluster_ids<-}
-\alias{merging_ids<-}
-\alias{panel,daFrame-method}
-\alias{metadata,daFrame-method}
+\alias{lineage,daFrame-method}
+\alias{functional,daFrame-method}
+\alias{conditions,daFrame-method}
+\alias{sample_ids,daFrame-method}
+\alias{cluster_codes,daFrame-method}
 \alias{cluster_ids,daFrame-method}
-\alias{merging_ids,daFrame-method}
 \title{Extraction and replacement methods for objects of class \code{daFrame}}
 \usage{
-data(x)
+lineage(x)
 
-panel(x)
+functional(x)
 
-metadata(x)
+sample_ids(x)
+
+cluster_codes(x)
 
 cluster_ids(x)
 
-merging_ids(x)
+\S4method{exprs}{daFrame}(object)
 
-\S4method{data}{daFrame}(x)
+\S4method{lineage}{daFrame}(x)
 
-\S4method{panel}{daFrame}(x)
+\S4method{functional}{daFrame}(x)
 
-\S4method{metadata}{daFrame}(x)
+\S4method{conditions}{daFrame}(object)
+
+\S4method{sample_ids}{daFrame}(x)
+
+\S4method{cluster_codes}{daFrame}(x)
 
 \S4method{cluster_ids}{daFrame}(x)
-
-\S4method{merging_ids}{daFrame}(x)
 }
 \arguments{
 \item{x, object}{a \code{\link{daFrame}}.}
-
-\item{value}{the replacement value.}
 }
 \value{
-\describe{
-\item{\code{data}}{extracts the raw data.}
-\item{\code{panel}}{extracts the panel.}
-\item{\code{metadata}}{extracts the metadata.}
-\item{\code{cluster_ids}}{extracts current cluster assignments.}
-\item{\code{merging_ids}}{extracts second layer of cluster assignments.}
-}
+
 }
 \description{
 Methods for replacing and accessing slots in a \code{\link{daFrame}}.
