@@ -1,7 +1,6 @@
 # ==============================================================================
 # Accessor and replacement methods for class dbFrame
 # ------------------------------------------------------------------------------
-
 #' @rdname dbFrame-methods
 #' @title 
 #' Extraction and replacement methods for objects of class \code{dbFrame}
@@ -55,9 +54,7 @@
 # ==============================================================================
 # Access slots in a dbFrame
 # ------------------------------------------------------------------------------
-#' 
 #' @rdname dbFrame-methods
-#' @importFrom flowCore exprs
 #' @export
 setMethod(f="exprs",
     signature="dbFrame",
@@ -99,10 +96,11 @@ setMethod(f="mhl_cutoff",
     definition=function(x) return(x@mhl_cutoff))
 
 #' @rdname dbFrame-methods
+#' @importFrom BiocGenerics counts
 #' @export
 setMethod(f="counts",
     signature="dbFrame",
-    definition=function(x) return(x@counts))
+    definition=function(object) return(object@counts))
 
 #' @rdname dbFrame-methods
 setMethod(f="yields",   

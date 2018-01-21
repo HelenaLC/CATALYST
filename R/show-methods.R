@@ -53,15 +53,3 @@ setMethod(f="show",
 # ==============================================================================
 # Show method for class daFrame
 # ------------------------------------------------------------------------------
-setMethod(f="show",
-    signature="daFrame",
-    definition=function(object) {
-        
-        fs <- data(object)
-        n_samples <- length(fs)
-        n_events <- fsApply(fs, nrow)
-        n_pars <- length(colnames(fs))
-        cat("Object of class 'daFrame' with", n_samples, "samples,", 
-            sum(n_events), "cells and", n_pars, "oberservables\n")
-    }
-)

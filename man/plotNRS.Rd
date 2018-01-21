@@ -3,23 +3,20 @@
 \docType{methods}
 \name{plotNRS}
 \alias{plotNRS}
-\alias{plotNRS,flowSet,data.frame,data.frame-method}
+\alias{plotNRS,daFrame-method}
 \title{Non-redundancy scores across markers}
 \usage{
-plotNRS(fs, panel, md, ...)
+plotNRS(x, ...)
 
-\S4method{plotNRS}{flowSet,data.frame,data.frame}(fs, panel, md,
-  cols = c("steelblue", "indianred"))
+\S4method{plotNRS}{daFrame}(x)
 }
 \arguments{
-\item{fs}{}
-
-\item{md}{}
+\item{x}{a \code{\link{daFrame}}}
 
 \item{...}{optional arguments.}
 }
 \value{
-
+Plots non-redundancy scores (NRS) across lineage markers.
 }
 \description{
 

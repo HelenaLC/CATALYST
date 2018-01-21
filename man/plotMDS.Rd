@@ -3,29 +3,21 @@
 \docType{methods}
 \name{plotMDS}
 \alias{plotMDS}
-\alias{plotMDS,flowSet,data.frame,data.frame-method}
+\alias{plotMDS,daFrame-method}
 \title{MDS plot}
 \usage{
-plotMDS(fs, panel, md, ...)
+plotMDS(x, ...)
 
-\S4method{plotMDS}{flowSet,data.frame,data.frame}(fs, panel, md,
-  cols = c("steelblue", "indianred"))
+\S4method{plotMDS}{daFrame}(x)
 }
 \arguments{
-\item{fs}{a \code{\link{flowSet}} holding all samples.}
-
-\item{md}{a \code{data.frame} containing the following columns:
-\itemize{
-\item \code{file_name}: names of the fcs files contained in the input flowSet
-\item \code{sample_id}: a unique identifier for each sample
-\item \code{condition}: sample description (e.g. healthy or diseased)
-}}
+\item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 }
 \value{
-Plots a multi-dimensional scaling (MDS) plot 
-on median marker expression values.
+Plots a multi-dimensional scaling (MDS) 
+plot on median marker expression values.
 }
 \description{
 Multi-dimensional scaling (MDS) plot on median marker expressions.

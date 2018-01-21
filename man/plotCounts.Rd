@@ -3,23 +3,15 @@
 \docType{methods}
 \name{plotCounts}
 \alias{plotCounts}
-\alias{plotCounts,flowSet,data.frame-method}
-\title{Numver of events per sample}
+\alias{plotCounts,daFrame-method}
+\title{Number of events per sample}
 \usage{
-plotCounts(fs, md, ...)
+plotCounts(x, ...)
 
-\S4method{plotCounts}{flowSet,data.frame}(fs, md, cols = c("steelblue",
-  "indianred"))
+\S4method{plotCounts}{daFrame}(x)
 }
 \arguments{
-\item{fs}{a \code{\link{flowSet}} holding all samples.}
-
-\item{md}{a \code{data.frame} containing the following columns:
-\itemize{
-\item \code{file_name}: names of the fcs files contained in the input flowSet
-\item \code{sample_id}: a unique identifier for each sample
-\item \code{condition}: sample description (e.g. healthy or diseased)
-}}
+\item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 }
@@ -30,8 +22,6 @@ Plots the number of events measured per sample.
 Barplot of the number of cells measured for each sample.
 }
 \examples{
-data(sample_ff, sample_key)
-assignPrelim(x = sample_ff, y = sample_key)
 
 }
 \references{

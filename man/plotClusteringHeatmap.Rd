@@ -3,20 +3,25 @@
 \docType{methods}
 \name{plotClusteringHeatmap}
 \alias{plotClusteringHeatmap}
-\alias{plotClusteringHeatmap,matrix,vector-method}
+\alias{plotClusteringHeatmap,daFrame-method}
 \title{Median marker expressions across clusters}
 \usage{
-plotClusteringHeatmap(x, cluster_ids, ...)
+plotClusteringHeatmap(x, ...)
 
-\S4method{plotClusteringHeatmap}{matrix,vector}(x, cluster_ids,
-  merging_ids = NULL, anno = FALSE)
+\S4method{plotClusteringHeatmap}{daFrame}(x, clustering = 100, merging = 20,
+  anno = FALSE)
 }
 \arguments{
+\item{x}{expression matrix.}
+
 \item{...}{optional arguments.}
 
-\item{anno}{logical indicating whether to display values inside each bin}
+\item{clustering}{numeric specifying the number of clusters across which
+median marker expression should be computed.}
 
-\item{fs}{}
+\item{merging}{numeric specifying a second layer of clustering to be shown.}
+
+\item{anno}{logical indicating whether to display values inside each bin}
 }
 \value{
 
