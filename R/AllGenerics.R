@@ -261,12 +261,12 @@ setGeneric(name="plotMDS",
     package="CATALYST",
     def=function(x, ...) standardGeneric("plotMDS"))
 
-#' @rdname plotClusteringHeatmap
+#' @rdname plotHeatmap
 #' @param ... optional arguments.
 #' @export
-setGeneric(name="plotClusteringHeatmap", 
+setGeneric(name="plotHeatmap", 
     package="CATALYST",
-    def=function(x, ...) standardGeneric("plotClusteringHeatmap"))
+    def=function(x, ...) standardGeneric("plotHeatmap"))
 
 #' @rdname plotCodes
 #' @param ... optional arguments.
