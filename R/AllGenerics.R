@@ -65,12 +65,6 @@ setGeneric(name="mhl_cutoff",
 
 #' @rdname dbFrame-methods
 #' @export
-setGeneric(name="counts",
-    package="CATALYST",
-    def=function(x) standardGeneric("counts"))
-
-#' @rdname dbFrame-methods
-#' @export
 setGeneric(name="yields",      
     package="CATALYST", 
     def=function(x) standardGeneric("yields"))
@@ -214,33 +208,33 @@ setGeneric(name="compCytof",
 #' @rdname daFrame-methods
 #' @name daFrame-methods
 #' @export
-setGeneric(name="data", 
+setGeneric(name="lineage", 
     package="CATALYST", 
-    def=function(x) standardGeneric("data"))
+    def=function(x) standardGeneric("lineage"))
 
 #' @rdname daFrame-methods
 #' @export
-setGeneric(name="panel",      
+setGeneric(name="functional",      
     package="CATALYST", 
-    def=function(x) standardGeneric("panel"))
+    def=function(x) standardGeneric("functional"))
 
 #' @rdname daFrame-methods
 #' @export
-setGeneric(name="metadata",  
+setGeneric(name="sample_ids",  
     package="CATALYST", 
-    def=function(x) standardGeneric("metadata"))
+    def=function(x) standardGeneric("sample_ids"))
+
+#' @rdname daFrame-methods
+#' @export
+setGeneric(name="cluster_codes",  
+    package="CATALYST", 
+    def=function(x) standardGeneric("cluster_codes"))
 
 #' @rdname daFrame-methods
 #' @export
 setGeneric(name="cluster_ids",  
     package="CATALYST", 
     def=function(x) standardGeneric("cluster_ids"))
-
-#' @rdname daFrame-methods
-#' @export
-setGeneric(name="merging_ids",  
-    package="CATALYST", 
-    def=function(x) standardGeneric("merging_ids"))
 
 # ==============================================================================
 # Generics for differential analysis
@@ -272,7 +266,14 @@ setGeneric(name="plotMDS",
 #' @export
 setGeneric(name="plotClusteringHeatmap", 
     package="CATALYST",
-    def=function(x, cluster_ids, ...) standardGeneric("plotClusteringHeatmap"))
+    def=function(x, ...) standardGeneric("plotClusteringHeatmap"))
+
+#' @rdname plotCodes
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotCodes", 
+    package="CATALYST",
+    def=function(x, k, ...) standardGeneric("plotCodes"))
 
 #' @rdname plotProportions
 #' @param ... optional arguments.
@@ -294,6 +295,20 @@ setGeneric(name="plotDeltaArea",
 setGeneric(name="plotNRS", 
     package="CATALYST",
     def=function(x, ...) standardGeneric("plotNRS"))
+
+#' @rdname tSNE
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="tSNE", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("tSNE"))
+
+#' @rdname plotSNE
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotSNE", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotSNE"))
 
 #' @rdname differentialAbundance
 #' @param ... optional arguments.

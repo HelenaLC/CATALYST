@@ -3,23 +3,15 @@
 \docType{methods}
 \name{plotExprs}
 \alias{plotExprs}
-\alias{plotExprs,flowSet,data.frame-method}
+\alias{plotExprs,daFrame-method}
 \title{Smoothed densities of marker expression}
 \usage{
-plotExprs(fs, md, ...)
+plotExprs(x, ...)
 
-\S4method{plotExprs}{flowSet,data.frame}(fs, panel, md, cols = c("steelblue",
-  "indianred"))
+\S4method{plotExprs}{daFrame}(x)
 }
 \arguments{
-\item{fs}{a \code{\link{flowSet}} holding all samples.}
-
-\item{md}{a \code{data.frame} containing the following columns:
-\itemize{
-\item \code{file_name}: names of the fcs files contained in the input flowSet
-\item \code{sample_id}: a unique identifier for each sample
-\item \code{condition}: sample description (e.g. healthy or diseased)
-}}
+\item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 }
@@ -30,8 +22,6 @@ Plots sample-wise smoothed densities of marker expressions.
 Sample-wise smoothed densities of marker expressions.
 }
 \examples{
-data(sample_ff, sample_key)
-assignPrelim(x = sample_ff, y = sample_key)
 
 }
 \references{
