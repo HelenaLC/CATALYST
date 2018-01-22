@@ -21,8 +21,8 @@
 \alias{functional,daFrame-method}
 \alias{conditions,daFrame-method}
 \alias{sample_ids,daFrame-method}
-\alias{cluster_codes,daFrame-method}
 \alias{cluster_ids,daFrame-method}
+\alias{cluster_codes,daFrame-method}
 \title{Extraction and replacement methods for objects of class \code{daFrame}}
 \usage{
 lineage(x)
@@ -45,9 +45,9 @@ cluster_ids(x)
 
 \S4method{sample_ids}{daFrame}(x)
 
-\S4method{cluster_codes}{daFrame}(x)
-
 \S4method{cluster_ids}{daFrame}(x)
+
+\S4method{cluster_codes}{daFrame}(x)
 }
 \arguments{
 \item{x, object}{a \code{\link{daFrame}}.}
