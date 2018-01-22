@@ -13,6 +13,8 @@
 #' 
 #' @return Writes the tSNE coordinates and the indicies of the events used 
 #' for their computation into the metadata slot of the input \code{daFrame}.
+#' 
+#' @seealso \code{\link{plotSNE}}
 #'
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al.
