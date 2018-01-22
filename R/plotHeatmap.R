@@ -11,6 +11,7 @@
 #' median marker expression should be computed. If NULL, 
 #' medians will be computed across samples. Defaults to NULL.
 #' @param merging numeric specifying a second layer of clustering to be shown.
+#' If \code{clustering=NULL} this argument will be ignored.
 #' @param anno logical indicating whether to display values inside each bin
 #' 
 #' @return
@@ -39,7 +40,7 @@
 
 setMethod(f="plotHeatmap", 
     signature=signature(x="daFrame"), 
-    definition=function(x, clustering=NULL, merging=20, anno=FALSE) {
+    definition=function(x, clustering=NULL, merging=20, anno=TRUE) {
         
         # scale expressions for visualization
         es <- exprs(x)
