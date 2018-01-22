@@ -5,7 +5,7 @@ author:
 - name: Helena L Crowell
   email: crowellh@student.ethz.ch
 - name: Vito RT Zanotelli
-- name: St??phane Chevrier
+- name: Stéphane Chevrier
 - name: Bernd Bodenmiller
 - name: Mark D Robinson
 
