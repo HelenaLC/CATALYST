@@ -35,13 +35,13 @@ setMethod(f="plotCounts",
             condition=md$condition)
         ggplot(df, aes_string(x="sample_id", y="n_events", fill="condition")) +
             geom_bar(stat="identity", width=.75) +  
-            geom_label(aes_string(label="n_events"),
-                fill="lightgrey", label.size=.5, alpha=.75) +
+            geom_label(aes_string(label="n_events"), 
+                fontface="bold.italic", nudge_y=500, fill=NA, label.size=0) +
             scale_y_continuous(limits=c(0,max), expand=c(0,0)) +
             theme_minimal() + theme(
                 panel.grid.minor=element_blank(), 
                 panel.grid.major.x=element_blank(),
-                panel.grid.major.y=element_line(color="grey", size=.25), 
+                panel.grid.major.y=element_line(color="grey", size=.3), 
                 axis.text=element_text(color="black"),
                 axis.text.x=element_text(angle=90, hjust=1, vjust=1))
     }
