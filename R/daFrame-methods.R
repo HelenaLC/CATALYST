@@ -50,13 +50,12 @@ setMethod(f="sample_ids",
     signature="daFrame", 
     definition=function(x) return(rowData(x)$sample_id))
 
+#' @rdname daFrame-methods
+setMethod(f="cluster_ids",  
+    signature="daFrame", 
+    definition=function(x) return(rowData(x)$cluster_id))
 
 #' @rdname daFrame-methods
 setMethod(f="cluster_codes",  
     signature="daFrame", 
     definition=function(x) return(metadata(x)$cluster_codes))
-
-#' @rdname daFrame-methods
-setMethod(f="cluster_ids",  
-    signature="daFrame", 
-    definition=function(x) return(metadata(x)$cluster_ids))
