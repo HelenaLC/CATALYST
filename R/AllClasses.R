@@ -189,41 +189,40 @@ daFrame <- function(fs, panel, md) {
     n_events <- setNames(as.numeric(n_events), md$sample_id)
  
     # flowSOM clustering
+    message("o running FlowSOM clustering...")
     fsom <- ReadInput(fs, transform=FALSE, scale=FALSE)
     som <- BuildSOM(fsom, colsToUse=l, silent=TRUE)
     codes <- som$map$codes
-    ids <- som$map$mapping[, 1]
+    cluster_ids <- som$map$mapping[, 1]
     
     # metaclustering
+    message("o running ConsensusClusterPlus metaclustering...")
     mc <- suppressMessages(ConsensusClusterPlus(t(codes), 
         maxK=20, reps=100, distance="euclidean", plot="png"))
     
-    # get cluster codes and ids for k = 100, 2-20
-    cluster_codes <- matrix(0, 100, 20)
-    cluster_ids <- matrix(0, sum(n_events), 20)
-    for (k in seq_len(20)[-1]) {
-        cluster_codes[, k-1] <- mc[[k]]$consensusClass
-        cluster_ids[, k-1] <-  cluster_codes[, k-1][ids] }
-    cluster_codes <- data.frame(seq_len(100), cluster_codes)
-    cluster_ids <- data.frame(ids, cluster_ids)
-    col_nms <- paste0("k", c(100, 2:20))
-    colnames(cluster_codes) <- colnames(cluster_ids) <- col_nms
+    # get cluster codes for k = 100, 2-20
+    cluster_codes <- data.frame(matrix(0, 100, 20, 
+        dimnames=list(NULL, c(100, 2:20))), check.names=FALSE)
+    for (k in seq_len(20)[-1])
+        cluster_codes[, k] <- mc[[k]]$consensusClass
+    cluster_codes$`100` <- seq_len(100)
     
     # construct SummarizedExperiment
     inds <- panel$Lineage | panel$Functional
     row_data <- DataFrame(
         condition=rep(md$condition, n_events),
-        sample_id=rep(md$sample_id, n_events))
+        sample_id=rep(md$sample_id, n_events),
+        cluster_id=cluster_ids)
     col_data <- DataFrame(
         lineage=panel$Lineage[inds],
         functional=panel$Functional[inds],
         row.names=colnames(es))
-    metadata <- list(md, 
+    metadata <- list(
+        md, 
         panel=panel, 
         n_events=n_events,
         SOM_codes=codes,
-        cluster_codes=cluster_codes, 
-        cluster_ids=cluster_ids)
+        cluster_codes=cluster_codes)
     new("daFrame", 
         SummarizedExperiment(
             assays=es,

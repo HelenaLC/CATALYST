@@ -4,31 +4,29 @@
 \name{plotHeatmap}
 \alias{plotHeatmap}
 \alias{plotHeatmap,daFrame-method}
-\title{Median marker expressions across clusters}
+\title{Median marker expressions}
 \usage{
 plotHeatmap(x, ...)
 
-\S4method{plotHeatmap}{daFrame}(x, clustering = NULL, merging = 20,
-  anno = TRUE)
+\S4method{plotHeatmap}{daFrame}(x, clustering = NULL, out_path = NULL)
 }
 \arguments{
 \item{x}{expression matrix.}
 
 \item{...}{optional arguments.}
 
-\item{clustering}{numeric specifying the number of clusters across which 
-median marker expression should be computed. If NULL, 
-medians will be computed across samples. Defaults to NULL.}
+\item{clustering}{a numeric vector of length 2. 
+Specifies the number of clusters across which median marker expressions 
+should be computed and the second layer of clustering to be shown. 
+If NULL (the default), medians will be computed across samples.}
 
-\item{merging}{numeric specifying a second layer of clustering to be shown.
-If \code{clustering=NULL} this argument will be ignored.}
-
-\item{anno}{logical indicating whether to display values inside each bin}
+\item{out_path}{a character string. If specified, 
+output will be generated in this location. Defaults to NULL.}
 }
 \value{
 
 
-Heatmap of median marker expressions across clusters.
+Heatmap of median marker expressions
 }
 \description{
 
