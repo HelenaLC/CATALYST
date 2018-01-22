@@ -9,7 +9,7 @@
 plotHeatmap(x, ...)
 
 \S4method{plotHeatmap}{daFrame}(x, clustering = NULL, merging = 20,
-  anno = FALSE)
+  anno = TRUE)
 }
 \arguments{
 \item{x}{expression matrix.}
@@ -20,7 +20,8 @@ plotHeatmap(x, ...)
 median marker expression should be computed. If NULL, 
 medians will be computed across samples. Defaults to NULL.}
 
-\item{merging}{numeric specifying a second layer of clustering to be shown.}
+\item{merging}{numeric specifying a second layer of clustering to be shown.
+If \code{clustering=NULL} this argument will be ignored.}
 
 \item{anno}{logical indicating whether to display values inside each bin}
 }
