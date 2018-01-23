@@ -10,6 +10,7 @@ Description: Mass cytometry (CyTOF) uses heavy metal isotopes rather than fluore
 Imports:
     Biobase,
     BiocGenerics,
+    ComplexHeatmap,
     ConsensusClusterPlus,
     dplyr,
     drc,
@@ -17,6 +18,7 @@ Imports:
     flowCore,
     FlowSOM,
     ggplot2,
+    ggrepel,
     graphics,
     grDevices,
     grid,

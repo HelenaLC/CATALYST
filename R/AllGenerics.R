@@ -65,6 +65,12 @@ setGeneric(name="mhl_cutoff",
 
 #' @rdname dbFrame-methods
 #' @export
+setGeneric(name="counts",      
+    package="CATALYST", 
+    def=function(x) standardGeneric("counts"))
+
+#' @rdname dbFrame-methods
+#' @export
 setGeneric(name="yields",      
     package="CATALYST", 
     def=function(x) standardGeneric("yields"))
@@ -204,9 +210,7 @@ setGeneric(name="compCytof",
 # ==============================================================================
 # Generics to access slots in a daFrame
 # ------------------------------------------------------------------------------
-
 #' @rdname daFrame-methods
-#' @name daFrame-methods
 #' @export
 setGeneric(name="lineage", 
     package="CATALYST", 
@@ -220,9 +224,15 @@ setGeneric(name="functional",
 
 #' @rdname daFrame-methods
 #' @export
-setGeneric(name="sample_ids",  
+setGeneric(name="sample_ids", 
     package="CATALYST", 
     def=function(x) standardGeneric("sample_ids"))
+
+#' @rdname daFrame-methods
+#' @export
+setGeneric(name="conditions", 
+    package="CATALYST", 
+    def=function(x) standardGeneric("conditions"))
 
 #' @rdname daFrame-methods
 #' @export
@@ -261,26 +271,33 @@ setGeneric(name="plotMDS",
     package="CATALYST",
     def=function(x, ...) standardGeneric("plotMDS"))
 
-#' @rdname plotHeatmap
+#' @rdname plotExprHeatmap
 #' @param ... optional arguments.
 #' @export
-setGeneric(name="plotHeatmap", 
+setGeneric(name="plotExprHeatmap", 
     package="CATALYST",
-    def=function(x, ...) standardGeneric("plotHeatmap"))
+    def=function(x, ...) standardGeneric("plotExprHeatmap"))
+
+#' @rdname plotClusterHeatmap
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotClusterHeatmap", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotClusterHeatmap"))
+
+#' @rdname plotMedExprs
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotMedExprs", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotMedExprs"))
 
 #' @rdname plotCodes
 #' @param ... optional arguments.
 #' @export
 setGeneric(name="plotCodes", 
     package="CATALYST",
-    def=function(x, k, ...) standardGeneric("plotCodes"))
-
-#' @rdname plotProportions
-#' @param ... optional arguments.
-#' @export
-setGeneric(name="plotProportions", 
-    package="CATALYST",
-    def=function(fs, md, cluster_ids, ...) standardGeneric("plotProportions"))
+    def=function(x, ...) standardGeneric("plotCodes"))
 
 #' @rdname plotDeltaArea
 #' @param ... optional arguments.
@@ -310,10 +327,40 @@ setGeneric(name="plotSNE",
     package="CATALYST",
     def=function(x, ...) standardGeneric("plotSNE"))
 
-#' @rdname differentialAbundance
+#' @rdname mergeClusters
 #' @param ... optional arguments.
 #' @export
-setGeneric(name="differentialAbundance", 
+setGeneric(name="mergeClusters", 
     package="CATALYST",
-    def=function(fs, md, cluster_ids, K, ...) 
-        standardGeneric("differentialAbundance"))
+    def=function(x, table, label) standardGeneric("mergeClusters"))
+
+#' @rdname plotAbundances
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotAbundances", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotAbundances"))
+
+#' @rdname diffAbundance
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="diffAbundance", 
+    package="CATALYST",
+    def=function(x, k, K, ...) 
+        standardGeneric("diffAbundance"))
+
+#' @rdname diffExpr
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="diffExpr", 
+    package="CATALYST",
+    def=function(x, k, K, ...)
+        standardGeneric("diffExpr"))
+
+#' @rdname plotDiffHeatmap
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotDiffHeatmap", 
+    package="CATALYST",
+    def=function(x, K, ...) 
+        standardGeneric("plotDiffHeatmap"))

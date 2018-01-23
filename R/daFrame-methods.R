@@ -35,15 +35,14 @@ setMethod(f="lineage",
 
 #' @rdname daFrame-methods
 setMethod(f="functional",      
-    signature="daFrame", 
+    signature="daFrame",
     definition=function(x) return(colnames(x)[as.logical(x$functional)])) 
 
 #' @rdname daFrame-methods
 #' @importFrom BiocGenerics conditions
-#' @export
 setMethod(f="conditions",      
     signature="daFrame", 
-    definition=function(object) return(rowData(object)$condition))
+    definition=function(x) return(rowData(x)$conditions))
 
 #' @rdname daFrame-methods
 setMethod(f="sample_ids",  

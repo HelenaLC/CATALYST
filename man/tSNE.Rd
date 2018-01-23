@@ -27,6 +27,9 @@ for their computation into the metadata slot of the input \code{daFrame}.
 Multi-dimensional scaling (MDS) plot on median marker expressions.
 }
 \examples{
+data(PBMC_fs, PBMC_panel, PBMC_md)
+re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+re <- tSNE(re, n=250)
 
 }
 \references{

@@ -23,9 +23,12 @@
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- tSNE(re, n=250)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import Rtsne
+#' @import Rtsne SummarizedExperiment
 # ==============================================================================
 
 setMethod(f="tSNE",
@@ -49,3 +52,4 @@ setMethod(f="tSNE",
         return(x)
     }
 )
+

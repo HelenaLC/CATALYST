@@ -51,9 +51,10 @@
 #' \emph{Cytometry A} \bold{83A}, 483-494.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import ggplot2 grid gridExtra matrixStats
+#' @import ggplot2 grid gridExtra
 #' @importFrom flowCore colnames exprs flowFrame flowSet read.FCS write.FCS
 #' @importFrom grDevices pdf dev.off
+#' @importFrom matrixStats colMins
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom stats approx mad runmed
 

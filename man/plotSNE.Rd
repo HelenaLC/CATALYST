@@ -8,14 +8,14 @@
 \usage{
 plotSNE(x, ...)
 
-\S4method{plotSNE}{daFrame}(x, col = 20, facette = NULL, which = 100)
+\S4method{plotSNE}{daFrame}(x, color = 20, facette = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{col}{numeric value between 2 and 20 OR a character string specifying
+\item{color}{numeric value between 2 and 20 OR a character string specifying
 an antibody that appears in the metadata table of the input \code{daFrame}.
 Specifies the color coding.}
 
@@ -30,6 +30,10 @@ a \code{ggplot} object.
 Multi-dimensional scaling (MDS) plot on median marker expressions.
 }
 \examples{
+data(PBMC_fs, PBMC_panel, PBMC_md)
+re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+re <- tSNE(re)
+plotSNE(re, "CD4")
 
 }
 \references{
