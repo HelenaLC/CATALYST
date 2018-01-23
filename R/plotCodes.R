@@ -27,6 +27,9 @@
 #' @return \code{ggplot} object.
 #' 
 #' @examples
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' plotCodes(re)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
@@ -37,7 +40,7 @@
 # ==============================================================================
 
 setMethod(f="plotCodes", 
-    signature=signature(x="daFrame", k="numeric"), 
+    signature=signature(x="daFrame"), 
     definition=function(x, k=20, out_path=NULL, verbose=TRUE) {
         
         # validity check
@@ -53,8 +56,8 @@ setMethod(f="plotCodes",
         df <- data.frame(
             tSNE1=tsne$Y[, 1], tSNE2=tsne$Y[, 2],
             PCA1=pca$x[, 1], PCA2=pca$x[, 2])
-        df$cluster_id <- factor(cluster_codes(x)[, paste0("k", k)])
-        df$counts <- as.numeric(table(cluster_ids(x)$k100))
+        df$cluster_id <- factor(cluster_codes(x)[, k])
+        df$counts <- as.numeric(table(cluster_ids(x)))
         
         p <- ggplot(df, aes_string(color="cluster_id", size="counts")) +
             theme_classic() + theme(

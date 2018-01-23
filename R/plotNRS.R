@@ -4,11 +4,11 @@
 #' @rdname plotNRS
 #' @title Non-redundancy scores across markers
 #' 
-#' @description
+#' @description Plots non-redundancy scores (NRS) in decreasing order.
 #'
 #' @param x a \code{\link{daFrame}}
 #' 
-#' @return Plots non-redundancy scores (NRS) across lineage markers.
+#' @return a \code{ggplot} object.
 #'
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al.
@@ -17,6 +17,9 @@
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' plotNRS(re)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2
@@ -32,7 +35,7 @@ setMethod(f="plotNRS",
         
         # calculate NRS
         scores <- t(sapply(sample_ids, function(i) 
-            nrs(exprs(x)[sample_ids(x) == i, lineage(x)])))
+            nrs(exprs(x)[sample_ids(x) == i, ])))
         rownames(scores) <- sample_ids
         mean_scores <- colMeans(scores, na.rm=TRUE)
         
