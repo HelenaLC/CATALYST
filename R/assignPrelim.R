@@ -37,7 +37,7 @@
 #' assignPrelim(x = sample_ff, y = sample_key)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import matrixStats
+#' @importFrom matrixStats rowMaxs
 #' @importFrom stats quantile
 #' @importFrom flowCore colnames exprs flowFrame read.FCS
 # ==============================================================================

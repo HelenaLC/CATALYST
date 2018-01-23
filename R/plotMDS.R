@@ -9,9 +9,7 @@
 #'
 #' @param x a \code{\link{daFrame}}.
 #' 
-#' @return 
-#' Plots a multi-dimensional scaling (MDS) 
-#' plot on median marker expression values.
+#' @return a \code{ggplot} object.
 #'
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al.
@@ -20,9 +18,12 @@
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' plotMDS(re)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import ggplot2 ggrepel
+#' @import ggplot2 ggrepel SummarizedExperiment
 #' @importFrom dplyr group_by summarize_all
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom limma plotMDS

@@ -22,6 +22,9 @@ Plots sample-wise smoothed densities of marker expressions.
 Sample-wise smoothed densities of marker expressions.
 }
 \examples{
+data(PBMC_fs, PBMC_panel, PBMC_md)
+re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+plotExprs(re)
 
 }
 \references{

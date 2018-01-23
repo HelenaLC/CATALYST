@@ -61,3 +61,21 @@ triangle <- function(m) {
     diag(nm) <- NA
     m[lower.tri(nm)]
 }
+
+# ==============================================================================
+# Z-score normalization to mean=0 and sd=1
+# ------------------------------------------------------------------------------
+Z_norm <- function(x, th=2.5) {
+    es_normed <- apply(x, 1, function(x) {
+        sdx <- sd(x, na.rm=TRUE)
+        if (sdx == 0) {
+            x <- (x-mean(x, na.rm=TRUE))
+        } else {
+            x <- (x-mean(x, na.rm=TRUE)) / sdx
+        }
+        x[x > th] <- th
+        x[x < -th] <- -th
+        return(x)
+    })
+    t(es_normed)
+}

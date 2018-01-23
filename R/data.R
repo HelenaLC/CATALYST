@@ -6,6 +6,8 @@
 #' @title Example data sets
 #' 
 #' @description 
+#' \itemize{
+#' \item{Preprocessing
 #' \describe{
 #' \item{\code{raw_data}}{
 #' a \code{\link{flowSet}} with 3 experiments, each containing 2'500 raw 
@@ -29,7 +31,10 @@
 #' multiplexed cells and 39 measurement parameters.}
 #' \item{\code{isotope_list}}{a named list of isotopic compositions for all 
 #' elements within 75 through 209 u corresponding to the  CyTOF mass range
-#' at the time of writing (see reference).}}
+#' at the time of writing (see reference).}}}
+#' \item{
+#' }
+#' }
 #' 
 #' @return 
 #' see descriptions above.

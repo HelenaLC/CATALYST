@@ -22,6 +22,9 @@ Plots the number of events measured per sample.
 Barplot of the number of cells measured for each sample.
 }
 \examples{
+data(PBMC_fs, PBMC_panel, PBMC_md)
+re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+plotCounts(re)
 
 }
 \references{

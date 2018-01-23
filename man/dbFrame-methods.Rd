@@ -9,6 +9,7 @@
 \alias{mhl_dists}
 \alias{sep_cutoffs}
 \alias{mhl_cutoff}
+\alias{counts}
 \alias{yields}
 \alias{exprs,dbFrame-method}
 \alias{dbFrame-methods}
@@ -53,6 +54,8 @@ sep_cutoffs(x)
 
 mhl_cutoff(x)
 
+counts(x)
+
 yields(x)
 
 \S4method{exprs}{dbFrame}(object)
@@ -71,7 +74,7 @@ yields(x)
 
 \S4method{mhl_cutoff}{dbFrame}(x)
 
-\S4method{counts}{dbFrame}(object)
+\S4method{counts}{dbFrame}(x)
 
 \S4method{yields}{dbFrame}(x)
 
@@ -84,7 +87,7 @@ yields(x)
 \S4method{sep_cutoffs}{dbFrame,ANY}(x) <- value
 }
 \arguments{
-\item{x, object}{a \code{\link{dbFrame}}.}
+\item{x}{a \code{\link{dbFrame}}.}
 
 \item{value}{the replacement value.}
 }

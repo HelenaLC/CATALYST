@@ -16,12 +16,15 @@ plotNRS(x, ...)
 \item{...}{optional arguments.}
 }
 \value{
-Plots non-redundancy scores (NRS) across lineage markers.
+a \code{ggplot} object.
 }
 \description{
-
+Plots non-redundancy scores (NRS) in decreasing order.
 }
 \examples{
+data(PBMC_fs, PBMC_panel, PBMC_md)
+re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+plotNRS(re)
 
 }
 \references{
