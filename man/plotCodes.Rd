@@ -3,21 +3,20 @@
 \docType{methods}
 \name{plotCodes}
 \alias{plotCodes}
-\alias{plotCodes,daFrame,numeric-method}
+\alias{plotCodes,daFrame-method}
 \title{tSNE and PCA plot on 100 SOM codes}
 \usage{
-plotCodes(x, k, ...)
+plotCodes(x, ...)
 
-\S4method{plotCodes}{daFrame,numeric}(x, k = 20, out_path = NULL,
-  verbose = TRUE)
+\S4method{plotCodes}{daFrame}(x, k = 20, out_path = NULL, verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
+\item{...}{optional arguments.}
+
 \item{k}{numeric value between 2 and 20 specifying 
 the number of metaclusters used for color coding.}
-
-\item{...}{optional arguments.}
 
 \item{out_path}{a character string. If specified, 
 output will be generated in this location. Defaults to NULL.}
@@ -35,6 +34,9 @@ assigned to each cluster, and points are color according to their cluster ID
 upon \code{\link{ConsensusClusterPlus}} metaclustering to \code{k} clusters.
 }
 \examples{
+data(PBMC_fs, PBMC_panel, PBMC_md)
+re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+plotCodes(re)
 
 }
 \references{

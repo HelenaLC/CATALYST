@@ -8,7 +8,7 @@
 #' Multi-dimensional scaling (MDS) plot on median marker expressions.
 #'
 #' @param x a \code{\link{daFrame}}.
-#' @param col numeric value between 2 and 20 OR a character string specifying
+#' @param color numeric value between 2 and 20 OR a character string specifying
 #' an antibody that appears in the metadata table of the input \code{daFrame}.
 #' Specifies the color coding.
 #' @param facette one of \code{NULL}, \code{"sample_id"} or \code{"condition"}.
@@ -24,6 +24,10 @@
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- tSNE(re)
+#' plotSNE(re, "CD4")
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2
@@ -31,19 +35,20 @@
 
 setMethod(f="plotSNE",
     signature=signature(x="daFrame"),
-    definition=function(x, col=20, facette=NULL, which=100) {
-        # check validity of input arguments
+    definition=function(x, color=20, facette=NULL) {
+        # check validity of 'color' argument
         invalid <- FALSE
-        if (is.character(col)) {
-            if (!col %in% colnames(exprs(x)))
+        if (is.character(color)) {
+            if (!color %in% colnames(exprs(x)))
                 invalid <- TRUE
-        } else if (is.numeric(col)) {
-            if (as.integer(col) != col | col < 2 | col > 20) 
+        } else if (is.numeric(color)) {
+            if (as.integer(color) != color | color < 2 | color > 20) 
                 invalid <- TRUE
         } 
         if (invalid)  
-            stop("'col' should be either a numeric value between 2 and 20\n", 
+            stop("'color' should be either a numeric value between 2 and 20\n", 
                 "or a character string that corresponds to a lineage marker.")
+        # check validity of 'facette' argument
         if (!is.null(facette) && !facette %in% c("sample", "condition"))
             stop("'facette' should be either NULL,",
                 " \"sample\" or \"condition\".")
@@ -55,7 +60,7 @@ setMethod(f="plotSNE",
             exprs(x)[tsne_inds, ],
             tSNE1=tsne$Y[, 1], tSNE2=tsne$Y[, 2],
             sample_id=sample_ids(x)[tsne_inds],
-            condition=conditions(x)[tsne_inds])
+            condition=rowData(x)$condition[tsne_inds])
         p <- ggplot(df, aes_string(x="tSNE1", y="tSNE2")) +
             theme_void() + theme(aspect.ratio=1,
                 panel.grid.minor=element_blank(),
@@ -63,18 +68,20 @@ setMethod(f="plotSNE",
                 axis.text=element_text(color="black"),
                 axis.title=element_text(color="black", face="bold"))
         
-        if (is.character(col)) {
+        if (is.character(color)) {
             pal <- rev(brewer.pal(11, "Spectral"))
-            p <- p + geom_point(size=.75, aes_string(col=col)) +
-                scale_color_gradientn(col, colors=pal)
-        } else if (is.numeric(col)) {
-            col_nm <- paste0("k", col)
-            df$cluster_id <- factor(cluster_ids(x)[tsne_inds, col_nm])
-            if (col > 10) n_col <- 2 else n_col <- 1
+            p <- p + geom_point(size=.75, aes_string(color=color)) +
+                scale_color_gradientn(color, colors=pal)
+        } else if (is.numeric(color)) {
+            cluster_ids <- cluster_ids(x)[tsne_inds]
+            df$cluster_id <- factor(cluster_codes(x)[, color][cluster_ids])
+            cols <- cluster_cols[seq_len(nlevels(df$cluster_id))]
+            names(cols) <- levels(cols)
+            if (color > 10) n_col <- 2 else n_col <- 1
             p <- p + geom_point(data=df, size=.75, 
-                aes_string(col="cluster_id")) +
+                aes_string(color="cluster_id")) +
                 guides(color=guide_legend(override.aes=list(size=3),
-                    ncol=n_col)) + scale_color_manual(values=cluster_cols)
+                    ncol=n_col)) + scale_color_manual(values=cols)
         }
         if (is.null(facette)) {
             p

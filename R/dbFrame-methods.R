@@ -30,7 +30,7 @@
 #' \item{\code{counts}}{extract the counts matrix (see \code{\link{dbFrame}}).}
 #' \item{\code{yields}}{extract the yields matrix (see \code{\link{dbFrame}}).}
 #' }
-#' @param x,object a \code{\link{dbFrame}}.
+#' @param x a \code{\link{dbFrame}}.
 #' @param value the replacement value.
 #' 
 #' @examples 
@@ -55,7 +55,6 @@
 # Access slots in a dbFrame
 # ------------------------------------------------------------------------------
 #' @rdname dbFrame-methods
-#' @export
 setMethod(f="exprs",
     signature="dbFrame",
     definition=function(object) return(object@exprs))
@@ -96,11 +95,9 @@ setMethod(f="mhl_cutoff",
     definition=function(x) return(x@mhl_cutoff))
 
 #' @rdname dbFrame-methods
-#' @importFrom BiocGenerics counts
-#' @export
 setMethod(f="counts",
     signature="dbFrame",
-    definition=function(object) return(object@counts))
+    definition=function(x) return(x@counts))
 
 #' @rdname dbFrame-methods
 setMethod(f="yields",   

@@ -16,13 +16,15 @@ plotMDS(x, ...)
 \item{...}{optional arguments.}
 }
 \value{
-Plots a multi-dimensional scaling (MDS) 
-plot on median marker expression values.
+a \code{ggplot} object.
 }
 \description{
 Multi-dimensional scaling (MDS) plot on median marker expressions.
 }
 \examples{
+data(PBMC_fs, PBMC_panel, PBMC_md)
+re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+plotMDS(re)
 
 }
 \references{

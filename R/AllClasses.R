@@ -138,11 +138,12 @@ setValidity(Class="dbFrame",
 #' hold all data required for differential analysis:
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import ConsensusClusterPlus SummarizedExperiment Rtsne
+#' @import ConsensusClusterPlus Rtsne SummarizedExperiment
 #' @importFrom flowCore colnames exprs fsApply parameters pData
 #' @importFrom FlowSOM BuildSOM ReadInput
 #' @importFrom methods new
 #' @export
+
 # ------------------------------------------------------------------------------
 # class definition
 setClass(
@@ -170,6 +171,7 @@ setClass(
 #' whether an antibody is a lineage or funcitonal marker}
 #' 
 #' @export
+
 daFrame <- function(fs, panel, md) {
     # replace problematic characters
     pd <- pData(parameters(fs[[1]]))
@@ -181,7 +183,7 @@ daFrame <- function(fs, panel, md) {
     f <- panel$Antigen[as.logical(panel$Functional)]
     fs <- fsApply(fs, function(ff) {
         flowCore::colnames(ff) <- pd$desc
-        exprs(ff) <- asinh(flowCore::exprs(ff[, c(l,f)])/5)
+        flowCore::exprs(ff) <- asinh(exprs(ff[, c(l,f)])/5)
         return(ff)
     })
     es <- fsApply(fs, exprs)
@@ -198,7 +200,7 @@ daFrame <- function(fs, panel, md) {
     # metaclustering
     message("o running ConsensusClusterPlus metaclustering...")
     mc <- suppressMessages(ConsensusClusterPlus(t(codes), 
-        maxK=20, reps=100, distance="euclidean", plot="png"))
+        maxK=20, reps=100, distance="euclidean", plot=NULL))
     
     # get cluster codes for k = 100, 2-20
     cluster_codes <- data.frame(matrix(0, 100, 20, 
@@ -209,11 +211,11 @@ daFrame <- function(fs, panel, md) {
     
     # construct SummarizedExperiment
     inds <- panel$Lineage | panel$Functional
-    row_data <- DataFrame(
+    row_data <- data.frame(
         condition=rep(md$condition, n_events),
         sample_id=rep(md$sample_id, n_events),
         cluster_id=cluster_ids)
-    col_data <- DataFrame(
+    col_data <- data.frame(
         lineage=panel$Lineage[inds],
         functional=panel$Functional[inds],
         row.names=colnames(es))

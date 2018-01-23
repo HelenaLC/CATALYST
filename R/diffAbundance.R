@@ -1,20 +1,20 @@
 # ==============================================================================
 # Differential cell population abundance
 # ------------------------------------------------------------------------------
-#' @rdname differentialAbundance
-#' @title differentialAbundance
+#' @rdname diffAbundance
+#' @title Differential population abundances
 #' 
 #' @description 
 #' Compares the proportions of cell types across experimental conditions 
 #' and aims to highlight populations that are present at different ratios.
 #'
-#' @param fs a \code{\link{flowSet}} holding all samples.
-#' @param md a data.frame containing the metadata.
-#' @param cluster_ids a numeric vector.
+#' @param x a \code{\link{daFrame}}.
+#' @param k specifies which clustering to perform the analysis on.
 #' @param K contrasts.
 #' 
-#' @return Returns a table with frequencies across samples,
-#' non-adjusted and adjuster p-values for each cluster.
+#' @return Writes a table with frequencies across samples,
+#' non-adjusted and adjuster p-values for each cluster into the
+#' \code{metadata} slot of the input \code{daFrame}.
 #' 
 #' @details 
 #' 
@@ -25,21 +25,27 @@
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' # specify contrasts
+#' K <- matrix(c(0, 1), nrow=1, byrow=TRUE, dimnames=list("BCRXLvsRef"))
+#' re <- diffAbundance(re, 12, K)
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' 
+#' @import SummarizedExperiment
 #' @importFrom lme4 glmer
 #' @importFrom multcomp glht
+#' @importFrom stats p.adjust
 #' @export
 # ==============================================================================
 
-setMethod(f="differentialAbundance", 
-    signature=signature(fs="flowSet", md="data.frame", 
-        cluster_ids="numeric", K="matrix"),
-    definition=function(fs, md, cluster_ids, K) {
+setMethod(f="diffAbundance", 
+    signature=signature(x="daFrame"),
+    definition=function(x, k, K) {
 
-        sample_ids <- rep(md$sample_id, fsApply(fs, nrow))
-        counts <- as.data.frame.matrix(table(mc_ids, sample_ids))
+        md <- metadata(x)[[1]]
+        cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
+        counts <- as.data.frame.matrix(table(cluster_ids, sample_ids(x)))
         freqs <- t(t(counts) / colSums(counts))
         n_events <- colSums(counts)
         
@@ -58,13 +64,18 @@ setMethod(f="differentialAbundance",
             })
             return(p_val)
         })
+        # get p-values
+        nm <- rownames(K)
         p_vals <- do.call(rbind, fit_binomial) 
-        colnames(p_vals) <- paste0("pval_", contrast_names) 
+        colnames(p_vals) <- paste0("pval_", nm) 
         rownames(p_vals) <- rownames(counts)
-        # ddjust the p-values
+        # get adjusted p-values
         adj_p <- apply(p_vals, 2, p.adjust, method="BH") 
-        colnames(adj_p) <- paste0("adjp_", contrast_names)
-        data.frame(cluster_id=rownames(freqs), 
+        colnames(adj_p) <- paste0("adjp_", nm)
+        
+        re <- data.frame(cluster_id=rownames(freqs), 
             freqs, p_vals, adj_p, row.names=NULL)
+        metadata(x)$diff_abundance[[nm]] <- re
+        return(x)
     }
 )
