@@ -65,7 +65,7 @@ triangle <- function(m) {
 # ==============================================================================
 # Z-score normalization to mean=0 and sd=1
 # ------------------------------------------------------------------------------
-Z_norm <- function(x, th=2.5) {
+Z_norm <- function(x, th) {
     es_normed <- apply(x, 1, function(x) {
         sdx <- sd(x, na.rm=TRUE)
         if (sdx == 0) {

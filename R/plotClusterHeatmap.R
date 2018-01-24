@@ -19,15 +19,7 @@
 #' @param out_path a character string. If specified, 
 #' output will be generated in this location. Defaults to NULL.
 #' 
-#' @return
-#'
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
-#' 
-#' @return
+#' @return a \code{\link{HeatmapList-class}} object.
 #' 
 #' @details Scaled values corresponds to cofactor arcsinh-transformed 
 #' expression values scaled between 0 and 1 using 1% and 99% percentiles as 
@@ -38,12 +30,19 @@
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' plotClusterHeatmap(re, k=20, m=12, functional="pNFkB")
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @import ComplexHeatmap
-#' @importFrom dplyr funs group_by summarize_all
+#' @importFrom dplyr funs group_by summarise_all
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom reshape2 dcast
+#' @importFrom stats dist
 #' @export
 # ==============================================================================
 
@@ -53,7 +52,8 @@ setMethod(f="plotClusterHeatmap",
         functional="all", out_path=NULL) {
         
         k <- as.character(k)
-        m <- as.character(m)
+        if (!is.null(m)) 
+            m <- as.character(m)
         
         # scale expressions for visualization
         es <- exprs(x)
@@ -68,7 +68,7 @@ setMethod(f="plotClusterHeatmap",
             group_by(cluster_id) %>% summarize_all(funs(median))
         
         # cluster based on markers used for clustering
-        d <- dist(med_exprs[, lineage(x)], method="euclidean")
+        d <- stats::dist(med_exprs[, lineage(x)], method="euclidean")
         row_clustering <- hclust(d, method="average")
         
         # row labels and heatmap annotations
@@ -90,10 +90,11 @@ setMethod(f="plotClusterHeatmap",
                 cluster_rows=row_clustering, cluster_columns=FALSE,
                 row_dend_reorder=FALSE, width=unit(.5, "cm"))
         }
- 
+        
         # heatmap for lineage markers
-        heat_cols <- colorRampPalette(rev(brewer.pal(9, "RdYlBu")))(100)
-        hm_l <- Heatmap(med_exprs_scaled[, lineage(x)], heat_cols, "expression", 
+        hm_cols <- colorRampPalette(rev(brewer.pal(9, "RdYlBu")))(100)
+        hm_l <- Heatmap(
+            matrix=med_exprs_scaled[, lineage(x)], hm_cols, "expression", 
             column_title="Lineage markers", column_names_gp=gpar(fontsize=8),
             cluster_rows=row_clustering, cluster_columns=FALSE,
             heatmap_legend_param=list(color_bar="continuous"))
@@ -119,7 +120,7 @@ setMethod(f="plotClusterHeatmap",
         for (i in f) {
             mat <- dcast(df[, c("sample_id", "cluster_id", i)], 
                 cluster_id~sample_id, value.var=i)[, -1]
-            p <- p + Heatmap(mat, heat_cols, show_heatmap_legend=FALSE,
+            p <- p + Heatmap(mat, hm_cols, show_heatmap_legend=FALSE,
                 column_title=i, column_names_gp=gpar(fontsize=8), 
                 cluster_rows=row_clustering, cluster_columns=FALSE)
         }

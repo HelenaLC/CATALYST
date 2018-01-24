@@ -16,12 +16,6 @@
 #' respectively. Defaults to NULL.
 #' 
 #' @return a \code{ggplot} object.
-#'
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -29,7 +23,14 @@
 #' re <- tSNE(re)
 #' plotSNE(re, "CD4")
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
 #' @import ggplot2
 # ==============================================================================
 
@@ -37,16 +38,11 @@ setMethod(f="plotSNE",
     signature=signature(x="daFrame"),
     definition=function(x, color=20, facette=NULL) {
         # check validity of 'color' argument
-        invalid <- FALSE
-        if (is.character(color)) {
-            if (!color %in% colnames(exprs(x)))
-                invalid <- TRUE
-        } else if (is.numeric(color)) {
-            if (as.integer(color) != color | color < 2 | color > 20) 
-                invalid <- TRUE
-        } 
-        if (invalid)  
-            stop("'color' should be either a numeric value between 2 and 20\n", 
+        color <- as.character(color)
+        if (!color %in% c(colnames(exprs(x)),
+            colnames(metadata(x)$cluster_codes))) 
+            stop("'color' should be either a numeric value between 2 and 20,
+                a character string specifying a merging to use,\n", 
                 "or a character string that corresponds to a lineage marker.")
         # check validity of 'facette' argument
         if (!is.null(facette) && !facette %in% c("sample", "condition"))
@@ -68,16 +64,16 @@ setMethod(f="plotSNE",
                 axis.text=element_text(color="black"),
                 axis.title=element_text(color="black", face="bold"))
         
-        if (is.character(color)) {
+        if (color %in% colnames(exprs(x))) {
             pal <- rev(brewer.pal(11, "Spectral"))
             p <- p + geom_point(size=.75, aes_string(color=color)) +
                 scale_color_gradientn(color, colors=pal)
-        } else if (is.numeric(color)) {
+        } else {
             cluster_ids <- cluster_ids(x)[tsne_inds]
             df$cluster_id <- factor(cluster_codes(x)[, color][cluster_ids])
             cols <- cluster_cols[seq_len(nlevels(df$cluster_id))]
             names(cols) <- levels(cols)
-            if (color > 10) n_col <- 2 else n_col <- 1
+            if (length(cols) > 10) n_col <- 2 else n_col <- 1
             p <- p + geom_point(data=df, size=.75, 
                 aes_string(color="cluster_id")) +
                 guides(color=guide_legend(override.aes=list(size=3),

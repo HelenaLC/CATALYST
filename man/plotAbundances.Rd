@@ -28,7 +28,7 @@ a \code{ggplot} object.
 
 }
 \examples{
-data(PBMC_fs, PBMC_panel, PBMC_md, merging_table)
+data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 # plot relative population abundances 
 plotAbundances(re, k=12)                 # ...across samples 
@@ -36,7 +36,7 @@ plotAbundances(re, k=8, by="cluster_id") # ...across clusters
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al.
+Nowicka M, Krieg C, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)

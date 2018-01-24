@@ -24,9 +24,6 @@ mergeClusters(x, table, label)
 Writes the newly assigend cluster codes into the metadata slot 
 \code{cluster_codes} of the input \code{daFrame} and returns the latter.
 }
-\description{
-
-}
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md, merging_table)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
@@ -35,7 +32,7 @@ plotClusterHeatmap(re, k=20, m="merging_1", functional="CD4")
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al.
+Nowicka M, Krieg C, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
