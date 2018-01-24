@@ -87,7 +87,7 @@ yields(x)
 \S4method{sep_cutoffs}{dbFrame,ANY}(x) <- value
 }
 \arguments{
-\item{x}{a \code{\link{dbFrame}}.}
+\item{x, object}{a \code{\link{dbFrame}}.}
 
 \item{value}{the replacement value.}
 }

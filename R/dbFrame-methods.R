@@ -30,7 +30,7 @@
 #' \item{\code{counts}}{extract the counts matrix (see \code{\link{dbFrame}}).}
 #' \item{\code{yields}}{extract the yields matrix (see \code{\link{dbFrame}}).}
 #' }
-#' @param x a \code{\link{dbFrame}}.
+#' @param x,object a \code{\link{dbFrame}}.
 #' @param value the replacement value.
 #' 
 #' @examples 

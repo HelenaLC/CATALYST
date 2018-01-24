@@ -189,7 +189,7 @@ daFrame <- function(fs, panel, md) {
     es <- fsApply(fs, exprs)
     n_events <- fsApply(fs, nrow)
     n_events <- setNames(as.numeric(n_events), md$sample_id)
- 
+    
     # flowSOM clustering
     message("o running FlowSOM clustering...")
     fsom <- ReadInput(fs, transform=FALSE, scale=FALSE)
@@ -199,8 +199,10 @@ daFrame <- function(fs, panel, md) {
     
     # metaclustering
     message("o running ConsensusClusterPlus metaclustering...")
+    pdf(NULL)
     mc <- suppressMessages(ConsensusClusterPlus(t(codes), 
-        maxK=20, reps=100, distance="euclidean", plot=NULL))
+        maxK=20, reps=100, distance="euclidean", plot="pdf"))
+    dev.off()
     
     # get cluster codes for k = 100, 2-20
     cluster_codes <- data.frame(matrix(0, 100, 20, 

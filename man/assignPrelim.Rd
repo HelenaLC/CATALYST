@@ -28,7 +28,7 @@ assignPrelim(x, y, ...)
 
 \item{y}{the debarcoding scheme. A binary matrix with sample names as row names and 
 numeric masses as column names OR a vector of numeric masses corresponding
-to barcode channels. When the latter is supplied, \code{assignPrelim} will 
+to barcode channels. When the latter is supplied, \code{assignPrelim} will
 create a scheme of the appropriate format internally.}
 
 \item{...}{optional arguments.}
