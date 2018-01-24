@@ -18,22 +18,21 @@
 #' non-adjusted and adjuster p-values for each cluster into the
 #' \code{metadata} slot of the input \code{daFrame}.
 #' 
-#' @details 
+#' @examples
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' # specify contrasts 
+#' K <- matrix(c(0, 1), nrow=1, byrow=TRUE, dimnames=list("BCRXLvsRef"))
+#' diffExpr(re, 20, K, "lm")
 #' 
+#' @author
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
+#' Nowicka M, Krieg C, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
-#' @examples
-#' data(PBMC_fs, PBMC_panel, PBMC_md)
-#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' # specify contrasts
-#' K <- matrix(c(0, 1), nrow=1, byrow=TRUE, dimnames=list("BCRXLvsRef"))
-#' diffExpr(re, 20, K, "lm")
-#' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import SummarizedExperiment
 #' @importFrom lme4 glmer lmer
 #' @importFrom dplyr group_by summarize_all
@@ -66,11 +65,11 @@ setMethod(f="diffExpr",
         fit_gaussian <- lapply(seq_len(nrow(med_exprs)), function(i) {
             data <- data.frame(y=as.numeric(med_exprs[i, md$sample_id]), md)
             fit <- switch(match.arg(model, c("lm", "lmm")),
-                lm = lm(fml_lm, data),
-                lmm = lmer(fml_lmm, data))
+                lm = stats::lm(fml_lm, data),
+                lmm = lme4::lmer(fml_lmm, data))
             # fit contrasts
             apply(K, 1, function(k) {
-                contrast <- glht(fit, linfct=matrix(k, 1))
+                contrast <- multcomp::glht(fit, linfct=matrix(k, 1))
                 p_val <- summary(contrast)$test$pvalues
                 return(p_val)
             })

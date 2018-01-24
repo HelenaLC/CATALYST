@@ -6,43 +6,60 @@
 \alias{plotDiffHeatmap,daFrame-method}
 \title{Median marker expressions across samples}
 \usage{
-plotDiffHeatmap(x, K, ...)
+plotDiffHeatmap(x, type, contrast, ...)
 
-\S4method{plotDiffHeatmap}{daFrame}(x, K, th = 2.5, FDR_cutoff = 0.05,
+\S4method{plotDiffHeatmap}{daFrame}(x, type = c("abundance", "expr"),
+  contrast, clustering, th = 2.5, FDR_cutoff = 0.05, main = NULL,
   palette = brewer.pal(n = 11, name = "RdYlGn"), out_path = NULL)
 }
 \arguments{
-\item{x}{expression matrix.}
+\item{x}{a \code{\link{daFrame}}.}
+
+\item{type}{a character string. Specifies the type of analysis:
+differential \code{"abundance"} or \code{"expr"}.}
+
+\item{contrast}{a character string that specifies which contrast to plot.}
 
 \item{...}{optional arguments.}
+
+\item{th}{a numeric giving the threshold for Z-normalization.}
+
+\item{FDR_cutoff}{a numeric giving the FDR cutoff.}
+
+\item{main}{a character string to use as the plot title.}
 
 \item{palette}{a character string specifying the colors to interpolate.}
 
 \item{out_path}{a character string. If specified, 
 output will be generated in this location. Defaults to NULL.}
-
-\item{anno}{logical. Specifies whether to display values insinde each bin.}
 }
 \value{
-
-
-an object of class \code{HeatmapList{\link{ComplexHeatmap}}}.
-}
-\description{
-Plots median marker expressions across samples
-computed on arcsinh-transformed intensities.
+a \code{\link{HeatmapList-class}} object.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-plotExprHeatmap(re)
+
+# specify contrasts
+K <- matrix(c(0, 1), nrow=1, byrow=TRUE, dimnames=list("BCRXLvsRef"))
+
+# differential abundances
+re <- diffAbundance(re, 12, K)
+plotDiffHeatmap(re, type="abundance", contrast="BCRXLvsRef")
+
+# differential expression
+re <- diffExpr(re, 12, K)
+plotDiffHeatmap(re, type="expr", contrast="BCRXLvsRef", FDR_cutoff=.5)
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al.
+Nowicka M, Krieg C, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+}
+\seealso{
+\code{\link{diffAbundance}}, \code{\link{diffExpr}}
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}

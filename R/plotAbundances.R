@@ -13,22 +13,24 @@
 #' to plot frequencies across samples or clusters.
 #' 
 #' @return a \code{ggplot} object.
-#'
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
-#' data(PBMC_fs, PBMC_panel, PBMC_md, merging_table)
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' # plot relative population abundances 
 #' plotAbundances(re, k=12)                 # ...across samples 
 #' plotAbundances(re, k=8, by="cluster_id") # ...across clusters
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import ggplot2 SummarizedExperiment
+#' @author
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
+#' @import ggplot2
+#' @importMethodsFrom S4Vectors metadata
 # ==============================================================================
 
 setMethod(f="plotAbundances", 
@@ -40,7 +42,9 @@ setMethod(f="plotAbundances",
         df <- data.frame(t(t(counts)/colSums(counts))*100)
         colnames(df) <- c("cluster_id", "sample_id", "freq")
         md <- metadata(x)[[1]]
-        df$condition <- factor(md$condition[match(df$sample_id, md$sample_id)])
+        m <- match(df$sample_id, md$sample_id)
+        df$condition <- factor(md$condition[m])
+        df$patient_id <- factor(md$patient_id[m])
         
         p <- ggplot(df, aes_string(y="freq")) +
             labs(x=NULL, y="Proportion [%]") + theme_bw() + theme(
@@ -60,9 +64,11 @@ setMethod(f="plotAbundances",
             cluster_id = p + facet_wrap(~cluster_id, scales="free", ncol=4) +
                 guides(fill=FALSE) + geom_boxplot(aes_string(
                     x="condition", color="condition", fill="condition"),
-                    position=position_dodge(), alpha=.5, outlier.color=NA) + 
-                geom_point(alpha=.75, position=position_jitter(),
-                    aes_string(x="condition", y="freq", color="condition")) +
+                    position=position_dodge(), alpha=.25, outlier.color=NA) + 
+                geom_point(position=position_jitter(width=.25),
+                    aes_string(x="condition", y="freq", 
+                        color="condition", shape="patient_id")) +
+                scale_shape_manual(values=sample(nlevels(md$patient_id))) +
                 theme(panel.grid.major=element_line(color="grey", size=.25))
         )
     }

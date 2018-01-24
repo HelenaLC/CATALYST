@@ -17,12 +17,6 @@
 #' output will be generated in this location. Defaults to NULL.
 #' @param verbose logical specifying whether information 
 #' on progress should be reported. Defaults to TRUE.
-#'
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @return \code{ggplot} object.
 #' 
@@ -31,7 +25,13 @@
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' plotCodes(re)
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author 
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @import ggplot2 Rtsne
 #' @importFrom dplyr funs group_by summarize_all
@@ -46,7 +46,7 @@ setMethod(f="plotCodes",
         # validity check
         if (as.integer(k) != k | k < 2 | k > 20) 
             stop("k should be a value between 2 and 20.")
-       
+        
         codes <- metadata(x)$SOM_codes
         if (verbose) message("o running tSNE...")
         tsne <- Rtsne(codes, pca=FALSE)

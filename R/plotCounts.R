@@ -10,20 +10,21 @@
 #'
 #' @param x a \code{\link{daFrame}}.
 #' 
-#' @return Plots the number of events measured per sample.
-#'
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' @return a \code{\link{ggplot}} object.
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' plotCounts(re)
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
 #' @import ggplot2 SummarizedExperiment
 # ==============================================================================
 

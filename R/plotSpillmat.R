@@ -70,9 +70,11 @@ setMethod(f="plotSpillmat",
             rowSums(t(matrix(df$spill, n)))-100, "%"))
         overallReceived[ex] <- NA
         
-        p <- ggplot(df, aes_string(x="Receiving", y="Emitting", group="Spillover")) + 
+        p <- ggplot(df, 
+            aes_string(x="Receiving", y="Emitting", group="Spillover")) + 
             geom_tile(aes_string(fill="spill"), col="lightgrey") + 
-            scale_fill_gradientn(colors=c("white", "lightcoral", "red2", "darkred"), 
+            scale_fill_gradientn(
+                colors=c("white", "lightcoral", "red2", "darkred"), 
                 limits=c(0, max), na.value="lightgrey", guide=FALSE) +
             scale_x_discrete(limits=colnames(SM), expand=c(0,0)) +
             scale_y_discrete(limits=rev(rownames(SM)), expand=c(0,0)) +

@@ -28,19 +28,16 @@ non-adjusted and adjuster p-values for each cluster into the
 Compares the proportions of cell types across experimental conditions 
 and aims to highlight populations that are present at different ratios.
 }
-\details{
-
-}
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 # specify contrasts
 K <- matrix(c(0, 1), nrow=1, byrow=TRUE, dimnames=list("BCRXLvsRef"))
-re <- differentialAbundance(re, 12, K)
+re <- diffAbundance(re, 12, K)
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al.
+Nowicka M, Krieg C, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)

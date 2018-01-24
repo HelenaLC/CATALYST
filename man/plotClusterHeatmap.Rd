@@ -31,9 +31,7 @@ Specifies for which functional markers heatmaps should be plotted.}
 output will be generated in this location. Defaults to NULL.}
 }
 \value{
-
-
-
+a \code{\link{HeatmapList-class}} object.
 }
 \description{
 Plots a heatmap of median lineage marker expressions across clusters, 
@@ -51,7 +49,7 @@ plotClusterHeatmap(re, k=20, m=12, functional="pNFkB")
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al.
+Nowicka M, Krieg C, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)

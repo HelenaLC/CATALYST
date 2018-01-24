@@ -13,28 +13,26 @@
 #' @param out_path a character string. If specified, 
 #' output will be generated in this location. Defaults to NULL.
 #' 
-#' @return
-#'
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
-#' 
-#' @return an object of class \code{HeatmapList{\link{ComplexHeatmap}}}.
+#' @return a \code{\link{HeatmapList-class}} object.
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' plotExprHeatmap(re)
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @import ComplexHeatmap SummarizedExperiment
 #' @importFrom dplyr funs group_by summarize_all
 #' @importFrom grDevices colorRampPalette
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom stats hclust
+#' @importFrom stats dist hclust
 #' @export
 # ==============================================================================
 
@@ -51,7 +49,7 @@ setMethod(f="plotExprHeatmap",
             group_by(sample_id) %>% summarize_all(funs(median))
         med_exprs <- data.frame(med_exprs, row.names=1)
         
-        d <- dist(med_exprs, method="euclidean")
+        d <- stats::dist(med_exprs, method="euclidean")
         row_clustering <- stats::hclust(d, method="average")
         
         # row annotations
