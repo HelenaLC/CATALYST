@@ -16,14 +16,6 @@
 #' non-adjusted and adjuster p-values for each cluster into the
 #' \code{metadata} slot of the input \code{daFrame}.
 #' 
-#' @details 
-#' 
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
-#' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
@@ -31,12 +23,18 @@
 #' K <- matrix(c(0, 1), nrow=1, byrow=TRUE, dimnames=list("BCRXLvsRef"))
 #' re <- diffAbundance(re, 12, K)
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
 #' @import SummarizedExperiment
 #' @importFrom lme4 glmer
 #' @importFrom multcomp glht
 #' @importFrom stats p.adjust
-#' @export
 # ==============================================================================
 
 setMethod(f="diffAbundance", 
@@ -56,10 +54,10 @@ setMethod(f="diffAbundance",
             data <- data.frame(
                 counts=as.numeric(counts[i, md$sample_id]),
                 total=n_events[md$sample_id], md)
-            fit <- glmer(formula, weights=total, family=binomial, data=data)
+            fit <- lme4::glmer(formula, data, family=binomial, weights=total)
             # fit contrasts one by one
             p_val <- apply(K, 1, function(k) {
-                contr <- glht(fit, linfct=matrix(k, 1)) 
+                contr <- multcomp::glht(fit, linfct=matrix(k, 1)) 
                 summary(contr)$test$pvalues
             })
             return(p_val)
@@ -73,8 +71,7 @@ setMethod(f="diffAbundance",
         adj_p <- apply(p_vals, 2, p.adjust, method="BH") 
         colnames(adj_p) <- paste0("adjp_", nm)
         
-        re <- data.frame(cluster_id=rownames(freqs), 
-            freqs, p_vals, adj_p, row.names=NULL)
+        re <- data.frame(p_vals, adj_p)
         metadata(x)$diff_abundance[[nm]] <- re
         return(x)
     }

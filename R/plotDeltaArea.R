@@ -4,12 +4,10 @@
 
 #' @rdname plotDeltaArea
 #' @title Relative change in are under CDF curve
-#' 
-#' @description
 #'
 #' @param x a list as returned by \code{\link{ConsensusClusterPlus}}.
 #' 
-#' @return
+#' @return a \code{\link{ggplot}} object.
 #' 
 #' @details 
 #' The delta area represents the amount of extra cluster stability gained when 
@@ -18,22 +16,23 @@
 #' groups that best fits the data. The "natural" number of clusters present in 
 #' the data should thus corresponds to the value of k where there is no longer 
 #' a considerable increase in stability (pleateau onset).
-#'
+#' 
+#' @examples
+#' 
+#' @author
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
+#' Nowicka M, Krieg C, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
-#' @examples
-#' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import FlowSOM ggplot2
 #' @importFrom flowCore flowSet fsApply
+#' @importFrom graphics hist
 #' @importFrom matrixStats colQuantiles
 #' @importFrom reshape2 melt
 #' @export
-#' 
 # ==============================================================================
 
 setMethod(f="plotDeltaArea", 
@@ -48,7 +47,7 @@ setMethod(f="plotDeltaArea",
         v <- lapply(mc[seq_len(k)[-1]], function(x) triangle(x$ml))
         # empirical CDF distribution
         h <- lapply(v, function(x) {
-            h <- hist(x, breaks=seq(0, 1, .01), plot=FALSE)
+            h <- graphics::hist(x, breaks=seq(0, 1, .01), plot=FALSE)
             h$counts <- cumsum(h$counts) / sum(h$counts)
             return(h)
         })

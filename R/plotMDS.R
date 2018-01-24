@@ -10,19 +10,20 @@
 #' @param x a \code{\link{daFrame}}.
 #' 
 #' @return a \code{ggplot} object.
-#'
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al.
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' plotMDS(re)
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
 #' @import ggplot2 ggrepel SummarizedExperiment
 #' @importFrom dplyr group_by summarize_all
 #' @importFrom ggrepel geom_label_repel
@@ -43,9 +44,9 @@ setMethod(f="plotMDS",
             condition=md$condition)
         r <- diff(range(df$MDS2)) / diff(range(df$MDS1))
         ggplot(df, aes_string(x="MDS1", y="MDS2", col="condition")) + 
-            geom_point(size=10, alpha=.75) + 
+            geom_label_repel(aes_string(label="sample_id"), 
+                show.legend=FALSE) + geom_point(size=10, alpha=.75) + 
             guides(col=guide_legend(overide.aes=list(alpha=1))) +
-            geom_label_repel(aes_string(label="sample_id"), show.legend=FALSE) + 
             theme_void() + theme(aspect.ratio=r,
                 panel.grid.minor=element_blank(),
                 panel.grid.major=element_line(color='lightgrey', size=.25), 

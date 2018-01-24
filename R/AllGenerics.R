@@ -362,5 +362,5 @@ setGeneric(name="diffExpr",
 #' @export
 setGeneric(name="plotDiffHeatmap", 
     package="CATALYST",
-    def=function(x, K, ...) 
+    def=function(x, type, contrast, ...) 
         standardGeneric("plotDiffHeatmap"))

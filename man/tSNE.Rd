@@ -33,7 +33,7 @@ re <- tSNE(re, n=250)
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al.
+Nowicka M, Krieg C, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)

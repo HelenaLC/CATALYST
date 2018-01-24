@@ -37,6 +37,7 @@ Imports:
     RColorBrewer,
     reshape2,
     Rtsne,
+    S4Vectors,
     shiny, 
     shinydashboard, 
     shinyjs, 
