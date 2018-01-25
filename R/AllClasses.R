@@ -161,7 +161,6 @@ setClass(
 #' \item \code{sample_id}: a unique sample identifier
 #' \item \code{condition}: brief sample description (e.g. REF)
 #' \item \code{patient_id}: the patient ID}
-#' 
 #' @param md a data.frame with the following columns:
 #' \itemize{
 #' \item \code{Metal} and \code{Isotope}: 
@@ -169,70 +168,36 @@ setClass(
 #' \item \code{Antigen}: the targeted protein marker
 #' \item \code{Lineage} and \code{Functional}: 0 or 1 to indicate 
 #' whether an antibody is a lineage or funcitonal marker}
+#' @param cols_to_use a logical vector OR numeric vector of indices OR
+#' character vector. Specifies columns to keep from the input \code{flowSet}.
 #' 
 #' @export
 
-daFrame <- function(fs, panel, md) {
+daFrame <- function(fs, panel, md, cols_to_use) {
     # replace problematic characters
     pd <- pData(parameters(fs[[1]]))
     pd$desc <- gsub("-", "_", pd$desc)
     panel$Antigen <- gsub("-", "_", panel$Antigen)
     
     # arcsinh-transformation & column subsetting
-    l <- panel$Antigen[as.logical(panel$Lineage)]
-    f <- panel$Antigen[as.logical(panel$Functional)]
+    inds <- panel$Antigen[cols_to_use]
     fs <- fsApply(fs, function(ff) {
         flowCore::colnames(ff) <- pd$desc
-        flowCore::exprs(ff) <- asinh(exprs(ff[, c(l,f)])/5)
+        flowCore::exprs(ff) <- asinh(exprs(ff[, inds])/5)
         return(ff)
     })
     es <- fsApply(fs, exprs)
     n_events <- fsApply(fs, nrow)
     n_events <- setNames(as.numeric(n_events), md$sample_id)
-    
-    # flowSOM clustering
-    message("o running FlowSOM clustering...")
-    fsom <- ReadInput(fs, transform=FALSE, scale=FALSE)
-    som <- BuildSOM(fsom, colsToUse=l, silent=TRUE)
-    codes <- som$map$codes
-    cluster_ids <- som$map$mapping[, 1]
-    
-    # metaclustering
-    message("o running ConsensusClusterPlus metaclustering...")
-    pdf(NULL)
-    mc <- suppressMessages(ConsensusClusterPlus(t(codes), 
-        maxK=20, reps=100, distance="euclidean", plot="pdf"))
-    dev.off()
-    
-    # get cluster codes for k = 100, 2-20
-    cluster_codes <- data.frame(matrix(0, 100, 20, 
-        dimnames=list(NULL, c(100, 2:20))), check.names=FALSE)
-    for (k in seq_len(20)[-1])
-        cluster_codes[, k] <- mc[[k]]$consensusClass
-    cluster_codes$`100` <- seq_len(100)
-    
+
     # construct SummarizedExperiment
-    inds <- panel$Lineage | panel$Functional
-    row_data <- data.frame(
-        condition=rep(md$condition, n_events),
-        sample_id=rep(md$sample_id, n_events),
-        cluster_id=cluster_ids)
-    col_data <- data.frame(
-        lineage=panel$Lineage[inds],
-        functional=panel$Functional[inds],
-        row.names=colnames(es))
-    metadata <- list(
-        md, 
-        panel=panel, 
-        n_events=n_events,
-        SOM_codes=codes,
-        cluster_codes=cluster_codes)
     new("daFrame", 
         SummarizedExperiment(
             assays=es,
-            rowData=row_data,
-            colData=col_data,
-            metadata=metadata))
+            rowData=data.frame(
+                condition=rep(md$condition, n_events),
+                sample_id=rep(md$sample_id, n_events)),
+            metadata=list(md, n_events=n_events)))
 }
 
 # validity
