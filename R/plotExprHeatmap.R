@@ -9,6 +9,7 @@
 #'
 #' @param x expression matrix.
 #' @param anno logical. Specifies whether to display values insinde each bin.
+#' @param color_by a character string that specifies the row annotation.
 #' @param palette a character string specifying the colors to interpolate.
 #' @param out_path a character string. If specified, 
 #' output will be generated in this location. Defaults to NULL.
@@ -32,13 +33,14 @@
 #' @importFrom dplyr funs group_by summarize_all
 #' @importFrom grDevices colorRampPalette
 #' @importFrom RColorBrewer brewer.pal
+#' @importFrom scales hue_pal
 #' @importFrom stats dist hclust
 #' @export
 # ==============================================================================
 
 setMethod(f="plotExprHeatmap", 
     signature=signature(x="daFrame"), 
-    definition=function(x, anno=TRUE, 
+    definition=function(x, anno=TRUE, color_by="condition",
         palette=brewer.pal(n=8, name="YlGnBu"), out_path=NULL) {
         
         es <- exprs(x)
@@ -53,12 +55,14 @@ setMethod(f="plotExprHeatmap",
         row_clustering <- stats::hclust(d, method="average")
         
         # row annotations
-        m <- match(rownames(med_exprs), md$sample_id)
-        cond_labs <- data.frame(condtion=md$condition[m],
+        conds <- grep("condition", colnames(md), value=TRUE)
+        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+        cond_labs <- data.frame(md[, conds], 
+            condition=conds_combined, 
             row.names=rownames(med_exprs))
-        levels(cond_labs) <- levels(md$condition)
-        row_anno <- Heatmap(
-            cond_labs, c("#F8766D", "#00BFC4"), "condition", 
+        
+        n <- length(unique(cond_labs[, color_by]))
+        row_anno <- Heatmap(cond_labs[, color_by], hue_pal()(n), color_by, 
             cluster_rows=row_clustering, show_row_names=FALSE, 
             rect_gp=gpar(col="white"), width=unit(.5, "cm"))
         
@@ -92,7 +96,7 @@ setMethod(f="plotExprHeatmap",
         
         if (!is.null(out_path)) {
             n <- ncol(med_exprs)
-            out_nm <- file.path(out_path, "clustering_heatmap.pdf")
+            out_nm <- file.path(out_path, "expr_heatmap.pdf")
             pdf(out_nm, width=n/2, height=6); draw(p); dev.off()
         } else {
             p

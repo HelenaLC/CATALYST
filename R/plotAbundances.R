@@ -35,16 +35,22 @@
 
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, by=c("sample_id", "cluster_id")) {
+    definition=function(x, k=20, group_by="condition", 
+        facette=c("sample_id", "cluster_id")) {
     
+        check_validity_of_k(x, k)
+        
         cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
         counts <- table(cluster_ids, sample_ids(x))
         df <- data.frame(t(t(counts)/colSums(counts))*100)
         colnames(df) <- c("cluster_id", "sample_id", "freq")
         md <- metadata(x)[[1]]
         m <- match(df$sample_id, md$sample_id)
-        df$condition <- factor(md$condition[m])
         df$patient_id <- factor(md$patient_id[m])
+        conds <- grep("condition", colnames(md), value=TRUE)
+        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+        df$condition <- factor(conds_combined[m])
+        df <- cbind(df, sapply(conds, function(i) md[, i][m]))
         
         p <- ggplot(df, aes_string(y="freq")) +
             labs(x=NULL, y="Proportion [%]") + theme_bw() + theme(
@@ -54,21 +60,19 @@ setMethod(f="plotAbundances",
                 axis.ticks.x=element_blank(),
                 axis.text=element_text(color="black"),
                 axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
-        switch(match.arg(by),
-            sample_id = p + facet_wrap(~condition, scales="free_x") +
+        switch(match.arg(facette),
+            sample_id = p + facet_wrap(group_by, scales="free_x") +
                 geom_bar(aes_string(x="sample_id", fill="cluster_id"), 
                     position="fill", stat="identity") +
                 scale_fill_manual(values=cluster_cols) +
                 scale_y_continuous(expand=c(0,0), labels=seq(0,100,25)) +
                 theme(panel.border=element_blank()),
-            cluster_id = p + facet_wrap(~cluster_id, scales="free", ncol=4) +
+            cluster_id = p + facet_wrap(~cluster_id, scales="free_y", ncol=4) +
                 guides(fill=FALSE) + geom_boxplot(aes_string(
-                    x="condition", color="condition", fill="condition"),
+                    x=group_by, color=group_by, fill=group_by),
                     position=position_dodge(), alpha=.25, outlier.color=NA) + 
                 geom_point(position=position_jitter(width=.25),
-                    aes_string(x="condition", y="freq", 
-                        color="condition", shape="patient_id")) +
-                scale_shape_manual(values=sample(nlevels(md$patient_id))) +
+                    aes_string(x=group_by, y="freq", color=group_by)) +
                 theme(panel.grid.major=element_line(color="grey", size=.25))
         )
     }

@@ -9,7 +9,7 @@
 plotClusterHeatmap(x, ...)
 
 \S4method{plotClusterHeatmap}{daFrame}(x, scaled = TRUE, k = 20, m = NULL,
-  functional = "all", out_path = NULL)
+  type2 = "all", out_path = NULL)
 }
 \arguments{
 \item{x}{expression matrix.}
@@ -24,11 +24,11 @@ median marker expressions should be computed.}
 
 \item{m}{specifies the second layer of clustering to be shown.}
 
-\item{functional}{a character vector or \code{"all"}. 
-Specifies for which functional markers heatmaps should be plotted.}
-
 \item{out_path}{a character string. If specified, 
 output will be generated in this location. Defaults to NULL.}
+
+\item{functional}{a character vector or \code{"all"}. 
+Specifies for which functional markers heatmaps should be plotted.}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.
