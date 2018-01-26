@@ -44,8 +44,7 @@ setMethod(f="plotCodes",
     definition=function(x, k=20, out_path=NULL, verbose=TRUE) {
         
         # validity check
-        if (as.integer(k) != k | k < 2 | k > 20) 
-            stop("k should be a value between 2 and 20.")
+        check_validity_of_k(x, k)
         
         codes <- metadata(x)$SOM_codes
         if (verbose) message("o running tSNE...")

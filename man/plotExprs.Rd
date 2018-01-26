@@ -8,12 +8,17 @@
 \usage{
 plotExprs(x, ...)
 
-\S4method{plotExprs}{daFrame}(x)
+\S4method{plotExprs}{daFrame}(x, color_by = "condition")
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
+
+\item{color_by}{a character string that appears as a column name in the
+metadata-table of the input \code{daFrame}. Specifies the color coding.
+In the case of multiple conditions, \code{"condition"} will color points
+according to each sample's combined conditions.}
 }
 \value{
 a \code{\link{ggplot}} object.
