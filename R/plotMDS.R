@@ -8,6 +8,10 @@
 #' Multi-dimensional scaling (MDS) plot on median marker expressions.
 #'
 #' @param x a \code{\link{daFrame}}.
+#' @param color_by a character string that appears as a column name in the
+#' metadata-table of the input \code{daFrame}. Specifies the color coding.
+#' In the case of multiple conditions, \code{"condition"} will color points
+#' according to each sample's combined conditions.
 #' 
 #' @return a \code{ggplot} object.
 #' 
@@ -32,22 +36,29 @@
 
 setMethod(f="plotMDS", 
     signature=signature(x="daFrame"), 
-    definition=function(x) {
+    definition=function(x, color_by="condition") {
+        
+        valid_cols <- colnames(rowData(x))
+        if (!color_by %in% c("condition", valid_cols)) {
+            txt <- dQuote(c(setdiff(valid_cols, "condition"), "condition"))
+            stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
+                "       Should be one of: ", paste(txt, collapse=", "))
+        }
         tibble <- data.frame(sample_id=sample_ids(x), exprs(x)) %>% 
             group_by(sample_id) %>% summarize_all(funs(median))
         med_es <- t(tibble[, -1])
         colnames(med_es) <- tibble$sample_id
         mds <- plotMDS(med_es, plot=FALSE)
         md <- metadata(x)[[1]]
-        df <- data.frame(MDS1=mds$x, MDS2=mds$y, 
-            sample_id=md$sample_id, 
-            condition=md$condition)
-        r <- diff(range(df$MDS2)) / diff(range(df$MDS1))
-        ggplot(df, aes_string(x="MDS1", y="MDS2", col="condition")) + 
+        conds <- grep("condition", colnames(md), value=TRUE)
+        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+        df <- data.frame(MDS1=mds$x, MDS2=mds$y, md, condition=conds_combined)
+      
+        ggplot(df, aes_string(x="MDS1", y="MDS2", col=color_by)) + 
             geom_label_repel(aes_string(label="sample_id"), 
-                show.legend=FALSE) + geom_point(size=10, alpha=.75) + 
+                show.legend=FALSE) + geom_point(alpha=.75) + 
             guides(col=guide_legend(overide.aes=list(alpha=1))) +
-            theme_void() + theme(aspect.ratio=r,
+            theme_void() + theme(aspect.ratio=1,
                 panel.grid.minor=element_blank(),
                 panel.grid.major=element_line(color='lightgrey', size=.25), 
                 axis.title=element_text(face='bold'),

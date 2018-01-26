@@ -31,12 +31,17 @@
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
-#' @import ggplot2
+#' @import ConsensusClusterPlus
+#' @importFrom flowCore flowFrame
+#' @importFrom FlowSOM BuildSOM ReadInput
 # ==============================================================================
 
 setMethod(f="cluster",
     signature=signature(x="daFrame"),
     definition=function(x, cols_to_use, facette=NULL) {
+        
+        # replace dash with underscore
+        cols_to_use <- gsub("-", "_", cols_to_use)
         
         # flowSOM clustering
         message("o running FlowSOM clustering...")
@@ -57,16 +62,17 @@ setMethod(f="cluster",
             dimnames=list(NULL, c(100, 2:20))), check.names=FALSE)
         for (k in seq_len(20)[-1])
             cluster_codes[, k] <- mc[[k]]$consensusClass
+        cluster_codes[, 1] <- seq_len(100)
         
         col_data <- data.frame(row.names=colnames(exprs(x)),
-            lineage=as.numeric(colnames(exprs(x)) %in% cols_to_use))
-        col_data$functional <- as.numeric(!col_data$lineage)
-        
-        cluster_codes[, 1] <- seq_len(100)
+            type1=as.numeric(colnames(exprs(x)) %in% cols_to_use))
+        col_data$type2 <- as.numeric(!col_data$type1)
+
         rowData(x)$cluster_id <- cluster_ids
-        colData(x) <- col_data
+        colData(x)$type1 <- col_data$type1
+        colData(x)$type2 <- col_data$type2
+        metadata(x)$SOM_codes <- codes
         metadata(x)$cluster_codes <- cluster_codes
-        
-        
+        return(x)
     }
 )

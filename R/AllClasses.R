@@ -120,22 +120,26 @@ setValidity(Class="dbFrame",
 #' Represents the data returned by and used throughout differential analysis.
 #' 
 #' @slot assays 
-#' list of length one containing cofactor 5 arcsinh-transformed expressions 
-#' of lineage and functional markers as specified in the metadata-table.
+#' list of length one containing the arcsinh-transformed expressions.
 #' @slot rowData 
-#' data.frame containing cluster codes (column \code{cluster_codes}) and IDs 
-#' (column \code{cluster_ids}) for the initial \code{\link{FlowSOM}}-clustering 
-#' (k=100), and \code{\link{ConsensusClusterPlus}} metaclustering (k=20-2).
+#' the metadata information for each event, and its cluster ID
+#' as inferred by the initial \code{\link{FlowSOM}} clustering.
 #' @slot colData 
-#' binary table indicating, for each antigen, 
-#' whether it is a lineage or functional marker.
+#' a data.frame with the following columns:\itemize{
+#' \item \code{channel} original column name in the input \code{flowSet}
+#' \item \code{type1}, \code{type2} logical vectors indicating, 
+#' for each antigen, whether it was used for clustering}
 #' @slot metadata 
-#' contains the original metadata- and panel-table, the number of events 
-#' measured per sample (\code{n_events}), a 100 x p matrix of SOM codes, 
-#' where n = no. of lineage + no. of functional markers
-#' 
-#' @details Objects of class \code{daFrame} 
-#' hold all data required for differential analysis:
+#' a named list containing:\itemize{
+#' \item the original metadata-table
+#' \item \code{panel}: the original panel-table
+#' \item \code{n_events}: the number of events measured per sample
+#' \item \code{SOM_codes}: a 100 x p matrix of SOM codes, 
+#' where p = no. of measurement parameters
+#' \item \code{cluster_codes}: cluster codes for the initial 
+#' \code{\link{FlowSOM}} clustering (column \code{'100'}), the 
+#' \code{\link{ConsensusClusterPlus}} metaclustering (columns \code{'2'} 
+#' through {'20'}, and mergings as labeled by \code{\link{mergeClusters}}}
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ConsensusClusterPlus Rtsne SummarizedExperiment
@@ -157,46 +161,45 @@ setClass(
 #' @param fs a \code{\link{flowSet}} holding all samples.
 #' @param panel a data.frame with the following columns:
 #' \itemize{
-#' \item \code{file_name}: the .fcs file name
+#' \item \code{file_name}: the FCS file name
 #' \item \code{sample_id}: a unique sample identifier
 #' \item \code{condition}: brief sample description (e.g. REF)
 #' \item \code{patient_id}: the patient ID}
 #' @param md a data.frame with the following columns:
 #' \itemize{
-#' \item \code{Metal} and \code{Isotope}: 
-#' symbol and atomic mass of the element conjugated to the antibody
-#' \item \code{Antigen}: the targeted protein marker
-#' \item \code{Lineage} and \code{Functional}: 0 or 1 to indicate 
-#' whether an antibody is a lineage or funcitonal marker}
-#' @param cols_to_use a logical vector OR numeric vector of indices OR
+#' \item \code{fcs_colname}: the marker's column name in the FCS file
+#' \item \code{Antigen}: the targeted protein marker}
+#' @param cols_to_use a logical vector OR numeric vector of indices OR 
 #' character vector. Specifies columns to keep from the input \code{flowSet}.
+#' @param cofactor cofactor to use for arcsinh-transformation.
 #' 
 #' @export
 
-daFrame <- function(fs, panel, md, cols_to_use) {
+daFrame <- function(fs, panel, md, cols_to_use, cofactor=5) {
     # replace problematic characters
-    pd <- pData(parameters(fs[[1]]))
-    pd$desc <- gsub("-", "_", pd$desc)
-    panel$Antigen <- gsub("-", "_", panel$Antigen)
+    antigens <- gsub("-", "_", panel$Antigen)[cols_to_use]
     
     # arcsinh-transformation & column subsetting
-    inds <- panel$Antigen[cols_to_use]
+    fs <- fs[, panel$fcs_colname][, cols_to_use]
+    channels <- colnames(fs)
     fs <- fsApply(fs, function(ff) {
-        flowCore::colnames(ff) <- pd$desc
-        flowCore::exprs(ff) <- asinh(exprs(ff[, inds])/5)
+        exprs(ff) <- asinh(exprs(ff)/cofactor)
         return(ff)
     })
     es <- fsApply(fs, exprs)
+    colnames(es) <- antigens
     n_events <- fsApply(fs, nrow)
     n_events <- setNames(as.numeric(n_events), md$sample_id)
 
     # construct SummarizedExperiment
+    conditions <- grep("condition", colnames(md), value=TRUE)
+    conditions <- sapply(conditions, function(i) rep(md[, i], n_events))
+    row_data <- data.frame(sample_id=rep(md$sample_id, n_events), conditions)
+    col_data <- data.frame(channel=channels, row.names=colnames(es))
+    
     new("daFrame", 
-        SummarizedExperiment(
-            assays=es,
-            rowData=data.frame(
-                condition=rep(md$condition, n_events),
-                sample_id=rep(md$sample_id, n_events)),
+        SummarizedExperiment(assays=es, 
+            rowData=row_data, colData=col_data, 
             metadata=list(md, n_events=n_events)))
 }
 

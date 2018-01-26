@@ -8,8 +8,8 @@
 \usage{
 plotAbundances(x, ...)
 
-\S4method{plotAbundances}{daFrame}(x, k = 20, by = c("sample_id",
-  "cluster_id"))
+\S4method{plotAbundances}{daFrame}(x, k = 20, group_by = "condition",
+  facette = c("sample_id", "cluster_id"))
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}

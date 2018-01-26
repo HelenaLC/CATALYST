@@ -49,7 +49,10 @@
 setMethod(f="plotClusterHeatmap", 
     signature=signature(x="daFrame"), 
     definition=function(x, scaled=TRUE, k=20, m=NULL, 
-        functional="all", out_path=NULL) {
+        type2="all", out_path=NULL) {
+        
+        check_validity_of_k(x, k)
+        check_validity_of_k(x, m)
         
         k <- as.character(k)
         if (!is.null(m)) 
@@ -58,6 +61,11 @@ setMethod(f="plotClusterHeatmap",
         # scale expressions for visualization
         es <- exprs(x)
         es0 <- scale_exprs(es)
+        
+        # extract markers used/not used for clustering
+        antigens <- colnames(es)
+        t1 <- antigens[as.logical(colData(x)$type1)]
+        t2 <- antigens[as.logical(colData(x)$type2)]
 
         cluster_ids <- metadata(x)$cluster_codes[, k][cluster_ids(x)]
         n_clusters <- nlevels(factor(cluster_ids))
@@ -68,7 +76,7 @@ setMethod(f="plotClusterHeatmap",
             group_by(cluster_id) %>% summarize_all(funs(median))
         
         # cluster based on markers used for clustering
-        d <- stats::dist(med_exprs[, lineage(x)], method="euclidean")
+        d <- stats::dist(med_exprs[, t1], method="euclidean")
         row_clustering <- hclust(d, method="average")
         
         # row labels and heatmap annotations
@@ -91,10 +99,11 @@ setMethod(f="plotClusterHeatmap",
                 row_dend_reorder=FALSE, width=unit(.5, "cm"))
         }
         
-        # heatmap for lineage markers
+        # heatmap for type1 markers
         hm_cols <- colorRampPalette(rev(brewer.pal(9, "RdYlBu")))(100)
+        if (scaled) hm_exprs <- med_exprs_scaled else hm_exprs <- med_exprs
         hm_l <- Heatmap(
-            matrix=med_exprs_scaled[, lineage(x)], hm_cols, "expression", 
+            matrix=hm_exprs[, t1], hm_cols, "expression", 
             column_title="Lineage markers", column_names_gp=gpar(fontsize=8),
             cluster_rows=row_clustering, cluster_columns=FALSE,
             heatmap_legend_param=list(color_bar="continuous"))
@@ -112,12 +121,12 @@ setMethod(f="plotClusterHeatmap",
         
         p <- merging_anno + heat_anno + hm_l + freq_bars + freq_anno
         
-        # heatmaps for functional markers
-        df <- data.frame(es0[, functional(x)], 
+        # heatmaps for type2 markers
+        df <- data.frame(es0[, t2], 
             sample_id=sample_ids(x), cluster_id=cluster_ids) %>%
             group_by(sample_id, cluster_id) %>% summarise_all(funs(median))
-        if (functional == "all") f <- functional(x) else f <- functional
-        for (i in f) {
+        if (type2 == "all") type2 <- t2 else type2 <- type2
+        for (i in type2) {
             mat <- dcast(df[, c("sample_id", "cluster_id", i)], 
                 cluster_id~sample_id, value.var=i)[, -1]
             p <- p + Heatmap(mat, hm_cols, show_heatmap_legend=FALSE,

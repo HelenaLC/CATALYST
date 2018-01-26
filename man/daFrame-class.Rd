@@ -6,49 +6,54 @@
 \alias{daFrame}
 \title{Differential analysis frame class}
 \usage{
-daFrame(fs, panel, md)
+daFrame(fs, panel, md, cols_to_use, cofactor = 5)
 }
 \arguments{
 \item{fs}{a \code{\link{flowSet}} holding all samples.}
 
 \item{panel}{a data.frame with the following columns:
 \itemize{
-\item \code{file_name}: the .fcs file name
+\item \code{file_name}: the FCS file name
 \item \code{sample_id}: a unique sample identifier
 \item \code{condition}: brief sample description (e.g. REF)
 \item \code{patient_id}: the patient ID}}
 
 \item{md}{a data.frame with the following columns:
 \itemize{
-\item \code{Metal} and \code{Isotope}: 
-symbol and atomic mass of the element conjugated to the antibody
-\item \code{Antigen}: the targeted protein marker
-\item \code{Lineage} and \code{Functional}: 0 or 1 to indicate 
-whether an antibody is a lineage or funcitonal marker}}
+\item \code{fcs_colname}: the marker's column name in the FCS file
+\item \code{Antigen}: the targeted protein marker}}
+
+\item{cols_to_use}{a logical vector OR numeric vector of indices OR 
+character vector. Specifies columns to keep from the input \code{flowSet}.}
+
+\item{cofactor}{cofactor to use for arcsinh-transformation.}
 }
 \description{
 Represents the data returned by and used throughout differential analysis.
 }
-\details{
-Objects of class \code{daFrame} 
-hold all data required for differential analysis:
-}
 \section{Slots}{
 
 \describe{
-\item{\code{assays}}{list of length one containing cofactor 5 arcsinh-transformed expressions 
-of lineage and functional markers as specified in the metadata-table.}
+\item{\code{assays}}{list of length one containing the arcsinh-transformed expressions.}
 
-\item{\code{rowData}}{data.frame containing cluster codes (column \code{cluster_codes}) and IDs 
-(column \code{cluster_ids}) for the initial \code{\link{FlowSOM}}-clustering 
-(k=100), and \code{\link{ConsensusClusterPlus}} metaclustering (k=20-2).}
+\item{\code{rowData}}{the metadata information for each event, and its cluster ID
+as inferred by the initial \code{\link{FlowSOM}} clustering.}
 
-\item{\code{colData}}{binary table indicating, for each antigen, 
-whether it is a lineage or functional marker.}
+\item{\code{colData}}{a data.frame with the following columns:\itemize{
+\item \code{channel} original column name in the input \code{flowSet}
+\item \code{type1}, \code{type2} logical vectors indicating, 
+for each antigen, whether it was used for clustering}}
 
-\item{\code{metadata}}{contains the original metadata- and panel-table, the number of events 
-measured per sample (\code{n_events}), a 100 x p matrix of SOM codes, 
-where n = no. of lineage + no. of functional markers}
+\item{\code{metadata}}{a named list containing:\itemize{
+\item the original metadata-table
+\item \code{panel}: the original panel-table
+\item \code{n_events}: the number of events measured per sample
+\item \code{SOM_codes}: a 100 x p matrix of SOM codes, 
+where p = no. of measurement parameters
+\item \code{cluster_codes}: cluster codes for the initial 
+\code{\link{FlowSOM}} clustering (column \code{'100'}), the 
+\code{\link{ConsensusClusterPlus}} metaclustering (columns \code{'2'} 
+through {'20'}, and mergings as labeled by \code{\link{mergeClusters}}}}
 }}
 
 \author{

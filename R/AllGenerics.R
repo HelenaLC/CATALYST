@@ -278,6 +278,13 @@ setGeneric(name="plotExprHeatmap",
     package="CATALYST",
     def=function(x, ...) standardGeneric("plotExprHeatmap"))
 
+#' @rdname cluster
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="cluster", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("cluster"))
+
 #' @rdname plotClusterHeatmap
 #' @param ... optional arguments.
 #' @export

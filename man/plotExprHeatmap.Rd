@@ -8,8 +8,8 @@
 \usage{
 plotExprHeatmap(x, ...)
 
-\S4method{plotExprHeatmap}{daFrame}(x, anno = TRUE, palette = brewer.pal(n =
-  8, name = "YlGnBu"), out_path = NULL)
+\S4method{plotExprHeatmap}{daFrame}(x, anno = TRUE, color_by = "condition",
+  palette = brewer.pal(n = 8, name = "YlGnBu"), out_path = NULL)
 }
 \arguments{
 \item{x}{expression matrix.}
@@ -17,6 +17,8 @@ plotExprHeatmap(x, ...)
 \item{...}{optional arguments.}
 
 \item{anno}{logical. Specifies whether to display values insinde each bin.}
+
+\item{color_by}{a character string that specifies the row annotation.}
 
 \item{palette}{a character string specifying the colors to interpolate.}
 

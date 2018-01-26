@@ -7,6 +7,10 @@
 #' @description Plots non-redundancy scores (NRS) in decreasing order.
 #'
 #' @param x a \code{\link{daFrame}}
+#' @param color_by a character string that appears as a column name in the
+#' metadata-table of the input \code{daFrame}. Specifies the color coding.
+#' In the case of multiple conditions, \code{"condition"} will color points
+#' according to each sample's combined conditions.
 #' 
 #' @return a \code{ggplot} object.
 #' 
@@ -29,8 +33,14 @@
 
 setMethod(f="plotNRS", 
     signature=signature(x="daFrame"), 
-    definition=function(x) {
+    definition=function(x, color_by="condition") {
         
+        valid_cols <- colnames(rowData(x))
+        if (!color_by %in% c("condition", valid_cols)) {
+            txt <- dQuote(c(setdiff(valid_cols, "condition"), "condition"))
+            stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
+                "       Should be one of: ", paste(txt, collapse=", "))
+        }
         md <- metadata(x)[[1]]
         sample_ids <- md$sample_id
         
@@ -44,19 +54,24 @@ setMethod(f="plotNRS",
         o <- names(sort(mean_scores, decreasing=TRUE))
         scores <- data.frame(scores)
         scores$sample_id <- sample_ids
-        
         df <- melt(scores, id.var="sample_id", 
             variable.name="antigen", value.name="NRS") 
         df$antigen <- factor(df$antigen, levels=o)
+        
         m <- match(df$sample_id, sample_ids)
-        df$condition <- md$condition[m]
+        md <- metadata(x)[[1]]
+        conds <- grep("condition", colnames(md), value=TRUE)
+        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+        for (i in seq_along(conds))
+            df[, conds[i]] <- md[, conds[i]][m]
+        df$condition <- conds_combined[m]
         
         ggplot(df, aes_string(x="antigen", y="NRS")) +
-            geom_point(aes_string(color="condition"), size=2.5, alpha=.75,
+            geom_point(aes_string(color=color_by), alpha=.75,
                 position=position_jitter(width=.25, height=0)) +
             guides(color=guide_legend(override.aes=list(alpha=1))) +
             stat_summary(fun.y="mean", geom="point", 
-                fill="white", size=3, shape=21) +
+                fill="white", size=2, shape=21) +
             geom_boxplot(width=.75, fill=NA, outlier.color=NA) +
             theme_classic() + theme(
                 panel.grid.major=element_line(color="lightgrey", size=.25),

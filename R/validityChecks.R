@@ -51,3 +51,24 @@ check_validity_which <- function(which, ids, fct) {
     }
     as.character(which)
 }
+
+# ==============================================================================
+# Validity check for clustering 'k': should be...
+#       - a numeric that accesses the FlowSOM clustering (100),
+#         or ConsensusClusterPlus metaclustering (2, ..., 20)
+#       - a character string that matches with a 'label' specifying
+#         a merging done with 'mergeClusters'
+# ------------------------------------------------------------------------------
+check_validity_of_k <- function(x, k) {
+    available_clusterings <- colnames(metadata(x)$cluster_codes)
+    if (!as.character(k) %in% available_clusterings) {
+        if (is.numeric(k)) {
+            txt <- k 
+        } else {
+            txt <- dQuote(k)
+        }
+        stop("Clustering 'k = ", txt, "' doesnt't exist. ", 
+            "Should be one of\n  ", paste(c(100, 2:20, dQuote(setdiff(
+                available_clusterings, c(2:20, 100)))), collapse=", "))
+    }
+}
