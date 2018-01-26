@@ -8,12 +8,20 @@
 \usage{
 plotCounts(x, ...)
 
-\S4method{plotCounts}{daFrame}(x)
+\S4method{plotCounts}{daFrame}(x, color_by = "condition")
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
+
+\item{color_by}{a character string that appears as a column name in the
+metadata-table of the input \code{daFrame}. Specifies the color coding.
+In the case of multiple conditions, \code{"condition"} will color points
+according to each sample's combined conditions.}
+
+\item{out_path}{a character string. If specified, 
+output will be generated in this location. Defaults to NULL.}
 }
 \value{
 a \code{\link{ggplot}} object.

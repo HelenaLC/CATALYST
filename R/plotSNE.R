@@ -37,26 +37,30 @@
 setMethod(f="plotSNE",
     signature=signature(x="daFrame"),
     definition=function(x, color=20, facette=NULL) {
+        
         # check validity of 'color' argument
         color <- as.character(color)
-        if (!color %in% c(colnames(exprs(x)),
-            colnames(metadata(x)$cluster_codes))) 
-            stop("'color' should be either a numeric value between 2 and 20,
-                a character string specifying a merging to use,\n", 
-                "or a character string that corresponds to a lineage marker.")
+        if (!color %in% colnames(exprs(x)))
+            check_validity_of_k(x, color)
         # check validity of 'facette' argument
-        if (!is.null(facette) && !facette %in% c("sample", "condition"))
-            stop("'facette' should be either NULL,",
-                " \"sample\" or \"condition\".")
+        if (!is.null(facette) && !facette %in% colnames(rowData(x)))
+            stop("'facette' should be either NULL, or one of\n",
+                paste(dQuote(colnames(rowData(x))), collapse=", "))
         
         tsne_inds <- metadata(x)$tsne_inds
         tsne <- metadata(x)$tsne
         
         df <- data.frame(
             exprs(x)[tsne_inds, ],
-            tSNE1=tsne$Y[, 1], tSNE2=tsne$Y[, 2],
-            sample_id=sample_ids(x)[tsne_inds],
-            condition=rowData(x)$condition[tsne_inds])
+            rowData(x)[tsne_inds, ],
+            tSNE1=tsne$Y[, 1], tSNE2=tsne$Y[, 2])
+        
+        md <- metadata(x)[[1]]
+        m <- match(df$sample_id, md$sample_id)
+        conds <- grep("condition", colnames(md), value=TRUE)
+        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+        df$condition <- factor(conds_combined[m])
+
         p <- ggplot(df, aes_string(x="tSNE1", y="tSNE2")) +
             theme_void() + theme(aspect.ratio=1,
                 panel.grid.minor=element_blank(),
@@ -69,9 +73,9 @@ setMethod(f="plotSNE",
             p <- p + geom_point(size=.75, aes_string(color=color)) +
                 scale_color_gradientn(color, colors=pal)
         } else {
-            cluster_ids <- cluster_ids(x)[tsne_inds]
-            df$cluster_id <- factor(cluster_codes(x)[, color][cluster_ids])
-            cols <- cluster_cols[seq_len(nlevels(df$cluster_id))]
+            cluster_ids <- cluster_codes(x)[, color][cluster_ids(x)][tsne_inds]
+            df$cluster_id <- factor(cluster_ids)
+            cols <- cluster_cols[seq_along(unique(df$cluster_id))]
             names(cols) <- levels(cols)
             if (length(cols) > 10) n_col <- 2 else n_col <- 1
             p <- p + geom_point(data=df, size=.75, 
@@ -81,10 +85,8 @@ setMethod(f="plotSNE",
         }
         if (is.null(facette)) {
             p
-        } else if (facette == "sample") {
-            p + facet_wrap(~sample_id)
-        } else if (facette == "condition") {
-            p + facet_wrap(~condition)
+        } else {
+            p + facet_wrap(facette)
         }
     }
 )
