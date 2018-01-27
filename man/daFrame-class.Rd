@@ -6,7 +6,7 @@
 \alias{daFrame}
 \title{Differential analysis frame class}
 \usage{
-daFrame(fs, panel, md, cols_to_use, cofactor = 5)
+daFrame(fs, panel, md, cols_to_use = NULL, cofactor = 5)
 }
 \arguments{
 \item{fs}{a \code{\link{flowSet}} holding all samples.}
@@ -21,10 +21,10 @@ daFrame(fs, panel, md, cols_to_use, cofactor = 5)
 \item{md}{a data.frame with the following columns:
 \itemize{
 \item \code{fcs_colname}: the marker's column name in the FCS file
-\item \code{Antigen}: the targeted protein marker}}
+\item \code{antigen}: the targeted protein marker}}
 
-\item{cols_to_use}{a logical vector OR numeric vector of indices OR 
-character vector. Specifies columns to keep from the input \code{flowSet}.}
+\item{cols_to_use}{a logical vector OR numeric vector of indices.
+Specifies columns to keep from the input \code{flowSet}.}
 
 \item{cofactor}{cofactor to use for arcsinh-transformation.}
 }
