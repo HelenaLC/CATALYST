@@ -168,26 +168,33 @@ setClass(
 #' @param md a data.frame with the following columns:
 #' \itemize{
 #' \item \code{fcs_colname}: the marker's column name in the FCS file
-#' \item \code{Antigen}: the targeted protein marker}
-#' @param cols_to_use a logical vector OR numeric vector of indices OR 
-#' character vector. Specifies columns to keep from the input \code{flowSet}.
+#' \item \code{antigen}: the targeted protein marker}
+#' @param cols_to_use a logical vector OR numeric vector of indices.
+#' Specifies columns to keep from the input \code{flowSet}.
 #' @param cofactor cofactor to use for arcsinh-transformation.
 #' 
 #' @export
 
-daFrame <- function(fs, panel, md, cols_to_use, cofactor=5) {
+daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5) {
+    
+    # use all columns if 'cols_to_use' unspecified
+    if (is.null(cols_to_use))
+        cols_to_use <- seq_along(flowCore::colnames(fs))
+    
     # replace problematic characters
-    antigens <- gsub("-", "_", panel$Antigen)[cols_to_use]
+    antigens <- gsub("-", "_", panel$antigen)
     
     # arcsinh-transformation & column subsetting
-    fs <- fs[, panel$fcs_colname][, cols_to_use]
-    channels <- colnames(fs)
+    fs <- fs[, cols_to_use]
     fs <- fsApply(fs, function(ff) {
-        exprs(ff) <- asinh(exprs(ff)/cofactor)
+        flowCore::exprs(ff) <- asinh(exprs(ff)/cofactor)
         return(ff)
     })
+    chs <- flowCore::colnames(fs)
+    m1 <- match(panel$fcs_colname, flowCore::colnames(fs), nomatch=0)
+    m2 <- match(flowCore::colnames(fs), panel$fcs_colname)
+    flowCore::colnames(fs)[m1] <- antigens[m2]
     es <- fsApply(fs, exprs)
-    colnames(es) <- antigens
     n_events <- fsApply(fs, nrow)
     n_events <- setNames(as.numeric(n_events), md$sample_id)
 
@@ -195,7 +202,7 @@ daFrame <- function(fs, panel, md, cols_to_use, cofactor=5) {
     conditions <- grep("condition", colnames(md), value=TRUE)
     conditions <- sapply(conditions, function(i) rep(md[, i], n_events))
     row_data <- data.frame(sample_id=rep(md$sample_id, n_events), conditions)
-    col_data <- data.frame(channel=channels, row.names=colnames(es))
+    col_data <- data.frame(channel=chs, row.names=colnames(es))
     
     new("daFrame", 
         SummarizedExperiment(assays=es, 
