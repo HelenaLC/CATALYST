@@ -23,6 +23,9 @@ according to each sample's combined conditions.}
 \value{
 a \code{\link{ggplot}} object.
 }
+\description{
+Plots the smoothed densities of arcsinh-transformed marker intensities.
+}
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)

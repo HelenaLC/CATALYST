@@ -5,18 +5,24 @@
 #' @rdname plotAbundances
 #' @title Population frequencies across samples & clusters
 #' 
-#' @description
+#' @description 
+#' Plots the relative population abundances of the specified clustering.
 #'
 #' @param x a \code{\link{daFrame}}.
 #' @param k specifies which clustering to use.
 #' @param by a character string specifying whether 
 #' to plot frequencies across samples or clusters.
+#' @param group_by a character string.
 #' 
 #' @return a \code{ggplot} object.
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' # run clustering
+#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+#'     "CD123", "CD14", "IgM", "HLA-DR", "CD7")
+#' re <- cluster(re, cols_to_use=lineage)
 #' # plot relative population abundances 
 #' plotAbundances(re, k=12)                 # ...across samples 
 #' plotAbundances(re, k=8, by="cluster_id") # ...across clusters
@@ -35,8 +41,8 @@
 
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, group_by="condition", 
-        facette=c("sample_id", "cluster_id")) {
+    definition=function(x, k=20, 
+        by=c("sample_id", "cluster_id"), group_by="condition") {
     
         check_validity_of_k(x, k)
         
@@ -48,9 +54,11 @@ setMethod(f="plotAbundances",
         m <- match(df$sample_id, md$sample_id)
         df$patient_id <- factor(md$patient_id[m])
         conds <- grep("condition", colnames(md), value=TRUE)
-        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
-        df$condition <- factor(conds_combined[m])
         df <- cbind(df, sapply(conds, function(i) md[, i][m]))
+        if (length(conds) > 1) {
+            conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+            df$condition <- factor(conds_combined[m])
+        }
         
         p <- ggplot(df, aes_string(y="freq")) +
             labs(x=NULL, y="Proportion [%]") + theme_bw() + theme(
@@ -60,7 +68,7 @@ setMethod(f="plotAbundances",
                 axis.ticks.x=element_blank(),
                 axis.text=element_text(color="black"),
                 axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
-        switch(match.arg(facette),
+        switch(match.arg(by),
             sample_id = p + facet_wrap(group_by, scales="free_x") +
                 geom_bar(aes_string(x="sample_id", fill="cluster_id"), 
                     position="fill", stat="identity") +

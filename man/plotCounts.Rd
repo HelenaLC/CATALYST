@@ -19,9 +19,6 @@ plotCounts(x, ...)
 metadata-table of the input \code{daFrame}. Specifies the color coding.
 In the case of multiple conditions, \code{"condition"} will color points
 according to each sample's combined conditions.}
-
-\item{out_path}{a character string. If specified, 
-output will be generated in this location. Defaults to NULL.}
 }
 \value{
 a \code{\link{ggplot}} object.

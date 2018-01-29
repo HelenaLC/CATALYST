@@ -44,15 +44,23 @@ setMethod(f="plotMDS",
             stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
                 "       Should be one of: ", paste(txt, collapse=", "))
         }
+        # compute medians across samples
         tibble <- data.frame(sample_id=sample_ids(x), exprs(x)) %>% 
-            group_by(sample_id) %>% summarize_all(funs(median))
+                group_by(sample_id) %>% summarize_all(funs(median))
         med_es <- t(tibble[, -1])
         colnames(med_es) <- tibble$sample_id
+        # get MDS coordinates
         mds <- plotMDS(med_es, plot=FALSE)
+        df <- data.frame(MDS1=mds$x, MDS2=mds$y)
+        # add metadata information
         md <- metadata(x)[[1]]
+        m <- match(rownames(df), md$sample_id)
+        df <- data.frame(df, md[m, ])
         conds <- grep("condition", colnames(md), value=TRUE)
-        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
-        df <- data.frame(MDS1=mds$x, MDS2=mds$y, md, condition=conds_combined)
+        if (length(conds) > 1) {
+            conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+            df$condition <- factor(conds_combined)[m]
+        }
       
         ggplot(df, aes_string(x="MDS1", y="MDS2", col=color_by)) + 
             geom_label_repel(aes_string(label="sample_id"), 
