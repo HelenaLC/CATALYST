@@ -4,6 +4,9 @@
 
 #' @rdname plotExprs
 #' @title Smoothed densities of marker expression
+#' 
+#' @description 
+#' Plots the smoothed densities of arcsinh-transformed marker intensities.
 #'
 #' @param x a \code{\link{daFrame}}.
 #' @param color_by a character string that appears as a column name in the
@@ -36,16 +39,14 @@ setMethod(f="plotExprs",
         df <- data.frame(exprs(x), rowData(x))
         md <- metadata(x)[[1]]
         conds <- grep("condition", colnames(md), value=TRUE)
-        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
-        df$condition <- rep(conds_combined, metadata(x)$n_events)
+        if (length(conds) > 1) {
+            conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+            df$condition <- rep(conds_combined, metadata(x)$n_events)
+        }
         df <- melt(df, variable.name="antigen", value.name="expression",
             id.var=c(setdiff(colnames(rowData(x)), "condition"), "condition"))
-        n <- length(unique(df$condition))
-        m <- length(unique(df[, conds[1]]))
-        cols <- cluster_cols[c(seq(1, n, m), seq(2, n, m))]
         ggplot(df, aes_string(x="expression", 
             col=color_by, group="sample_id"), fill=NULL) + 
-            scale_color_manual(values=cols) +
             facet_wrap(~antigen, ncol=5, scales="free") +
             geom_density() + theme_classic() + theme(
                 panel.grid=element_blank(), 

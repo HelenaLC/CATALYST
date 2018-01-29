@@ -8,8 +8,8 @@
 \usage{
 plotAbundances(x, ...)
 
-\S4method{plotAbundances}{daFrame}(x, k = 20, group_by = "condition",
-  facette = c("sample_id", "cluster_id"))
+\S4method{plotAbundances}{daFrame}(x, k = 20, by = c("sample_id",
+  "cluster_id"), group_by = "condition")
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -20,16 +20,22 @@ plotAbundances(x, ...)
 
 \item{by}{a character string specifying whether 
 to plot frequencies across samples or clusters.}
+
+\item{group_by}{a character string.}
 }
 \value{
 a \code{ggplot} object.
 }
 \description{
-
+Plots the relative population abundances of the specified clustering.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+# run clustering
+lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+    "CD123", "CD14", "IgM", "HLA-DR", "CD7")
+re <- cluster(re, cols_to_use=lineage)
 # plot relative population abundances 
 plotAbundances(re, k=12)                 # ...across samples 
 plotAbundances(re, k=8, by="cluster_id") # ...across clusters

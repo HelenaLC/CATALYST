@@ -212,27 +212,27 @@ setGeneric(name="compCytof",
 # ------------------------------------------------------------------------------
 #' @rdname daFrame-methods
 #' @export
-setGeneric(name="lineage", 
+setGeneric(name="n_events", 
     package="CATALYST", 
-    def=function(x) standardGeneric("lineage"))
+    def=function(x) standardGeneric("n_events"))
 
 #' @rdname daFrame-methods
 #' @export
-setGeneric(name="functional",      
+setGeneric(name="type1", 
     package="CATALYST", 
-    def=function(x) standardGeneric("functional"))
+    def=function(x) standardGeneric("type1"))
+
+#' @rdname daFrame-methods
+#' @export
+setGeneric(name="type2",      
+    package="CATALYST", 
+    def=function(x) standardGeneric("type2"))
 
 #' @rdname daFrame-methods
 #' @export
 setGeneric(name="sample_ids", 
     package="CATALYST", 
     def=function(x) standardGeneric("sample_ids"))
-
-#' @rdname daFrame-methods
-#' @export
-setGeneric(name="conditions", 
-    package="CATALYST", 
-    def=function(x) standardGeneric("conditions"))
 
 #' @rdname daFrame-methods
 #' @export
@@ -339,7 +339,7 @@ setGeneric(name="plotSNE",
 #' @export
 setGeneric(name="mergeClusters", 
     package="CATALYST",
-    def=function(x, table, label) standardGeneric("mergeClusters"))
+    def=function(x, table, id) standardGeneric("mergeClusters"))
 
 #' @rdname plotAbundances
 #' @param ... optional arguments.

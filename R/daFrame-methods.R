@@ -9,8 +9,22 @@
 #' sample_ids cluster_ids merging_codes merging_ids
 #' 
 #' @description
-#' Methods for replacing and accessing slots in a \code{\link{daFrame}}.
+#' Methods for accessing slots in a \code{\link{daFrame}}.
 #' @return
+#' \describe{
+#' \item{\code{exprs}}{extracts the arcsinh-transformed expressions.}
+#' \item{\code{n_events}}{extracts the number of events measured per sample.}
+#' \item{\code{type1}}{extracts the antigens used for clustering.}
+#' \item{\code{type2}}{extracts antigens that were not used for clustering.}
+#' \item{\code{sample_ids}}{extracts the sample IDs 
+#' as specified in the metadata-table.}
+#' \item{\code{cluster_ids}}{extracts the numeric vector of cluster IDs
+#' as inferred by \code{\link{FlowSOM}}.}
+#' \item{\code{cluster_codes}}{extracts a \code{data.frame} containing 
+#' cluster codes for the \code{\link{FlowSOM}} clustering, 
+#' the \code{\link{ConsensusClusterPlus}} metaclustering, 
+#' and all mergings done through \code{\link{mergeClusters}}.}
+#' }
 #' 
 #' @param x,object a \code{\link{daFrame}}.
 #' 
@@ -29,20 +43,19 @@ setMethod(f="exprs",
     definition=function(object) return(unlist(assays(object))))
 
 #' @rdname daFrame-methods
-setMethod(f="lineage",      
-    signature="daFrame", 
-    definition=function(x) return(colnames(x)[as.logical(x$lineage)]))
-
-#' @rdname daFrame-methods
-setMethod(f="functional",      
+setMethod(f="n_events",
     signature="daFrame",
-    definition=function(x) return(colnames(x)[as.logical(x$functional)])) 
+    definition=function(x) return(metadata(x)$n_events))
 
 #' @rdname daFrame-methods
-#' @importFrom BiocGenerics conditions
-setMethod(f="conditions",      
+setMethod(f="type1",      
     signature="daFrame", 
-    definition=function(x) return(rowData(x)$conditions))
+    definition=function(x) return(colnames(x)[colData(x)$type1]))
+
+#' @rdname daFrame-methods
+setMethod(f="type2",      
+    signature="daFrame",
+    definition=function(x) return(colnames(x)[colData(x)$type2]))
 
 #' @rdname daFrame-methods
 setMethod(f="sample_ids",  
