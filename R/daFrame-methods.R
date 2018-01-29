@@ -50,12 +50,12 @@ setMethod(f="n_events",
 #' @rdname daFrame-methods
 setMethod(f="type1",      
     signature="daFrame", 
-    definition=function(x) return(colnames(x)[colData(x)$type1]))
+    definition=function(x) return(colnames(x)[as.logical(colData(x)$type1)]))
 
 #' @rdname daFrame-methods
 setMethod(f="type2",      
     signature="daFrame",
-    definition=function(x) return(colnames(x)[colData(x)$type2]))
+    definition=function(x) return(colnames(x)[as.logical(colData(x)$type2)]))
 
 #' @rdname daFrame-methods
 setMethod(f="sample_ids",  
