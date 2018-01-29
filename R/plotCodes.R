@@ -35,6 +35,7 @@
 #' 
 #' @import ggplot2 Rtsne
 #' @importFrom dplyr funs group_by summarize_all
+#' @importFrom grDevices png
 #' @importFrom gridExtra arrangeGrob grid.arrange
 #' @importFrom stats prcomp
 # ==============================================================================

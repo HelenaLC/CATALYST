@@ -54,7 +54,8 @@ setMethod(f="diffAbundance",
             data <- data.frame(
                 counts=as.numeric(counts[i, md$sample_id]),
                 total=n_events[md$sample_id], md)
-            fit <- lme4::glmer(formula, data, family=binomial, weights=total)
+            fit <- lme4::glmer(formula, data, 
+                family="binomial", weights=data$total)
             # fit contrasts one by one
             p_val <- apply(K, 1, function(k) {
                 contr <- multcomp::glht(fit, linfct=matrix(k, 1)) 

@@ -24,11 +24,11 @@ median marker expressions should be computed.}
 
 \item{m}{specifies the second layer of clustering to be shown.}
 
+\item{type2}{a character vector or \code{"all"}. 
+Specifies for which type 2 markers heatmaps should be plotted.}
+
 \item{out_path}{a character string. If specified, 
 output will be generated in this location. Defaults to NULL.}
-
-\item{functional}{a character vector or \code{"all"}. 
-Specifies for which functional markers heatmaps should be plotted.}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.
@@ -45,7 +45,15 @@ boundaries. Hierarchical clustering is performed on the unscaled data.
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-plotClusterHeatmap(re, k=20, m=12, functional="pNFkB")
+
+# run clustering
+lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
+re <- cluster(re, cols_to_use=lineage)
+
+# get type2 markers
+functional <- colnames(re)[as.logical(colData(re)$type2)]
+plotClusterHeatmap(re, k=20, m=12, type2="pNFkB")
 
 }
 \references{

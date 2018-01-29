@@ -14,8 +14,8 @@
 #' @param k specifies the clustering across which 
 #' median marker expressions should be computed.
 #' @param m specifies the second layer of clustering to be shown. 
-#' @param functional a character vector or \code{"all"}. 
-#' Specifies for which functional markers heatmaps should be plotted.
+#' @param type2 a character vector or \code{"all"}. 
+#' Specifies for which type 2 markers heatmaps should be plotted.
 #' @param out_path a character string. If specified, 
 #' output will be generated in this location. Defaults to NULL.
 #' 
@@ -28,7 +28,15 @@
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' plotClusterHeatmap(re, k=20, m=12, functional="pNFkB")
+#' 
+#' # run clustering
+#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+#'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
+#' re <- cluster(re, cols_to_use=lineage)
+#' 
+#' # get type2 markers
+#' functional <- colnames(re)[as.logical(colData(re)$type2)]
+#' plotClusterHeatmap(re, k=20, m=12, type2="pNFkB")
 #' 
 #' @author
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
@@ -52,31 +60,23 @@ setMethod(f="plotClusterHeatmap",
         type2="all", out_path=NULL) {
         
         check_validity_of_k(x, k)
-        check_validity_of_k(x, m)
-        
         k <- as.character(k)
-        if (!is.null(m)) 
+        if (!is.null(m)) {
+            check_validity_of_k(x, m)
             m <- as.character(m)
+        }
         
         # scale expressions for visualization
         es <- exprs(x)
-        es0 <- scale_exprs(es)
-        
-        # extract markers used/not used for clustering
-        antigens <- colnames(es)
-        t1 <- antigens[as.logical(colData(x)$type1)]
-        t2 <- antigens[as.logical(colData(x)$type2)]
 
         cluster_ids <- metadata(x)$cluster_codes[, k][cluster_ids(x)]
         n_clusters <- nlevels(factor(cluster_ids))
         # compute medians across clusters
         med_exprs <- data.frame(es, cluster_id=cluster_ids) %>%
             group_by(cluster_id) %>% summarize_all(funs(median))
-        med_exprs_scaled <- data.frame(es0, cluster_id=cluster_ids) %>%
-            group_by(cluster_id) %>% summarize_all(funs(median))
         
         # cluster based on markers used for clustering
-        d <- stats::dist(med_exprs[, t1], method="euclidean")
+        d <- stats::dist(med_exprs[, type1(x)], method="euclidean")
         row_clustering <- hclust(d, method="average")
         
         # row labels and heatmap annotations
@@ -101,9 +101,16 @@ setMethod(f="plotClusterHeatmap",
         
         # heatmap for type1 markers
         hm_cols <- colorRampPalette(rev(brewer.pal(9, "RdYlBu")))(100)
-        if (scaled) hm_exprs <- med_exprs_scaled else hm_exprs <- med_exprs
+        if (scaled) {
+            es0 <- scale_exprs(es)
+            med_exprs_scaled <- data.frame(es0, cluster_id=cluster_ids) %>%
+                group_by(cluster_id) %>% summarize_all(funs(median))
+            hm_exprs <- med_exprs_scaled 
+        } else {
+            hm_exprs <- med_exprs
+        }
         hm_l <- Heatmap(
-            matrix=hm_exprs[, t1], hm_cols, "expression", 
+            matrix=hm_exprs[, type1(x)], hm_cols, "expression", 
             column_title="Lineage markers", column_names_gp=gpar(fontsize=8),
             cluster_rows=row_clustering, cluster_columns=FALSE,
             heatmap_legend_param=list(color_bar="continuous"))
@@ -122,10 +129,10 @@ setMethod(f="plotClusterHeatmap",
         p <- merging_anno + heat_anno + hm_l + freq_bars + freq_anno
         
         # heatmaps for type2 markers
-        df <- data.frame(es0[, t2], 
+        df <- data.frame(hm_exprs[, type2(x)], 
             sample_id=sample_ids(x), cluster_id=cluster_ids) %>%
             group_by(sample_id, cluster_id) %>% summarise_all(funs(median))
-        if (type2 == "all") type2 <- t2 else type2 <- type2
+        if (type2 == "all") type2 <- type2(x) else type2 <- type2
         for (i in type2) {
             mat <- dcast(df[, c("sample_id", "cluster_id", i)], 
                 cluster_id~sample_id, value.var=i)[, -1]

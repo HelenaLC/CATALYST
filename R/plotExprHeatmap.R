@@ -55,11 +55,13 @@ setMethod(f="plotExprHeatmap",
         row_clustering <- stats::hclust(d, method="average")
         
         # row annotations
+        m <- match(rownames(med_exprs), md$sample_id)
         conds <- grep("condition", colnames(md), value=TRUE)
-        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
-        cond_labs <- data.frame(md[, conds], 
-            condition=conds_combined, 
-            row.names=rownames(med_exprs))
+        cond_labs <- data.frame(md[m, conds], row.names=rownames(med_exprs))
+        if (length(conds) > 1) {
+            conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+            cond_labs$condition <- conds_combined[m]
+        }
         
         n <- length(unique(cond_labs[, color_by]))
         row_anno <- Heatmap(cond_labs[, color_by], hue_pal()(n), color_by, 

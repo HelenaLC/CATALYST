@@ -4,7 +4,7 @@
 \name{cluster}
 \alias{cluster}
 \alias{cluster,daFrame-method}
-\title{MDS plot}
+\title{FlowSOM clustering and ConsensusClusterPlus metaclustering}
 \usage{
 cluster(x, ...)
 
@@ -15,25 +15,38 @@ cluster(x, ...)
 
 \item{...}{optional arguments.}
 
+\item{cols_to_use}{a character vector.
+Specifies which antigens to use for clustering.}
+
 \item{facette}{one of \code{NULL}, \code{"sample_id"} or \code{"condition"}.
 Specifies whether the data should be split between sample IDs or conditions,
 respectively. Defaults to NULL.}
-
-\item{color}{numeric value between 2 and 20 OR a character string specifying
-an antibody that appears in the metadata table of the input \code{daFrame}.
-Specifies the color coding.}
 }
 \value{
 a \code{ggplot} object.
 }
 \description{
-Multi-dimensional scaling (MDS) plot on median marker expressions.
+\code{CATALYST::cluster()} runs \code{\link{FlowSOM}} clustering into 100,
+and \code{\link{ConsensusClusterPlus}} metaclustering into 2-20 clusters. 
+In the returned \code{daFrame}, those antigens used for clustering will be 
+labelled as 'type1', and the remainder of antigens as 'type2'. A binary 
+indication of each marker's type can be viewed via \code{colData(daFrame)}. 
+Differential analysis should be performed on type2 markers exclusively.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-re <- tSNE(re)
-plotSNE(re, "CD4")
+
+# specify antigens to use for clustering
+lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
+(re <- cluster(re, cols_to_use=lineage))
+
+# sanity check
+all.equal(lineage, type1(re))
+
+# get type2 markers for differential analysis
+type2(re)
 
 }
 \references{
