@@ -146,6 +146,7 @@ setValidity(Class="dbFrame",
 #' @importFrom flowCore colnames exprs fsApply parameters pData
 #' @importFrom FlowSOM BuildSOM ReadInput
 #' @importFrom methods new
+#' @importFrom S4Vectors DataFrame SimpleList
 #' @export
 
 # ------------------------------------------------------------------------------
@@ -179,7 +180,7 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5) {
     
     # use all columns if 'cols_to_use' unspecified
     if (is.null(cols_to_use))
-        cols_to_use <- seq_along(flowCore::colnames(fs))
+        cols_to_use <- flowCore::colnames(fs)
     
     # replace problematic characters
     antigens <- gsub("-", "_", panel$antigen)
@@ -194,15 +195,16 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5) {
     m1 <- match(panel$fcs_colname, flowCore::colnames(fs), nomatch=0)
     m2 <- match(flowCore::colnames(fs), panel$fcs_colname)
     flowCore::colnames(fs)[m1] <- antigens[m2]
-    es <- fsApply(fs, exprs)
+    es <- matrix(fsApply(fs, exprs), ncol=length(chs),
+        dimnames=list(NULL, flowCore::colnames(fs)))
     n_events <- fsApply(fs, nrow)
     n_events <- setNames(as.numeric(n_events), md$sample_id)
 
     # construct SummarizedExperiment
     conditions <- grep("condition", colnames(md), value=TRUE)
     conditions <- sapply(conditions, function(i) rep(md[, i], n_events))
-    row_data <- data.frame(sample_id=rep(md$sample_id, n_events), conditions)
-    col_data <- data.frame(channel=chs, row.names=colnames(es))
+    row_data <- DataFrame(sample_id=rep(md$sample_id, n_events), conditions)
+    col_data <- DataFrame(channel=chs, row.names=colnames(es))
     
     new("daFrame", 
         SummarizedExperiment(assays=es, 

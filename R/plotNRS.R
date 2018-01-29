@@ -59,12 +59,13 @@ setMethod(f="plotNRS",
         df$antigen <- factor(df$antigen, levels=o)
         
         m <- match(df$sample_id, sample_ids)
-        md <- metadata(x)[[1]]
         conds <- grep("condition", colnames(md), value=TRUE)
-        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
         for (i in seq_along(conds))
-            df[, conds[i]] <- md[, conds[i]][m]
-        df$condition <- conds_combined[m]
+            df[, conds[i]] <- md[m, conds[i]]
+        if (length(conds) > 1) {
+            conds_combined <- apply(md[, conds], 1, paste, collapse="/")
+            df$condition <- conds_combined[m]
+        } 
         
         ggplot(df, aes_string(x="antigen", y="NRS")) +
             geom_point(aes_string(color=color_by), alpha=.75,

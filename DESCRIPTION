@@ -38,6 +38,7 @@ Imports:
     reshape2,
     Rtsne,
     S4Vectors,
+    scales,
     shiny, 
     shinydashboard, 
     shinyjs, 
