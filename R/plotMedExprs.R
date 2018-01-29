@@ -15,10 +15,16 @@
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
+#' # plot median expressions
+#' plotMedExprs(re)
+#' 
 #' # run clustering
 #' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
 #'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
 #' re <- cluster(re, cols_to_use=lineage)
+#' 
+#' # plot median expressions across clusters
+#' plotMedExprs(re, facette="cluster_id", k=8)
 #' 
 #' @author
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
@@ -29,68 +35,65 @@
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @importFrom dplyr group_by summarize_all
-#' @importFrom reshape2 dcast melt
+#' @importFrom reshape2 melt
 # ==============================================================================
 
 setMethod(f="plotMedExprs", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, type2="all", color_by="condition") {
+    definition=function(x, k=20, 
+        facette=c("antigen", "cluster_id"), color_by="condition") {
 
-        check_validity_of_k(x, k)
+        facette <- match.arg(facette)
         
-        if (type2 == "all") t2 <- type2(x) else t2 <- type2
-        cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
-        df <- data.frame(exprs(x)[, t2],
-            sample_id=sample_ids(x), 
-            cluster_id=cluster_ids)
-        colnames(df)[seq_len(length(t2))] <- t2
-
-        # compute medians across samples & clusters
-        med_exprs <- df %>% 
-            group_by(sample_id, cluster_id) %>% 
-            summarize_all(funs(median))
-        med_exprs <- melt(med_exprs, 
-            id.vars=c("sample_id", "cluster_id"),
-            variable.name="antigen", 
-            value.name="med_expr")
+        style <- list(ylab("median expression"),
+            guides(color=guide_legend(override.aes=list(alpha=1))),
+            geom_point(alpha=.75, 
+                position=position_jitter(width=.25, height=0)),
+            geom_boxplot(alpha=.5, width=.75, fill=NA, outlier.color=NA),
+            theme_bw(), theme(
+                axis.text=element_text(color="black"),
+                panel.grid.minor=element_blank(),
+                panel.grid.major=element_line(color="lightgrey", size=.25),
+                strip.background=element_rect(fill="grey90", color=NA)))
         
+        if (facette == "antigen") {
+            med_exprs <- data.frame(exprs(x), sample_id=sample_ids(x)) %>% 
+                group_by(sample_id) %>% summarize_all(funs(median))
+            med_exprs <- melt(med_exprs, id.vars=c("sample_id"),
+                variable.name="antigen", value.name="med_expr")
+        } else{
+            check_validity_of_k(x, k)
+            cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
+            # compute medians across samples & clusters
+            med_exprs <- data.frame(exprs(x)[, type2(x)], 
+                sample_id=sample_ids(x), cluster_id=cluster_ids) %>% 
+                group_by(sample_id, cluster_id) %>% summarize_all(funs(median))
+            med_exprs <- melt(med_exprs, id.vars=c("sample_id", "cluster_id"),
+                variable.name="antigen", value.name="med_expr")
+        }
         # get conditions
         md <- metadata(x)[[1]]
         m <- match(med_exprs$sample_id, md$sample_id)
         conds <- grep("condition", colnames(md), value=TRUE)
-        for (i in seq_along(conds))
-            med_exprs[, conds[i]] <- md[m, conds[i]]
+        conds_df <- cbind(sapply(conds, function(i) factor(md[m, i])))
+        med_exprs <- data.frame(med_exprs, conds_df)
         if (length(conds) > 1) {
             conds_combined <- apply(md[, conds], 1, paste, collapse="/")
             med_exprs$condition <- conds_combined[m]
-        } 
-
-        ggplot(med_exprs, aes_string(x="antigen", y="med_expr", col=color_by)) +
-            facet_wrap(facets="cluster_id", scale="free_y") +
-            geom_point(alpha=.5, 
-                position=position_jitter(width=.25, height=0)) +
-            geom_boxplot(width=.75, fill=NA, outlier.color=NA) +
-            stat_summary(fun.y="mean", geom="point", 
-                fill="white", size=2.5, shape=21) +
-            guides(color=guide_legend(override.aes=list(alpha=1))) +
-            ylab("median expression") + theme_classic() + theme(
-                panel.grid.major=element_line(color="lightgrey", size=.25),
-                strip.background=element_rect(fill=NA, color=NA),
-                axis.text=element_text(color="black"),
-                axis.text.x=element_text(angle=90, vjust=.5, hjust=1))        
+        }
         
-        ggplot(med_exprs, aes_string(x="cluster_id", y="med_expr", col=color_by)) +
-            facet_wrap(facets="antigen", scale="free_y") +
-            geom_point(alpha=.5, 
-                position=position_jitter(width=.25, height=0)) +
-            geom_boxplot(width=.75, fill=NA, outlier.color=NA) +
-            stat_summary(fun.y="mean", geom="point", 
-                fill="white", size=2.5, shape=21) +
-            guides(color=guide_legend(override.aes=list(alpha=1))) +
-            ylab("Median expression") + theme_classic() + theme(
-                panel.grid.major=element_line(color="lightgrey", size=.25),
-                strip.background=element_rect(fill=NA, color=NA),
-                axis.text=element_text(color="black"),
-                axis.text.x=element_text(angle=90, vjust=.5, hjust=1))
+        if (facette == "antigen") {
+            ggplot(med_exprs, 
+                aes_string(x=color_by, y="med_expr", col=color_by)) +
+                stat_summary(fun.y="mean", geom="point", size=2.5, shape=21) +
+                facet_wrap(facets="antigen", scale="free_y") + style + theme(
+                axis.text.x=element_blank(), axis.ticks.x=element_blank())
+        } else {
+            ggplot(med_exprs, 
+                aes_string(x="antigen", y="med_expr", col=color_by)) +
+                facet_wrap(facets="cluster_id", scale="free_y") + style + 
+                theme(axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
+        }
     }
 )
+        
