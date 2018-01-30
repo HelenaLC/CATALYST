@@ -15,9 +15,10 @@
 #' @param x a \code{\link{daFrame}}.
 #' @param cols_to_use a character vector.
 #' Specifies which antigens to use for clustering.
-#' @param facette one of \code{NULL}, \code{"sample_id"} or \code{"condition"}.
-#' Specifies whether the data should be split between sample IDs or conditions,
-#' respectively. Defaults to NULL.
+#' @param xdim,ydim numerical values specifying the grid size of the
+#' self-orginizing map. The default 10x10 grid will yield 100 clusters. 
+#' @param maxK numerical value. Specifies the maximum 
+#' number of clusters to evaluate in the metaclustering.
 #' 
 #' @return a \code{ggplot} object.
 #' 
@@ -51,7 +52,7 @@
 
 setMethod(f="cluster",
     signature=signature(x="daFrame"),
-    definition=function(x, cols_to_use, facette=NULL) {
+    definition=function(x, cols_to_use, xdim=10, ydim=10, maxK=20) {
         
         # replace dash with underscore
         cols_to_use <- gsub("-", "_", cols_to_use)
@@ -59,7 +60,8 @@ setMethod(f="cluster",
         # flowSOM clustering
         message("o running FlowSOM clustering...")
         fsom <- ReadInput(flowFrame(exprs(x)))
-        som <- BuildSOM(fsom, colsToUse=cols_to_use, silent=TRUE)
+        som <- BuildSOM(fsom, colsToUse=cols_to_use, 
+            silent=TRUE, xdim=xdim, ydim=ydim)
         codes <- som$map$codes
         cluster_ids <- som$map$mapping[, 1]
         
@@ -67,15 +69,16 @@ setMethod(f="cluster",
         message("o running ConsensusClusterPlus metaclustering...")
         pdf(NULL)
         mc <- suppressMessages(ConsensusClusterPlus(t(codes), 
-            maxK=20, reps=100, distance="euclidean", plot="pdf"))
+            maxK=maxK, reps=100, distance="euclidean", plot="pdf"))
         dev.off()
 
         # get cluster codes
-        cluster_codes <- data.frame(matrix(0, 100, 20, 
-            dimnames=list(NULL, c(100, 2:20))), check.names=FALSE)
-        for (k in seq_len(20)[-1])
-            cluster_codes[, k] <- mc[[k]]$consensusClass
-        cluster_codes[, 1] <- seq_len(100)
+        k <- xdim * ydim
+        cluster_codes <- data.frame(matrix(0, k, maxK, 
+            dimnames=list(NULL, c(k, 2:maxK))), check.names=FALSE)
+        for (i in seq_len(maxK)[-1])
+            cluster_codes[, i] <- mc[[i]]$consensusClass
+        cluster_codes[, 1] <- seq_len(k)
         
         col_data <- data.frame(row.names=colnames(exprs(x)),
             type1=as.numeric(colnames(exprs(x)) %in% cols_to_use))
