@@ -16,7 +16,7 @@ o newly available functions:
 	- plotExprs 	      smoothed densities of marker expression
 	- plotMDS 	      multi-dimensional scaling (MDS) plot
 	- plotNRS 	      box plot of non-redundancy scores (NRS)
-	- plotCodes 	      tSNE and PCA on 100 SOM codes
+	- plotCodes 	      tSNE and PCA on SOM codes
 	- plotProportions     relative cluster abundances across samples
 	- tSNE 	      	      runs tSNE on object of class daFrame
 	- plotSNE 	      tSNE plot color coded by expression or cluster ID

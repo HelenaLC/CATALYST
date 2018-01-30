@@ -1,18 +1,17 @@
 # ==============================================================================
-# tSNE and PCA plot on 100 SOM codes
+# tSNE and PCA plot on SOM codes
 # ------------------------------------------------------------------------------
 #' @rdname plotCodes
-#' @title tSNE and PCA plot on 100 SOM codes
+#' @title tSNE and PCA plot on the SOM codes
 #' 
 #' @description
-#' Plots the tSNE and PCA representing 100 SOM codes as inferred by 
+#' Plots the tSNE and PCA representing the SOM codes as inferred by 
 #' \code{\link{FlowSOM}}. Sizes are scaled to the total number of events 
 #' assigned to each cluster, and points are color according to their cluster ID 
 #' upon \code{\link{ConsensusClusterPlus}} metaclustering to \code{k} clusters.
 #'
 #' @param x a \code{\link{daFrame}}.
-#' @param k numeric value between 2 and 20 specifying 
-#' the number of metaclusters used for color coding.
+#' @param k specifies the clustering to use for color coding.
 #' @param out_path a character string. If specified, 
 #' output will be generated in this location. Defaults to NULL.
 #' @param verbose logical specifying whether information 

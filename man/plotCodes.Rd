@@ -4,7 +4,7 @@
 \name{plotCodes}
 \alias{plotCodes}
 \alias{plotCodes,daFrame-method}
-\title{tSNE and PCA plot on 100 SOM codes}
+\title{tSNE and PCA plot on the SOM codes}
 \usage{
 plotCodes(x, ...)
 
@@ -15,8 +15,7 @@ plotCodes(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{k}{numeric value between 2 and 20 specifying 
-the number of metaclusters used for color coding.}
+\item{k}{specifies the clustering to use for color coding.}
 
 \item{out_path}{a character string. If specified, 
 output will be generated in this location. Defaults to NULL.}
@@ -28,7 +27,7 @@ on progress should be reported. Defaults to TRUE.}
 \code{ggplot} object.
 }
 \description{
-Plots the tSNE and PCA representing 100 SOM codes as inferred by 
+Plots the tSNE and PCA representing the SOM codes as inferred by 
 \code{\link{FlowSOM}}. Sizes are scaled to the total number of events 
 assigned to each cluster, and points are color according to their cluster ID 
 upon \code{\link{ConsensusClusterPlus}} metaclustering to \code{k} clusters.
