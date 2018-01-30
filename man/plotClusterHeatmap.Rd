@@ -9,7 +9,7 @@
 plotClusterHeatmap(x, ...)
 
 \S4method{plotClusterHeatmap}{daFrame}(x, scaled = TRUE, k = 20, m = NULL,
-  type2 = "all", out_path = NULL)
+  type2 = "abundances", out_path = NULL)
 }
 \arguments{
 \item{x}{expression matrix.}
@@ -51,6 +51,7 @@ lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33",
     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
 re <- cluster(re, cols_to_use=lineage)
 
+plotClusterHeatmap(re, k=20, type2="abundances")
 plotClusterHeatmap(re, k=20, m=12, type2="pS6")
 
 }

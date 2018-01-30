@@ -34,6 +34,7 @@
 #'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
 #' re <- cluster(re, cols_to_use=lineage)
 #' 
+#' plotClusterHeatmap(re, k=20, type2="abundances")
 #' plotClusterHeatmap(re, k=20, m=12, type2="pS6")
 #' 
 #' @author
@@ -55,14 +56,19 @@
 setMethod(f="plotClusterHeatmap", 
     signature=signature(x="daFrame"), 
     definition=function(x, scaled=TRUE, k=20, m=NULL, 
-        type2="all", out_path=NULL) {
+        type2="abundances", out_path=NULL) {
         
         check_validity_of_k(x, k)
+        if (!type2 %in% c("abundances", "all", type2(x)))
+            stop("Invalid argument 'type2'. Should be one of\n",
+                paste(dQuote(c("abundances", "all", type2(x))), collapse=", "))
+        
         k <- as.character(k)
         if (!is.null(m)) {
             check_validity_of_k(x, m)
             m <- as.character(m)
         }
+        
         es <- exprs(x)
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
         n_clusters <- length(unique(cluster_codes(x)[, k]))
@@ -125,18 +131,31 @@ setMethod(f="plotClusterHeatmap",
         
         p <- merging_anno + heat_anno + hm_l + freq_bars + freq_anno
         
-        # heatmaps for type2 markers
-        df <- data.frame(hm2_exprs[, type2(x)],
-            sample_id=sample_ids(x), cluster_id=cluster_ids) %>%
-            group_by(sample_id, cluster_id) %>% summarise_all(funs(median))
-        if (type2 == "all") t2 <- type2(x) else t2 <- type2
-        for (i in t2) {
-            mat <- dcast(hm2_exprs[, c("sample_id", "cluster_id", i)], 
-                cluster_id~sample_id, value.var=i)[, -1]
-            p <- p + Heatmap(mat, hm_cols, show_heatmap_legend=FALSE,
-                column_title=i, column_names_gp=gpar(fontsize=8), 
-                cluster_rows=row_clustering, cluster_columns=FALSE)
+        if (type2 == "abundances") {
+            # get relative abundances
+            counts <- as.data.frame.matrix(table(cluster_ids, sample_ids(x)))
+            n_events <- colSums(counts)
+            freqs <- t(t(counts) / n_events)
+            p <- p + Heatmap(freqs, 
+                rev(brewer.pal(11, "PuOr")[2:10]), "frequency",
+                show_row_names=FALSE, column_names_gp=gpar(fontsize=8), 
+                cluster_rows=row_clustering, cluster_columns=FALSE,
+                heatmap_legend_param=list(color_bar="continuous"))
+        } else {
+            # heatmaps for type2 markers
+            df <- data.frame(hm2_exprs[, type2(x)],
+                sample_id=sample_ids(x), cluster_id=cluster_ids) %>%
+                group_by(sample_id, cluster_id) %>% summarise_all(funs(median))
+            if (type2 == "all") t2 <- type2(x) else t2 <- type2
+            for (i in t2) {
+                mat <- dcast(df[, c("sample_id", "cluster_id", i)], 
+                    cluster_id~sample_id, value.var=i)[, -1]
+                p <- p + Heatmap(mat, hm_cols, show_heatmap_legend=FALSE,
+                    column_title=i, column_names_gp=gpar(fontsize=8), 
+                    cluster_rows=row_clustering, cluster_columns=FALSE)
+            }
         }
+        
         if (!is.null(out_path)) {
             out_nm <- file.path(out_path, "clustering_heatmap.pdf")
             pdf(out_nm, width=36, height=6); draw(p); dev.off()

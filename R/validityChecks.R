@@ -67,8 +67,10 @@ check_validity_of_k <- function(x, k) {
         } else {
             txt <- dQuote(k)
         }
+        ks <- suppressWarnings(as.numeric(colnames(cluster_codes(x))))
+        ks <- ks[!is.na(ks)]
         stop("Clustering 'k = ", txt, "' doesnt't exist. ", 
-            "Should be one of\n  ", paste(c(100, 2:20, dQuote(setdiff(
-                available_clusterings, c(2:20, 100)))), collapse=", "))
+            "Should be one of\n  ", paste(c(ks, dQuote(setdiff(
+                available_clusterings, ks))), collapse=", "))
     }
 }

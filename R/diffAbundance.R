@@ -44,8 +44,8 @@ setMethod(f="diffAbundance",
         md <- metadata(x)[[1]]
         cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
         counts <- as.data.frame.matrix(table(cluster_ids, sample_ids(x)))
-        freqs <- t(t(counts) / colSums(counts))
         n_events <- colSums(counts)
+        freqs <- t(t(counts) / n_events)
         
         # fit GLMM for ea. cluster
         n_clusters <- nrow(counts)
