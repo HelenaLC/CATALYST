@@ -8,7 +8,8 @@
 \usage{
 cluster(x, ...)
 
-\S4method{cluster}{daFrame}(x, cols_to_use, facette = NULL)
+\S4method{cluster}{daFrame}(x, cols_to_use, xdim = 10, ydim = 10,
+  maxK = 20)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -18,9 +19,11 @@ cluster(x, ...)
 \item{cols_to_use}{a character vector.
 Specifies which antigens to use for clustering.}
 
-\item{facette}{one of \code{NULL}, \code{"sample_id"} or \code{"condition"}.
-Specifies whether the data should be split between sample IDs or conditions,
-respectively. Defaults to NULL.}
+\item{xdim, ydim}{numerical values specifying the grid size of the
+self-orginizing map. The default 10x10 grid will yield 100 clusters.}
+
+\item{maxK}{numerical value. Specifies the maximum 
+number of clusters to evaluate in the metaclustering.}
 }
 \value{
 a \code{ggplot} object.
