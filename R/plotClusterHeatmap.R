@@ -131,7 +131,7 @@ setMethod(f="plotClusterHeatmap",
             group_by(sample_id, cluster_id) %>% summarise_all(funs(median))
         if (type2 == "all") t2 <- type2(x) else t2 <- type2
         for (i in t2) {
-            mat <- dcast(hm_exprs[, c("sample_id", "cluster_id", i)], 
+            mat <- dcast(hm2_exprs[, c("sample_id", "cluster_id", i)], 
                 cluster_id~sample_id, value.var=i)[, -1]
             p <- p + Heatmap(mat, hm_cols, show_heatmap_legend=FALSE,
                 column_title=i, column_names_gp=gpar(fontsize=8), 

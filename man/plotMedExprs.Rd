@@ -8,12 +8,23 @@
 \usage{
 plotMedExprs(x, ...)
 
-\S4method{plotMedExprs}{daFrame}(x, k = 20)
+\S4method{plotMedExprs}{daFrame}(x, k = 20, facette = c("antigen",
+  "cluster_id"), group_by = "condition")
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
+
+\item{k}{a numeric or charactering specifying the clustering to use.
+If \code{facette = "antigen"} this argument will be ignored.}
+
+\item{facette}{character string \code{"antigen"} or \code{"cluster_id"}. 
+Note that the latter requires having run \code{\link{cluster}} first.}
+
+\item{group_by}{character string specifying the condition samples should be 
+grouped by. If there are multiple conditions specified in the metadata-table,
+\code{"condition"} will group samples according to their combined conditions.}
 }
 \value{
 a \code{ggplot} object.
@@ -26,10 +37,16 @@ computed on arcsinh-transformed intensities.
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
+# plot median expressions
+plotMedExprs(re)
+
 # run clustering
 lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
 re <- cluster(re, cols_to_use=lineage)
+
+# plot median expressions across clusters
+plotMedExprs(re, facette="cluster_id", k=8)
 
 }
 \references{
