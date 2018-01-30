@@ -8,6 +8,13 @@
 #' computed on arcsinh-transformed intensities.
 #'
 #' @param x a \code{\link{daFrame}}.
+#' @param k a numeric or charactering specifying the clustering to use.
+#' If \code{facette = "antigen"} this argument will be ignored.
+#' @param facette character string \code{"antigen"} or \code{"cluster_id"}. 
+#' Note that the latter requires having run \code{\link{cluster}} first.
+#' @param group_by character string specifying the condition samples should be 
+#' grouped by. If there are multiple conditions specified in the metadata-table,
+#' \code{"condition"} will group samples according to their combined conditions.
 #' 
 #' @return a \code{ggplot} object.
 #' 
@@ -41,7 +48,7 @@
 setMethod(f="plotMedExprs", 
     signature=signature(x="daFrame"), 
     definition=function(x, k=20, 
-        facette=c("antigen", "cluster_id"), color_by="condition") {
+        facette=c("antigen", "cluster_id"), group_by="condition") {
 
         facette <- match.arg(facette)
         
@@ -84,13 +91,13 @@ setMethod(f="plotMedExprs",
         
         if (facette == "antigen") {
             ggplot(med_exprs, 
-                aes_string(x=color_by, y="med_expr", col=color_by)) +
+                aes_string(x=group_by, y="med_expr", col=group_by)) +
                 stat_summary(fun.y="mean", geom="point", size=2.5, shape=21) +
                 facet_wrap(facets="antigen", scale="free_y") + style + theme(
                 axis.text.x=element_blank(), axis.ticks.x=element_blank())
         } else {
             ggplot(med_exprs, 
-                aes_string(x="antigen", y="med_expr", col=color_by)) +
+                aes_string(x="antigen", y="med_expr", col=group_by)) +
                 facet_wrap(facets="cluster_id", scale="free_y") + style + 
                 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
         }

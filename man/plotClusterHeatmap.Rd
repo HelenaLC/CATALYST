@@ -51,9 +51,7 @@ lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33",
     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
 re <- cluster(re, cols_to_use=lineage)
 
-# get type2 markers
-functional <- colnames(re)[as.logical(colData(re)$type2)]
-plotClusterHeatmap(re, k=20, m=12, type2="pNFkB")
+plotClusterHeatmap(re, k=20, m=12, type2="pS6")
 
 }
 \references{
