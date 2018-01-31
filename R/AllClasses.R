@@ -162,41 +162,52 @@ setClass(
 #' @param fs a \code{\link{flowSet}} holding all samples.
 #' @param panel a data.frame with the following columns:
 #' \itemize{
+#' \item \code{fcs_colname}: the marker's column name in the FCS file
+#' \item \code{antigen}: the targeted protein marker}
+#' @param md a data.frame with columns describing the experiment (experimental condition, batch, sample identifiers, etc.)
+#' \itemize{
 #' \item \code{file_name}: the FCS file name
 #' \item \code{sample_id}: a unique sample identifier
 #' \item \code{condition}: brief sample description (e.g. REF)
 #' \item \code{patient_id}: the patient ID}
-#' @param md a data.frame with the following columns:
-#' \itemize{
-#' \item \code{fcs_colname}: the marker's column name in the FCS file
-#' \item \code{antigen}: the targeted protein marker}
-#' @param cols_to_use a logical vector OR numeric vector of indices.
-#' Specifies columns to keep from the input \code{flowSet}.
+#' 
+#' 
+#' @param cols_to_use a logical vector OR numeric vector of indices OR character vector of column names.
+#' Specifies the columns to keep from the input \code{flowSet}.
 #' @param cofactor cofactor to use for arcsinh-transformation.
 #' 
 #' @export
 
-daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5) {
+daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5, 
+                    exprs_colname="fcs_colname",
+                    antigen_colname="antigen") {
     
-    # use all columns if 'cols_to_use' unspecified
+    # set/check colnames of panel 
+    chs <- flowCore::colnames(fs)
     if (is.null(cols_to_use))
-        cols_to_use <- flowCore::colnames(fs)
+        cols_to_use <- chs
+    print(cols_to_use)
+    check_validity_columns(cols_to_use, chs)
     
     # replace problematic characters
-    antigens <- gsub("-", "_", panel$antigen)
+    check_validity_columns(exprs_colname, colnames(panel))
+    check_validity_columns(antigen_colname, colnames(panel))
+    antigens <- gsub("-", "_", panel[[antigen_colname]])
     
     # arcsinh-transformation & column subsetting
     fs <- fs[, cols_to_use]
     fs <- fsApply(fs, function(ff) {
         flowCore::exprs(ff) <- asinh(exprs(ff)/cofactor)
-        return(ff)
+        ff
     })
+    
     chs <- flowCore::colnames(fs)
-    m1 <- match(panel$fcs_colname, flowCore::colnames(fs), nomatch=0)
-    m2 <- match(flowCore::colnames(fs), panel$fcs_colname)
+    m1 <- match(panel[[exprs_colname]], chs, nomatch=0)
+    m2 <- match(chs, panel[[exprs_colname]])
     flowCore::colnames(fs)[m1] <- antigens[m2]
-    es <- matrix(fsApply(fs, exprs), ncol=length(chs),
-        dimnames=list(NULL, flowCore::colnames(fs)))
+    es <- matrix(fsApply(fs, exprs), 
+                 ncol=length(chs),
+                 dimnames=list(NULL, flowCore::colnames(fs)))
     n_events <- fsApply(fs, nrow)
     n_events <- setNames(as.numeric(n_events), md$sample_id)
 
@@ -209,7 +220,7 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5) {
     new("daFrame", 
         SummarizedExperiment(assays=es, 
             rowData=row_data, colData=col_data, 
-            metadata=list(md, n_events=n_events)))
+            metadata=list(design=md, n_events=n_events)))
 }
 
 # validity
