@@ -89,8 +89,8 @@ setMethod(f="plotExprHeatmap",
         }
         if (anno) {
             hm <- hm(cell_fun=function(j,i,x,y,...){
-                grid.text(gp=gpar(fontsize=8), 
-                    sprintf("%.2f", med_exprs[i,j]),x,y)})
+                grid.text(gp=gpar(fontsize=8),
+                          sprintf("%.2f", med_exprs[i,j]),x,y)})
         } else {
             hm <- hm(NULL)
         }

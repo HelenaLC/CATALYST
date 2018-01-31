@@ -210,7 +210,6 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
                  dimnames=list(NULL, flowCore::colnames(fs)))
     n_events <- fsApply(fs, nrow)
     n_events <- setNames(as.numeric(n_events), md$sample_id)
-    print(n_events)
 
     # construct SummarizedExperiment
     conditions <- grep("condition", colnames(md), value=TRUE)
