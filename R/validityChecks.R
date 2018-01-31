@@ -74,3 +74,26 @@ check_validity_of_k <- function(x, k) {
                 available_clusterings, ks))), collapse=", "))
     }
 }
+
+
+
+# ==============================================================================
+# Validity check for columns (used for cols_to_use): should be...
+#        - a logical vector
+#        - numeric vector of indices
+#        - character vector of column names
+# ------------------------------------------------------------------------------
+check_validity_columns <- function(x, col_names) {
+    ncol <- length(col_names)
+    
+    check1 <- is.logical(x) & length(x)==ncol
+    check2 <- all(x %in% col_names)
+    check3 <- FALSE
+    if(is.integer(x))
+        check3 <- min(x>=1) & max(x <= ncol)
+
+    #if( !(check1 | check2 | check3) )
+    ## could add more resolution here    
+    stopifnot( check1 | check2 | check3 )
+}
+
