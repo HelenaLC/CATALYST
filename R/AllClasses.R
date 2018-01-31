@@ -186,7 +186,6 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
     chs <- flowCore::colnames(fs)
     if (is.null(cols_to_use))
         cols_to_use <- chs
-    print(cols_to_use)
     check_validity_columns(cols_to_use, chs)
     
     # replace problematic characters
@@ -201,6 +200,7 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
         ff
     })
     
+    md <- data.frame(md)
     chs <- flowCore::colnames(fs)
     m1 <- match(panel[[exprs_colname]], chs, nomatch=0)
     m2 <- match(chs, panel[[exprs_colname]])
@@ -210,6 +210,7 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
                  dimnames=list(NULL, flowCore::colnames(fs)))
     n_events <- fsApply(fs, nrow)
     n_events <- setNames(as.numeric(n_events), md$sample_id)
+    print(n_events)
 
     # construct SummarizedExperiment
     conditions <- grep("condition", colnames(md), value=TRUE)
