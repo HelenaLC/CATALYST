@@ -9,13 +9,21 @@
 #' and median functional marker expressions within each cluster across samples.
 #'
 #' @param x expression matrix.
-#' @param scaled logical specifying whether scaled values should be plotted
-#' (see below for details).
+#' @param hm2 a character string that specifies the right-hand side heatmap. 
+#' Depending on the argument, the output will be as follows:
+#' \itemize{
+#' \item \code{"abundances"}: cluster frequencies across samples
+#' \item \code{"type2"}: median type 2 marker expressions across clusters 
+#' (analogous to the left-hand side heatmap)
+#' \item a character string/vector corresponding to one/multiple marker(s): 
+#' median marker expressions across samples and clusters}
 #' @param k specifies the clustering across which 
 #' median marker expressions should be computed.
 #' @param m specifies the second layer of clustering to be shown. 
-#' @param type2 a character vector or \code{"all"}. 
-#' Specifies for which type 2 markers heatmaps should be plotted.
+#' @param freq_bars,freq_labs logical. Should marginal histograms
+#' of cluster frequencies be shown and annotated?
+#' @param scaled logical specifying whether scaled values should be plotted
+#' (see below for details).
 #' @param out_path a character string. If specified, 
 #' output will be generated in this location. Defaults to NULL.
 #' 
@@ -34,8 +42,9 @@
 #'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
 #' re <- cluster(re, cols_to_use=lineage)
 #' 
-#' plotClusterHeatmap(re, k=20, type2="abundances")
-#' plotClusterHeatmap(re, k=20, m=12, type2="pS6")
+#' plotClusterHeatmap(re, hm2="abundances")
+#' plotClusterHeatmap(re, hm2="type2", k=12)
+#' plotClusterHeatmap(re, hm2="pS6", k=12, m=8)
 #' 
 #' @author
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
@@ -55,13 +64,16 @@
 
 setMethod(f="plotClusterHeatmap", 
     signature=signature(x="daFrame"), 
-    definition=function(x, scaled=TRUE, k=20, m=NULL, 
-        type2="abundances", out_path=NULL) {
+    definition=function(x, hm2=NULL, k=20, m=NULL, 
+        freq_bars=TRUE, freq_labs=TRUE,
+        scaled=TRUE, out_path=NULL) {
         
         check_validity_of_k(x, k)
-        if (!type2 %in% c("abundances", "all", type2(x)))
-            stop("Invalid argument 'type2'. Should be one of\n",
-                paste(dQuote(c("abundances", "all", type2(x))), collapse=", "))
+        if (!is.null(hm2) && !hm2 %in% c("abundances", "type2", colnames(x)))
+            stop("Invalid argument for 'hm2'. Should be NULL, ", 
+                paste(dQuote(c("abundances", "type2")), collapse=", "), 
+                " or a character string in ", 
+                paste0("'colnames(", deparse(substitute(x)), ")'."))
         
         k <- as.character(k)
         if (!is.null(m)) {
@@ -70,8 +82,8 @@ setMethod(f="plotClusterHeatmap",
         }
         
         es <- exprs(x)
-        cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
-        n_clusters <- length(unique(cluster_codes(x)[, k]))
+        cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
+        n_clusters <- nlevels(cluster_ids)
         
         # compute medians across clusters
         med_exprs <- data.frame(es, cluster_id=cluster_ids) %>%
@@ -81,11 +93,11 @@ setMethod(f="plotClusterHeatmap",
         d <- stats::dist(med_exprs[, type1(x)], method="euclidean")
         row_clustering <- hclust(d, method="average")
         
-        # row labels and heatmap annotations
-        row_anno <- factor(seq_len(n_clusters))
-        row_cols <- cluster_cols[seq_len(nlevels(row_anno))]
-        names(row_cols) <- levels(row_anno)
-        heat_anno <- Heatmap(row_anno, row_cols, "cluster_id",
+        # row labels and cluster annotations
+        row_anno <- levels(cluster_ids)
+        row_cols <- cluster_cols[seq_len(n_clusters)]
+        names(row_cols) <- row_anno
+        cluster_anno <- Heatmap(row_anno, row_cols, "cluster_id",
             cluster_rows=row_clustering, cluster_columns=FALSE,
             row_dend_reorder=FALSE, width=unit(.5, "cm"))
         
@@ -101,7 +113,8 @@ setMethod(f="plotClusterHeatmap",
                 row_dend_reorder=FALSE, width=unit(.5, "cm"))
         }
         
-        # heatmap for type1 markers
+        # left-hand side heatmap:
+        # type 1 median marker expressions across clusters
         hm_cols <- colorRampPalette(rev(brewer.pal(9, "RdYlBu")))(100)
         if (scaled) {
             es0 <- scale_exprs(es)
@@ -112,8 +125,8 @@ setMethod(f="plotClusterHeatmap",
             hm1_exprs <- med_exprs
             hm2_exprs <- es
         }
-        hm_l <- Heatmap(
-            hm1_exprs[, type1(x)], hm_cols, "expression", 
+        hm1 <- Heatmap(hm1_exprs[, type1(x)], hm_cols, 
+            paste0("scaled\n"[TRUE], "expression"), 
             column_names_gp=gpar(fontsize=8),
             cluster_rows=row_clustering, cluster_columns=FALSE,
             heatmap_legend_param=list(color_bar="continuous"))
@@ -121,38 +134,56 @@ setMethod(f="plotClusterHeatmap",
         # compute cluster frequencies
         counts <- as.numeric(table(cluster_ids))
         freqs <- round(counts/sum(counts)*100, 2)
-        freq_labs <- paste0(seq_len(n_clusters), " (", freqs, "%)")
-        freq_bars <- rowAnnotation(width=unit(2, "cm"), "Frequency [%]"=
-                row_anno_barplot(x=freqs, border=FALSE, axis=TRUE,
-                    gp=gpar(fill="grey50", col="white"), bar_with=.75))
-        freq_anno <- rowAnnotation(
-            text=row_anno_text(freq_labs), 
-            width=max_text_width(freq_labs))
-        
-        p <- merging_anno + heat_anno + hm_l + freq_bars + freq_anno
-        
-        if (type2 == "abundances") {
-            # get relative abundances
-            counts <- as.data.frame.matrix(table(cluster_ids, sample_ids(x)))
-            n_events <- colSums(counts)
-            freqs <- t(t(counts) / n_events)
-            p <- p + Heatmap(freqs, 
-                rev(brewer.pal(11, "PuOr")[2:10]), "frequency",
-                show_row_names=FALSE, column_names_gp=gpar(fontsize=8), 
-                cluster_rows=row_clustering, cluster_columns=FALSE,
-                heatmap_legend_param=list(color_bar="continuous"))
+        if (freq_bars) {
+            freq_bars <- rowAnnotation(width=unit(2, "cm"), "Frequency [%]"=
+                    row_anno_barplot(x=freqs, border=FALSE, axis=TRUE,
+                        gp=gpar(fill="grey50", col="white"), bar_with=.75))
         } else {
-            # heatmaps for type2 markers
-            df <- data.frame(hm2_exprs[, type2(x)],
-                sample_id=sample_ids(x), cluster_id=cluster_ids) %>%
-                group_by(sample_id, cluster_id) %>% summarise_all(funs(median))
-            if (type2 == "all") t2 <- type2(x) else t2 <- type2
-            for (i in t2) {
-                mat <- dcast(df[, c("sample_id", "cluster_id", i)], 
-                    cluster_id~sample_id, value.var=i)[, -1]
-                p <- p + Heatmap(mat, hm_cols, show_heatmap_legend=FALSE,
-                    column_title=i, column_names_gp=gpar(fontsize=8), 
-                    cluster_rows=row_clustering, cluster_columns=FALSE)
+            freq_bars <- NULL
+        }
+        if (freq_labs) {
+            freq_labs <- paste0(row_anno, " (", freqs, "%)")
+            freq_anno <- rowAnnotation(
+                text=row_anno_text(freq_labs), 
+                width=max_text_width(freq_labs))
+        } else {
+            freq_anno <- NULL
+        }
+
+        p <- merging_anno + cluster_anno + hm1 + freq_bars + freq_anno
+        
+        # right-hand side heatmap
+        if (!is.null(hm2)) {
+            if (hm2 == "abundances") {
+                # cluster frequencies across samples
+                counts <- as.data.frame.matrix(
+                    table(cluster_ids, sample_ids(x)))
+                n_events <- colSums(counts)
+                freqs <- t(t(counts) / n_events)
+                p <- p + Heatmap(freqs, 
+                    rev(brewer.pal(11, "PuOr")[2:10]), "frequency",
+                    show_row_names=FALSE, column_names_gp=gpar(fontsize=8), 
+                    cluster_rows=row_clustering, cluster_columns=FALSE,
+                    heatmap_legend_param=list(color_bar="continuous"))
+            } else if (hm2 == "type2") {
+                # type 2 median expressions across clusters
+                p <- p + Heatmap(hm1_exprs[, type2(x)], hm_cols, "", 
+                    cluster_rows=row_clustering, cluster_columns=FALSE,
+                    column_names_gp=gpar(fontsize=8), 
+                    show_heatmap_legend=FALSE)
+            } else {
+                # median marker expressions across samples & clusters
+                df <- data.frame(hm2_exprs,
+                    sample_id=sample_ids(x), cluster_id=cluster_ids) %>%
+                    group_by(sample_id, cluster_id) %>% 
+                    summarise_all(funs(median))
+                for (i in hm2) {
+                    mat <- dcast(df[, c("sample_id", "cluster_id", i)], 
+                        cluster_id~sample_id, value.var=i)[, -1]
+                    p <- p + Heatmap(mat, hm_cols, show_heatmap_legend=FALSE,
+                        column_title=i, column_names_gp=gpar(fontsize=8), 
+                        cluster_rows=row_clustering, cluster_columns=FALSE)
+                }
             }
         }
         

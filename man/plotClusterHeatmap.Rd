@@ -8,24 +8,33 @@
 \usage{
 plotClusterHeatmap(x, ...)
 
-\S4method{plotClusterHeatmap}{daFrame}(x, scaled = TRUE, k = 20, m = NULL,
-  type2 = "abundances", out_path = NULL)
+\S4method{plotClusterHeatmap}{daFrame}(x, hm2 = NULL, k = 20, m = NULL,
+  freq_bars = TRUE, freq_labs = TRUE, scaled = TRUE, out_path = NULL)
 }
 \arguments{
 \item{x}{expression matrix.}
 
 \item{...}{optional arguments.}
 
-\item{scaled}{logical specifying whether scaled values should be plotted
-(see below for details).}
+\item{hm2}{a character string that specifies the right-hand side heatmap. 
+Depending on the argument, the output will be as follows:
+\itemize{
+\item \code{"abundances"}: cluster frequencies across samples
+\item \code{"type2"}: median type 2 marker expressions across clusters 
+(analogous to the left-hand side heatmap)
+\item a character string/vector corresponding to one/multiple marker(s): 
+median marker expressions across samples and clusters}}
 
 \item{k}{specifies the clustering across which 
 median marker expressions should be computed.}
 
 \item{m}{specifies the second layer of clustering to be shown.}
 
-\item{type2}{a character vector or \code{"all"}. 
-Specifies for which type 2 markers heatmaps should be plotted.}
+\item{freq_bars, freq_labs}{logical. Should marginal histograms
+of cluster frequencies be shown and annotated?}
+
+\item{scaled}{logical specifying whether scaled values should be plotted
+(see below for details).}
 
 \item{out_path}{a character string. If specified, 
 output will be generated in this location. Defaults to NULL.}
@@ -51,8 +60,9 @@ lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33",
     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
 re <- cluster(re, cols_to_use=lineage)
 
-plotClusterHeatmap(re, k=20, type2="abundances")
-plotClusterHeatmap(re, k=20, m=12, type2="pS6")
+plotClusterHeatmap(re, hm2="abundances")
+plotClusterHeatmap(re, hm2="type2", k=12)
+plotClusterHeatmap(re, hm2="pS6", k=12, m=8)
 
 }
 \references{
