@@ -11,8 +11,11 @@
 #' @param anno logical. Specifies whether to display values insinde each bin.
 #' @param color_by a character string that specifies the row annotation.
 #' @param palette a character string specifying the colors to interpolate.
-#' @param out_path a character string. If specified, 
-#' output will be generated in this location. Defaults to NULL.
+#' @param out_path a character string. If specified, output will be generated in this location. Defaults to NULL.
+#' @param scale logical. Specifies whether to mean-variance normalize each channel. Default TRUE
+#' @param plot_freqs logical. Specifies whether to display cell counts and proportions. Default FALSE
+#' @param clustering_distance metric to use in \code{dist()} for clustering. Default "euclidean" 
+#' @param clustering_linkage linkage to use in \code{hclust()} for clustering. Default "average"
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
 #' 
@@ -20,6 +23,8 @@
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' plotExprHeatmap(re)
+#' plotExprHeatmap(re, scale=FALSE)
+#' plotExprHeatmap(re, plot_freqs=TRUE)
 #' 
 #' @author
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
@@ -41,18 +46,21 @@
 setMethod(f="plotExprHeatmap", 
     signature=signature(x="daFrame"), 
     definition=function(x, anno=TRUE, color_by="condition",
-        palette=brewer.pal(n=8, name="YlGnBu"), out_path=NULL) {
+        palette=brewer.pal(n=8, name="YlGnBu"), out_path=NULL, scale = TRUE, plot_freqs = FALSE, clustering_distance="euclidean", clustering_linkage="average") {
         
         es <- exprs(x)
-        md <- metadata(x)[[1]]
+        md <- metadata(x)$design
         
         # compute medians across samples
         med_exprs <- data.frame(es, sample_id=sample_ids(x)) %>%
             group_by(sample_id) %>% summarize_all(funs(median))
         med_exprs <- data.frame(med_exprs, row.names=1)
         
-        d <- stats::dist(med_exprs, method="euclidean")
-        row_clustering <- stats::hclust(d, method="average")
+        if( scale )
+            med_exprs <- scale(med_exprs)
+        
+        d <- stats::dist(med_exprs, method=clustering_distance)
+        row_clustering <- stats::hclust(d, method=clustering_linkage)
         
         # row annotations
         m <- match(rownames(med_exprs), md$sample_id)
@@ -69,15 +77,18 @@ setMethod(f="plotExprHeatmap",
             rect_gp=gpar(col="white"), width=unit(.5, "cm"))
         
         # barplots of event counts
-        counts <- as.numeric(metadata(x)$n_events)
-        freqs <- round(counts/sum(counts)*100, 2)
-        freq_labs <- paste0(counts, " (", freqs, "%)")
-        freq_bars <- rowAnnotation(width=unit(2.5, "cm"), "n_events"=
-                row_anno_barplot(x=counts, border=FALSE, axis=TRUE,
-                    gp=gpar(fill="grey50", col="white"), bar_with=.75))
-        freq_anno <- rowAnnotation(
-            text=row_anno_text(freq_labs), 
-            width=max_text_width(freq_labs))
+        freq_bars <- freq_anno <- NULL
+        if( plot_freqs ) {
+            counts <- as.numeric(metadata(x)$n_events)
+            freqs <- round(counts/sum(counts)*100, 2)
+            freq_labs <- paste0(counts, " (", freqs, "%)")
+            freq_bars <- rowAnnotation(width=unit(2.5, "cm"), "n_events"=
+                                       row_anno_barplot(x=counts, border=FALSE, axis=TRUE,
+                                                        gp=gpar(fill="grey50", col="white"), bar_with=.75))
+            freq_anno <- rowAnnotation(
+                text=row_anno_text(freq_labs), 
+                width=max_text_width(freq_labs))
+        }
 
         # heatmap of medians across antigens and samples
         heat_cols <- colorRampPalette(palette)(100)
