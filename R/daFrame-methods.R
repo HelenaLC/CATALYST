@@ -40,7 +40,7 @@
 #' @export
 setMethod(f="exprs",
     signature="daFrame",
-    definition=function(object) return(unlist(assays(object))))
+    definition=function(object) return(assays(object)$es))
 
 #' @rdname daFrame-methods
 setMethod(f="n_events",
