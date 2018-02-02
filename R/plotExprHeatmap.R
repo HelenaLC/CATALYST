@@ -92,7 +92,7 @@ setMethod(f="plotExprHeatmap",
                 grid.text(gp=gpar(fontsize=8),
                           sprintf("%.2f", med_exprs[i,j]),x,y)})
         } else {
-            hm <- hm(NULL)
+            hm <- hm(cell_fun=function(...) NULL)
         }
         p <- row_anno + hm + freq_bars + freq_anno
         
