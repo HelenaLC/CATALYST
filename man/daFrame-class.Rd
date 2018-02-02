@@ -6,25 +6,26 @@
 \alias{daFrame}
 \title{Differential analysis frame class}
 \usage{
-daFrame(fs, panel, md, cols_to_use = NULL, cofactor = 5)
+daFrame(fs, panel, md, cols_to_use = NULL, cofactor = 5,
+  exprs_colname = "fcs_colname", antigen_colname = "antigen")
 }
 \arguments{
 \item{fs}{a \code{\link{flowSet}} holding all samples.}
 
 \item{panel}{a data.frame with the following columns:
 \itemize{
+\item \code{fcs_colname}: the marker's column name in the FCS file
+\item \code{antigen}: the targeted protein marker}}
+
+\item{md}{a data.frame with columns describing the experiment (experimental condition, batch, sample identifiers, etc.)
+\itemize{
 \item \code{file_name}: the FCS file name
 \item \code{sample_id}: a unique sample identifier
 \item \code{condition}: brief sample description (e.g. REF)
 \item \code{patient_id}: the patient ID}}
 
-\item{md}{a data.frame with the following columns:
-\itemize{
-\item \code{fcs_colname}: the marker's column name in the FCS file
-\item \code{antigen}: the targeted protein marker}}
-
-\item{cols_to_use}{a logical vector OR numeric vector of indices.
-Specifies columns to keep from the input \code{flowSet}.}
+\item{cols_to_use}{a logical vector OR numeric vector of indices OR character vector of column names.
+Specifies the columns to keep from the input \code{flowSet}.}
 
 \item{cofactor}{cofactor to use for arcsinh-transformation.}
 }
