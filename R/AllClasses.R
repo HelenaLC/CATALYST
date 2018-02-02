@@ -177,6 +177,7 @@ setClass(
 #' @param cofactor cofactor to use for arcsinh-transformation.
 #' 
 #' @export
+#' @import SummarizedExperiment
 
 daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5, 
                     exprs_colname="fcs_colname",
@@ -214,13 +215,14 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
     # construct SummarizedExperiment
     conditions <- grep("condition", colnames(md), value=TRUE)
     conditions <- sapply(conditions, function(i) rep(md[, i], n_events))
-    row_data <- DataFrame(sample_id=rep(md$sample_id, n_events), conditions)
-    col_data <- DataFrame(channel=chs, row.names=colnames(es))
-    
+    row_data <- S4Vectors::DataFrame(sample_id=rep(md$sample_id, n_events), conditions)
+    col_data <- S4Vectors::DataFrame(channel=chs, row.names=colnames(es))
+
     new("daFrame", 
-        SummarizedExperiment(assays=es, 
-            rowData=row_data, colData=col_data, 
-            metadata=list(design=md, n_events=n_events)))
+        SummarizedExperiment(assays=SimpleList(es=es),
+                             rowData=row_data, 
+                             colData=col_data,
+                             metadata=list(design=md, n_events=n_events)))
 }
 
 # validity
