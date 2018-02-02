@@ -25,6 +25,8 @@ guessPanel <- function(ff, index = 1) {
       param_df$antigen <- sapply(ss, .subset, 2)
       param_df$use_channel <- !is.na(param_df$antigen)+0
       param_df$use_channel[grep("^BC",param_df$antigen)] <- 0
+      param_df$use_channel[grep("dead",param_df$antigen)] <- 0
+      param_df$use_channel[grep("DNA",param_df$antigen)] <- 0
   } else {
       param_df$antigen <- param_df$desc
       param_df$use_channel <- 1
