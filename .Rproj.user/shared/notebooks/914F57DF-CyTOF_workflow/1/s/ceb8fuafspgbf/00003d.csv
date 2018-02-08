@@ -1,0 +1,8 @@
+"0","# run tSNE"
+"0","se <- tSNE(se, n=250)"
+"2","o downsampling to 250 events per sample...
+"
+"2","o running tSNE...
+"
+"0","# plot tSNE color coded by marker expression"
+"0","plotSNE(se, color=""CD4"")"
