@@ -54,12 +54,6 @@ setMethod(f="plotSNE",
             exprs(x)[tsne_inds, ],
             rowData(x)[tsne_inds, ],
             tSNE1=tsne$Y[, 1], tSNE2=tsne$Y[, 2])
-        
-        md <- metadata(x)[[1]]
-        m <- match(df$sample_id, md$sample_id)
-        conds <- grep("condition", colnames(md), value=TRUE)
-        conds_combined <- apply(md[, conds], 1, paste, collapse="/")
-        df$condition <- factor(conds_combined[m])
 
         p <- ggplot(df, aes_string(x="tSNE1", y="tSNE2")) +
             theme_void() + theme(aspect.ratio=1,
