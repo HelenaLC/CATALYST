@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "library(edgeR)\nlibrary(ggplot2)\nlibrary(RColorBrewer)\nlibrary(reshape2)\nlibrary(SCORPIUS)\n\ndata0 <- t(read.table('/Users/hlc/Dropbox/thesis/data/Monocle/GSE52529_fpkm_matrix.txt'))\ndata <- data0\n# filter out undetected genes\ndata <- data[, colSums(data) > 0]\n\n# infer trajectory w/ SCORPIUS\ndists <- correlation_distance(data)\nspace <- reduce_dimensionality(dists, ndim=2)\ntraj <- infer_trajectory(space)\ngenes <- gene_importances(data, traj$time)\n\ndf <- data.frame(space, path_x=traj$path[,1], path_y=traj$path[,2], time=traj$time)\nggplot(df) + labs(x=\"component 1\", y=\"component 2\") +\n    geom_point(aes(x=Comp1, y=Comp2, col=time)) + \n    geom_path(aes(x=path_x, y=path_y), size=1) +\n    scale_color_gradientn(colors=brewer.pal(11, \"Spectral\"), breaks=seq(0,1,.2)) +\n    scale_x_continuous(limits=c(-.5,.5), breaks=seq(-.5,.5,.25), expand=c(.1,0)) +\n    scale_y_continuous(limits=c(-.5,.5), breaks=seq(-.5,.5,.25), expand=c(.1,0)) +\n    theme_void() + theme(\n        aspect.ratio=1,\n        panel.grid.minor=element_blank(),\n        panel.grid.major=element_line(color=\"grey\", size=.25),\n        axis.title=element_text(color=\"black\", face=\"bold\"),\n        axis.text=element_text(color=\"black\"))\n\n# compute means for each time point & gene-wise disperion\nn <- 20\ninds <- findInterval(traj$time, seq(0, 1, length=n+1))\nmeans <- do.call(rbind, sapply(seq_len(n+1), function(i) \n    if (sum(inds == i) < 2) NA else colMeans(data[inds == i, ])))\n#disps <- apply(data, 2, estimateCommonDisp)\n\ndf <- data.frame(means[, genes$gene[1:12]], time_point=seq_len(n+1))\ndf <- melt(df, id.var=\"time_point\")\nggplot(df, aes(x=time_point, y=value)) + \n    geom_point() + geom_path() + \n    facet_wrap(~variable, scale=\"free_y\")\n",
+    "created" : 1517663282304.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "2040760905",
+    "id" : "104C49F8",
+    "lastKnownWriteTime" : 1517298050,
+    "last_content_update" : 1517665585056,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled2"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

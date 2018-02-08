@@ -1,0 +1,10 @@
+{
+    "dialog-state" : {
+        "caseSensitive" : false,
+        "filePatterns" : [
+        ],
+        "path" : "~/Documents/CATALYST",
+        "query" : "100 SOM",
+        "regex" : false
+    }
+}
