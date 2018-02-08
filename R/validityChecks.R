@@ -78,22 +78,22 @@ check_validity_of_k <- function(x, k) {
 
 
 # ==============================================================================
-# Validity check for columns (used for cols_to_use): should be...
+# Validity check for columns (used in daFrame constructor): should be...
 #        - a logical vector
 #        - numeric vector of indices
 #        - character vector of column names
 # ------------------------------------------------------------------------------
-check_validity_columns <- function(x, col_names) {
-    ncol <- length(col_names)
+check_validity_cols <- function(cols_to_use, col_nms) {
+    n_cols <- length(col_nms)
     
-    check1 <- is.logical(x) & length(x)==ncol
-    check2 <- all(x %in% col_names)
+    check1 <- is.logical(cols_to_use) & length(cols_to_use) == n_cols
+    check2 <- all(cols_to_use %in% col_nms)
     check3 <- FALSE
-    if(is.integer(x))
-        check3 <- min(x>=1) & max(x <= ncol)
+    if (is.integer(x))
+        check3 <- min(cols_to_use >= 1) && max(cols_to_use <= ncol)
 
-    #if( !(check1 | check2 | check3) )
-    ## could add more resolution here    
-    stopifnot( check1 | check2 | check3 )
+    if (!(check1 | check2 | check3))
+        stop("Invalid argument 'cols_to_use'.\nShould be either", 
+            " a logial vector, a numeric vector of indices, or",
+            " a character vector of column names.")
 }
-
