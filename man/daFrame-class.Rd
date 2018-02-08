@@ -7,27 +7,36 @@
 \title{Differential analysis frame class}
 \usage{
 daFrame(fs, panel, md, cols_to_use = NULL, cofactor = 5,
-  exprs_colname = "fcs_colname", antigen_colname = "antigen")
+  panel_cols = list(channel = "fcs_colname", antigen = "antigen"),
+  md_cols = list(file = "file_name", id = "sample_id", factors =
+  c("condition", "patient_id")))
 }
 \arguments{
 \item{fs}{a \code{\link{flowSet}} holding all samples.}
 
-\item{panel}{a data.frame with the following columns:
-\itemize{
-\item \code{fcs_colname}: the marker's column name in the FCS file
-\item \code{antigen}: the targeted protein marker}}
-
-\item{md}{a data.frame with columns describing the experiment (experimental condition, batch, sample identifiers, etc.)
-\itemize{
+\item{md}{a data.frame with columns describing the experiment.
+An exemplary metadata table could look as follows:\itemize{
 \item \code{file_name}: the FCS file name
 \item \code{sample_id}: a unique sample identifier
 \item \code{condition}: brief sample description (e.g. REF)
 \item \code{patient_id}: the patient ID}}
 
-\item{cols_to_use}{a logical vector OR numeric vector of indices OR character vector of column names.
-Specifies the columns to keep from the input \code{flowSet}.}
+\item{cols_to_use}{a logical vector OR numeric vector of indices 
+OR character vector of column names. Specifies the columns to keep 
+from the input \code{flowSet}.}
 
 \item{cofactor}{cofactor to use for arcsinh-transformation.}
+
+\item{panel_cols}{a named list specifying column names in the input panel 
+that contain i) the channel names of the input \code{flowSet}, and ii) 
+the corresponding targeted protein marker. List elements should be named 
+\code{"channel"} and \code{"antigen"}, respectively.}
+
+\item{md_cols}{a named list specifying column names in the input metadata
+that contain i) the FCS file names, ii) unique sample identifiers, 
+iii) a character vector of factors descriptive of the samples
+(e.g. condition, treatment, batch, ect.). List elements should be named 
+\code{"file"}, \code{"id"}, and \code{"factors"}, respectively.}
 }
 \description{
 Represents the data returned by and used throughout differential analysis.
