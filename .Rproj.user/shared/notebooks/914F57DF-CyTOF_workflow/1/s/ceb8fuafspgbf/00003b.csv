@@ -1,4 +1,0 @@
-"0","# manual merging"
-"0","data(merging20)"
-"0","se <- mergeClusters(se, table=merging20, label=""merging_1"")"
-"0","plotClusterHeatmap(se, scaled=TRUE, k=20, m=""merging_1"", functional=""CD4"")"
