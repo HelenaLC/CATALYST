@@ -9,12 +9,8 @@
 estTrim(x, ...)
 
 \S4method{estTrim}{dbFrame}(x, min = 0.05, max = 0.2, step = 0.01,
-<<<<<<< HEAD
-  out_path = NULL, name_ext = NULL)
-=======
   method = "default", interactions = "default", out_path = NULL,
   name_ext = NULL)
->>>>>>> master
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
@@ -24,8 +20,6 @@ estTrim(x, ...)
 \item{min, max, step}{specifies sequence of trim values for which 
 compensation should be evaluated.}
 
-<<<<<<< HEAD
-=======
 \item{method}{function to be used for computing spillover estimates. 
 Valid options are \code{"default"} or \code{"classic"} 
 (see \code{\link{computeSpillmat}} for details)}
@@ -35,7 +29,6 @@ should be estimated for. The default exclusively takes into consideration
 interactions that are sensible from a chemical and physical point of view
 (see \code{\link{computeSpillmat}} for more detail).}
 
->>>>>>> master
 \item{out_path}{specifies in which location output plot is to be generated. 
 Defaults to NULL.}
 
@@ -63,7 +56,7 @@ bc_ms <- c(139, 141:156, 158:176)
 re <- assignPrelim(x = ss_exp, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
-estTrim(x = re, min = 0.02, max = 0.14, step = 0.02)
+estTrim(x = re, min = 0, max = 0.12, step = 0.02, method = "classic")
 
 }
 \author{

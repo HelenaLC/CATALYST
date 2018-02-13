@@ -8,28 +8,61 @@
 \usage{
 estCutoffs(x, ...)
 
-\S4method{estCutoffs}{dbFrame}(x, verbose = TRUE)
+\S4method{estCutoffs}{dbFrame}(x)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
 
 \item{...}{optional arguments.}
-
-\item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
 }
 \value{
-Will update the \code{sep_cutoffs}, \code{mhl_cutoff}, \code{counts} and 
-\code{yields} slots of the input \code{\link{dbFrame}} and return the latter.
+Will update the \code{sep_cutoffs} slot of the input \code{\link{dbFrame}} 
+and return the latter.
 }
 \description{
-For each barcode, estimates a cutoff parameter for the 
+For each sample, estimates a cutoff parameter for the 
 distance between positive and negative barcode populations.
+}
+\details{
+For the estimation of cutoff parameters, we considered yields
+upon debarcoding as a function of the applied cutoffs. 
+Commonly, this function will be characterized by an initial weak decline, 
+where doublets are excluded, and subsequent rapid decline in yields to zero. 
+In between, low numbers of counts with intermediate barcode separation 
+give rise to a plateau. As an adequate cutoff estimate, 
+we target the point that approximately marks the end of the plateau regime 
+and the onset of yield decline. To facilitate robust cutoff estimation, 
+we fit a linear and a three-parameter log-logistic function 
+to the yields function:
+\deqn{f(x)=\frac{d}{1+exp(b(log(x)-log(e)))}}{
+f(x) = d / (1 + exp(b * (log(x) - log(e))))}
+The goodness of the linear fit relative to the log-logistic fit 
+is weighed with:
+\deqn{w=\frac{RSS_{log-logistic}}{RSS_{log-logistic}+RSS_{linear}}}{
+w = RSS(log-logistic) / (RSS(log-logistic) + RSS(linear))}
+and the cutoffs for both functions are defined as:
+\deqn{c_{linear}=-\frac{\beta_0}{2\beta_1}}{
+c(linear) = - beta0 / (2 * beta1)}
+\deqn{c_{log-logistic}=\underset{x}{argmin}\frac{\vert f'(x)\vert}{
+f(x)}>0.1}{c(log-logistic) = argmin x \{ | f'(x) | / f(x) > 0.1 \}}
+The final cutoff estimate is defined as the weighted mean 
+between these estimates:
+\deqn{c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}}{
+c = (1 - w) * c(log-logistic) + w * c(linear)}
 }
 \examples{
 data(sample_ff, sample_key)
+# assign preliminary IDs
 re <- assignPrelim(x = sample_ff, y = sample_key)
-estCutoffs(x = re)
+# estimate separation cutoffs
+re <- estCutoffs(x = re)
+# view exemplary estimate
+plotYields(re, "A1")
 
+}
+\references{
+Finney, D.J. (1971). Probit Analsis. 
+\emph{Journal of Pharmaceutical Sciences} \bold{60}, 1432.
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}

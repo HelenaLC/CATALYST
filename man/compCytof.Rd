@@ -5,22 +5,18 @@
 \alias{compCytof}
 \alias{compCytof,flowFrame,matrix-method}
 \alias{compCytof,character,matrix-method}
-<<<<<<< HEAD
-=======
 \alias{compCytof,ANY,data.frame-method}
->>>>>>> master
 \title{Compensate CyTOF experiment}
 \usage{
 compCytof(x, y, ...)
 
-\S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL)
+\S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL,
+  method = "flow")
 
-\S4method{compCytof}{character,matrix}(x, y, out_path = NULL)
-<<<<<<< HEAD
-=======
+\S4method{compCytof}{character,matrix}(x, y, out_path = NULL,
+  method = "flow")
 
-\S4method{compCytof}{ANY,data.frame}(x, y, out_path = NULL)
->>>>>>> master
+\S4method{compCytof}{ANY,data.frame}(x, y, out_path = NULL, method = "flow")
 }
 \arguments{
 \item{x}{a \code{\link{flowFrame}} OR a character string specifying 
@@ -34,6 +30,8 @@ the location of FCS files that should be compensates.}
 in this location. If \code{x} is a character string, file names will be 
 inherited from uncompensated FCS files and given extension "_comped".
 Defaults to NULL.}
+
+\item{method}{one of "flow" or "nnls".}
 }
 \value{
 Compensates the input \code{\link{flowFrame}} or, 
@@ -63,7 +61,6 @@ been missed and may lead to faulty compensation}
 }
 }
 \examples{
-# get single-stained control samples
 # get single-stained control samples
 data(ss_exp)
 

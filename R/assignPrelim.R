@@ -69,6 +69,7 @@ setMethod(f="assignPrelim",
         # assign barcode ID to ea. event 
         if (verbose) message("Debarcoding data...")
         bc_ids <- get_ids(bcs, y, ids, verbose)
+        inds <- match(bc_ids, ids)
         
         # NORMALIZE BY POPULATION
         # rescale transformed barcodes for ea. population
@@ -76,13 +77,12 @@ setMethod(f="assignPrelim",
         if (verbose) message("Normalizing...")
         normed_bcs <- matrix(0, nrow=nrow(x), ncol=ncol(bcs), 
             dimnames=list(NULL, colnames(bcs)))
-        for (i in ids) {
-            key_ind <- ids == i
-            inds <- bc_ids == i
-            if (sum(inds) > 1) {
-                pos_bcs <- bcs[inds, y[key_ind, ] == 1]
+        for (i in seq_along(ids)) {
+            pos <- which(inds == i)
+            if (any(pos)) {
+                pos_bcs <- bcs[pos, y[i, ] == 1]
                 norm_val <- stats::quantile(pos_bcs, .95)
-                normed_bcs[inds, ] <- bcs[inds, ] / norm_val
+                normed_bcs[pos, ] <- bcs[pos, ] / norm_val
             }
         }
         
@@ -97,11 +97,11 @@ setMethod(f="assignPrelim",
         if (verbose) message("Computing counts and yields...")
         yields <- counts <- matrix(0, nrow=n_bcs, ncol=n_seps)
         for (i in seq_along(ids)) {
-            sub <- bc_ids == ids[i]
+            pos <- which(inds == i)
             for (j in seq_along(seps)) {
-                k <- deltas[sub] >= seps[j]
+                k <- deltas[pos] >= seps[j]
                 yields[i, j] <- sum(k)
-                counts[i, j] <- sum(k & deltas[sub] < seps[j + 1])
+                counts[i, j] <- sum(k & deltas[pos] < seps[j + 1])
                 if (j == n_seps)
                     counts[i, j] <- sum(k)
             }

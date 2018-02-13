@@ -43,7 +43,7 @@
 #' @examples
 #' data(raw_data)
 #' ff <- concatFCS(raw_data)
-#' normCytof(x = ff, y = "dvs", k=300)
+#' normCytof(x = ff, y = "dvs", k = 120)
 #'
 #' @references 
 #' Finck, R. et al. (2013).
@@ -51,8 +51,7 @@
 #' \emph{Cytometry A} \bold{83A}, 483-494.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import ggplot2 grid gridExtra
-#' @import matrixStats
+#' @import ggplot2 grid gridExtra matrixStats
 #' @importFrom flowCore colnames exprs flowFrame flowSet read.FCS write.FCS
 #' @importFrom grDevices pdf dev.off
 #' @importFrom RColorBrewer brewer.pal
@@ -112,7 +111,7 @@ setMethod(f="normCytof",
                 stop("'norm_to' should be a single character or flowFrame.")
             if (sum(flowCore::isFCSfile(norm_to)) != 1) 
                 stop(norm_to, " is not a valid FCS file.")
-            norm_to <- flowCore::read.FCS(norm_to)
+            norm_to <- flowCore::read.FCS(norm_to) 
         }
         es2 <- flowCore::exprs(norm_to)
         es2_t <- asinh(es2/5)

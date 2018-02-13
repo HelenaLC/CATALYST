@@ -140,8 +140,7 @@ setGeneric(name="outFrames",
 #' @export
 setGeneric(name="outFCS",      
     package="CATALYST", 
-    def=function(x, out_path=tempdir(), ...) standardGeneric("outFCS"),
-    signature="x")
+    def=function(x, y, out_path=tempdir(), ...) standardGeneric("outFCS"))
 
 # ==============================================================================
 # Generics for plotting
@@ -185,6 +184,13 @@ setGeneric(name="estTrim",
 setGeneric(name="computeSpillmat", 
     package="CATALYST",
     def=function(x, ...) standardGeneric("computeSpillmat"))
+
+#' @rdname adaptSpillmat
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="adaptSpillmat", 
+    package="CATALYST",
+    def=function(input_sm, out_chs) standardGeneric("adaptSpillmat"))
 
 #' @rdname compCytof
 #' @param ... optional arguments.

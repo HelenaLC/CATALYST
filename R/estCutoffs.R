@@ -6,54 +6,96 @@
 #' @title Estimation of distance separation cutoffs
 #' 
 #' @description 
-#' For each barcode, estimates a cutoff parameter for the 
+#' For each sample, estimates a cutoff parameter for the 
 #' distance between positive and negative barcode populations.
 #'
 #' @param x       
 #' a \code{\link{dbFrame}}.
-#' @param verbose 
-#' logical. Should extra information on progress be reported? Defaults to TRUE.
-#'
+#' 
+#' @details 
+#' For the estimation of cutoff parameters, we considered yields
+#' upon debarcoding as a function of the applied cutoffs. 
+#' Commonly, this function will be characterized by an initial weak decline, 
+#' where doublets are excluded, and subsequent rapid decline in yields to zero. 
+#' In between, low numbers of counts with intermediate barcode separation 
+#' give rise to a plateau. As an adequate cutoff estimate, 
+#' we target the point that approximately marks the end of the plateau regime 
+#' and the onset of yield decline. To facilitate robust cutoff estimation, 
+#' we fit a linear and a three-parameter log-logistic function 
+#' to the yields function:
+#' \deqn{f(x)=\frac{d}{1+exp(b(log(x)-log(e)))}}{
+#' f(x) = d / (1 + exp(b * (log(x) - log(e))))}
+#' The goodness of the linear fit relative to the log-logistic fit 
+#' is weighed with:
+#' \deqn{w=\frac{RSS_{log-logistic}}{RSS_{log-logistic}+RSS_{linear}}}{
+#' w = RSS(log-logistic) / (RSS(log-logistic) + RSS(linear))}
+#' and the cutoffs for both functions are defined as:
+#' \deqn{c_{linear}=-\frac{\beta_0}{2\beta_1}}{
+#' c(linear) = - beta0 / (2 * beta1)}
+#' \deqn{c_{log-logistic}=\underset{x}{argmin}\frac{\vert f'(x)\vert}{
+#' f(x)}>0.1}{c(log-logistic) = argmin x \{ | f'(x) | / f(x) > 0.1 \}}
+#' The final cutoff estimate is defined as the weighted mean 
+#' between these estimates:
+#' \deqn{c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}}{
+#' c = (1 - w) * c(log-logistic) + w * c(linear)}
+#' 
 #' @return
-#' Will update the \code{sep_cutoffs}, \code{mhl_cutoff}, \code{counts} and 
-#' \code{yields} slots of the input \code{\link{dbFrame}} and return the latter.
+#' Will update the \code{sep_cutoffs} slot of the input \code{\link{dbFrame}} 
+#' and return the latter.
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
+#' # assign preliminary IDs
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
-#' estCutoffs(x = re)
+#' # estimate separation cutoffs
+#' re <- estCutoffs(x = re)
+#' # view exemplary estimate
+#' plotYields(re, "A1")
 #'
+#' @references 
+#' Finney, D.J. (1971). Probit Analsis. 
+#' \emph{Journal of Pharmaceutical Sciences} \bold{60}, 1432. 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @importFrom stats loess
-#' @importFrom drc drm LL.4
-
+#' @importFrom stats lm coef D
+#' @importFrom drc drm LL.3
 # ------------------------------------------------------------------------------
 
 setMethod(f="estCutoffs", 
     signature=signature(x="dbFrame"), 
-    definition=function(x, verbose=TRUE) {
+    definition=function(x) {
         
-        cutoffs <- seq(0, 1, .01)
+        sep_cutoffs <- seq(0, 1, .01)
         n_bcs <- nrow(bc_key(x))
         ests <- numeric(n_bcs)
         
-        # f0 <- function(x, b, c, d, e) c+(d-c)/(1+exp(b*(log(x)-log(e))))
-        # f1 <- function(x, b, c, d, e) b*e^b*x^(b-1)*(c-d)/(x^b+e^b)^2
-        # f2 <- function(x, b, c, d, e) b*e^b*x^(b-2)*((b-1)*e^b-(b+1)*x^b)*(c-d)/(x^b+e^b)^3
-        # f3 <- function(x, b, c, d, e) (b*e^b*x^(b-3)*(b^2+3*b+2)*x^(2*b)-4*(b^2-1)*e^b*x^b+(b^2-3*b+2)*e^(2*b)*(c-d))/(x^b+e^b)^4
-        root <- function(b, c, d, e) 
-            ((2*e^b*b^2-sqrt(3)*sqrt(b^4*e^(2*b)-b^2*e^(2*b))
-                -2*e^b)/(b^2+3*b+2))^(1/b)
+        # three-parameter log-logistic function & 1st derivative
+        llf <- quote(d/(1+exp(b*(log(sep_cutoffs)-log(e)))))
+        deriv <-  stats::D(llf, "sep_cutoffs")
         
         for (i in seq_len(n_bcs)) {
-            df <- data.frame(cutoff=cutoffs, yield=as.vector(yields(x)[i, ]))
-            fit <- drc::drm(yield~cutoff, data=df, fct=drc::LL.4())
-            ests[i] <- round(root(
-                fit$coefficients[1], fit$coefficients[2], 
-                fit$coefficients[3], fit$coefficients[4])*100)/100
+            df <- data.frame(x=sep_cutoffs, y=as.vector(yields(x)[i, ]))
+            fit <- tryCatch(
+                drc::drm(y~x, data=df, fct=drc::LL.3()), 
+                error=function(e) e)
+            if (inherits(fit, "error")) 
+                next
+            b <- fit$coefficients[1]
+            d <- fit$coefficients[2]
+            e <- fit$coefficients[3]
+            linear_fit <- lm(yields(x)[i, ] ~ sep_cutoffs + 1)
+            intercept <- coef(linear_fit)[1]
+            slope <- coef(linear_fit)[2]
+            rss_linear <- sum((yields(x)[i,] - predict(linear_fit)) ^ 2)
+            rss_llf <- sum((yields(x)[i,] - eval(llf)) ^ 2) 
+            w <- rss_llf / (rss_llf + rss_linear)
+            est_linear <- round(-intercept/(2*slope), 2)
+            est_llf <- sep_cutoffs[abs(c(0, eval(deriv)[-1])) / 
+                    eval(llf) > 1e-2][1]
+            ests[i] <- (1 - w) * est_llf + w * est_linear
         }
-        
+        ests <- round(ests, 2)
         names(ests) <- rownames(bc_key(x))
         sep_cutoffs(x) <- ests
         x
     })
+            

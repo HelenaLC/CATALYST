@@ -60,10 +60,10 @@ setMethod(f="plotEvents",
     definition=function(x, which="all", n_events=100, 
         out_path=NULL, name_ext=NULL) {
         
-        # ······································································
         # check validity of function arguments
         if ("all" %in% which & length(which) > 1) {
-            warning("'which' must either \"all\", or a numeric or character\n",
+            warning("'which' must either be \"all\"", 
+                "or a numeric or character\n",
                 "corresponding to valid barcode IDs; ",
                 "using default value \"all\".")
         } else if (!"all" %in% which) {
@@ -75,14 +75,15 @@ setMethod(f="plotEvents",
                 " and of length one;\n  using default value 100.")
             n_events <- 100
         }
-        # ······································································
         
+        # get barcode labels: 
+        # channel name if barcodes are single-positive, 
+        # sample ID and binary code otherwise
         n_chs <- ncol(bc_key(x))
         ids <- sort(unique(bc_ids(x)))
         if ("all" %in% which) 
             which <- ids
         bc_labs <- get_bc_labs(x)
-
         if ("0" %in% ids) 
             bc_labs <- c("Unassigned", bc_labs)
         
@@ -100,47 +101,28 @@ setMethod(f="plotEvents",
         p <- list()
         for (id in which) {
             inds <- bc_ids(x) == id
-            n <- sum(inds)
+            N <- sum(inds)
             # store IDs with no or insufficient events assigned
-            if (n < 50) {
+            if (N < 50) {
                 skipped <- c(skipped, id)
                 next
             }
             # subsample events if more than 'n_events' assigned 
-            if (n > n_events) 
+            if (N > n_events) {
                 inds <- sort(sample(which(inds), n_events))
-            # use normalized barcode intensities
-            ints <- normed_bcs(x)[inds, ]
-            
-            df <- data.frame(
-                event=rep(seq_len(length(ints) / n_chs), each=n_chs),
-                intensity=c(t(ints)),
-                bc=rep(seq_len(n_chs), (length(ints) / n_chs)))
-            
-            p[[length(p) + 1]] <- ggplot(df) + 
-                geom_point(stroke=.5, size=1+100/sum(inds), aes_string(
-                    x="event", y="intensity", col="as.factor(bc)", alpha=.8)) +
-                scale_colour_manual(values=cols, name=NULL, 
-                    labels=colnames(normed_bcs(x))) + 
-                guides(alpha=FALSE, 
-                    colour=guide_legend(override.aes=list(size=3))) +
-                scale_x_discrete(limits=NULL, labels=NULL) + 
-                expand_limits(x=c(0, nrow(ints)+1)) +
-                ylim(floor(4*min(ints))/4, ceiling(4*max(ints))/4) + 
-                xlab("Event number") + ylab("Normalized intensity") + 
-                ggtitle(bquote(bold(.(bc_labs[match(id, c("0", rownames(
-                    bc_key(x))))]))*scriptstyle(" ("*.(n)*" events)"))) +
-                theme_bw() + theme(legend.key=element_blank(),
-                    panel.grid.major=element_line(color="lightgrey"),
-                    panel.grid.minor=element_blank())
+                n <- n_events
+            } else {
+                n <- N
+            }
+            title <- bquote(bold(.(bc_labs[match(id, c("0", rownames(
+                bc_key(x))))]))*scriptstyle(" ("*.(N)*" events)"))
+            p[[length(p) + 1]] <- plot_events(x, inds, n, cols, title)
         }
         
-        # ······································································
         # throw warning about populations with less than 50 event assignments
         if (!is.null(skipped))
             warning("Less than 50 events assigned to Barcode ID(s) ", 
                 paste(skipped, collapse=", "), ".")
-        # ······································································
         
         if (length(p) != 0) {
             if (!is.null(out_path)) {
