@@ -44,7 +44,7 @@
 #' re <- assignPrelim(x = ss_exp, y = bc_ms)
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
-#' estTrim(x = re, min = 0.02, max = 0.14, step = 0.02)
+#' estTrim(x = re, min = 0, max = 0.12, step = 0.02, method = "classic")
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2
@@ -112,8 +112,8 @@ setMethod(f="estTrim",
         xMax <- trms[nTrms]+step
         yMin <- floor(  min(df$m)/.5)*.5
         yMax <- ceiling(max(df$m)/.5)*.5
-        rect <- data.frame(x1=xMin, x2=xMax, y1=yMax+.4, y2=yMax+.6)
-        text <- data.frame(x=trms, y=yMax+.5, e=round(err, 4))
+        rect <- data.frame(x1=xMin, x2=xMax, y1=yMax+.5, y2=yMax)
+        text <- data.frame(x=trms, y=yMax+.25, e=round(err, 4))
 
         p <- plot_estTrim(df, trms, xMin, xMax, yMin, yMax, rect, text)
         if (!is.null(out_path)) {

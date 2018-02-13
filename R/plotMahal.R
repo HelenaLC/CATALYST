@@ -51,69 +51,86 @@ setMethod(f="plotMahal",
                 "Plotting all inter-barcode interactions is infeasible.\n",
                 "Using the default 'mhl_cutoff' value of 30 is recommended.")
         
-        inds <- bc_ids(x) == which
-        if (sum(inds) > 5e3) 
-            inds <- inds[sample(which(inds), 5e3)]
+        inds <- which(bc_ids(x) == which)
+        if (length(inds) > 5e3) 
+            inds <- sample(inds, 5e3)
         nms <- colnames(exprs(x))
-        ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
-        es <- asinh(exprs(x)[inds, ms %in% colnames(bc_key(x))] / cofactor)
+        ms <- as.numeric(get_ms_from_chs(nms))
+        bc_cols <- ms %in% colnames(bc_key(x))
+        es <- asinh(exprs(x)[inds, bc_cols] / cofactor)
         
         thms <- theme_classic() + theme(
             plot.margin=unit(c(0, 0, 0, 0), "null"),
             axis.title=element_text(size=10), 
-            axis.ticks = element_blank(),
+            axis.ticks=element_blank(),
             axis.text=element_blank(),
             aspect.ratio=1)
         
         max <- ceiling(max(mhl_dists(x)[inds])/5)*5
+        axes_min <- floor(  min(es, na.rm=TRUE)/.1)*.1
+        axes_max <- ceiling(max(es, na.rm=TRUE)/.1)*.1
+        lims <- c(axes_min, axes_max)
         
         n <- ncol(bc_key(x))
-        ps <- vector("list", sum(seq_len(n)))
-        p <- 1
-        for (i in 1:n) {
-            for (j in i:n) {
+        nPlots <- sum(seq_len(n))
+        ps <- vector("list", nPlots)
+        
+        # histogram of barcode distributions
+        hist_inds <- c(1, cumsum(seq(n, 2))+1)
+        for (p in hist_inds) {
+            i <- j <- match(p, hist_inds)
+            df <- data.frame(x=es[, i], y=es[, j], col=mhl_dists(x)[inds])
+            ps[[p]] <- ggplot(df) + 
+                scale_x_continuous(limits=lims) +
+                geom_histogram(aes_string(x="x"), 
+                    breaks=seq(axes_min+.05, axes_max-.05, .1),
+                    binwidth=.1, fill="black", color=NA) + 
+                thms + labs(x=" ", y=" ") + coord_fixed(1)
+        }
+        
+        m <- matrix(NA, n, n)
+        m[lower.tri(m, diag=TRUE)] <- seq_along(ps)
+        first <- TRUE
+        
+        # bead vs. bead scatters color coded 
+        # according to Mahalanobis distances
+        for (i in seq_len(n-1)) {
+            for (j in (i+1):n) {
                 df <- data.frame(x=es[, i], y=es[, j], col=mhl_dists(x)[inds])
-                df[df < 0] <- 0
-                if (i == j) {
-                    ps[[p]] <- ggplot(df) + 
-                        scale_x_continuous(limits=c(0, max(df$x))) +
-                        geom_histogram(aes_string(x="x"), bins=100,
-                            fill="black", color=NA) + 
-                        thms + labs(x=" ", y=" ") + coord_fixed(1)
-                } else {
-                    ps[[p]] <- ggplot(df) + labs(x=" ", y=" ") +
-                        geom_point(aes_string(x="x", y="y", col="col"), 
-                            size=1) + thms +
-                        guides(colour=guide_colourbar(title.position="top", 
-                            title.hjust=.5)) +
-                        scale_x_continuous(limits=c(0, max(df$x))) +
-                        scale_y_continuous(limits=c(0, max(df$y))) +
-                        scale_color_gradientn(
-                            colours=rev(brewer.pal(11, "RdYlBu")),
-                            limits=c(0, max), breaks=seq(0, max, 5),
-                            name=paste0(which, ": ", 
-                                paste(bc_key(x)[which,], collapse="")))
+                p <- m[j, i]
+                ps[[p]] <- ggplot(df) + labs(x=" ", y=" ") +
+                    geom_point(aes_string(x="x", y="y", col="col"), 
+                        size=1) + thms + lims(x=lims, y=lims) +
+                    guides(colour=FALSE) + scale_color_gradientn(
+                        colours=rev(brewer.pal(11, "RdYlBu")),
+                        limits=c(0, max), breaks=seq(0, max, 5),
+                        name=paste0(which, ": ", 
+                            paste(bc_key(x)[which,], collapse="")))
+                if (first) {
+                    # get color bar
+                    lgd <- get_legend(ps[[p]] + 
+                            guides(colour=guide_colourbar(
+                                title.position="top", title.hjust=.5)) + 
+                            theme(legend.direction="horizontal",
+                                legend.title=element_text(face="bold"),
+                                legend.key.height=unit(1, "line"),
+                                legend.key.width=unit(4, "line"),
+                                legend.text=element_text(size=8), 
+                                legend.key=element_blank()))
+                    first <- FALSE
                 }
-                if (i == 1 & j == 2) 
-                    lgd <- get_legend(ps[[p]] + theme(
-                        legend.direction="horizontal",
-                        legend.title=element_text(face="bold"),
-                        legend.key.height=unit(1, "line"),
-                        legend.key.width=unit(4, "line"),
-                        legend.text=element_text(size=8), 
-                        legend.key=element_blank()))
-                ps[[p]] <- ps[[p]] + guides(colour=FALSE)
-                if (i == 1) 
-                    ps[[p]] <- ps[[p]] + ylab(colnames(es)[j])
-                if (j == n) 
-                    ps[[p]] <- ps[[p]] + xlab(colnames(es)[i])
-                p <- p+1
             }
         }
-        m <- matrix(NA, n, n)
-        m[lower.tri(m, diag=TRUE)] <- seq_len(p)
-        ps[[p]] <- lgd
-        m <- rbind(rep(p, n), m)
+        # add axes labels to left column and bottom row plots
+        labs <- colnames(es)
+        for (i in seq_len(n)) {
+            l <- m[i, 1]
+            b <- m[n, i]
+            ps[[b]] <- ps[[b]] + labs(x=labs[i])
+            ps[[l]] <- ps[[l]] + labs(y=labs[i])
+        }
+        ps[[nPlots+1]] <- lgd
+        m <- rbind(rep(nPlots+1, n), m)
         
         heights <- c(2, rep(5, n))
         widths  <- rep(5, n)

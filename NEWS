@@ -1,4 +1,24 @@
 =====================================
+	*** Version 1.1.5 ***
+—————————————————————————————————————
+
+o bug fix
+
+=====================================
+	*** Version 1.1.4 ***
+—————————————————————————————————————
+
+o revision of estCutoffs() section in vignette
+
+=====================================
+	*** Version 1.1.3 ***
+—————————————————————————————————————
+
+o significantly improved cutoff estimation
+o bug fix when writing out FCS files with outFCS()
+o re-styling of plotYields() output
+
+=====================================
 	*** Version 1.1.2 ***
 —————————————————————————————————————
 
