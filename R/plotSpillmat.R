@@ -42,7 +42,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
 #' @importFrom grDevices colorRampPalette
-#' @importFrom htmlwidgets saveWidget
+#' @importFrom htmltools save_html
 #' @importFrom plotly ggplotly
 #' @export
 
@@ -91,7 +91,7 @@ plotSpillmat <- function(bc_ms, SM,
         p <- ggplotly(p, width=720, height=720,
             tooltip=c("Emitting", "Receiving", "Spillover")) %>%
             layout(margin=list(l=72, b=58))
-       htmltools::save_html(p, file.path(out_path, 
+        save_html(p, file.path(out_path, 
             paste0("SpillMat", name_ext, ".html")))
     } else {
         ggplotly(p, width=720, height=720,

@@ -18,7 +18,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output: 
-  BiocStyle::html_document2
+  BiocStyle::html_document
 ---
 \DeclareMathOperator*{\argmin}{argmin}
 
