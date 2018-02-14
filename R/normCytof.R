@@ -53,7 +53,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra matrixStats
 #' @importFrom flowCore colnames exprs flowFrame flowSet read.FCS write.FCS
-#' @importFrom grDevices pdf dev.off
+#' @importFrom grDevices png pdf dev.off
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom stats approx mad runmed
 

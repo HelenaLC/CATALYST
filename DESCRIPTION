@@ -21,12 +21,7 @@ Imports:
     nnls,
     plotly,
     RColorBrewer,
-    reshape2,
-    shiny, 
-    shinydashboard, 
-    shinyjs, 
-    shinyBS, 
-    DT, 
+    reshape2, 
     magrittr,
     stats,
     utils
