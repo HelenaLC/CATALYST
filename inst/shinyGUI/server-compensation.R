@@ -10,6 +10,14 @@ fsComp <- reactive({
     if (!is.null(fs <- vals$fsComp_metsChecked)) {
         return(fs)
     } else if (!is.null(fs <- vals$fsComp_msChecked)) {
+        # if provided, add controls to flowSet
+        if (!is.null(ffControls())) {
+            controls <- ffControls()
+            description(controls)[c("GUID", "ORIGINALGUID")] <- 
+                identifier(controls) <- input$controlsFCS$name
+            fs <- as(c(controls, lapply(seq_along(fs), 
+                function(i) fs[[i]])), "flowSet")
+        }
         return(fs)
     } else {
         if (vals$keepDataNorm) {
@@ -67,18 +75,16 @@ output$compensation_method_selection <- renderUI({
             inputId="compensation_method", 
             label="Select method:",
             choices=c(
-                "NNLS compensation" = "nnls", 
-                "Flow compensation" = "flow")
-        )
-    )
+                "Flow compensation"="flow",
+                "NNLS compensation"="nnls")))
 })
 
 # render fileInput for multiplexed data
 # once a spillover matrix (CSV) has been uploaded
 # or single-stains have been checked
 output$uploadMp <- renderUI({
-    req(!vals$keepDataNorm, 
-        !is.null(vals$sm) || !is.null(vals$ffControls_metsChecked))
+    req(!vals$keepDataNorm,
+        !is.null(input$inputSpillMat) || !is.null(vals$ffControls_metsChecked))
     fileInput(
         inputId="fcsComp", 
         label="Upload multiplexed data (FCS)", 
@@ -164,7 +170,6 @@ output$deba_cutoffs_UIComp <- renderUI({
         global_cutoff=
             globalCutoffUI(module="Comp"))
 })
-
 # use cutoff estimates
 observeEvent(input$deba_cutoffsComp == "est_cutoffs", ignoreInit=TRUE, {
     sep_cutoffs(vals$dbFrame1Comp) <- vals$cutoff_ests_comp
