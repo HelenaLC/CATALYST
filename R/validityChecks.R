@@ -89,7 +89,7 @@ check_validity_cols <- function(cols_to_use, col_nms) {
     check1 <- is.logical(cols_to_use) & length(cols_to_use) == n_cols
     check2 <- all(cols_to_use %in% col_nms)
     check3 <- FALSE
-    if (is.integer(x))
+    if (is.integer(cols_to_use))
         check3 <- min(cols_to_use >= 1) && max(cols_to_use <= ncol)
 
     if (!(check1 | check2 | check3))
