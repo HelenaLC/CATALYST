@@ -170,7 +170,7 @@ setClass(
 #' \item \code{patient_id}: the patient ID}
 #' @param panel_cols a named list specifying column names in the input panel 
 #' that contain i) the channel names of the input \code{flowSet}, and ii) 
-#' the corresponding targeted protein marker. List elements should be named 
+#' the corresponding targeted protein marker. List elements must be named 
 #' \code{"channel"} and \code{"antigen"}, respectively.
 #' @param md_cols a named list specifying column names in the input metadata
 #' that contain i) the FCS file names, ii) unique sample identifiers, 
@@ -213,7 +213,7 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
     # arcsinh-transformation & column subsetting
     fs <- fs[, cols_to_use]
     fs <- fsApply(fs, function(ff) {
-        flowCore::exprs(ff) <- asinh(exprs(ff)/cofactor)
+        flowCore::exprs(ff) <- asinh(flowCore::exprs(ff)/cofactor)
         return(ff)
     })
     # reorder flowSet according to metadata table
