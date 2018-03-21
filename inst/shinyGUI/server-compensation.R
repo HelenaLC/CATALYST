@@ -318,9 +318,7 @@ output$plotSpillmat <- renderPlotly({
     } else if (x == "est_sm") {
         ms <- rownames(bc_key(dbFrameComp()))
     }
-    #pdf(NULL)
-    print(ms)
-    print(vals$sm[10:15,10:15])
+    pdf(NULL)
     CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
 })
 
