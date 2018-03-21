@@ -315,13 +315,13 @@ output$plotSpillmat <- renderPlotly({
     x <- input$upload_or_est_sm
     if (x == "upload_sm") {
         ms <- CATALYST:::get_ms_from_chs(colnames(vals$sm))
-        pdf(NULL)
-        CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
     } else if (x == "est_sm") {
         ms <- rownames(bc_key(dbFrameComp()))
-        pdf(NULL)
-        CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
     }
+    #pdf(NULL)
+    print(ms)
+    print(vals$sm[10:15,10:15])
+    CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
 })
 
 # ------------------------------------------------------------------------------
