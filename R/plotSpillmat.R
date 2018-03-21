@@ -99,5 +99,3 @@ plotSpillmat <- function(bc_ms, SM,
             layout(margin=list(l=72, b=58))
     }
 }
-
-
