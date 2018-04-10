@@ -60,8 +60,9 @@ check_validity_which <- function(which, ids, fct) {
 #         a merging done with 'mergeClusters'
 # ------------------------------------------------------------------------------
 check_validity_of_k <- function(x, k) {
-    available_clusterings <- colnames(metadata(x)$cluster_codes)
-    if (!as.character(k) %in% available_clusterings) {
+    available_clusterings <- colnames(S4Vectors::metadata(x)$cluster_codes)
+    is_valid_clustering <- as.character(k) %in% available_clusterings
+    if (!is.null(k) && !is_valid_clustering) {
         if (is.numeric(k)) {
             txt <- k 
         } else {
@@ -73,9 +74,8 @@ check_validity_of_k <- function(x, k) {
             "Should be one of\n  ", paste(c(ks, dQuote(setdiff(
                 available_clusterings, ks))), collapse=", "))
     }
+    return(as.character(k))
 }
-
-
 
 # ==============================================================================
 # Validity check for columns (used in daFrame constructor): should be...

@@ -72,7 +72,7 @@ setMethod(f="plotMedExprs",
             check_validity_of_k(x, k)
             cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
             # compute medians across samples & clusters
-            med_exprs <- data.frame(exprs(x)[, type2(x)], 
+            med_exprs <- data.frame(exprs(x)[, state_markers(x)], 
                 sample_id=sample_ids(x), cluster_id=cluster_ids) %>% 
                 group_by(sample_id, cluster_id) %>% summarize_all(funs(median))
             med_exprs <- melt(med_exprs, id.vars=c("sample_id", "cluster_id"),
@@ -93,12 +93,12 @@ setMethod(f="plotMedExprs",
             ggplot(med_exprs, 
                 aes_string(x=group_by, y="med_expr", col=group_by)) +
                 stat_summary(fun.y="mean", geom="point", size=2.5, shape=21) +
-                facet_wrap(facets="antigen", scale="free_y") + style + theme(
+                facet_wrap(facets="antigen", scales="free_y") + style + theme(
                 axis.text.x=element_blank(), axis.ticks.x=element_blank())
         } else {
             ggplot(med_exprs, 
                 aes_string(x="antigen", y="med_expr", col=group_by)) +
-                facet_wrap(facets="cluster_id", scale="free_y") + style + 
+                facet_wrap(facets="cluster_id", scales="free_y") + style + 
                 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
         }
     }

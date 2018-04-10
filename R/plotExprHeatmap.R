@@ -4,18 +4,20 @@
 #' @rdname plotExprHeatmap
 #' @title Median marker expressions across samples
 #' 
-#' @description Plots median marker expressions across samples
+#' @description 
+#' Plots median marker expressions across samples
 #' computed on arcsinh-transformed intensities.
 #'
 #' @param x expression matrix.
 #' @param anno logical. Specifies whether to display values insinde each bin.
 #' @param color_by a character string that specifies the row annotation.
-#' @param palette a character string specifying the colors to interpolate.
-#' @param out_path a character string. If specified, output will be generated in this location. Defaults to NULL.
-#' @param scale logical. Specifies whether to mean-variance normalize each channel. Default TRUE
-#' @param plot_freqs logical. Specifies whether to display cell counts and proportions. Default FALSE
-#' @param clustering_distance metric to use in \code{dist()} for clustering. Default "euclidean" 
-#' @param clustering_linkage linkage to use in \code{hclust()} for clustering. Default "average"
+#' @param palette a character vector of colors to interpolate. 
+#' @param scale logical. Specifies whether to mean-variance normalize each channel.
+#' @param draw_freqs logical. Specifyies whether to display cell counts and proportions.
+#' @param clustering_distance a character string that specifies 
+#' the metric to use in \code{dist()} for clustering.
+#' @param clustering_linkage a character string that specifies 
+#' the linkage to use in \code{hclust()} for clustering.
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
 #' 
@@ -38,6 +40,7 @@
 #' @importFrom dplyr funs group_by summarize_all
 #' @importFrom grDevices colorRampPalette
 #' @importFrom RColorBrewer brewer.pal
+#' @importFrom S4Vectors metadata
 #' @importFrom scales hue_pal
 #' @importFrom stats dist hclust
 #' @export
@@ -46,73 +49,62 @@
 setMethod(f="plotExprHeatmap", 
     signature=signature(x="daFrame"), 
     definition=function(x, anno=TRUE, color_by="condition",
-        palette=brewer.pal(n=8, name="YlGnBu"), out_path=NULL, scale = TRUE, plot_freqs = FALSE, clustering_distance="euclidean", clustering_linkage="average") {
+        palette=brewer.pal(n=8, name="YlGnBu"), scale=TRUE, draw_freqs=FALSE,  
+        clustering_distance="euclidean", clustering_linkage="average") {
         
-        es <- exprs(x)
-        md <- metadata(x)$design
+        md <- S4Vectors::metadata(x)$experiment_info
         
         # compute medians across samples
-        med_exprs <- data.frame(es, sample_id=sample_ids(x)) %>%
+        med_exprs <- data.frame(exprs(x), sample_id=sample_ids(x)) %>%
             group_by(sample_id) %>% summarize_all(funs(median))
         med_exprs <- data.frame(med_exprs, row.names=1)
-        
-        if( scale )
-            med_exprs <- scale(med_exprs)
+        if (scale) 
+            med_exprs <- scale_exprs(med_exprs)
         
         d <- stats::dist(med_exprs, method=clustering_distance)
         row_clustering <- stats::hclust(d, method=clustering_linkage)
-        
-        # row annotations
-        m <- match(rownames(med_exprs), md$sample_id)
-        conds <- grep("condition", colnames(md), value=TRUE)
-        cond_labs <- data.frame(md[m, conds, drop=FALSE], row.names=rownames(med_exprs))
-        if (length(conds) > 1) {
-            conds_combined <- apply(md[, conds], 1, paste, collapse="/")
-            cond_labs$condition <- conds_combined[m]
-        }
-        
-        n <- length(unique(cond_labs[, color_by]))
-        row_anno <- Heatmap(cond_labs[, color_by], hue_pal()(n), color_by, 
-            cluster_rows=row_clustering, show_row_names=FALSE, 
-            rect_gp=gpar(col="white"), width=unit(.5, "cm"))
-        
+
         # barplots of event counts
         freq_bars <- freq_anno <- NULL
-        if( plot_freqs ) {
-            counts <- as.numeric(metadata(x)$n_events)
+        if (draw_freqs) {
+            counts <- as.numeric(metadata(x)$n_cells)
             freqs <- round(counts/sum(counts)*100, 2)
-            freq_labs <- paste0(counts, " (", freqs, "%)")
-            freq_bars <- rowAnnotation(width=unit(2.5, "cm"), "n_events"=
-                                       row_anno_barplot(x=counts, border=FALSE, axis=TRUE,
-                                                        gp=gpar(fill="grey50", col="white"), bar_with=.75))
+            freq_bars <- rowAnnotation(width=unit(2, "cm"), 
+                "n_cells"=row_anno_barplot(x=counts, border=FALSE, axis=TRUE,
+                    gp=gpar(fill="grey50", col="white"), bar_with=.8))
+            labs <- paste0(counts, " (", freqs, "%)")
             freq_anno <- rowAnnotation(
-                text=row_anno_text(freq_labs), 
-                width=max_text_width(freq_labs))
-        }
+                text=row_anno_text(labs), 
+                width=max_text_width(labs))
+        } 
 
         # heatmap of medians across antigens and samples
-        heat_cols <- colorRampPalette(palette)(100)
-        hm <- function(cell_fun) { Heatmap(
-            med_exprs, heat_cols, "expression", 
-            cell_fun=cell_fun, cluster_rows=row_clustering,
-            heatmap_legend_param=list(color_bar="continuous"),
-            column_names_gp=gpar(fontsize=8), row_names_gp=gpar(fontsize=8)) 
+        hm_cols <- colorRampPalette(palette)(100)
+        hm <- function (cell_fun) { 
+            Heatmap(matrix=med_exprs, col=hm_cols, name="expression", 
+                cell_fun=cell_fun, cluster_rows=row_clustering,
+                heatmap_legend_param=list(color_bar="continuous"),
+                column_names_gp=gpar(fontsize=8), 
+                row_names_gp=gpar(fontsize=8)) 
         }
         if (anno) {
-            hm <- hm(cell_fun=function(j,i,x,y,...){
+            hm <- hm(cell_fun=function(j, i, x, y, ...)
                 grid.text(gp=gpar(fontsize=8),
-                          sprintf("%.2f", med_exprs[i,j]),x,y)})
+                    sprintf("%.2f", med_exprs[i, j]), x, y))
         } else {
             hm <- hm(cell_fun=function(...) NULL)
         }
-        p <- row_anno + hm + freq_bars + freq_anno
         
-        if (!is.null(out_path)) {
-            n <- ncol(med_exprs)
-            out_nm <- file.path(out_path, "expr_heatmap.pdf")
-            pdf(out_nm, width=n/2, height=6); draw(p); dev.off()
+        if (!is.null(color_by)) {
+            row_anno <- data.frame(md[, color_by], row.names=md$sample_id)
+            n <- nlevels(md[, color_by])
+            row_anno <- Heatmap(
+                matrix=row_anno, col=scales::hue_pal()(n), name=color_by, 
+                cluster_rows=row_clustering, show_row_names=FALSE, 
+                rect_gp=gpar(col="white"), width=unit(.5, "cm"))
+            row_anno + hm + freq_bars + freq_anno
         } else {
-            p
+            hm + freq_bars + freq_anno
         }
     }
 )
