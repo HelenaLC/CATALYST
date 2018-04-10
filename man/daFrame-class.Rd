@@ -14,6 +14,9 @@ daFrame(fs, panel, md, cols_to_use = NULL, cofactor = 5,
 \arguments{
 \item{fs}{a \code{\link{flowSet}} holding all samples.}
 
+\item{panel}{a 2 column data.frame that contains for each marker of interest 
+i) its column name in the FCS file, and ii) the targeted protein marker.}
+
 \item{md}{a data.frame with columns describing the experiment.
 An exemplary metadata table could look as follows:\itemize{
 \item \code{file_name}: the FCS file name
@@ -29,7 +32,7 @@ from the input \code{flowSet}.}
 
 \item{panel_cols}{a named list specifying column names in the input panel 
 that contain i) the channel names of the input \code{flowSet}, and ii) 
-the corresponding targeted protein marker. List elements should be named 
+the corresponding targeted protein marker. List elements must be named 
 \code{"channel"} and \code{"antigen"}, respectively.}
 
 \item{md_cols}{a named list specifying column names in the input metadata
@@ -37,6 +40,9 @@ that contain i) the FCS file names, ii) unique sample identifiers,
 iii) a character vector of factors descriptive of the samples
 (e.g. condition, treatment, batch, ect.). List elements should be named 
 \code{"file"}, \code{"id"}, and \code{"factors"}, respectively.}
+}
+\value{
+an object of class \code{\link{SummarizedExperiment}}.
 }
 \description{
 Represents the data returned by and used throughout differential analysis.
@@ -50,20 +56,18 @@ Represents the data returned by and used throughout differential analysis.
 as inferred by the initial \code{\link{FlowSOM}} clustering.}
 
 \item{\code{colData}}{a data.frame with the following columns:\itemize{
-\item \code{channel} original column name in the input \code{flowSet}
-\item \code{type1}, \code{type2} logical vectors indicating, 
-for each antigen, whether it was used for clustering}}
+\item \code{marker_name} original column name in the input \code{flowSet}
+\item \code{marker_class} one of \code{"cell_type"} or \code{"cell_state"}}}
 
 \item{\code{metadata}}{a named list containing:\itemize{
-\item the original metadata-table
+\item \code{design}: the original metadata-table
 \item \code{panel}: the original panel-table
-\item \code{n_events}: the number of events measured per sample
-\item \code{SOM_codes}: a 100 x p matrix of SOM codes, 
-where p = no. of measurement parameters
+\item \code{n_cells}: the number of events measured per sample
+\item \code{SOM_codes}: a k x p matrix of SOM codes, 
+where k = no. of clusters, and p = no. of measurement parameters
 \item \code{cluster_codes}: cluster codes for the initial 
-\code{\link{FlowSOM}} clustering (column \code{'100'}), the 
-\code{\link{ConsensusClusterPlus}} metaclustering (columns \code{'2'} 
-through {'20'}, and mergings as labeled by \code{\link{mergeClusters}}}}
+\code{\link{FlowSOM}} clustering, the \code{\link{ConsensusClusterPlus}} 
+metaclustering, and manual mergings done with \code{\link{mergeClusters}}}}
 }}
 
 \author{
