@@ -26,15 +26,44 @@ self-orginizing map. The default 10x10 grid will yield 100 clusters.}
 number of clusters to evaluate in the metaclustering.}
 }
 \value{
-a \code{ggplot} object.
+The function will add information to the following slots 
+of the input \code{daFrame} (and return it):
+\itemize{
+\item{\code{rowData}\describe{\itemize{
+\item{\code{cluster_id}:
+each cell's clustering ID as inferred by \code{FlowSOM}.}}
+}}
+\item{\code{colData}\describe{\itemize{
+\item{\code{marker_class}: 
+\code{"cell_type"} or \code{"cell_state"}. 
+Specifies if an antigen has been used for clustering or not, respectively.}}
+}}
+\item{\code{metadata}\describe{\itemize{
+\item{\code{SOM_codes}:
+A table with dimensions K x (# cell type markers), 
+where K = \code{xdim} x \code{ydim}. Contains the SOM codes.}
+\item{\code{cluster_codes}:
+A table with dimensions K x (\code{maxK} + 1). 
+Contains the cluster codes for all metaclustering.}
+\item{\code{delta_area}: 
+A \code{\link{ggplot}} object. See above for details.}}
+}}
+}
 }
 \description{
-\code{CATALYST::cluster()} runs \code{\link{FlowSOM}} clustering into 100,
-and \code{\link{ConsensusClusterPlus}} metaclustering into 2-20 clusters. 
-In the returned \code{daFrame}, those antigens used for clustering will be 
-labelled as 'type1', and the remainder of antigens as 'type2'. A binary 
-indication of each marker's type can be viewed via \code{colData(daFrame)}. 
-Differential analysis should be performed on type2 markers exclusively.
+\code{CATALYST::cluster()} runs \code{\link{FlowSOM}} clustering into 
+\code{xdim}x\code{ydim} clusters, and \code{\link{ConsensusClusterPlus}} 
+metaclustering into 2-\code{maxK} clusters. In the returned \code{daFrame}, 
+those antigens used for clustering will be labelled as 'cell_type' markers, 
+and the remainder of antigens as 'cell_state' markers.
+}
+\details{
+The delta area represents the amount of extra cluster stability gained when 
+clustering into k groups as compared to k-1 groups. It can be expected that 
+high stability of clusters can be reached when clustering into the number of 
+groups that best fits the data. The "natural" number of clusters present in 
+the data should thus corresponds to the value of k where there is no longer 
+a considerable increase in stability (pleateau onset).
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -44,12 +73,6 @@ re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
 (re <- cluster(re, cols_to_use=lineage))
-
-# sanity check
-all.equal(lineage, type1(re))
-
-# get type2 markers for differential analysis
-type2(re)
 
 }
 \references{

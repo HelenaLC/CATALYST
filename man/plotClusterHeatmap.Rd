@@ -9,7 +9,8 @@
 plotClusterHeatmap(x, ...)
 
 \S4method{plotClusterHeatmap}{daFrame}(x, hm2 = NULL, k = 20, m = NULL,
-  freq_bars = TRUE, freq_labs = TRUE, scaled = TRUE, out_path = NULL)
+  cluster_anno = TRUE, split_by = NULL, scale = TRUE, draw_dend = TRUE,
+  draw_freqs = TRUE, palette = rev(brewer.pal(11, "RdYlBu")))
 }
 \arguments{
 \item{x}{expression matrix.}
@@ -20,8 +21,8 @@ plotClusterHeatmap(x, ...)
 Depending on the argument, the output will be as follows:
 \itemize{
 \item \code{"abundances"}: cluster frequencies across samples
-\item \code{"type2"}: median type 2 marker expressions across clusters 
-(analogous to the left-hand side heatmap)
+\item \code{"state_markers"}: median cell state marker expressions 
+across clusters (analogous to the left-hand side heatmap)
 \item a character string/vector corresponding to one/multiple marker(s): 
 median marker expressions across samples and clusters}}
 
@@ -30,14 +31,20 @@ median marker expressions should be computed.}
 
 \item{m}{specifies the second layer of clustering to be shown.}
 
-\item{freq_bars, freq_labs}{logical. Should marginal histograms
-of cluster frequencies be shown and annotated?}
+\item{cluster_anno}{logical. Specifies if clusters should be annotated.}
 
-\item{scaled}{logical specifying whether scaled values should be plotted
+\item{split_by}{a character string that correpsonds to a column name
+in the metadata table. If specified, the data will be subset accordingly
+and multiple heatmaps will be drawn.}
+
+\item{scale}{logical specifying whether scaled values should be plotted
 (see below for details).}
 
-\item{out_path}{a character string. If specified, 
-output will be generated in this location. Defaults to NULL.}
+\item{draw_dend}{logical. Specifies if the row dendrogram should be drawn.}
+
+\item{draw_freqs}{logical. Specifyies whether to display cell counts and proportions.}
+
+\item{palette}{a character vector of colors to interpolate.}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.
@@ -61,7 +68,7 @@ lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33",
 re <- cluster(re, cols_to_use=lineage)
 
 plotClusterHeatmap(re, hm2="abundances")
-plotClusterHeatmap(re, hm2="type2", k=12)
+plotClusterHeatmap(re, hm2="state_markers", k=16, split_by='condition')
 plotClusterHeatmap(re, hm2="pS6", k=12, m=8)
 
 }

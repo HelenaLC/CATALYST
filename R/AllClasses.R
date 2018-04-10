@@ -127,14 +127,13 @@ setValidity(Class="dbFrame",
 #' as inferred by the initial \code{\link{FlowSOM}} clustering.
 #' @slot colData 
 #' a data.frame with the following columns:\itemize{
-#' \item \code{channel} original column name in the input \code{flowSet}
-#' \item \code{type1}, \code{type2} logical vectors indicating, 
-#' for each antigen, whether it was used for clustering}
+#' \item \code{marker_name} original column name in the input \code{flowSet}
+#' \item \code{marker_class} one of \code{"cell_type"} or \code{"cell_state"}}
 #' @slot metadata 
 #' a named list containing:\itemize{
 #' \item \code{design}: the original metadata-table
 #' \item \code{panel}: the original panel-table
-#' \item \code{n_events}: the number of events measured per sample
+#' \item \code{n_cells}: the number of events measured per sample
 #' \item \code{SOM_codes}: a k x p matrix of SOM codes, 
 #' where k = no. of clusters, and p = no. of measurement parameters
 #' \item \code{cluster_codes}: cluster codes for the initial 
@@ -161,7 +160,7 @@ setClass(
 #' 
 #' @param fs a \code{\link{flowSet}} holding all samples.
 #' @param panel a 2 column data.frame that contains for each marker of interest 
-#' i) its column name in the FCS file, and ii) the targeted protein marker.}
+#' i) its column name in the FCS file, and ii) the targeted protein marker.
 #' @param md a data.frame with columns describing the experiment.
 #' An exemplary metadata table could look as follows:\itemize{
 #' \item \code{file_name}: the FCS file name
@@ -181,6 +180,8 @@ setClass(
 #' OR character vector of column names. Specifies the columns to keep 
 #' from the input \code{flowSet}.
 #' @param cofactor cofactor to use for arcsinh-transformation.
+#' 
+#' @return an object of class \code{\link{SummarizedExperiment}}.
 #' 
 #' @export
 #' @import SummarizedExperiment
@@ -228,27 +229,18 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
     es <- matrix(fsApply(fs, exprs), 
         ncol=length(chs),
         dimnames=list(NULL, flowCore::colnames(fs)))
-    n_events <- fsApply(fs, nrow)
-    n_events <- setNames(as.numeric(n_events), md[[md_cols$id]])
+    n_cells <- fsApply(fs, nrow)
+    n_cells <- setNames(as.numeric(n_cells), md[[md_cols$id]])
     
     # construct SummarizedExperiment
     row_data <- S4Vectors::DataFrame(
-        sample_id=rep(md[[md_cols$id]], n_events), 
-        sapply(md_cols$factors, function(i) rep(md[[i]], n_events)))
-    col_data <- S4Vectors::DataFrame(channel=chs, row.names=colnames(es))
+        sample_id=rep(md[[md_cols$id]], n_cells), 
+        sapply(md_cols$factors, function(i) rep(md[[i]], n_cells)))
+    col_data <- S4Vectors::DataFrame(marker_name=chs, row.names=colnames(es))
     
     new("daFrame", 
         SummarizedExperiment(
-            assays=SimpleList(es=es),
+            assays=SimpleList(exprs=es),
             rowData=row_data, colData=col_data,
-            metadata=list(design=md, n_events=n_events)))
+            metadata=list(experiment_info=md, n_cells=n_cells)))
 }
-
-# ------------------------------------------------------------------------------
-# validity
-# ------------------------------------------------------------------------------
-# setValidity(Class="daFrame", method=function(object) {
-#     #############
-#     ### TO DO ###
-#     #############
-#     })
