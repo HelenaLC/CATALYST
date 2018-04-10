@@ -36,9 +36,9 @@ setMethod(f="tSNE",
     signature=signature(x="daFrame"),
     definition=function(x, n=1000, seed=42) {
         message("o downsampling to ", n, " events per sample...")
-        type1 <- as.logical(colData(x)$type1)
-        dups <- which(!duplicated(exprs(x)[, type1]))
-        n_cells <- pmin(metadata(x)$n_events, n)
+        cols <- colData(x)$marker_class == "cell_type"
+        dups <- which(!duplicated(exprs(x)[, cols]))
+        n_cells <- pmin(metadata(x)$n_cells, n)
         inds <- split(seq_len(nrow(exprs(x))), sample_ids(x))
         set.seed(seed)
         tsne_inds <- lapply(names(inds), function(i) {
@@ -47,11 +47,10 @@ setMethod(f="tSNE",
         })
         message("o running tSNE...")
         tsne_inds <- unlist(tsne_inds)
-        tsne_es <- exprs(x)[tsne_inds, type1]
+        tsne_es <- exprs(x)[tsne_inds, cols]
         tsne <- Rtsne(tsne_es, check_duplicates=FALSE, pca=FALSE)
         metadata(x)$tsne <- tsne
         metadata(x)$tsne_inds <- tsne_inds
         return(x)
     }
 )
-

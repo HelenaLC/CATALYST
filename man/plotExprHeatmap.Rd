@@ -9,8 +9,8 @@
 plotExprHeatmap(x, ...)
 
 \S4method{plotExprHeatmap}{daFrame}(x, anno = TRUE, color_by = "condition",
-  palette = brewer.pal(n = 8, name = "YlGnBu"), out_path = NULL,
-  scale = TRUE, plot_freqs = FALSE, clustering_distance = "euclidean",
+  palette = brewer.pal(n = 8, name = "YlGnBu"), scale = TRUE,
+  draw_freqs = FALSE, clustering_distance = "euclidean",
   clustering_linkage = "average")
 }
 \arguments{
@@ -22,17 +22,17 @@ plotExprHeatmap(x, ...)
 
 \item{color_by}{a character string that specifies the row annotation.}
 
-\item{palette}{a character string specifying the colors to interpolate.}
+\item{palette}{a character vector of colors to interpolate.}
 
-\item{out_path}{a character string. If specified, output will be generated in this location. Defaults to NULL.}
+\item{scale}{logical. Specifies whether to mean-variance normalize each channel.}
 
-\item{scale}{logical. Specifies whether to mean-variance normalize each channel. Default TRUE}
+\item{draw_freqs}{logical. Specifyies whether to display cell counts and proportions.}
 
-\item{plot_freqs}{logical. Specifies whether to display cell counts and proportions. Default FALSE}
+\item{clustering_distance}{a character string that specifies 
+the metric to use in \code{dist()} for clustering.}
 
-\item{clustering_distance}{metric to use in \code{dist()} for clustering. Default "euclidean"}
-
-\item{clustering_linkage}{linkage to use in \code{hclust()} for clustering. Default "average"}
+\item{clustering_linkage}{a character string that specifies 
+the linkage to use in \code{hclust()} for clustering.}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.

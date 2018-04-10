@@ -14,7 +14,7 @@ cluster_cols <- c(
 # low (1%) and high (99%) quantiles as boundaries
 # ------------------------------------------------------------------------------
 scale_exprs <- function(x) {
-    qs <- matrixStats::colQuantiles(x, probs=c(.01, .99))
+    qs <- matrixStats::colQuantiles(as.matrix(x), probs=c(.01, .99))
     x_scaled <- t((t(x) - qs[, 1]) / (qs[, 2] - qs[, 1]))
     x_scaled[x_scaled < 0] <- 0
     x_scaled[x_scaled > 1] <- 1
@@ -47,6 +47,17 @@ nrs <- function(x, n=3) {
 }
 
 # ==============================================================================
+# wrapper for ComplexHeatmap row annotations
+# (called by plotClusterHeatmap)
+# ------------------------------------------------------------------------------
+row_anno <- function(anno, cols, name, clustering, dend) {
+    Heatmap(matrix=anno, col=cols, name=name, 
+        rect_gp=gpar(col="white"), width=unit(.5, "cm"),
+        cluster_rows=clustering, cluster_columns=FALSE,
+        show_row_dend=dend, row_dend_reorder=FALSE)
+}
+
+# ==============================================================================
 # change in area under CDF curve
 # ------------------------------------------------------------------------------
 triangle <- function(m) {
@@ -62,20 +73,30 @@ triangle <- function(m) {
     m[lower.tri(nm)]
 }
 
-# ==============================================================================
-# Z-score normalization to mean=0 and sd=1
-# ------------------------------------------------------------------------------
-Z_norm <- function(x, th) {
-    es_normed <- apply(x, 1, function(x) {
-        sdx <- sd(x, na.rm=TRUE)
-        if (sdx == 0) {
-            x <- (x-mean(x, na.rm=TRUE))
-        } else {
-            x <- (x-mean(x, na.rm=TRUE)) / sdx
-        }
-        x[x > th] <- th
-        x[x < -th] <- -th
-        return(x)
+plot_delta_area <- function(mc) {
+    # empirical CDF distribution
+    maxK <- length(mc)
+    v <- lapply(mc[seq_len(maxK)[-1]], function(x) triangle(x$ml))
+    h <- lapply(v, function(x) {
+        h <- graphics::hist(x, breaks=seq(0, 1, .01), plot=FALSE)
+        h$counts <- cumsum(h$counts) / sum(h$counts)
+        return(h)
     })
-    t(es_normed)
+    # calculate area under CDF curve, by histogram method &
+    # calculate proportional increase relative to prior k
+    areaK <- sapply(h, function(x) cumsum(x$counts * .01)[100])
+    deltaK <- c(areaK[1], diff(areaK) / areaK[seq_len(maxK-2)])
+    
+    df <- data.frame(k=seq_len(maxK)[-1], y=deltaK)
+    y_max <- ceiling(max(df$y)*2)/2
+    ggplot(df, aes_string(x="k", y="y")) + 
+        theme_classic() + geom_line(color="steelblue", lty=2) + 
+        geom_point(size=2.5, color="navy") + coord_fixed(4) +
+        scale_x_continuous(breaks=seq(2, 20, 2), expand=c(0,.5)) +
+        scale_y_continuous(limits=c(0, y_max), expand=c(0,.125), 
+            breaks=function(x) seq(x[1]+.125, x[2], .5)) +
+        ylab("Relative change in area under CDF curve") +
+        theme(plot.title=element_text(face="bold"),
+            axis.text=element_text(color="black"),
+            panel.grid.major=element_line(color="grey", size=.2))
 }
