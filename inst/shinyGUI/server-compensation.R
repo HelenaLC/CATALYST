@@ -84,7 +84,7 @@ output$compensation_method_selection <- renderUI({
 # or single-stains have been checked
 output$uploadMp <- renderUI({
     req(!vals$keepDataNorm,
-        !is.null(input$inputSpillMat) || !is.null(vals$ffControls_metsChecked))
+        is.data.frame(spillMat()) || !is.null(vals$ffControls_metsChecked))
     fileInput(
         inputId="fcsComp", 
         label="Upload multiplexed data (FCS)", 
@@ -296,7 +296,7 @@ spillMat <- reactive({
             showNotification(
                 h4(strong("Input spillover matrix should be a CSV file.")),
                 duration=NULL, type="error")
-            return()
+            return(NULL)
         }
         read.csv(input$inputSpillMat$datapath, check.names=FALSE, row.names=1)
     } else {
@@ -328,7 +328,7 @@ output$plotSpillmat <- renderPlotly({
 
 # compensate input flowFrame(s)
 nnlsComped <- reactive({
-    req(input$compensation_method == "nnls", fsComp(), vals$sm)
+    req(fsComp(), vals$sm, input$compensation_method == "nnls")
     showNotification(h4(strong("Compensating using NNLS...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
     fs <- fsApply(fsComp(), function(ff) 
@@ -337,7 +337,7 @@ nnlsComped <- reactive({
     return(fs)
 })
 flowComped <- reactive({
-    req(input$compensation_method == "flow", fsComp(), vals$sm)
+    req(fsComp(), vals$sm, input$compensation_method == "flow")
     showNotification(h4(strong("Compensating using method 'flow'...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
     fs <- fsApply(fsComp(), function(ff) 
@@ -474,21 +474,22 @@ observe({
     updateNumericInput(session, inputId="cfComp", value=5)
 })
 
-# sample 5e3 events per sample
+# downsample to 5e3 events per sample
 inds <- eventReactive(fsComp(), {
     nEvents <- fsApply(fsComp(), nrow)
     n <- pmin(nEvents, 5e3)
     lapply(seq_along(n), function(i) sample(nEvents[i], n[i]))
 })
 
-# subset raw and compensated data
+# subset raw & compensated data
 es0 <- reactive({
-    req(fsComp(), inds())
+    req(inds())
     lapply(seq_along(fsComp()), function(i)
         exprs(fsComp()[[i]][inds()[[i]], ]))
 })
 esC <- reactive({
     req(fsComped(), inds())
+    print("esC")
     lapply(seq_along(fsComped()), function(i)
         exprs(fsComped()[[i]][inds()[[i]], ]))
 })
