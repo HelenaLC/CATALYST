@@ -4,10 +4,10 @@ date: "`r BiocStyle::doc_date()`"
 author:
 - name: Helena L Crowell
   email: crowellh@student.ethz.ch
-- name: Mark D Robinson
 - name: Vito RT Zanotelli
 - name: Stéphane Chevrier
 - name: Bernd Bodenmiller
+- name: Mark D Robinson
 package: "`r pkg_ver('CATALYST')`"
 abstract: >
     By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to (theoretically) 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed `r Rpackage("CATALYST")` (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm.
@@ -18,7 +18,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output: 
-  BiocStyle::html_document2
+  BiocStyle::html_document
 ---
 \DeclareMathOperator*{\argmin}{argmin}
 
@@ -227,7 +227,11 @@ Therefore, we can estimate the real signal, $I_{real}\;$, as:
 $$I_{real} = I_{observed}\; \cdot {SM}^{-1} = I_{observed}\; \cdot CM$$ 
 where $\text{SM}^{-1}$ is termed compensation matrix ($\text{CM}$).
 
+<<<<<<< HEAD
+Because any signal not in a single stain experiment???s primary channel $j$ results from channel crosstalk, each spill entry $s_{ij}$ can be approximated by the slope of a linear regression with channel $j$ signal as the response, and channel $i$ signals as the predictors, where $i\in w_j$. `r Rpackage("CATALYST")` offers two alternative ways for spillover estimation, summarized in Figure \@ref(fig:methods).
+=======
 Because any signal not in a single stain experiment’s primary channel $j$ results from channel crosstalk, each spill entry $s_{ij}$ can be approximated by the slope of a linear regression with channel $j$ signal as the response, and channel $i$ signals as the predictors, where $i\in w_j$. `r Rpackage("CATALYST")` offers two alternative ways for spillover estimation, summarized in Figure \@ref(fig:methods).
+>>>>>>> upstream/master
 
 The `default` method approximates this slope with the following single-cell derived estimate: Let $i^+$ denote the set of cells that are possitive in channel $i$, and $s_{ij}^c$ be the channel $i$ to $j$ spill computed for a cell $c$ that has been assigned to this population. We approximate $s_{ij}^c$ as the ratio between the signal in unstained spillover receiving and stained spillover emitting channel, $I_j$ and $I_i$, respectively. The expected background in these channels, $m_j^-$ and $m_i^-$, is computed as the median signal of events that are i) negative in the channels for which spill is estimated ($i$ and $j$); ii) not assigned to potentionally interacting channels; and, iii) not unassigned, and subtracted from all measurements:
 
