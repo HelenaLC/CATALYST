@@ -72,6 +72,7 @@
 
 # ------------------------------------------------------------------------------
 
+
 setMethod(f="computeSpillmat", 
     signature=signature(x="dbFrame"), 
     definition=function(x, method="default", interactions="default", 
