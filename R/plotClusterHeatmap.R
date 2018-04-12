@@ -74,8 +74,8 @@ setMethod(f="plotClusterHeatmap",
         palette=rev(brewer.pal(11, "RdYlBu"))) {
         
         # check validity of argument 'hm2'
-        if (!is.null(hm2) && 
-                !hm2 %in% c("abundances", "state_markers", colnames(x)))
+        if (!is.null(hm2) && !hm2 %in% 
+                c("abundances", "state_markers", colnames(x)))
             stop("Invalid argument for 'hm2'. Should be NULL, ", 
                 paste(dQuote(c("abundances", "state_markers")), 
                     collapse=", "), " or a character string in ", 
