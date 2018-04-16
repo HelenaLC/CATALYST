@@ -347,3 +347,10 @@ setGeneric(name="mergeClusters",
 setGeneric(name="plotAbundances", 
     package="CATALYST",
     def=function(x, ...) standardGeneric("plotAbundances"))
+
+#' @rdname plotDiffHeatmap
+#' @param ... optional arguments.
+#' @export
+setGeneric(name="plotDiffHeatmap", 
+    package="CATALYST",
+    def=function(x, ...) standardGeneric("plotDiffHeatmap"))
