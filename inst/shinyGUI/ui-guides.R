@@ -28,11 +28,21 @@ guidesTab <- fluidPage(
             to provide tools for preprocessing of cytometry data, including 
             i) concatenation, ii) normalization using bead standards, 
             iii) single-cell deconvolution, and iv) bead-based compensation.",
-            strong(style="color:firebrick", "The preprint to this project 
-                is accesible on"), strong("bioRxiv"), 
-            strong(style="color:firebrick", "at"), a("Chevrier et al., 2017:", 
-                em("Channel crosstalk correction in suspension and imaging mass cytometry."), 
-                href="https://www.biorxiv.org/content/early/2017/09/07/185744"))))
+            tags$ul(
+                tags$li(
+                    strong(style="color:firebrick", 
+                        "The preprint to this project is accesible on"), strong("bioRxiv"), 
+                    strong(style="color:firebrick", "at"), a("Chevrier et al., 2017:", 
+                        em("Channel crosstalk correction in suspension and imaging mass cytometry."), 
+                        href="https://www.biorxiv.org/content/early/2017/09/07/185744")),
+                tags$li(
+                    strong(style="color:firebrick", "Our"), strong("Cell Systems"), 
+                    strong(style="color:firebrick", "paper is available at"), 
+                        a("Chevrier et al., 2017:", em("Compensation of Signal 
+                        Spillover in Suspension and Imaging Mass Cytometry."), 
+                        href="http://www.cell.com/cell-systems/fulltext/S2405-4712(18)30063-2"))))
+    )
+)
 
 # ------------------------------------------------------------------------------
 # concatenation
