@@ -1,7 +1,6 @@
 # ==============================================================================
 # concatinates all FCS files in the specified location
 # ------------------------------------------------------------------------------
-
 #' @rdname concatFCS
 #' @title FCS file concatination
 #' 
@@ -37,7 +36,6 @@
 #' @importFrom matrixStats colMaxs
 #' @importFrom methods as
 #' @export
-
 # ------------------------------------------------------------------------------
 
 setMethod(f="concatFCS",
@@ -51,10 +49,14 @@ setMethod(f="concatFCS",
         if (by_time) {
             # order by time
             bts <- keyword(x, "$BTIM")
-            o <- order(bts)
-            x <- x[o]
-        } else {
-            o <- seq_len(n)
+            if (any(sapply(bts, is.null))) {
+                message("Not all samples contain information on their",
+                    " acquisition time.\nIgnoring argument 'by_time';",
+                    " samples will be kept in their original order.")
+            } else {
+                o <- order(bts)
+                x <- x[o]
+            }
         }
         nPars <- ncol(x[[1]])
         nEvents <- as.numeric(keyword(x, "$TOT"))
@@ -155,6 +157,9 @@ setMethod(f="concatFCS",
 setMethod(f="concatFCS",
     signature=signature(x="list"),
     definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE) {
+        # check that list elements are flowFrames
+        if (any(sapply(x, class) != "flowFrame")) 
+            stop("Invalid input; all list elements should be flowFrames.")
         if (length(x) == 1) 
             stop("Only a single flowFrame has been provided.")
         concatFCS(as(x, "flowSet"), out_path, by_time, file_num)
