@@ -1,7 +1,6 @@
 # ==============================================================================
 # Apply separation and mahalanobies distance cutoffs
 # ------------------------------------------------------------------------------
-
 #' @rdname applyCutoffs
 #' @title Single-cell debarcoding (2)
 #' 
@@ -21,6 +20,14 @@
 #' Will update the \code{bc_ids} and, if not already specified, 
 #' \code{sep_cutoffs} and \code{mhl_cutoff} slots of the input \code{dbFrame}.
 #' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @references 
+#' Zunder, E.R. et al. (2015).
+#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+#' and single-cell deconvolution algorithm.
+#' \emph{Nature Protocols} \bold{10}, 316-333. 
+#' 
 #' @examples
 #' data(sample_ff, sample_key)
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
@@ -32,15 +39,8 @@
 #' re <- estCutoffs(x = re)
 #' applyCutoffs(x = re)
 #'
-#' @references 
-#' Zunder, E.R. et al. (2015).
-#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
-#' and single-cell deconvolution algorithm.
-#' \emph{Nature Protocols} \bold{10}, 316-333. 
-#'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats cov mahalanobis
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="applyCutoffs", 
     signature=signature(x="dbFrame"),

@@ -1,7 +1,6 @@
 # ==============================================================================
 # Assign preliminary barcode IDs
 # ------------------------------------------------------------------------------
-
 #' @rdname assignPrelim
 #' @title Single-cell debarcoding (1)
 #' 
@@ -25,7 +24,9 @@
 #' the debarcoding key, a numeric verctor of barcode IDs and separations
 #' between positive and negative barcode populations, and barcode intensities
 #' normalized by population. 
-#'
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
 #' @references 
 #' Zunder, E.R. et al. (2015).
 #' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
@@ -35,12 +36,11 @@
 #' @examples
 #' data(sample_ff, sample_key)
 #' assignPrelim(x = sample_ff, y = sample_key)
-#' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#'
+#' @importFrom flowCore colnames exprs flowFrame read.FCS
 #' @importFrom matrixStats rowMaxs
 #' @importFrom stats quantile
-#' @importFrom flowCore colnames exprs flowFrame read.FCS
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="assignPrelim",
     signature=signature(x="flowFrame", y="data.frame"),
