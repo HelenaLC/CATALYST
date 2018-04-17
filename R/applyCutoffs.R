@@ -63,25 +63,32 @@ setMethod(f="applyCutoffs",
                     " 'estCutoffs()' first, or specify cutoffs manually.")
         }
         
-        # find which columns correspond to barcode masses
-        # and extract barcode columns
+        # get indices for each barcode population
+        ids <- unique(bc_ids(x))
+        ids <- ids[ids != 0]
+        inds <- setNames(lapply(ids, function(id)
+            which(bc_ids(x) == id)), ids)
+        
+        # get indices of events that fall below 
+        # sep_cutoff & assign bc_id 0 to these
+        below_th <- setNames(lapply(ids, function(id) {
+            th <- sep_cutoffs(x)[rownames(bc_key(x)) == id]
+            deltas(x)[inds[[id]]] < th
+        }), ids)
+        inds <- sapply(ids, function(id) inds[[id]][!below_th[[id]]])
+        for (id in ids) bc_ids(x)[inds[[id]][below_th[[id]]]] <- 0
+        
+        # subset barcode populations
         ms <- gsub("[[:alpha:][:punct:]]", "", colnames(exprs(x)))
         bc_cols <- which(ms %in% colnames(bc_key(x)))
         n_bcs <- length(bc_cols)
         bcs <- exprs(x)[, bc_cols]
+        bcs <- sapply(inds, function(x) bcs[x, ])
         
-        ids <- unique(bc_ids(x))
-        ids <- ids[ids != 0]
-        
-        # compute mahalanobis distances given current separation cutoff
+        # compute mhl_dists
         mhl_dists <- numeric(nrow(exprs(x)))
-        for (i in ids) {
-            inds <- which(bc_ids(x) == i)
-            ex <- inds[deltas(x)[inds] < 
-                    sep_cutoffs(x)[rownames(bc_key(x)) == i]]
-            inds <- inds[!(inds %in% ex)]
-            bc_ids(x)[ex] <- 0
-            sub  <- bcs[inds, ]
+        for (id in ids) {
+            sub <- bcs[[id]]
             test <- (length(sub) != n_bcs) && (nrow(sub) > n_bcs)
             if (test) {
                 covMat <- stats::cov(sub)
@@ -90,12 +97,13 @@ setMethod(f="applyCutoffs",
                     solve(covMat) %*% covMat, 
                     error=function(e) e)
                 if (!inherits(test, "error"))
-                    mhl_dists[inds] <- stats::mahalanobis(
+                    mhl_dists[inds[[id]]] <- stats::mahalanobis(
                         x=sub, center=colMeans(sub), cov=covMat)
             }
         }
         bc_ids(x)[mhl_dists > mhl_cutoff] <- 0
-        mhl_dists(x)  <- mhl_dists
+        mhl_dists(x) <- mhl_dists
         mhl_cutoff(x) <- mhl_cutoff
-        x
-    })
+        return(x)
+    }
+)
