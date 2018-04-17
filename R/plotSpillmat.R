@@ -102,5 +102,3 @@ setMethod(f="plotSpillmat",
         }
     }
 )
-
-
