@@ -1,7 +1,6 @@
 # ==============================================================================
 # Barplot of relative population abundances across samples & clusters
 # ------------------------------------------------------------------------------
-
 #' @rdname plotAbundances
 #' @title Population frequencies across samples & clusters
 #' 
@@ -16,6 +15,14 @@
 #' 
 #' @return a \code{ggplot} object.
 #' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
@@ -27,17 +34,10 @@
 #' plotAbundances(re, k=12)                 # ...across samples 
 #' plotAbundances(re, k=8, by="cluster_id") # ...across clusters
 #' 
-#' @author
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
-#' 
 #' @import ggplot2
+#' @importFrom reshape2 melt
 #' @importMethodsFrom S4Vectors metadata
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
@@ -45,20 +45,15 @@ setMethod(f="plotAbundances",
         by=c("sample_id", "cluster_id"), group_by="condition") {
     
         check_validity_of_k(x, k)
-        
         cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
         counts <- table(cluster_ids, sample_ids(x))
-        df <- data.frame(t(t(counts)/colSums(counts))*100)
-        colnames(df) <- c("cluster_id", "sample_id", "freq")
-        md <- metadata(x)[[1]]
+        
+        df <- melt(t(t(counts)/colSums(counts))*100, 
+            varnames=c("cluster_id", "sample_id"),
+            value.name="freq")
+        md <- metadata(x)$experiment_info
         m <- match(df$sample_id, md$sample_id)
-        df$patient_id <- factor(md$patient_id[m])
-        conds <- grep("condition", colnames(md), value=TRUE)
-        df <- cbind(df, sapply(conds, function(i) md[, i][m]))
-        if (length(conds) > 1) {
-            conds_combined <- apply(md[, conds], 1, paste, collapse="/")
-            df$condition <- factor(conds_combined[m])
-        }
+        df <- data.frame(df, md[m, setdiff(names(md), names(df))])
         
         p <- ggplot(df, aes_string(y="freq")) +
             labs(x=NULL, y="Proportion [%]") + theme_bw() + theme(
@@ -68,6 +63,7 @@ setMethod(f="plotAbundances",
                 axis.ticks.x=element_blank(),
                 axis.text=element_text(color="black"),
                 axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
+        
         switch(match.arg(by),
             sample_id = p + facet_wrap(group_by, scales="free_x") +
                 geom_bar(aes_string(x="sample_id", fill="cluster_id"), 

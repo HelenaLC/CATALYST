@@ -32,6 +32,8 @@
 #' }
 #' @param x,object a \code{\link{dbFrame}}.
 #' @param value the replacement value.
+#'
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @examples 
 #' data(sample_ff, sample_key)
@@ -48,12 +50,8 @@
 #' # subset unassigned events
 #' unassigned <- bc_ids(re) == 0
 #' head(exprs(sample_ff[unassigned, ]))
-#' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-
-# ==============================================================================
-# Access slots in a dbFrame
 # ------------------------------------------------------------------------------
+
 #' @rdname dbFrame-methods
 setMethod(f="exprs",
     signature="dbFrame",

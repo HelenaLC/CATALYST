@@ -4,7 +4,7 @@
 \name{plotClusterHeatmap}
 \alias{plotClusterHeatmap}
 \alias{plotClusterHeatmap,daFrame-method}
-\title{Median marker expressions across clusters}
+\title{Plot cluster heatmap}
 \usage{
 plotClusterHeatmap(x, ...)
 
@@ -50,13 +50,21 @@ and multiple heatmaps will be drawn.}
 a \code{\link{HeatmapList-class}} object.
 }
 \description{
-Plots a heatmap of median lineage marker expressions across clusters, 
-and median functional marker expressions within each cluster across samples.
+Plots heatmaps summarizing the clustering and/or metaclustering of interest.
 }
 \details{
 Scaled values corresponds to cofactor arcsinh-transformed 
 expression values scaled between 0 and 1 using 1% and 99% percentiles as 
 boundaries. Hierarchical clustering is performed on the unscaled data.
+
+In its 1st panel, \code{plotClusterHeatmap} will display
+(scaled) median (arcsinh-transformed) cell-type marker expressions (across all samples).
+Depending on argument \code{hm2}, the 2nd panel will contain one of:
+\itemize{
+\item relataive cluster abundances by sample
+\item (scaled) median (arcsinh-transformed) cell-state marker expressions (across all samples)
+\item (scaled) median (arcsinh-transformed) cell-state marker expressions by sample
+}
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -77,7 +85,4 @@ Nowicka M, Krieg C, Weber LM et al.
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
-}
-\author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }
