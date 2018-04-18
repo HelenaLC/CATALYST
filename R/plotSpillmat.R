@@ -1,28 +1,24 @@
-# ==============================================================================
-# Plot spillover matrix heat map
-# ------------------------------------------------------------------------------
 #' @rdname plotSpillmat
 #' @title Spillover matrix heat map
 #' 
-#' @description 
-#' Generates a heat map of the spillover matrix annotated with 
-#' estimated spill percentages.
+#' @description Generates a heat map of the spillover matrix 
+#' annotated with estimated spill percentages.
 #'
 #' @param bc_ms 
-#' a vector of numeric masses corresponding to barcode channels.
+#'   a vector of numeric masses corresponding to barcode channels.
 #' @param SM 
-#' spillover matrix returned from \code{computeSpillmat}.
+#'   spillover matrix returned from \code{computeSpillmat}.
 #' @param out_path 
-#' a character string. If specified, outputs will be generated 
-#' in this location. Defaults to NULL.
+#'   character string. If specified, outputs will be generated here.
 #' @param name_ext 
-#' a character string. If specified, will be appended to the plot's name. 
-#' Defaults to NULL.
+#'   character string. If specified, will be appended to the plot's name. 
 #' @param annotate
-#' logical. If TRUE (default), spill percentages are shown inside bins 
-#' and rows are annotated with the total amount of spill received. 
+#'   logical. If TRUE (default), spill percentages are shown inside bins 
+#'   and rows are annotated with the total amount of spill received. 
 #' 
-#' @return plots estimated spill percentages as a heat map. 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @return Plots estimated spill percentages as a heat map. 
 #' Colours are ramped to the highest spillover value present
 #' 
 #' @examples
@@ -38,12 +34,10 @@
 #' spillMat <- computeSpillmat(x = re)
 #' plotSpillmat(bc_ms = bc_ms, SM = spillMat)
 #'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
 #' @importFrom grDevices colorRampPalette
 #' @importFrom htmlwidgets saveWidget
 #' @importFrom plotly ggplotly
-#' @export
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotSpillmat",

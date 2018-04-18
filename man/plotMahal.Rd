@@ -16,18 +16,16 @@ plotMahal(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{which}{specifies which barcode to plot.}
+\item{which}{character string. Specifies which barcode to plot.}
 
-\item{cofactor}{cofactor used for asinh transformation.}
+\item{cofactor}{numeric. Cofactor used for asinh transformation.}
 
-\item{out_path}{a character string. If specified, outputs will be generated 
-in this location. Defaults to NULL.}
+\item{out_path}{character string. If specified, outputs will be generated here.}
 
-\item{name_ext}{a character string. If specified, will be appended to the plot's name. 
-Defaults to NULL.}
+\item{name_ext}{character string. If specified, will be appended to file name.}
 }
 \value{
-plots all inter-barcode interactions for the population specified
+Plots all inter-barcode interactions for the population specified
 by argument \code{which}. Events are colored by their Mahalanobis distance.
 }
 \description{

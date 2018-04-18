@@ -16,19 +16,19 @@ computeSpillmat(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{method}{function to be used for computing spillover estimates
-(see below for details).}
+\item{method}{\code{"default"} or \code{"classic"}. Specifies the function
+to be used for spillover estimation (see below for details).}
 
 \item{interactions}{\code{"default"} or \code{"all"}. Specifies which interactions spillover 
 should be estimated for. The default exclusively takes into consideration 
 interactions that are sensible from a chemical and physical point of view
 (see below for more details).}
 
-\item{trim}{trim value used for estimation of spill values. 
+\item{trim}{numeric. Specifies the trim value used for estimation of spill values. 
 Note that \code{trim = 0.5} is equivalent to using medians.}
 
-\item{th}{a single non-negative numeric. Specifies a threshold value below which spill
-estimates will be set to 0.}
+\item{th}{single non-negative numeric. Specifies the threshold value 
+below which spill estimates will be set to 0.}
 }
 \value{
 Returns a square compensation matrix with dimensions and dimension names 
@@ -70,6 +70,7 @@ re <- assignPrelim(x = ss_exp, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
 head(computeSpillmat(x = re))
+
 }
 \references{
 Coursey, J.S., Schwab, D.J., Tsai, J.J., Dragoset, R.A. (2015).

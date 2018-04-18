@@ -1,24 +1,24 @@
-# ==============================================================================
-# Apply separation and mahalanobies distance cutoffs
-# ------------------------------------------------------------------------------
 #' @rdname applyCutoffs
 #' @title Single-cell debarcoding (2)
 #' 
 #' @description Applies separation and mahalanobies distance cutoffs.
 #'
-#' @param x a \code{\link{dbFrame}}.
-#' @param mhl_cutoff mahalanobis distance threshold above which events should 
-#' be unassigned. This argument will be ignored if the \code{mhl_cutoff} slot 
-#' of the input \code{dbFrame} is specified.
-#' @param sep_cutoffs non-negative numeric of length one or same length as the 
-#' number of rows in the \code{bc_key}. Specifies the distance separation 
-#' cutoffs between positive and negative barcode populations above which events 
-#' should be unassigned. If \code{NULL} (default), \code{applyCutoffs} will try 
-#' to access the 'sep_cutoffs' slot of the supplied \code{dbFrame}.
+#' @param x 
+#'   a \code{\link{dbFrame}}.
+#' @param mhl_cutoff 
+#'   mahalanobis distance threshold above which events should be unassigned. 
+#'   This argument will be ignored if the \code{mhl_cutoff} slot of the input 
+#'   \code{dbFrame} is specified.
+#' @param sep_cutoffs 
+#'   non-negative numeric of length one or of same length as the number of rows 
+#'   in the \code{bc_key(x)}. Specifies the distance separation cutoffs between 
+#'   positive and negative barcode populations below which events should be 
+#'   unassigned. If \code{NULL} (default), \code{applyCutoffs} will try to 
+#'   access the \code{sep_cutoffs} slot of the input \code{dbFrame}.
 #'
 #' @return 
 #' Will update the \code{bc_ids} and, if not already specified, 
-#' \code{sep_cutoffs} and \code{mhl_cutoff} slots of the input \code{dbFrame}.
+#' \code{sep_cutoffs} & \code{mhl_cutoff} slots of \code{x}.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 

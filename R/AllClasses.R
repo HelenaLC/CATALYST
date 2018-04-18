@@ -12,52 +12,49 @@
 #' Objects of class \code{dbFrame} hold all data required for debarcoding:
 #' \enumerate{
 #' \item as the initial step of single-cell deconcolution, 
-#' \code{\link{assignPrelim}} will return a \code{dbFrame} containing the
-#' input measurement data, barcoding scheme, and preliminary event assignments.
+#'   \code{\link{assignPrelim}} will return a \code{dbFrame} containing
+#'   the input measurement data, barcoding scheme, and preliminary assignments.
 #' \item assignments will be made final by \code{\link{applyCutoffs}}.
-#' Optionally, population-specific separation cutoffs may be estimated 
-#' by running \code{\link{estCutoffs}} prior to this.
+#'   Optionally, population-specific separation cutoffs may be estimated 
+#'   by running \code{\link{estCutoffs}} prior to this.
 #' \item \code{\link{plotYields}}, \code{\link{plotEvents}} and 
-#' \code{\link{plotMahal}} aim to guide selection of devoncolution parameters 
-#' and to give a sense of the resulting barcode assignment quality.
-#' }
+#'   \code{\link{plotMahal}} aim to guide devoncolution parameter selection,
+#'   and to give a sense of the resulting barcode assignment quality.}
 #' \code{show(dbFrame)} will display \itemize{
 #' \item the dimensionality of the measurement data and number of barcodes
 #' \item current assignments in order of decreasing population size
 #' \item current separation cutoffs
-#' \item the average and per-population yield 
-#'       that will be achieven upon debarcoding}
+#' \item the mean & per-population yield that'll be achieved upon debarcoding}
 #' 
 #' @slot exprs  
-#' a matrix containing raw intensities of the input flowFrame.
+#'   a matrix containing raw intensities of the input flowFrame.
 #' @slot bc_key 
-#' binary barcoding scheme with numeric masses as column names 
-#' and samples names as row names OR a numeric vector of barcode masses.
+#'   binary barcoding scheme with numeric masses as column names and
+#'   samples names as row names OR a numeric vector of barcode masses.
 #' @slot bc_ids
-#' vector of barcode IDs. If a barcoding scheme is supplied, 
-#' the respective binary code's row name, else, the mass of the respective 
-#' barcode channel.
+#'   vector of barcode IDs. If a barcoding scheme is supplied, the respective 
+#'   binary code's row name, else, the mass of the respective barcode channel.
 #' @slot deltas 
-#' numeric vector of separations between positive and negative 
-#' barcode populations computed from normalized barcode intensities.
+#'   numeric vector of separations between positive and negative 
+#'   barcode populations computed from normalized barcode intensities.
 #' @slot normed_bcs 
-#' matrix containing normalized barcode intensities.
+#'   matrix containing normalized barcode intensities.
 #' @slot mhl_dists
-#' mahalanobis distances.
+#'   mahalanobis distances.
 #' @slot sep_cutoffs
-#' numeric vector of distance separation cutoffs between positive and negative 
-#' barcode populations above which events will be unassigned.
+#'   numeric vector of distance separation cutoffs between positive and negative 
+#'   barcode populations above which events will be unassigned.
 #' @slot mhl_cutoff
-#' non-negative and non-zero numeric value specifying the Mahalanobis distance 
-#' below which events will be unassigned.
+#'   non-negative and non-zero numeric value specifying the 
+#'   Mahalanobis distance below which events will be unassigned.
 #' @slot counts
-#' matrix of dimension (# barcodes)x(101) where each row contains the number 
-#' of events within a barcode for which positive and negative populations 
-#' are separated by a distance between in [0,0.01), ..., [0.99,1], respectively.
+#'   matrix of dimension (# barcodes)x(101) where each row contains the number 
+#'   of events within a barcode for which positive and negative populations 
+#'   are separated by a distance between in [0,0.01), ..., [0.99,1], respectively.
 #' @slot yields
-#' a matrix of dimension (# barcodes)x(101) where each row contains the 
-#' percentage of events within a barcode that will be obtained after applying
-#' a separation cutoff of 0, 0.01, ..., 1, respectively.
+#'   a matrix of dimension (# barcodes)x(101) where each row contains the 
+#'   percentage of events within a barcode that will be obtained after applying
+#'   a separation cutoff of 0, 0.01, ..., 1, respectively.
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom methods new
@@ -125,24 +122,24 @@ setValidity(Class="dbFrame",
 #' Represents the data returned by and used throughout differential analysis.
 #' 
 #' @slot assays 
-#' list of length one containing the arcsinh-transformed expressions.
+#'   list of length one containing the arcsinh-transformed expressions.
 #' @slot rowData 
-#' the metadata information for each event, and its cluster ID
-#' as inferred by the initial \code{\link{FlowSOM}} clustering.
+#'   the metadata information for each event, and its cluster ID
+#'   as inferred by the initial \code{\link{FlowSOM}} clustering.
 #' @slot colData 
-#' a data.frame with the following columns:\itemize{
+#'   a data.frame with the following columns:\itemize{
 #' \item \code{marker_name} original column name in the input \code{flowSet}
-#' \item \code{marker_class} one of \code{"cell_type"} or \code{"cell_state"}}
+#' \item \code{marker_class} one of \code{"type"} or \code{"state"}}
 #' @slot metadata 
-#' a named list containing:\itemize{
-#' \item \code{design}: the original metadata-table
-#' \item \code{panel}: the original panel-table
-#' \item \code{n_cells}: the number of events measured per sample
-#' \item \code{SOM_codes}: a k x p matrix of SOM codes, 
-#' where k = no. of clusters, and p = no. of measurement parameters
-#' \item \code{cluster_codes}: cluster codes for the initial 
-#' \code{\link{FlowSOM}} clustering, the \code{\link{ConsensusClusterPlus}} 
-#' metaclustering, and manual mergings done with \code{\link{mergeClusters}}}
+#'   a named list containing:\itemize{
+#'   \item \code{design}: the original metadata-table
+#'   \item \code{panel}: the original panel-table
+#'   \item \code{n_cells}: the number of events measured per sample
+#'   \item \code{SOM_codes}: a k x p matrix of SOM codes, where
+#'     k = no. of clusters, and p = no. of measurement parameters
+#'   \item \code{cluster_codes}: cluster codes for the initial \pkg{FlowSOM} 
+#'     clustering, the \pkg{ConsensusClusterPlus} metaclustering, and manual 
+#'     mergings done with \code{\link{mergeClusters}}}
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ConsensusClusterPlus Rtsne SummarizedExperiment
@@ -152,45 +149,48 @@ setValidity(Class="dbFrame",
 #' @importFrom S4Vectors DataFrame SimpleList
 #' @export
 # ------------------------------------------------------------------------------
+
 # class definition
 setClass(
     Class="daFrame", 
     package="CATALYST", 
     contains="SummarizedExperiment")
 
-# ------------------------------------------------------------------------------
 # constructor
-# ------------------------------------------------------------------------------
 #' @rdname daFrame-class
 #' 
-#' @param fs a \code{\link{flowSet}} holding all samples.
-#' @param panel a 2 column data.frame that contains for each marker of interest 
-#' i) its column name in the FCS file, and ii) the targeted protein marker.
-#' @param md a data.frame with columns describing the experiment.
-#' An exemplary metadata table could look as follows:\itemize{
-#' \item \code{file_name}: the FCS file name
-#' \item \code{sample_id}: a unique sample identifier
-#' \item \code{condition}: brief sample description (e.g. REF)
-#' \item \code{patient_id}: the patient ID}
-#' @param panel_cols a named list specifying column names in the input panel 
-#' that contain i) the channel names of the input \code{flowSet}, and ii) 
-#' the corresponding targeted protein marker. List elements must be named 
-#' \code{"channel"} and \code{"antigen"}, respectively.
-#' @param md_cols a named list specifying column names in the input metadata
-#' that contain i) the FCS file names, ii) unique sample identifiers, 
-#' iii) a character vector of factors descriptive of the samples
-#' (e.g. condition, treatment, batch, ect.). List elements should be named 
-#' \code{"file"}, \code{"id"}, and \code{"factors"}, respectively.
-#' @param cols_to_use a logical vector OR numeric vector of indices 
-#' OR character vector of column names. Specifies the columns to keep 
-#' from the input \code{flowSet}.
-#' @param cofactor cofactor to use for arcsinh-transformation.
+#' @param fs 
+#'   a \code{\link[flowCore]{flowSet}} holding all samples.
+#' @param panel 
+#'   a 2 column \code{data.frame} that contains for each marker of interest 
+#'   i) its column name in the FCS file, and ii) the targeted protein marker.
+#' @param md 
+#'   a \code{data.frame} with columns describing the experiment.
+#'   An exemplary metadata table could look as follows:
+#'   \itemize{
+#'     \item \code{file_name}: the FCS file name
+#'     \item \code{sample_id}: a unique sample identifier 
+#'     \item \code{condition}: brief sample description (e.g. REF) 
+#'     \item \code{patient_id}: the patient ID}
+#' @param panel_cols 
+#'   a named list specifying column names of \code{panel} that contain i) the 
+#'   original channel names in \code{fs}, and ii) the targeted protein marker. 
+#'   Elements must be named \code{"channel"} and \code{"antigen"}.
+#' @param md_cols 
+#'   a named list specifying column names of \code{md} that contain i) the FCS 
+#'   file names, ii) unique sample identifiers, and iii) a character vector of 
+#'   factors descriptive of the samples (e.g. condition, treatment, ect.).
+#'   Elements must be named \code{"file"}, \code{"id"}, and \code{"factors"}.
+#' @param cols_to_use 
+#'   a logical vector OR numeric vector of indices OR character vector 
+#'   of column names. Specifies the columns to keep from \code{fs}.
+#' @param cofactor 
+#'   numeric. Cofactor to use for arcsinh-transformation.
 #' 
 #' @return an object of class \code{\link{SummarizedExperiment}}.
 #' 
 #' @import SummarizedExperiment
 #' @export
-# ------------------------------------------------------------------------------
 
 daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
     panel_cols=list(channel="fcs_colname", antigen="antigen"),
@@ -244,7 +244,7 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
         sapply(md_cols$factors, function(i) rep(md[[i]], n_cells)))
     col_data <- S4Vectors::DataFrame(row.names=colnames(es), 
         marker_name=chs, marker_class=factor(NA, 
-            levels=c("cell_type", "cell_state", "none")))
+            levels=c("type", "state", "none")))
     
     new("daFrame", 
         SummarizedExperiment(
@@ -259,7 +259,7 @@ setValidity(Class="daFrame",
         x <- deparse(substitute(object))
         # ----------------------------------------------------------------------
         # check colData(x)$marker_class
-        valid_classes <- c("cell_type", "cell_state", "none")
+        valid_classes <- c("type", "state", "none")
         lvls <- levels(colData(object)$marker_class)
         if (any(is.na(match(lvls, valid_classes))))
             return(message("colData(", x, ")$marker_class ",

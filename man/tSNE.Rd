@@ -4,7 +4,7 @@
 \name{tSNE}
 \alias{tSNE}
 \alias{tSNE,daFrame-method}
-\title{MDS plot}
+\title{Run t-SNE}
 \usage{
 tSNE(x, ...)
 
@@ -24,7 +24,7 @@ Writes the tSNE coordinates and the indicies of the events used
 for their computation into the metadata slot of the input \code{daFrame}.
 }
 \description{
-Multi-dimensional scaling (MDS) plot on median marker expressions.
+Runs t-SNE dimensionality reduction on a \code{\link{daFrame}}.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)

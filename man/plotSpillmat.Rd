@@ -18,22 +18,20 @@ plotSpillmat(bc_ms, SM, ...)
 
 \item{...}{optional arguments.}
 
-\item{out_path}{a character string. If specified, outputs will be generated 
-in this location. Defaults to NULL.}
+\item{out_path}{character string. If specified, outputs will be generated here.}
 
-\item{name_ext}{a character string. If specified, will be appended to the plot's name. 
-Defaults to NULL.}
+\item{name_ext}{character string. If specified, will be appended to the plot's name.}
 
 \item{annotate}{logical. If TRUE (default), spill percentages are shown inside bins 
 and rows are annotated with the total amount of spill received.}
 }
 \value{
-plots estimated spill percentages as a heat map. 
+Plots estimated spill percentages as a heat map. 
 Colours are ramped to the highest spillover value present
 }
 \description{
-Generates a heat map of the spillover matrix annotated with 
-estimated spill percentages.
+Generates a heat map of the spillover matrix 
+annotated with estimated spill percentages.
 }
 \examples{
 # get single-stained control samples

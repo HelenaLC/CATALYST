@@ -1,7 +1,3 @@
-# ==============================================================================
-# Compute compensation matrix
-# ------------------------------------------------------------------------------
-
 #' @rdname computeSpillmat
 #' @title Compute spillover matrix
 #' 
@@ -10,28 +6,22 @@
 #' identified single-positive populations.
 #'
 #' @param x 
-#' a \code{\link{dbFrame}}.
+#'   a \code{\link{dbFrame}}.
 #' @param method 
-#' function to be used for computing spillover estimates
-#' (see below for details).
+#'   \code{"default"} or \code{"classic"}. Specifies the function
+#'   to be used for spillover estimation (see below for details).
 #' @param interactions
-#' \code{"default"} or \code{"all"}. Specifies which interactions spillover 
-#' should be estimated for. The default exclusively takes into consideration 
-#' interactions that are sensible from a chemical and physical point of view
-#' (see below for more details).
+#'   \code{"default"} or \code{"all"}. Specifies which interactions spillover 
+#'   should be estimated for. The default exclusively takes into consideration 
+#'   interactions that are sensible from a chemical and physical point of view
+#'   (see below for more details).
 #' @param trim
-#' trim value used for estimation of spill values. 
-#' Note that \code{trim = 0.5} is equivalent to using medians.
+#'   numeric. Specifies the trim value used for estimation of spill values. 
+#'   Note that \code{trim = 0.5} is equivalent to using medians.
 #' @param th
-#' a single non-negative numeric. Specifies a threshold value below which spill
-#' estimates will be set to 0.
+#'   single non-negative numeric. Specifies the threshold value 
+#'   below which spill estimates will be set to 0.
 #'
-#' @return
-#' Returns a square compensation matrix with dimensions and dimension names 
-#' matching those of the input flowFrame. Spillover is assumed to be linear,
-#' and, on the basis of their additive nature, spillover values are computed 
-#' independently for each interacting pair of channels. 
-#' 
 #' @details
 #' The \code{default} method estimates the spillover as the median ratio 
 #' between the unstained spillover receiving and the stained spillover 
@@ -52,6 +42,19 @@
 #' interactions, where n denotes the number of single-color controls 
 #' (= \code{nrow(bc_key(re))}).
 #' 
+#' @return
+#' Returns a square compensation matrix with dimensions and dimension names 
+#' matching those of the input flowFrame. Spillover is assumed to be linear,
+#' and, on the basis of their additive nature, spillover values are computed 
+#' independently for each interacting pair of channels. 
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @references 
+#' Coursey, J.S., Schwab, D.J., Tsai, J.J., Dragoset, R.A. (2015).
+#' Atomic weights and isotopic compositions, 
+#' (available at http://physics.nist.gov/Comp).
+#' 
 #' @examples
 #' # get single-stained control samples
 #' data(ss_exp)
@@ -62,12 +65,7 @@
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
 #' head(computeSpillmat(x = re))
-
-#' @references 
-#' Coursey, J.S., Schwab, D.J., Tsai, J.J., Dragoset, R.A. (2015).
-#' Atomic weights and isotopic compositions, 
-#' (available at http://physics.nist.gov/Comp).
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
 #' @importFrom stats median
 # ------------------------------------------------------------------------------
 

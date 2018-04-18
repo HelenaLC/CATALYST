@@ -1,41 +1,38 @@
-# ==============================================================================
-# concatinates all FCS files in the specified location
-# ------------------------------------------------------------------------------
 #' @rdname concatFCS
-#' @title FCS file concatination
+#' @title FCS file Concatenation
 #' 
-#' @description 
-#' Concatinates all input data.
+#' @description Concatenates all input data to a single file or object.
 #'
 #' @param x 
-#' can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
-#' a character specifying the location of the FCS files to be concatinated, 
-#' or a vector of FCS file names.
+#'   can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
+#'   a character specifying the location of the FCS files to be concatinated, 
+#'   or a vector of FCS file names.
 #' @param out_path
-#' an optional character string. If specified, an FCS file 
-#' of the concatinated data will be written to this location. 
-#' If NULL (default), a \code{\link{flowFrame}} will be returned.
-#' @param by_time logical. 
-#' Specifies whether files should be ordered by time of acquisition.
-#' @param file_num logical. 
-#' Specifies whether a file number column should be added.
-#' @param pars,desc optional character vector of channel names and descriptions
-#' to use when merging files.
+#'   character string. If specified, an FCS file of the concatenated data 
+#'   will be written to this location. 
+#'   If NULL (default), a \code{\link[flowCore]{flowFrame}} will be returned.
+#' @param by_time
+#'  logical. Specifies whether files should be ordered by time of acquisition.
+#' @param file_num
+#'   logical. Specifies whether a file number column should be added.
+#' @param pars,desc 
+#'   optional character vectors of channel names & descriptions
+#'   to use when merging files.
 #'
 #' @return 
 #' a \code{\link{flowFrame}} containing measurement intensities 
 #' of all input data or a character of the FCS file name.
 #' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
 #' @examples
 #' data(raw_data)
 #' concatFCS(raw_data)
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom flowCore colnames description exprs 
-#' flowFrame flowSet fsApply isFCSfile keyword parameters
+#'   flowFrame flowSet fsApply isFCSfile keyword parameters
 #' @importFrom matrixStats colMaxs
 #' @importFrom methods as
-#' @export
 # ------------------------------------------------------------------------------
 
 setMethod(f="concatFCS",

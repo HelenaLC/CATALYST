@@ -15,8 +15,8 @@ plotMDS(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{color_by}{a character string that appears as a column name in the
-metadata-table of the input \code{daFrame}. Specifies the color coding.}
+\item{color_by}{character string that appears as a column name of \code{rowData(x)}.
+Specifies the color coding.}
 }
 \value{
 a \code{ggplot} object.

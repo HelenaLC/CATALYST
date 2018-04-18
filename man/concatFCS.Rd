@@ -6,7 +6,7 @@
 \alias{concatFCS,flowSet-method}
 \alias{concatFCS,character-method}
 \alias{concatFCS,list-method}
-\title{FCS file concatination}
+\title{FCS file Concatenation}
 \usage{
 concatFCS(x, ...)
 
@@ -26,17 +26,15 @@ or a vector of FCS file names.}
 
 \item{...}{optional arguments.}
 
-\item{out_path}{an optional character string. If specified, an FCS file 
-of the concatinated data will be written to this location. 
-If NULL (default), a \code{\link{flowFrame}} will be returned.}
+\item{out_path}{character string. If specified, an FCS file of the concatenated data 
+will be written to this location. 
+If NULL (default), a \code{\link[flowCore]{flowFrame}} will be returned.}
 
-\item{by_time}{logical. 
-Specifies whether files should be ordered by time of acquisition.}
+\item{by_time}{logical. Specifies whether files should be ordered by time of acquisition.}
 
-\item{file_num}{logical. 
-Specifies whether a file number column should be added.}
+\item{file_num}{logical. Specifies whether a file number column should be added.}
 
-\item{pars, desc}{optional character vector of channel names and descriptions
+\item{pars, desc}{optional character vectors of channel names & descriptions
 to use when merging files.}
 }
 \value{
@@ -44,7 +42,7 @@ a \code{\link{flowFrame}} containing measurement intensities
 of all input data or a character of the FCS file name.
 }
 \description{
-Concatinates all input data.
+Concatenates all input data to a single file or object.
 }
 \examples{
 data(raw_data)

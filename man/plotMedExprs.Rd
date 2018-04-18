@@ -4,7 +4,7 @@
 \name{plotMedExprs}
 \alias{plotMedExprs}
 \alias{plotMedExprs,daFrame-method}
-\title{Median marker expressions across samples}
+\title{Plot median expressions}
 \usage{
 plotMedExprs(x, ...)
 
@@ -16,14 +16,14 @@ plotMedExprs(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{k}{a numeric or charactering specifying the clustering to use.
-If \code{facette = "antigen"} this argument will be ignored.}
+\item{k}{numeric or character string. Specifies the clustering to use.
+If \code{facette = "antigen"}, this argument will be ignored.}
 
-\item{facette}{character string \code{"antigen"} or \code{"cluster_id"}. 
-Note that the latter requires having run \code{\link{cluster}} first.}
+\item{facette}{\code{"antigen"} or \code{"cluster_id"}. Note that 
+the latter requires having run \code{\link{cluster}} first.}
 
-\item{group_by}{a character string that appears as a column name in the 
-metadata-table of the input \code{daFrame}. Specifies sample grouping.}
+\item{group_by}{character string. Has to appear as a column name of \code{rowData(x)}. 
+Specifies sample grouping.}
 }
 \value{
 a \code{ggplot} object.

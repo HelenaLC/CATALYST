@@ -1,17 +1,14 @@
-# ==============================================================================
-# Smoothed densities of marker expression
-# ------------------------------------------------------------------------------
 #' @rdname plotExprs
-#' @title Smoothed densities of marker expression
+#' @title Plot expressions
 #' 
 #' @description 
 #' Plots the smoothed densities of arcsinh-transformed marker intensities.
 #'
-#' @param x a \code{\link{daFrame}}.
-#' @param color_by a character string that appears as a column name in the
-#' metadata-table of the input \code{daFrame}. Specifies the color coding.
-#' 
-#' @return a \code{\link{ggplot}} object.
+#' @param x 
+#'   a \code{\link{daFrame}}.
+#' @param color_by 
+#'   character string. Has to appear as a column name of \code{rowData(x)}.
+#'   Specifies the color coding.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
@@ -20,6 +17,8 @@
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
+#' @return a \code{\link{ggplot}} object.
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)

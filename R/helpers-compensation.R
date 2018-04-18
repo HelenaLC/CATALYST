@@ -86,7 +86,7 @@ plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
 # ==============================================================================
 # check validity of input spillover matrix in compCytof()
 # ------------------------------------------------------------------------------
-check_spillMat <- function(sm) {
+check_sm <- function(sm) {
     if (any(sm < 0))
         stop("\nThe supplied spillover matrix is invalid ",
             "as it contains negative entries.\n",
@@ -102,7 +102,6 @@ check_spillMat <- function(sm) {
         stop("\nThe supplied spillover matrix is invalid ",
             "as its diagonal contains entries != 1.\n")
 }
-
 
 # ==============================================================================
 # Helper functions to get mass and metal from a channel name

@@ -4,7 +4,7 @@
 \name{cluster}
 \alias{cluster}
 \alias{cluster,daFrame-method}
-\title{FlowSOM clustering and ConsensusClusterPlus metaclustering}
+\title{FlowSOM clustering & ConsensusClusterPlus metaclustering}
 \usage{
 cluster(x, ...)
 
@@ -16,14 +16,14 @@ cluster(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{cols_to_use}{a character vector.
-Specifies which antigens to use for clustering.}
+\item{cols_to_use}{a character vector. Specifies which antigens to use for clustering.}
 
-\item{xdim, ydim}{numerical values specifying the grid size of the
-self-orginizing map. The default 10x10 grid will yield 100 clusters.}
+\item{xdim, ydim}{numeric. Specify the grid size of the self-orginizing map. 
+The default 10x10 grid will yield 100 clusters.}
 
-\item{maxK}{numerical value. Specifies the maximum 
-number of clusters to evaluate in the metaclustering.}
+\item{maxK}{numeric. Specifies the maximum number of clusters to evaluate
+in the metaclustering. For \code{maxK = 20}, for example, 
+metaclustering will be performed for 2 through 20 clusters.}
 }
 \value{
 The function will add information to the following slots 
@@ -31,31 +31,34 @@ of the input \code{daFrame} (and return it):
 \itemize{
 \item{\code{rowData}\describe{\itemize{
 \item{\code{cluster_id}:
-each cell's clustering ID as inferred by \code{FlowSOM}.}}
+  each cell's cluster ID as inferred by \code{FlowSOM}. 
+  One of 1, ..., \code{xdim}x\code{ydim}}.}
 }}
 \item{\code{colData}\describe{\itemize{
 \item{\code{marker_class}: 
-\code{"cell_type"} or \code{"cell_state"}. 
-Specifies if an antigen has been used for clustering or not, respectively.}}
+  \code{"type"} or \code{"state"}. 
+  Specifies whether an antigen has been used for clustering 
+  or not, respectively.}}
 }}
 \item{\code{metadata}\describe{\itemize{
 \item{\code{SOM_codes}:
-A table with dimensions K x (# cell type markers), 
-where K = \code{xdim} x \code{ydim}. Contains the SOM codes.}
+  a table with dimensions K x (# cell type markers), 
+  where K = \code{xdim} x \code{ydim}. Contains the SOM codes.}
 \item{\code{cluster_codes}:
-A table with dimensions K x (\code{maxK} + 1). 
-Contains the cluster codes for all metaclustering.}
+  a table with dimensions K x (\code{maxK} + 1). 
+  Contains the cluster codes for all metaclustering.}
 \item{\code{delta_area}: 
-A \code{\link{ggplot}} object. See above for details.}}
+  a \code{\link{ggplot}} object. See above for details.}}
 }}
 }
 }
 \description{
-\code{CATALYST::cluster()} runs \code{\link{FlowSOM}} clustering into 
-\code{xdim}x\code{ydim} clusters, and \code{\link{ConsensusClusterPlus}} 
-metaclustering into 2-\code{maxK} clusters. In the returned \code{daFrame}, 
-those antigens used for clustering will be labelled as 'cell_type' markers, 
-and the remainder of antigens as 'cell_state' markers.
+\code{cluster} will first group cells into \code{xdim}x\code{ydim} 
+clusters using \pkg{FlowSOM}, and subsequently perform metaclustering 
+with \pkg{ConsensusClusterPlus} into 2 through \code{maxK} clusters. 
+In the returned \code{daFrame}, those antigens used for clustering will be 
+labelled as '\code{type}' markers, and the remainder of antigens as 
+'\code{state}' markers.
 }
 \details{
 The delta area represents the amount of extra cluster stability gained when 

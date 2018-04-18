@@ -1,23 +1,20 @@
-# ==============================================================================
-# tSNE and PCA plot on SOM codes
-# ------------------------------------------------------------------------------
 #' @rdname plotCodes
-#' @title tSNE and PCA plot on the SOM codes
+#' @title tSNE and PCA on SOM codes
 #' 
-#' @description
-#' Plots the tSNE and PCA representing the SOM codes as inferred by 
-#' \code{\link{FlowSOM}}. Sizes are scaled to the total number of events 
-#' assigned to each cluster, and points are color according to their cluster ID 
-#' upon \code{\link{ConsensusClusterPlus}} metaclustering to \code{k} clusters.
+#' @description Plots the tSNE and PCA representing the SOM codes as inferred
+#' by \pkg{FlowSOM}. Sizes are scaled to the total number of events assigned 
+#' to each cluster, and points are color according to their cluster ID upon 
+#' \pkg{ConsensusClusterPlus} metaclustering into \code{k} clusters.
 #'
-#' @param x a \code{\link{daFrame}}.
-#' @param k specifies the clustering to use for color coding.
-#' @param out_path a character string. If specified, 
-#' output will be generated in this location. Defaults to NULL.
-#' @param verbose logical specifying whether information 
-#' on progress should be reported. Defaults to TRUE.
-#' 
-#' @return \code{ggplot} object.
+#' @param x 
+#'   a \code{\link{daFrame}}.
+#' @param k 
+#'   numeric or character string. 
+#'   Specifies the clustering to use for color coding.
+#' @param out_path 
+#'   character string. If specified, output will be generated in this location.
+#' @param verbose 
+#'   logical. Specifies whether information on progress should be reported.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
@@ -26,6 +23,8 @@
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
+#' @return a \code{ggplot} object.
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)

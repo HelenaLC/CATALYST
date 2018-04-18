@@ -6,7 +6,7 @@
 \alias{compCytof,flowFrame,matrix-method}
 \alias{compCytof,character,matrix-method}
 \alias{compCytof,ANY,data.frame-method}
-\title{Compensate CyTOF experiment}
+\title{Compensate CyTOF data}
 \usage{
 compCytof(x, y, ...)
 
@@ -19,8 +19,8 @@ compCytof(x, y, ...)
 \S4method{compCytof}{ANY,data.frame}(x, y, out_path = NULL, method = "flow")
 }
 \arguments{
-\item{x}{a \code{\link{flowFrame}} OR a character string specifying 
-the location of FCS files that should be compensates.}
+\item{x}{a \code{\link{flowFrame}} OR a character string specifying the location of 
+FCS files that should be compensates.}
 
 \item{y}{a spillover matrix.}
 
@@ -28,10 +28,9 @@ the location of FCS files that should be compensates.}
 
 \item{out_path}{a character string. If specified, compensated FCS files will be generated 
 in this location. If \code{x} is a character string, file names will be 
-inherited from uncompensated FCS files and given extension "_comped".
-Defaults to NULL.}
+inherited from uncompensated FCS files and given extension "_comped".}
 
-\item{method}{one of "flow" or "nnls".}
+\item{method}{\code{"flow"} or \code{"nnls"}.}
 }
 \value{
 Compensates the input \code{\link{flowFrame}} or, 
@@ -41,8 +40,8 @@ containing the compensated data. Otherwise, compensated data will be written
 to the specified location as FCS 3.0 standard files.
 }
 \description{
-Compensates a mass spectrometry based experiment using a provided spillover
-matrix, assuming a linear spillover in the experiment.
+Compensates a mass spectrometry based experiment using a
+provided spillover matrix & assuming a linear spillover in the experiment.
 }
 \details{
 If the spillover matrix (SM) does not contain the same set of columns as 
@@ -57,8 +56,7 @@ will receive (but not emit) spillover according to that channel}
 \item{if an added channel could potentially receive spillover (as it has 
 +/-1M or +16M of, or is of the same metal type as another channel measured), 
 a warning will be issued as there could be spillover interactions that have
-been missed and may lead to faulty compensation}
-}
+been missed and may lead to faulty compensation}}
 }
 \examples{
 # get single-stained control samples

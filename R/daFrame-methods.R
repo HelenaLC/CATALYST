@@ -89,13 +89,13 @@ setMethod(f="marker_classes",
 setMethod(f="type_markers",      
     signature="daFrame",
     definition=function(x) return(colnames(x)[
-        colData(x)$marker_class == "cell_type"]))
+        colData(x)$marker_class == "type"]))
 
 #' @rdname daFrame-methods
 setMethod(f="state_markers",      
     signature="daFrame",
     definition=function(x) return(colnames(x)[
-        colData(x)$marker_class == "cell_state"]))
+        colData(x)$marker_class == "state"]))
 
 #' @rdname daFrame-methods
 setMethod(f="sample_ids",  

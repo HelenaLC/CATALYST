@@ -1,16 +1,14 @@
-# ==============================================================================
-# Marker ranking based on the non-redundancy score
-# ------------------------------------------------------------------------------
 #' @rdname plotNRS
-#' @title Non-redundancy scores across markers
+#' @title Plot non-redundancy scores
 #' 
-#' @description Plots non-redundancy scores (NRS) in decreasing order.
+#' @description 
+#' Plots non-redundancy scores (NRS) by markers in decreasing order.
 #'
-#' @param x a \code{\link{daFrame}}
-#' @param color_by a character string that appears as a column name in the
-#' metadata-table of the input \code{daFrame}. Specifies the color coding.
-#' 
-#' @return a \code{ggplot} object.
+#' @param x 
+#'   a \code{\link{daFrame}}
+#' @param color_by 
+#'   character string. Has to appeara as a column name of \code{rowData(x)}.
+#'   Specifies the color coding.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
@@ -20,6 +18,8 @@
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
+#' @return a \code{ggplot} object.
+#' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
@@ -27,7 +27,7 @@
 #' 
 #' @import ggplot2
 #' @importFrom reshape2 melt
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="plotNRS", 
     signature=signature(x="daFrame"), 

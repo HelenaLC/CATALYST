@@ -1,17 +1,16 @@
-# ==============================================================================
-# guesses a panel from a flowFrame
-# ------------------------------------------------------------------------------
 #' @rdname guessPanel
 #' @title Guess parameter panel
 #' 
 #' @description Helper function to parse information from the 
 #' \code{parameters} slot of a \code{flowFrame}/\code{flowSet}.
 #'
-#' @param x a \code{\link{flowFrame}} or \code{\link{flowSet}} object.
-#' @param index if \code{x} is a \code{flowSet} object, 
-#' this index specifies which \code{flowFrame} to extract.
+#' @param x 
+#'   a \code{\link[flowCore]{flowFrame}} or \code{\link[flowCore]{flowSet}}.
+#' @param index 
+#'   numeric. If \code{x} is a \code{flowSet} object, 
+#'   this index specifies which \code{flowFrame} to extract.
 #'
-#' @return a \code{data.frame} containing
+#' @return a \code{data.frame} with the following columns:
 #' \itemize{
 #' \item{\code{name}: the parameter name 
 #' as extracted from the input \code{flowFrame},}
@@ -21,15 +20,14 @@
 #' \item{\code{use_channel}: logical. If TRUE, the channel 
 #' is expected to contain a marker and will be kept.}}
 #' 
-#' @examples
-#' 
 #' @author Mark D Robinson, 
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
+#' @examples
+#' 
 #' @importFrom flowCore flowFrame flowSet
 #' @importFrom methods is
-#' @export
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="guessPanel", 
     signature=signature(x="flowFrame"), 

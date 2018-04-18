@@ -1,7 +1,3 @@
-# ==============================================================================
-# Estimate separation cutoffs
-# ------------------------------------------------------------------------------
-
 #' @rdname estTrim
 #' @title Estimation of optimal trim value
 #' 
@@ -9,23 +5,22 @@
 #' Estimates a trim value that will minimize the sum over squared
 #' popultion- and channel-wise squared medians upon compensation.
 #'
-#' @param x        a \code{\link{dbFrame}}.
+#' @param x        
+#'   a \code{\link{dbFrame}}.
 #' @param min,max,step 
-#'                 specifies sequence of trim values for which 
-#'                 compensation should be evaluated.
+#'   numeric. Specify trim values for which compensation should be evaluated.
 #' @param method 
-#' function to be used for computing spillover estimates. 
-#' Valid options are \code{"default"} or \code{"classic"} 
-#' (see \code{\link{computeSpillmat}} for details)
+#'   \code{"default"} or \code{"classic"}. Specifies the function to use for 
+#'   spillover estimation. (see \code{\link{computeSpillmat}} for details)
 #' @param interactions
-#' \code{"default"} or \code{"all"}. Specifies which interactions spillover 
-#' should be estimated for. The default exclusively takes into consideration 
-#' interactions that are sensible from a chemical and physical point of view
-#' (see \code{\link{computeSpillmat}} for more detail).
-#' @param out_path specifies in which location output plot is to be generated. 
-#'                 Defaults to NULL.
-#' @param name_ext a character string. If specified, will be appended 
-#'                 to the output plot's name. Defaults to NULL.
+#'   \code{"default"} or \code{"all"}. Specifies which interactions spillover 
+#'   should be estimated for. The default exclusively takes into consideration 
+#'   interactions that are sensible from a chemical and physical point of view
+#'   (see \code{\link{computeSpillmat}} for more detail).
+#' @param out_path 
+#'   specifies in which location output plot is to be generated. 
+#' @param name_ext 
+#'   character string. If specified, will be appended to the file name.
 #' 
 #' @return
 #' For each value along \code{seq(min, max, step)}, \code{estTrim} will call
@@ -33,6 +28,8 @@
 #' trim parameter. Returned will be an interactive plot displaying channel-wise 
 #' medians upon compensation, and the mean squared deviation from 0. Each point 
 #' is labeled with the respective interacting channels.
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @examples
 #' # get single-stained control samples
@@ -46,12 +43,9 @@
 #' re <- applyCutoffs(x = re)
 #' estTrim(x = re, min = 0, max = 0.12, step = 0.02, method = "classic")
 #'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2
 #' @importFrom graphics plot
 #' @importFrom plotly ggplotly
-#' @export
-
 # ------------------------------------------------------------------------------
 
 setMethod(f="estTrim", 

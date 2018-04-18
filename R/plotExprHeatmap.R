@@ -1,25 +1,38 @@
-# ==============================================================================
-# Heatmap of median marker expressions across samples
-# ------------------------------------------------------------------------------
 #' @rdname plotExprHeatmap
-#' @title Median marker expressions across samples
+#' @title Plot expression heatmap
 #' 
 #' @description 
-#' Plots median marker expressions across samples
+#' Plots median marker expressions across samples 
 #' computed on arcsinh-transformed intensities.
 #'
-#' @param x expression matrix.
-#' @param anno logical. Specifies whether to display values insinde each bin.
-#' @param color_by a character string that specifies the row annotation.
-#' @param palette a character vector of colors to interpolate. 
-#' @param scale logical. Specifies whether to mean-variance normalize each channel.
-#' @param draw_freqs logical. Specifyies whether to display cell counts and proportions.
-#' @param clustering_distance a character string that specifies 
-#' the metric to use in \code{dist()} for clustering.
-#' @param clustering_linkage a character string that specifies 
-#' the linkage to use in \code{hclust()} for clustering.
+#' @param x
+#'   a \code{\link{daFrame}}.
+#' @param anno 
+#'   logical. Specifies whether to display values insinde each bin.
+#' @param color_by 
+#'   character string. Specifies the row annotation.
+#' @param palette 
+#'   character vector of colors to interpolate. 
+#' @param scale 
+#'   logical. Specifies whether to mean-variance normalize each channel.
+#' @param draw_freqs 
+#'   logical. Specifyies whether to display cell counts and proportions.
+#' @param clustering_distance 
+#'   a character string that specifies the metric to use in 
+#'   \code{\link[stats]{dist}()} for clustering.
+#' @param clustering_linkage 
+#'   a character string that specifies the linkage to use in
+#'   \code{\link[stats]{hclust}()} for clustering.
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -27,14 +40,6 @@
 #' plotExprHeatmap(re)
 #' plotExprHeatmap(re, scale=FALSE)
 #' plotExprHeatmap(re, plot_freqs=TRUE)
-#' 
-#' @author
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @import ComplexHeatmap SummarizedExperiment
 #' @importFrom dplyr funs group_by_ summarize_all
@@ -45,8 +50,7 @@
 #' @importFrom scales hue_pal
 #' @importFrom stats dist hclust
 #' @importFrom utils suppressForeignCheck
-#' @export
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="plotExprHeatmap", 
     signature=signature(x="daFrame"), 

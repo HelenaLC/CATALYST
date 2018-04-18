@@ -4,7 +4,7 @@
 \name{plotNRS}
 \alias{plotNRS}
 \alias{plotNRS,daFrame-method}
-\title{Non-redundancy scores across markers}
+\title{Plot non-redundancy scores}
 \usage{
 plotNRS(x, ...)
 
@@ -15,14 +15,14 @@ plotNRS(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{color_by}{a character string that appears as a column name in the
-metadata-table of the input \code{daFrame}. Specifies the color coding.}
+\item{color_by}{character string. Has to appeara as a column name of \code{rowData(x)}.
+Specifies the color coding.}
 }
 \value{
 a \code{ggplot} object.
 }
 \description{
-Plots non-redundancy scores (NRS) in decreasing order.
+Plots non-redundancy scores (NRS) by markers in decreasing order.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)

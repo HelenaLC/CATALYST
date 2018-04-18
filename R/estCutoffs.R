@@ -1,7 +1,3 @@
-# ==============================================================================
-# Estimate separation cutoffs
-# ------------------------------------------------------------------------------
-
 #' @rdname estCutoffs
 #' @title Estimation of distance separation cutoffs
 #' 
@@ -10,7 +6,7 @@
 #' distance between positive and negative barcode populations.
 #'
 #' @param x       
-#' a \code{\link{dbFrame}}.
+#'   a \code{\link{dbFrame}}.
 #' 
 #' @details 
 #' For the estimation of cutoff parameters, we considered yields
@@ -43,6 +39,12 @@
 #' Will update the \code{sep_cutoffs} slot of the input \code{\link{dbFrame}} 
 #' and return the latter.
 #' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#'
+#' @references 
+#' Finney, D.J. (1971). Probit Analsis. 
+#' \emph{Journal of Pharmaceutical Sciences} \bold{60}, 1432. 
+#' 
 #' @examples
 #' data(sample_ff, sample_key)
 #' # assign preliminary IDs
@@ -51,11 +53,7 @@
 #' re <- estCutoffs(x = re)
 #' # view exemplary estimate
 #' plotYields(re, "A1")
-#'
-#' @references 
-#' Finney, D.J. (1971). Probit Analsis. 
-#' \emph{Journal of Pharmaceutical Sciences} \bold{60}, 1432. 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
 #' @importFrom stats lm coef D
 #' @importFrom drc drm LL.3
 # ------------------------------------------------------------------------------
