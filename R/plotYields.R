@@ -1,8 +1,3 @@
-# ==============================================================================
-# Plot distribution of barcode separations & 
-# yields as a function of separation cutoffs
-# ------------------------------------------------------------------------------
-
 #' @rdname plotYields
 #' @title Yield plot
 #' 
@@ -10,17 +5,16 @@
 #' Distribution of barcode separations and 
 #' yields as a function of separation cutoffs.
 #'
-#' @param x a \code{\link{dbFrame}}.
-#' @param which 0, numeric or character. Specifies which barcode(s) to plot. 
-#' Valid values are IDs that occur as row names in the \code{bc_key} of the 
-#' supplied \code{\link{dbFrame}}; 0 (the default) will generate a summary plot 
-#' with all barcodes.
+#' @param x 
+#'   a \code{\link{dbFrame}}.
+#' @param which 
+#'   0, numeric or character. Specifies which barcode(s) to plot. 
+#'   Valid values are IDs that occur as row names of \code{bc_key(x)}; 
+#'   0 (the default) will generate a summary plot with all barcodes.
 #' @param out_path 
-#' a character string. If specified, outputs will be generated 
-#' in this location. Defaults to NULL.
+#'   character string. If specified, outputs will be generated here.
 #' @param name_ext 
-#' a character string. If specified, will be appended to the plot's name. 
-#' Defaults to NULL.
+#'   character string. If specified, will be appended to the plot's name. 
 #'
 #' @details
 #' The overall yield that will be achieved upon application of the specified 
@@ -34,6 +28,14 @@
 #' used separation cutoffs as well as their resulting yields will be indicated 
 #' in the plot`s main title.
 #' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#'
+#' @references 
+#' Zunder, E.R. et al. (2015).
+#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+#' and single-cell deconvolution algorithm.
+#' \emph{Nature Protocols} \bold{10}, 316-333. 
+#' 
 #' @examples
 #' data(sample_ff, sample_key)
 #' re <- assignPrelim(x = sample_ff, y = sample_key)
@@ -44,14 +46,7 @@
 #' 
 #' # plot for specific sample
 #' plotYields(x = re, which = "C1")
-#'
-#' @references 
-#' Zunder, E.R. et al. (2015).
-#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
-#' and single-cell deconvolution algorithm.
-#' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
 #' @importFrom stats predict smooth.spline
 #' @importFrom RColorBrewer brewer.pal
@@ -60,7 +55,6 @@
 #' @importFrom htmltools save_html
 #' @importFrom magrittr %>%
 #' @importFrom plotly config hide_legend layout
-
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotYields", 

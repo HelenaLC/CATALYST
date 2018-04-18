@@ -1,22 +1,21 @@
-# ==============================================================================
-# Heatmap of median marker expressions across samples
-# ------------------------------------------------------------------------------
 #' @rdname plotMedExprs
-#' @title Median marker expressions across samples
+#' @title Plot median expressions
 #' 
 #' @description 
 #' Plots median marker expressions across samples
 #' computed on arcsinh-transformed intensities.
 #'
-#' @param x a \code{\link{daFrame}}.
-#' @param k a numeric or charactering specifying the clustering to use.
-#' If \code{facette = "antigen"} this argument will be ignored.
-#' @param facette character string \code{"antigen"} or \code{"cluster_id"}. 
-#' Note that the latter requires having run \code{\link{cluster}} first.
-#' @param group_by a character string that appears as a column name in the 
-#' metadata-table of the input \code{daFrame}. Specifies sample grouping.
-#' 
-#' @return a \code{ggplot} object.
+#' @param x 
+#'   a \code{\link{daFrame}}.
+#' @param k 
+#'   numeric or character string. Specifies the clustering to use.
+#'   If \code{facette = "antigen"}, this argument will be ignored.
+#' @param facette 
+#'   \code{"antigen"} or \code{"cluster_id"}. Note that 
+#'   the latter requires having run \code{\link{cluster}} first.
+#' @param group_by 
+#'   character string. Has to appear as a column name of \code{rowData(x)}. 
+#'   Specifies sample grouping.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
@@ -25,6 +24,8 @@
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
+#' @return a \code{ggplot} object.
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)

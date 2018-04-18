@@ -1,21 +1,17 @@
-# ==============================================================================
-# Adapt spillover matrix for compensation
-# ------------------------------------------------------------------------------
-
 #' @rdname adaptSpillmat
-#' @title Adapts a spillovermatrix such that 
-#' it can be used directly for compensation
+#' @title Adapt spillover matrix
 #' 
 #' @description 
 #' This helper function adapts the columns of a provided spillover matrix 
 #' such that it is compatible with data having the column names provided.
 #'
-#' @param input_sm     
-#' A previously calculated spillover matrix.
-#' @param out_chs
-#' The column names that the prepared output spillover matrix should have.
-#' Numeric names as well as names of the form MetalMass(Di), e.g. Ir191Di 
-#' or Ir191, will be interpreted as masses with associated metals.
+#' @param input_sm 
+#'   a previously calculated spillover matrix.
+#' @param out_chs 
+#'   the column names that the prepared output spillover matrix should have. 
+#'   Numeric names as well as names of the form MetalMass(Di), e.g. Ir191Di 
+#'   or Ir191, will be interpreted as masses with associated metals.
+#'  
 #' @details
 #' The rules how the spillover matrix is adapted 
 #' are explained in \code{\link{compCytof}}. 
@@ -23,6 +19,10 @@
 #' @return 
 #' An adapted spillover matrix with column and row names 
 #' according to \code{out_chs}.
+#' 
+#' @author 
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' and Vito RT Zanotelli \email{vito.zanotelli@uzh.ch}
 #' 
 #' @examples
 #' # get single-stained control samples
@@ -34,22 +34,19 @@
 #' re <- estCutoffs(x = re)
 #' re <- applyCutoffs(x = re)
 #' # estimate spillover matrix and adapt it
-#' spillMat <- computeSpillmat(x = re)
+#' sm <- computeSpillmat(x = re)
 #' chs <- flowCore::colnames(ss_exp)
-#' adaptSpillmat(spillMat, chs)
-#'
-#' @author 
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' and Vito RT Zanotelli \email{vito.zanotelli@uzh.ch}
+#' adaptSpillmat(sm, chs)
+#' 
 #' @importFrom flowCore flowFrame colnames exprs compensate
 # ------------------------------------------------------------------------------
 
 setMethod(f="adaptSpillmat", 
     signature=signature(input_sm="matrix", out_chs="vector"),
-    definition=function(input_sm, out_chs){
+    definition=function(input_sm, out_chs) {
         
         # check the spillovermatrix for obvious errors
-        check_spillMat(input_sm)
+        check_sm(input_sm)
         # make it symmetric
         #input_sm <- make_symetric(input_sm)
         # get the output names, metals and masses

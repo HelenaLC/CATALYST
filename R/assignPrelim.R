@@ -1,23 +1,19 @@
-# ==============================================================================
-# Assign preliminary barcode IDs
-# ------------------------------------------------------------------------------
 #' @rdname assignPrelim
 #' @title Single-cell debarcoding (1)
 #' 
-#' @description 
-#' Assigns a preliminary barcode ID to each event.
+#' @description Assigns a preliminary barcode ID to each event.
 #'
 #' @param x 
-#' a \code{\link{flowFrame}} or character of an FCS file name.
+#'   a \code{\link{flowFrame}} or character of an FCS file name.
 #' @param y
-#' the debarcoding scheme. A binary matrix with sample names as row names and 
-#' numeric masses as column names OR a vector of numeric masses corresponding
-#' to barcode channels. When the latter is supplied, \code{assignPrelim} will
-#' create a scheme of the appropriate format internally.
+#'   the debarcoding scheme. A binary matrix with sample names as row names and 
+#'   numeric masses as column names OR a vector of numeric masses corresponding
+#'   to barcode channels. When the latter is supplied, \code{assignPrelim} will
+#'   create a scheme of the appropriate format internally.
 #' @param cofactor 
-#' cofactor used for asinh transformation.
+#'   numeric. Cofactor used for asinh transformation.
 #' @param verbose
-#' logical. Should extra information on progress be reported? Defaults to TRUE.
+#'   logical. Should extra information on progress be reported?
 #'
 #' @return 
 #' Returns a \code{\link{dbFrame}} containing measurement intensities,

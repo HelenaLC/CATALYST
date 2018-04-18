@@ -14,15 +14,15 @@ guessPanel(x, ...)
 \S4method{guessPanel}{flowSet}(x, index = 1)
 }
 \arguments{
-\item{x}{a \code{\link{flowFrame}} or \code{\link{flowSet}} object.}
+\item{x}{a \code{\link[flowCore]{flowFrame}} or \code{\link[flowCore]{flowSet}}.}
 
 \item{...}{optional arguments.}
 
-\item{index}{if \code{x} is a \code{flowSet} object, 
+\item{index}{numeric. If \code{x} is a \code{flowSet} object, 
 this index specifies which \code{flowFrame} to extract.}
 }
 \value{
-a \code{data.frame} containing
+a \code{data.frame} with the following columns:
 \itemize{
 \item{\code{name}: the parameter name 
 as extracted from the input \code{flowFrame},}

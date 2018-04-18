@@ -2,12 +2,23 @@
 % Please edit documentation in R/launchGUI.R
 \name{launchGUI}
 \alias{launchGUI}
-\title{CATALYST Shiny app}
+\title{Launch GUI}
 \usage{
 launchGUI()
 }
+\value{
+Opens a browser window with an interactive Shiny application.
+}
 \description{
 Launches the CATALYST Shiny app.
+}
+\details{
+Detailed user guides are available inside the app. To use the app 
+online, please visit \emph{http://imlspenticton.uzh.ch:3838/CATALYSTLite}.
+}
+\examples{
+launchGUI()
+
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}

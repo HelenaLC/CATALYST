@@ -1,23 +1,25 @@
-# ==============================================================================
-# FlowSOM clustering and ConsensusClusterPlus metaclustering
-# ------------------------------------------------------------------------------
 #' @rdname cluster
-#' @title FlowSOM clustering and ConsensusClusterPlus metaclustering
+#' @title FlowSOM clustering & ConsensusClusterPlus metaclustering
 #' 
 #' @description 
-#' \code{CATALYST::cluster()} runs \code{\link{FlowSOM}} clustering into 
-#' \code{xdim}x\code{ydim} clusters, and \code{\link{ConsensusClusterPlus}} 
-#' metaclustering into 2-\code{maxK} clusters. In the returned \code{daFrame}, 
-#' those antigens used for clustering will be labelled as 'cell_type' markers, 
-#' and the remainder of antigens as 'cell_state' markers.
+#' \code{cluster} will first group cells into \code{xdim}x\code{ydim} 
+#' clusters using \pkg{FlowSOM}, and subsequently perform metaclustering 
+#' with \pkg{ConsensusClusterPlus} into 2 through \code{maxK} clusters. 
+#' In the returned \code{daFrame}, those antigens used for clustering will be 
+#' labelled as '\code{type}' markers, and the remainder of antigens as 
+#' '\code{state}' markers.
 #'
-#' @param x a \code{\link{daFrame}}.
-#' @param cols_to_use a character vector.
-#' Specifies which antigens to use for clustering.
-#' @param xdim,ydim numerical values specifying the grid size of the
-#' self-orginizing map. The default 10x10 grid will yield 100 clusters. 
-#' @param maxK numerical value. Specifies the maximum 
-#' number of clusters to evaluate in the metaclustering.
+#' @param x 
+#'   a \code{\link{daFrame}}.
+#' @param cols_to_use 
+#'   a character vector. Specifies which antigens to use for clustering.
+#' @param xdim,ydim 
+#'   numeric. Specify the grid size of the self-orginizing map. 
+#'   The default 10x10 grid will yield 100 clusters. 
+#' @param maxK 
+#'   numeric. Specifies the maximum number of clusters to evaluate
+#'   in the metaclustering. For \code{maxK = 20}, for example, 
+#'   metaclustering will be performed for 2 through 20 clusters.
 #' 
 #' @return 
 #' The function will add information to the following slots 
@@ -25,22 +27,24 @@
 #' \itemize{
 #' \item{\code{rowData}\describe{\itemize{
 #' \item{\code{cluster_id}:
-#' each cell's clustering ID as inferred by \code{FlowSOM}.}}
+#'   each cell's cluster ID as inferred by \code{FlowSOM}. 
+#'   One of 1, ..., \code{xdim}x\code{ydim}}.}
 #' }}
 #' \item{\code{colData}\describe{\itemize{
 #' \item{\code{marker_class}: 
-#' \code{"cell_type"} or \code{"cell_state"}. 
-#' Specifies if an antigen has been used for clustering or not, respectively.}}
+#'   \code{"type"} or \code{"state"}. 
+#'   Specifies whether an antigen has been used for clustering 
+#'   or not, respectively.}}
 #' }}
 #' \item{\code{metadata}\describe{\itemize{
 #' \item{\code{SOM_codes}:
-#' A table with dimensions K x (# cell type markers), 
-#' where K = \code{xdim} x \code{ydim}. Contains the SOM codes.}
+#'   a table with dimensions K x (# cell type markers), 
+#'   where K = \code{xdim} x \code{ydim}. Contains the SOM codes.}
 #' \item{\code{cluster_codes}:
-#' A table with dimensions K x (\code{maxK} + 1). 
-#' Contains the cluster codes for all metaclustering.}
+#'   a table with dimensions K x (\code{maxK} + 1). 
+#'   Contains the cluster codes for all metaclustering.}
 #' \item{\code{delta_area}: 
-#' A \code{\link{ggplot}} object. See above for details.}}
+#'   a \code{\link{ggplot}} object. See above for details.}}
 #' }}
 #' }
 #' 
@@ -52,6 +56,14 @@
 #' the data should thus corresponds to the value of k where there is no longer 
 #' a considerable increase in stability (pleateau onset).
 #' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
@@ -61,22 +73,13 @@
 #'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
 #' (re <- cluster(re, cols_to_use=lineage))
 #' 
-#' @author
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
-#' 
 #' @import ConsensusClusterPlus ggplot2
 #' @importFrom flowCore flowFrame
 #' @importFrom FlowSOM BuildSOM ReadInput
 #' @importFrom graphics hist
 #' @importFrom matrixStats colQuantiles
 #' @importFrom reshape2 melt
-#' @export
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="cluster",
     signature=signature(x="daFrame"),
@@ -112,7 +115,7 @@ setMethod(f="cluster",
         rowData(x)$cluster_id <- as.factor(som$map$mapping[, 1])
         colData(x)$marker_class <- data.frame(
             row.names=colnames(exprs(x)),
-            marker_class=factor(c("cell_state", "cell_type")[
+            marker_class=factor(c("state", "type")[
                 as.numeric(colnames(exprs(x)) %in% cols_to_use)+1],
                 levels=levels(marker_classes(x))))
         metadata(x)$SOM_codes <- som$map$codes

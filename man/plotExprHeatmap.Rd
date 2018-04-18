@@ -4,7 +4,7 @@
 \name{plotExprHeatmap}
 \alias{plotExprHeatmap}
 \alias{plotExprHeatmap,daFrame-method}
-\title{Median marker expressions across samples}
+\title{Plot expression heatmap}
 \usage{
 plotExprHeatmap(x, ...)
 
@@ -14,31 +14,31 @@ plotExprHeatmap(x, ...)
   clustering_linkage = "average")
 }
 \arguments{
-\item{x}{expression matrix.}
+\item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 
 \item{anno}{logical. Specifies whether to display values insinde each bin.}
 
-\item{color_by}{a character string that specifies the row annotation.}
+\item{color_by}{character string. Specifies the row annotation.}
 
-\item{palette}{a character vector of colors to interpolate.}
+\item{palette}{character vector of colors to interpolate.}
 
 \item{scale}{logical. Specifies whether to mean-variance normalize each channel.}
 
 \item{draw_freqs}{logical. Specifyies whether to display cell counts and proportions.}
 
-\item{clustering_distance}{a character string that specifies 
-the metric to use in \code{dist()} for clustering.}
+\item{clustering_distance}{a character string that specifies the metric to use in 
+\code{\link[stats]{dist}()} for clustering.}
 
-\item{clustering_linkage}{a character string that specifies 
-the linkage to use in \code{hclust()} for clustering.}
+\item{clustering_linkage}{a character string that specifies the linkage to use in
+\code{\link[stats]{hclust}()} for clustering.}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.
 }
 \description{
-Plots median marker expressions across samples
+Plots median marker expressions across samples 
 computed on arcsinh-transformed intensities.
 }
 \examples{

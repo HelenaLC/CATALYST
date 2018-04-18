@@ -1,26 +1,20 @@
-# ==============================================================================
-# Compensate CyTOF experiment
-# ------------------------------------------------------------------------------
-
 #' @rdname compCytof
-#' @title Compensate CyTOF experiment
+#' @title Compensate CyTOF data
 #' 
-#' @description 
-#' Compensates a mass spectrometry based experiment using a provided spillover
-#' matrix, assuming a linear spillover in the experiment.
+#' @description Compensates a mass spectrometry based experiment using a
+#' provided spillover matrix & assuming a linear spillover in the experiment.
 #'
 #' @param x       
-#' a \code{\link{flowFrame}} OR a character string specifying 
-#' the location of FCS files that should be compensates.
+#'   a \code{\link{flowFrame}} OR a character string specifying the location of 
+#'   FCS files that should be compensates.
 #' @param y 
-#' a spillover matrix.
+#'   a spillover matrix.
 #' @param out_path
-#' a character string. If specified, compensated FCS files will be generated 
-#' in this location. If \code{x} is a character string, file names will be 
-#' inherited from uncompensated FCS files and given extension "_comped".
-#' Defaults to NULL. 
+#'   a character string. If specified, compensated FCS files will be generated 
+#'   in this location. If \code{x} is a character string, file names will be 
+#'   inherited from uncompensated FCS files and given extension "_comped".
 #' @param method
-#' one of "flow" or "nnls".
+#'   \code{"flow"} or \code{"nnls"}.
 #' 
 #' @details
 #' If the spillover matrix (SM) does not contain the same set of columns as 
@@ -35,8 +29,7 @@
 #' \item{if an added channel could potentially receive spillover (as it has 
 #' +/-1M or +16M of, or is of the same metal type as another channel measured), 
 #' a warning will be issued as there could be spillover interactions that have
-#' been missed and may lead to faulty compensation}
-#' }
+#' been missed and may lead to faulty compensation}}
 #' 
 #' @return 
 #' Compensates the input \code{\link{flowFrame}} or, 
@@ -44,6 +37,10 @@
 #' If \code{out_path=NULL} (the default), returns a \code{\link{flowFrame}} 
 #' containing the compensated data. Otherwise, compensated data will be written 
 #' to the specified location as FCS 3.0 standard files. 
+#' 
+#' @author 
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
 #' 
 #' @examples
 #' # get single-stained control samples
@@ -59,13 +56,9 @@
 #' spillMat <- computeSpillmat(x = re)
 #' compCytof(x = ss_exp, y = spillMat)
 #'
-#' @author 
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
 #' @importFrom flowCore flowFrame colnames exprs compensate
 #' @importFrom nnls nnls
 #' @importFrom stats setNames
-#' @export
 # ------------------------------------------------------------------------------
 
 setMethod(f="compCytof",

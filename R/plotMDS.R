@@ -1,26 +1,24 @@
-# ==============================================================================
-# MDS plot on median marker expression values
-# ------------------------------------------------------------------------------
 #' @rdname plotMDS
 #' @title MDS plot
 #' 
 #' @description 
 #' Multi-dimensional scaling (MDS) plot on median marker expressions.
 #'
-#' @param x a \code{\link{daFrame}}.
-#' @param color_by a character string that appears as a column name in the
-#' metadata-table of the input \code{daFrame}. Specifies the color coding.
+#' @param x 
+#'   a \code{\link{daFrame}}.
+#' @param color_by 
+#'   character string that appears as a column name of \code{rowData(x)}.
+#'   Specifies the color coding.
 #' 
-#' @return a \code{ggplot} object.
-#' 
-#' @author
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
+#' @return a \code{ggplot} object.
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)

@@ -13,10 +13,10 @@ mergeClusters(x, table, id)
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
-\item{table}{the merging table; a data.frame with columns 
+\item{table}{the merging table; a \code{data.frame} with columns 
 \code{'old_cluster'}, \code{'new_cluster'} and \code{'label'}.}
 
-\item{id}{a character string to use as a label for the merging.}
+\item{id}{character string. Used as a label for the merging.}
 
 \item{...}{optional arguments.}
 }
@@ -25,8 +25,8 @@ Writes the newly assigend cluster codes into the metadata slot
 \code{cluster_codes} of the input \code{daFrame} and returns the latter.
 }
 \description{
-\code{mergeClusters} provides a simple wrapper to store a manual merging 
-inside the input \code{daFrame}.
+\code{mergeClusters} provides a simple wrapper 
+to store a manual merging inside the input \code{daFrame}.
 }
 \details{
 in the following code snippets, \code{x} is a \code{daFrame} object.
@@ -49,7 +49,6 @@ re <- cluster(re, cols_to_use=lineage)
 # merge clusters
 re <- mergeClusters(re, merging_table, "merging_1")
 plotClusterHeatmap(re, k=20, m="merging_1", hm2="pNFkB")
-
 }
 \references{
 Nowicka M, Krieg C, Weber LM et al. 

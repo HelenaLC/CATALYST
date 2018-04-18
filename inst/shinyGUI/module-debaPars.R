@@ -1,4 +1,4 @@
-<- <- <- <- <- <- <- <- <- <- debaParsModule <- function(module) {
+debaParsModule <- function(module) {
     tagList(
         hr(style="border-color:black"),
         # automated cutoff estimation

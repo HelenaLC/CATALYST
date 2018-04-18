@@ -13,44 +13,44 @@ plotClusterHeatmap(x, ...)
   draw_freqs = TRUE, palette = rev(brewer.pal(11, "RdYlBu")))
 }
 \arguments{
-\item{x}{expression matrix.}
+\item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{hm2}{a character string that specifies the right-hand side heatmap. 
-Depending on the argument, the output will be as follows:
+\item{hm2}{character string. Specifies the right-hand side heatmap. One of:
 \itemize{
 \item \code{"abundances"}: cluster frequencies across samples
 \item \code{"state_markers"}: median cell state marker expressions 
-across clusters (analogous to the left-hand side heatmap)
+  across clusters (analogous to the left-hand side heatmap)
 \item a character string/vector corresponding to one/multiple marker(s): 
-median marker expressions across samples and clusters}}
+  median marker expressions across samples and clusters}}
 
-\item{k}{specifies the clustering across which 
-median marker expressions should be computed.}
+\item{k}{numeric or character string. Specifies the clustering 
+across which median marker expressions should be computed.}
 
-\item{m}{specifies the second layer of clustering to be shown.}
+\item{m}{numeric or character string. Specifies the metaclustering to be shown. 
+(This is for display only and will not effect any computations!)}
 
 \item{cluster_anno}{logical. Specifies if clusters should be annotated.}
 
-\item{split_by}{a character string that correpsonds to a column name
-in the metadata table. If specified, the data will be subset accordingly
+\item{split_by}{character string. Must corresponds to a column name of \code{rowData(x)}. 
+If specified, the data will be subset according to this variable, 
 and multiple heatmaps will be drawn.}
 
-\item{scale}{logical specifying whether scaled values should be plotted
-(see below for details).}
+\item{scale}{logical. Specifies whether scaled values should be plotted.
+(see below for details)}
 
 \item{draw_dend}{logical. Specifies if the row dendrogram should be drawn.}
 
 \item{draw_freqs}{logical. Specifyies whether to display cell counts and proportions.}
 
-\item{palette}{a character vector of colors to interpolate.}
+\item{palette}{character vector of colors to interpolate.}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.
 }
 \description{
-Plots heatmaps summarizing the clustering and/or metaclustering of interest.
+Plots heatmaps summarizing a clustering and/or metaclustering of interest.
 }
 \details{
 Scaled values corresponds to cofactor arcsinh-transformed 
@@ -58,12 +58,12 @@ expression values scaled between 0 and 1 using 1% and 99% percentiles as
 boundaries. Hierarchical clustering is performed on the unscaled data.
 
 In its 1st panel, \code{plotClusterHeatmap} will display
-(scaled) median (arcsinh-transformed) cell-type marker expressions (across all samples).
+median (scaled, arcsinh-transformed) cell-type marker expressions (across all samples).
 Depending on argument \code{hm2}, the 2nd panel will contain one of:
 \itemize{
 \item relataive cluster abundances by sample
-\item (scaled) median (arcsinh-transformed) cell-state marker expressions (across all samples)
-\item (scaled) median (arcsinh-transformed) cell-state marker expressions by sample
+\item median (scaled, arcsinh-transformed) cell-state marker expressions (across all samples)
+\item median (scaled, arcsinh-transformed) cell-state marker expressions by sample
 }
 }
 \examples{
@@ -85,4 +85,7 @@ Nowicka M, Krieg C, Weber LM et al.
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+}
+\author{
+Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }

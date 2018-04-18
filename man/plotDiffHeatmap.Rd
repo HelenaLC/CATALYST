@@ -16,28 +16,24 @@ plotDiffHeatmap(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{y}{a \code{SummarizedExperiment} containing differential testing 
-results as returned by one of \code{\link{testDA_edgeR}}, \code{\link{testDA_voom}}, 
-\code{\link{testDA_GLMM}}, \code{\link{testDS_limma}}, or \code{\link{testDS_LMM}}.}
+\item{y}{a \code{SummarizedExperiment} containing differential testing
+results as returned by one of \code{\link[diffcyt]{testDA_edgeR}}, 
+\code{\link[diffcyt]{testDA_voom}}, \code{\link[diffcyt]{testDA_GLMM}}, 
+\code{\link[diffcyt]{testDS_limma}}, or \code{\link[diffcyt]{testDS_LMM}}.}
 
-\item{type}{character string. 
-Specifies whether to plot a heatmap for differential abundance (DA) 
-or differential state (DS) test results.}
+\item{type}{character string. Specifies whether to plot a heatmap for 
+differential abundance (DA) or differential state (DS) test results.}
 
-\item{top_n}{numeric. 
-Number of top clusters (if \code{type = "DA"}) or cluster-marker 
-combinations (if \code{type = "DS"}) to display. Defaults to 20.}
+\item{top_n}{numeric. Number of top clusters (if \code{type = "DA"}) or
+cluster-marker combinations (if \code{type = "DS"}) to display.}
 
-\item{all}{logical. 
-Specifies whether to display all clusters or cluster-marker combinations. 
-If \code{TRUE}, \code{top_n} will be ignored.}
+\item{all}{logical. Specifies whether all clusters or cluster-marker combinations 
+should be displayed. If \code{TRUE}, \code{top_n} will be ignored.}
 
-\item{order}{logical.
-Specifies whether results should be ordered by adjusted p-value.}
+\item{order}{logical. Should results be ordered by significance?}
 
-\item{th}{numeric.
-Threshold on adjusted p-values below which clusters (DA) or
-cluster-marker combinations (DS) should be considered significant.}
+\item{th}{numeric. Threshold on adjusted p-values below which clusters (DA) 
+or cluster-marker combinations (DS) should be considered significant.}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.

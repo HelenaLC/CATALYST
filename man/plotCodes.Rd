@@ -4,7 +4,7 @@
 \name{plotCodes}
 \alias{plotCodes}
 \alias{plotCodes,daFrame-method}
-\title{tSNE and PCA plot on the SOM codes}
+\title{tSNE and PCA on SOM codes}
 \usage{
 plotCodes(x, ...)
 
@@ -15,22 +15,21 @@ plotCodes(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{k}{specifies the clustering to use for color coding.}
+\item{k}{numeric or character string. 
+Specifies the clustering to use for color coding.}
 
-\item{out_path}{a character string. If specified, 
-output will be generated in this location. Defaults to NULL.}
+\item{out_path}{character string. If specified, output will be generated in this location.}
 
-\item{verbose}{logical specifying whether information 
-on progress should be reported. Defaults to TRUE.}
+\item{verbose}{logical. Specifies whether information on progress should be reported.}
 }
 \value{
-\code{ggplot} object.
+a \code{ggplot} object.
 }
 \description{
-Plots the tSNE and PCA representing the SOM codes as inferred by 
-\code{\link{FlowSOM}}. Sizes are scaled to the total number of events 
-assigned to each cluster, and points are color according to their cluster ID 
-upon \code{\link{ConsensusClusterPlus}} metaclustering to \code{k} clusters.
+Plots the tSNE and PCA representing the SOM codes as inferred
+by \pkg{FlowSOM}. Sizes are scaled to the total number of events assigned 
+to each cluster, and points are color according to their cluster ID upon 
+\pkg{ConsensusClusterPlus} metaclustering into \code{k} clusters.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)

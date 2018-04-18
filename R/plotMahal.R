@@ -1,27 +1,30 @@
-# ==============================================================================
-# Plot counts and yields
-# ------------------------------------------------------------------------------
-
 #' @rdname plotMahal
 #' @title Biaxial plot
 #' 
 #' @description 
 #' Histogram of counts and plot of yields as a function of separation cutoffs.
 #'
-#' @param x a \code{\link{dbFrame}}.
+#' @param x 
+#'   a \code{\link{dbFrame}}.
 #' @param which 
-#' specifies which barcode to plot.
+#'   character string. Specifies which barcode to plot.
 #' @param cofactor
-#' cofactor used for asinh transformation.
+#'   numeric. Cofactor used for asinh transformation.
 #' @param out_path 
-#' a character string. If specified, outputs will be generated 
-#' in this location. Defaults to NULL.
+#'   character string. If specified, outputs will be generated here.
 #' @param name_ext 
-#' a character string. If specified, will be appended to the plot's name. 
-#' Defaults to NULL.
+#'   character string. If specified, will be appended to file name. 
 #' 
-#' @return plots all inter-barcode interactions for the population specified
+#' @return Plots all inter-barcode interactions for the population specified
 #' by argument \code{which}. Events are colored by their Mahalanobis distance. 
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @references 
+#' Zunder, E.R. et al. (2015).
+#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+#' and single-cell deconvolution algorithm.
+#' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
@@ -30,16 +33,8 @@
 #' re <- applyCutoffs(x = re)
 #' plotMahal(x = re, which = "B3")
 #'
-#' @references 
-#' Zunder, E.R. et al. (2015).
-#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
-#' and single-cell deconvolution algorithm.
-#' \emph{Nature Protocols} \bold{10}, 316-333. 
-#' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
 #' @importFrom RColorBrewer brewer.pal
-
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotMahal", 

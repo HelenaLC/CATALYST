@@ -1,35 +1,40 @@
-# ==============================================================================
-# Heatmap of median marker expressions across clusters
-# ------------------------------------------------------------------------------
 #' @rdname plotClusterHeatmap
 #' @title Plot cluster heatmap
 #' 
 #' @description 
 #' Plots heatmaps summarizing a clustering and/or metaclustering of interest.
 #'
-#' @param x expression matrix.
-#' @param hm2 a character string that specifies the right-hand side heatmap. 
-#' Depending on the argument, the output will be as follows:
-#' \itemize{
-#' \item \code{"abundances"}: cluster frequencies across samples
-#' \item \code{"state_markers"}: median cell state marker expressions 
-#' across clusters (analogous to the left-hand side heatmap)
-#' \item a character string/vector corresponding to one/multiple marker(s): 
-#' median marker expressions across samples and clusters}
-#' @param k specifies the clustering across which 
-#' median marker expressions should be computed.
-#' @param m specifies the second layer of clustering to be shown. 
-#' @param cluster_anno logical. Specifies if clusters should be annotated.
-#' @param split_by a character string that correpsonds to a column name
-#' in the metadata table. If specified, the data will be subset accordingly
-#' and multiple heatmaps will be drawn.
-#' @param scale logical specifying whether scaled values should be plotted
-#' (see below for details).
-#' @param draw_dend logical. Specifies if the row dendrogram should be drawn.
-#' @param draw_freqs logical. Specifyies whether to display cell counts and proportions.
-#' @param palette a character vector of colors to interpolate. 
-#' 
-#' @return a \code{\link{HeatmapList-class}} object.
+#' @param x 
+#'   a \code{\link{daFrame}}.
+#' @param hm2 
+#'   character string. Specifies the right-hand side heatmap. One of:
+#'   \itemize{
+#'   \item \code{"abundances"}: cluster frequencies across samples
+#'   \item \code{"state_markers"}: median cell state marker expressions 
+#'     across clusters (analogous to the left-hand side heatmap)
+#'   \item a character string/vector corresponding to one/multiple marker(s): 
+#'     median marker expressions across samples and clusters}
+#' @param k 
+#'   numeric or character string. Specifies the clustering 
+#'   across which median marker expressions should be computed.
+#' @param m 
+#'   numeric or character string. Specifies the metaclustering to be shown. 
+#'   (This is for display only and will not effect any computations!) 
+#' @param cluster_anno 
+#'   logical. Specifies if clusters should be annotated.
+#' @param split_by 
+#'   character string. Must corresponds to a column name of \code{rowData(x)}. 
+#'   If specified, the data will be subset according to this variable, 
+#'   and multiple heatmaps will be drawn.
+#' @param scale 
+#'   logical. Specifies whether scaled values should be plotted.
+#'   (see below for details)
+#' @param draw_dend 
+#'   logical. Specifies if the row dendrogram should be drawn.
+#' @param draw_freqs 
+#'   logical. Specifyies whether to display cell counts and proportions.
+#' @param palette 
+#'   character vector of colors to interpolate. 
 #' 
 #' @details Scaled values corresponds to cofactor arcsinh-transformed 
 #' expression values scaled between 0 and 1 using 1% and 99% percentiles as 
@@ -44,7 +49,9 @@
 #' \item median (scaled, arcsinh-transformed) cell-state marker expressions by sample
 #' }
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch
+#' @return a \code{\link{HeatmapList-class}} object.
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 

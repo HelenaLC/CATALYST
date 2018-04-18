@@ -17,23 +17,19 @@ estTrim(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{min, max, step}{specifies sequence of trim values for which 
-compensation should be evaluated.}
+\item{min, max, step}{numeric. Specify trim values for which compensation should be evaluated.}
 
-\item{method}{function to be used for computing spillover estimates. 
-Valid options are \code{"default"} or \code{"classic"} 
-(see \code{\link{computeSpillmat}} for details)}
+\item{method}{\code{"default"} or \code{"classic"}. Specifies the function to use for 
+spillover estimation. (see \code{\link{computeSpillmat}} for details)}
 
 \item{interactions}{\code{"default"} or \code{"all"}. Specifies which interactions spillover 
 should be estimated for. The default exclusively takes into consideration 
 interactions that are sensible from a chemical and physical point of view
 (see \code{\link{computeSpillmat}} for more detail).}
 
-\item{out_path}{specifies in which location output plot is to be generated. 
-Defaults to NULL.}
+\item{out_path}{specifies in which location output plot is to be generated.}
 
-\item{name_ext}{a character string. If specified, will be appended 
-to the output plot's name. Defaults to NULL.}
+\item{name_ext}{character string. If specified, will be appended to the file name.}
 }
 \value{
 For each value along \code{seq(min, max, step)}, \code{estTrim} will call

@@ -4,7 +4,7 @@
 \name{plotCounts}
 \alias{plotCounts}
 \alias{plotCounts,daFrame-method}
-\title{Number of events per sample}
+\title{Plot cell counts}
 \usage{
 plotCounts(x, ...)
 
@@ -15,8 +15,8 @@ plotCounts(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{color_by}{a character string that appears as a column name in the
-metadata-table of the input \code{daFrame}. Specifies the color coding.}
+\item{color_by}{character string. Must appear as a column name of \code{rowData(x)}. 
+Specifies the color coding.}
 }
 \value{
 a \code{\link{ggplot}} object.

@@ -17,15 +17,12 @@ plotYields(x, ...)
 \item{...}{optional arguments.}
 
 \item{which}{0, numeric or character. Specifies which barcode(s) to plot. 
-Valid values are IDs that occur as row names in the \code{bc_key} of the 
-supplied \code{\link{dbFrame}}; 0 (the default) will generate a summary plot 
-with all barcodes.}
+Valid values are IDs that occur as row names of \code{bc_key(x)}; 
+0 (the default) will generate a summary plot with all barcodes.}
 
-\item{out_path}{a character string. If specified, outputs will be generated 
-in this location. Defaults to NULL.}
+\item{out_path}{character string. If specified, outputs will be generated here.}
 
-\item{name_ext}{a character string. If specified, will be appended to the plot's name. 
-Defaults to NULL.}
+\item{name_ext}{character string. If specified, will be appended to the plot's name.}
 }
 \value{
 plots the distribution of barcode separations and yields upon 
