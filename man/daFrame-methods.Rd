@@ -3,6 +3,7 @@
 \docType{methods}
 \name{n_cells}
 \alias{n_cells}
+\alias{marker_classes}
 \alias{type_markers}
 \alias{state_markers}
 \alias{sample_ids}
@@ -17,6 +18,7 @@
 \alias{cluster_codes}
 \alias{cluster_ids}
 \alias{n_cells,daFrame-method}
+\alias{marker_classes,daFrame-method}
 \alias{type_markers,daFrame-method}
 \alias{state_markers,daFrame-method}
 \alias{sample_ids,daFrame-method}
@@ -26,6 +28,8 @@
 for objects of class \code{daFrame}}
 \usage{
 n_cells(x)
+
+marker_classes(x)
 
 type_markers(x)
 
@@ -40,6 +44,8 @@ cluster_ids(x)
 \S4method{exprs}{daFrame}(object)
 
 \S4method{n_cells}{daFrame}(x)
+
+\S4method{marker_classes}{daFrame}(x)
 
 \S4method{type_markers}{daFrame}(x)
 
@@ -89,6 +95,7 @@ lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33",
 re <- cluster(re, cols_to_use=lineage)
 
 # view data summary
+library(SummarizedExperiment)
 cbind(metadata(re)$experiment_info, cells=n_cells(re))
 
 # access row / cell data
@@ -107,7 +114,6 @@ data.frame(old_ids, new_ids)
 
 # plot relative change in area under CDF curve vs. k
 metadata(re)$delta_area
-
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}

@@ -63,24 +63,27 @@
 #' @importFrom methods new
 #' @export
 # ------------------------------------------------------------------------------
-# class definition
-dbFrame <- setClass(Class="dbFrame", package="CATALYST", slots=c(
-    exprs="matrix",
-    bc_key="data.frame",
-    bc_ids="vector",
-    deltas="numeric",
-    normed_bcs ="matrix",
-    mhl_dists = "numeric",
-    sep_cutoffs="numeric",
-    mhl_cutoff="numeric",
-    counts="matrix",
-    yields="matrix"))
 
-# ------------------------------------------------------------------------------
-# validity
-# ------------------------------------------------------------------------------
+# class definition
+dbFrame <- setClass(
+    Class="dbFrame", 
+    package="CATALYST", 
+    slots=c(
+        exprs="matrix",
+        bc_key="data.frame",
+        bc_ids="vector",
+        deltas="numeric",
+        normed_bcs ="matrix",
+        mhl_dists = "numeric",
+        sep_cutoffs="numeric",
+        mhl_cutoff="numeric",
+        counts="matrix",
+        yields="matrix")
+)
+
+# validity check
 setValidity(Class="dbFrame", 
-    method=function(object){
+    method=function(object) {
         n <- nrow(exprs(object))
         ms <- gsub("[[:alpha:][:punct:]]", "", colnames(exprs(object)))
         # check that all barcode masses occur in the measurement data
@@ -108,7 +111,8 @@ setValidity(Class="dbFrame",
                 "'bc_ids' should be either 0 = \"unassigned\"\n",
                 "or occur as rownames in the 'bc_key'."))
         return(TRUE)
-    })
+    }
+)
 
 # ==============================================================================
 # Differential analysis frame class
@@ -151,6 +155,7 @@ setValidity(Class="dbFrame",
 # class definition
 setClass(
     Class="daFrame", 
+    package="CATALYST", 
     contains="SummarizedExperiment")
 
 # ------------------------------------------------------------------------------
@@ -183,9 +188,10 @@ setClass(
 #' 
 #' @return an object of class \code{\link{SummarizedExperiment}}.
 #' 
-#' @export
 #' @import SummarizedExperiment
+#' @export
 # ------------------------------------------------------------------------------
+
 daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
     panel_cols=list(channel="fcs_colname", antigen="antigen"),
     md_cols=list(file="file_name", id="sample_id", 
@@ -236,7 +242,9 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
     row_data <- S4Vectors::DataFrame(
         sample_id=rep(md[[md_cols$id]], n_cells), 
         sapply(md_cols$factors, function(i) rep(md[[i]], n_cells)))
-    col_data <- S4Vectors::DataFrame(marker_name=chs, row.names=colnames(es))
+    col_data <- S4Vectors::DataFrame(row.names=colnames(es), 
+        marker_name=chs, marker_class=factor(NA, 
+            levels=c("cell_type", "cell_state", "none")))
     
     new("daFrame", 
         SummarizedExperiment(
@@ -244,3 +252,30 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
             rowData=row_data, colData=col_data,
             metadata=list(experiment_info=md, n_cells=n_cells)))
 }
+
+# validity check
+setValidity(Class="daFrame", 
+    method=function(object) {
+        x <- deparse(substitute(object))
+        # ----------------------------------------------------------------------
+        # check colData(x)$marker_class
+        valid_classes <- c("cell_type", "cell_state", "none")
+        lvls <- levels(colData(object)$marker_class)
+        if (any(is.na(match(lvls, valid_classes))))
+            return(message("colData(", x, ")$marker_class ",
+                "should be of type factor\nwith levels ", 
+                paste(dQuote(valid_classes), collapse=", "), "."))
+        # ----------------------------------------------------------------------
+        # check names(metadata(x))
+        md_nms <- c("experiment_info", "n_cells", 
+            "SOM_codes", "cluster_codes", "delta_area")
+        if (!all(names(metadata(object)) %in% md_nms))
+            return(message("Invalid names(metadata(", x, ").", 
+                " Metadata should contain:\n", 
+                paste(dQuote(md_nms), collapse=", "), "."))
+        # ----------------------------------------------------------------------
+        # check metadata(x)$n_cells
+        if (nrow(object) != sum(metadata(object)$n_cells))
+            return(message("nrow(", x, ") != sum(metadata(", x, ")$n_cells)"))
+    }
+)

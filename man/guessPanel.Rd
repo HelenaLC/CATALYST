@@ -33,8 +33,8 @@ as extracted from the input \code{flowFrame},}
 is expected to contain a marker and will be kept.}}
 }
 \description{
-Helper function to parse information 
-from the \code{parameters} slot of a flowFrame/flowSet.
+Helper function to parse information from the 
+\code{parameters} slot of a \code{flowFrame}/\code{flowSet}.
 }
 \examples{
 

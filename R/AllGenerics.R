@@ -206,15 +206,21 @@ setGeneric(name="compCytof",
     package="CATALYST",
     def=function(x, y, ...) standardGeneric("compCytof"))
 
-
 # ==============================================================================
 # Generics to access slots in a daFrame
 # ------------------------------------------------------------------------------
+
 #' @rdname daFrame-methods
 #' @export
 setGeneric(name="n_cells", 
     package="CATALYST", 
     def=function(x) standardGeneric("n_cells"))
+
+#' @rdname daFrame-methods
+#' @export
+setGeneric(name="marker_classes", 
+    package="CATALYST", 
+    def=function(x) standardGeneric("marker_classes"))
 
 #' @rdname daFrame-methods
 #' @export
@@ -245,6 +251,14 @@ setGeneric(name="cluster_codes",
 setGeneric(name="cluster_ids",  
     package="CATALYST", 
     def=function(x) standardGeneric("cluster_ids"))
+
+# ==============================================================================
+# Generics to replace slots in a daFrame
+# ------------------------------------------------------------------------------
+
+setGeneric(name="marker_classes<-",      
+    package="CATALYST",
+    def=function(x, value) standardGeneric("marker_classes<-"))
 
 # ==============================================================================
 # Generics for differential analysis

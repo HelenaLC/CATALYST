@@ -7,6 +7,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @importFrom shiny runApp
+#' @import DT shinyBS shinydashboard shinyjs
 #' @export
 # ==============================================================================
 launchGUI <- function() {
