@@ -3,29 +3,26 @@
 # ------------------------------------------------------------------------------
 #' @rdname plotDiffHeatmap
 #' @title Plot differential heatmap
-#' @description Heatmaps summarizing differental abundance 
+#' @description 
+#' Heatmaps summarizing differental abundance 
 #' & differential state testing results.
 #' 
 #' @param x a \code{\link{daFrame}}.
 #' @param y a \code{SummarizedExperiment} containing differential testing 
-#' results as returned by one of \code{\link{testDA_edgeR}}, \code{\link{testDA_voom}}, 
-#' \code{\link{testDA_GLMM}}, \code{\link{testDS_limma}}, or \code{\link{testDS_LMM}}.
-#' @param type character string. 
-#' Specifies whether to plot a heatmap for differential abundance (DA) 
-#' or differential state (DS) test results.
-#' @param top_n numeric. 
-#' Number of top clusters (if \code{type = "DA"}) or cluster-marker 
-#' combinations (if \code{type = "DS"}) to display. Defaults to 20.
-#' @param all logical. 
-#' Specifies whether to display all clusters or cluster-marker combinations. 
-#' If \code{TRUE}, \code{top_n} will be ignored.
-#' @param order logical.
-#' Specifies whether results should be ordered by adjusted p-value.
-#' @param th numeric.
-#' Threshold on adjusted p-values below which clusters (DA) or
-#' cluster-marker combinations (DS) should be considered significant.
+#'   results as returned by one of \code{\link[diffcyt]{testDA_edgeR}}, 
+#'   \code{\link[diffcyt]{testDA_voom}}, \code{\link[diffcyt]{testDA_GLMM}}, 
+#'   \code{\link[diffcyt]{testDS_limma}}, or \code{\link[diffcyt]{testDS_LMM}}.
+#' @param type character string. Specifies whether to plot a heatmap for 
+#'   differential abundance (DA) or differential state (DS) test results.
+#' @param top_n numeric. Number of top clusters (if \code{type = "DA"}) 
+#'   or cluster-marker combinations (if \code{type = "DS"}) to display.
+#' @param all logical. Specifies whether to display all clusters or 
+#'   cluster-marker combinations. If \code{TRUE}, \code{top_n} will be ignored.
+#' @param order logical. Should results be ordered by significance?
+#' @param th numeric. Threshold on adjusted p-values below which clusters (DA) 
+#'   or cluster-marker combinations (DS) should be considered significant.
 #' 
-#' @details  
+#' @details 
 #' For DA tests, \code{plotDiffHeatmap} will display
 #' \itemize{
 #' \item median (arcsinh-transformed) cell-type marker expressions (across all samples)
@@ -45,8 +42,8 @@
 #' @author Lukas M Weber, Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @import ComplexHeatmap dplyr
-#' @importFrom dplyr group_by_ summarize_at
 #' @importFrom circlize colorRamp2
+#' @importFrom dplyr group_by_ summarize_at
 #' @importFrom magrittr %>%
 #' @importFrom stats quantile
 #' @importFrom tidyr complete
