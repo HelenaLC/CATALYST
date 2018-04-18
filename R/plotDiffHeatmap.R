@@ -2,8 +2,14 @@
 # Heatmap for differental abundance & state analysis
 # ------------------------------------------------------------------------------
 #' @rdname plotDiffHeatmap
-#' @title Median marker expressions across clusters
+#' @title Plot differential heatmap
+#' @description Heatmaps summarizing differental abundance 
+#' & differential state testing results.
 #' 
+#' @param x a \code{\link{daFrame}}.
+#' @param y a \code{SummarizedExperiment} containing differential testing 
+#' results as returned by one of \code{\link{testDA_edgeR}}, \code{\link{testDA_voom}}, 
+#' \code{\link{testDA_GLMM}}, \code{\link{testDS_limma}}, or \code{\link{testDS_LMM}}.
 #' @param type character string. 
 #' Specifies whether to plot a heatmap for differential abundance (DA) 
 #' or differential state (DS) test results.
@@ -15,35 +21,55 @@
 #' If \code{TRUE}, \code{top_n} will be ignored.
 #' @param order logical.
 #' Specifies whether results should be ordered by adjusted p-value.
+#' @param th numeric.
+#' Threshold on adjusted p-values below which clusters (DA) or
+#' cluster-marker combinations (DS) should be considered significant.
 #' 
-#' @author
-#' Lukas M Weber, Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @details  
+#' For DA tests, \code{plotDiffHeatmap} will display
+#' \itemize{
+#' \item median (arcsinh-transformed) cell-type marker expressions (across all samples)
+#' \item cluster abundances by samples
+#' \item row annotations indicating the significance of detected clusters
+#' }
+#' For DS tests, \code{plotDiffHeatmap} will display
+#' \itemize{
+#' \item median (arcsinh-transformed) cell-type marker expressions (across all samples)
+#' \item median (arcsinh-transformed) cell-state marker expressions (across all samples)
+#' \item median (arcsinh-transformed) cell-state marker expressions by sample
+#' \item row annotations indicating the significance of detected cluster-marker combinations
+#' }
 #' 
-#' @import ComplexHeatmap
-#' @import dplyr
+#' @return a \code{\link{HeatmapList-class}} object.
+#' 
+#' @author Lukas M Weber, Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @import ComplexHeatmap dplyr
+#' @importFrom dplyr group_by_ summarize_at
 #' @importFrom circlize colorRamp2
+#' @importFrom magrittr %>%
 #' @importFrom stats quantile
-#' @export
+#' @importFrom tidyr complete
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="daFrame"), 
-    definition=function(x, dt_res, type=c("DA", "DS"), 
-        top_n=20, all=FALSE, order=TRUE) {
+    definition=function(x, y, type=c("DA", "DS"), 
+        top_n=20, all=FALSE, order=TRUE, th=0.1) {
         
         type <- match.arg(type, c("DA", "DS"))
         
         # get no. of clusters & cluster IDs
-        k <- nlevels(rowData(dt_res)$cluster_id)
+        k <- nlevels(rowData(y)$cluster_id)
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
         df <- data.frame(exprs(x), 
             sample_id=sample_ids(x), 
             cluster_id=cluster_ids)
         
         # compute medians across samples & clusters
-        meds_across_samples <- df %>% group_by(sample_id) %>% 
+        meds_across_samples <- df %>% group_by_(~sample_id) %>% 
             summarize_at(colnames(x), funs(median))
-        meds_across_clusters <- df %>% group_by(cluster_id) %>% 
+        meds_across_clusters <- df %>% group_by_(~cluster_id) %>% 
             summarise_at(colnames(x), funs(median))
 
         # color scale: 
@@ -73,10 +99,12 @@ setMethod(f="plotDiffHeatmap",
             clustering_distance_rows="euclidean",
             clustering_method_rows="median")
         
-        meds <- df %>% group_by(cluster_id, sample_id) %>% summarise_all(funs(median))
-        meds <- setNames(lapply(colnames(x), function(marker)
-            reshape2::acast(meds, cluster_id~sample_id, 
-                value.var=marker, fill=0)), colnames(x))
+        meds <- df %>% 
+            group_by_(~cluster_id, ~sample_id) %>% 
+            summarise_all(funs(median))
+        meds <- lapply(colnames(x), function(marker) 
+            acast(meds, cluster_id~sample_id, value.var=marker, fill=0))
+        meds <- setNames(meds, colnames(x))
         meds <- meds[top$cluster_id, , drop=FALSE]
        
         # 2nd heatmap:
@@ -91,7 +119,7 @@ setMethod(f="plotDiffHeatmap",
                 col=colorRamp2(range(counts), c("black", "gold")),
                 cluster_columns=FALSE, show_row_names=FALSE)
         } else if (type == "DS") { 
-            hm2 <- Heatmap(col=colors, show_heatmap_legend=FALSE,
+            hm2 <- Heatmap(col=hm_cols, show_heatmap_legend=FALSE,
                 matrix=meds_across_clusters[, state_markers(x)],
                 column_title="state_markers", 
                 column_title_side="bottom", 
@@ -109,14 +137,14 @@ setMethod(f="plotDiffHeatmap",
             meds[top$marker], top$cluster_id, SIMPLIFY=FALSE)
         data <- do.call(rbind, data)
         
-        Heatmap(
+        hm3 <- Heatmap(
             matrix=data, name="expression\nby sample",
             show_column_names=FALSE, cluster_columns=FALSE, 
             show_row_names=TRUE, row_names_side="right")
         
         # row annotation: adj. p-values
         cols <- colnames(top) %in% c("FDR", "adj.P.Val", "p_adj")
-        s <- top[, cols] <= threshold
+        s <- top[, cols] <= th
         s[is.na(s)] <- FALSE
         
         df_s <- data.frame(cluster_id=top$cluster_id, s=as.numeric(s)) 

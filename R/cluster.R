@@ -113,7 +113,8 @@ setMethod(f="cluster",
         colData(x)$marker_class <- data.frame(
             row.names=colnames(exprs(x)),
             marker_class=factor(c("cell_state", "cell_type")[
-                as.numeric(colnames(exprs(x)) %in% cols_to_use)+1]))
+                as.numeric(colnames(exprs(x)) %in% cols_to_use)+1],
+                levels=levels(marker_classes(x))))
         metadata(x)$SOM_codes <- som$map$codes
         metadata(x)$cluster_codes <- cluster_codes
         metadata(x)$delta_area <- plot_delta_area(mc)

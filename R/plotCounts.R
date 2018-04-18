@@ -1,7 +1,6 @@
 # ==============================================================================
 # Barplot of event counts per sample
 # ------------------------------------------------------------------------------
-
 #' @rdname plotCounts
 #' @title Number of events per sample
 #' 
@@ -11,42 +10,42 @@
 #' @param x a \code{\link{daFrame}}.
 #' @param color_by a character string that appears as a column name in the
 #' metadata-table of the input \code{daFrame}. Specifies the color coding.
-#' In the case of multiple conditions, \code{"condition"} will color points
-#' according to each sample's combined conditions.
 #' 
 #' @return a \code{\link{ggplot}} object.
 #' 
-#' @examples
-#' data(PBMC_fs, PBMC_panel, PBMC_md)
-#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' plotCounts(re)
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
-#' @author
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
+#' @examples
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' plotCounts(re)
+#' 
 #' @import ggplot2 SummarizedExperiment
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="plotCounts", 
     signature=signature(x="daFrame"), 
     definition=function(x, color_by="condition") {
-        md <- metadata(x)[[1]]
-        n_events <- metadata(x)$n_events
-        max <- ceiling(max(n_events)/1e3)*1e3 + 1e3
-        df <- data.frame(n_events, md)
-        conds <- grep("condition", colnames(md), value=TRUE)
-        if (length(conds) > 1) {
-            conds_combined <- apply(md[, conds], 1, paste, collapse="/")
-            df$condition <- conds_combined
-        }
-        ggplot(df, aes_string(x="sample_id", y="n_events",
+        
+        md <- metadata(x)$experiment_info
+        valid <- names(md)
+        if (!color_by %in% valid)
+            stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
+                "Should be one of: ", paste(dQuote(valid), collapse=", "))
+        
+        n_cells <- metadata(x)$n_cells
+        max <- ceiling(max(n_cells)/1e3)*1e3 + 1e3
+        df <- data.frame(n_cells, md)
+        
+        ggplot(df, aes_string(x="sample_id", y="n_cells",
             fill=color_by)) + geom_bar(stat="identity", width=.75) +  
-            geom_label(aes_string(label="n_events", vjust=-.1), 
+            geom_label(aes_string(label="n_cells", vjust=-.1), 
                 fontface="bold.italic", fill=NA, label.size=0) +
             scale_y_continuous(limits=c(0,max), expand=c(0,0)) +
             theme_minimal() + theme(

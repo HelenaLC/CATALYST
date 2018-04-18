@@ -36,7 +36,7 @@ setMethod(f="guessPanel",
     definition=function(x) {
         # assume 'name' and 'desc' columns exist in @parameters
         param_df <- as(parameters(x), "data.frame")[, c("name", "desc")]
-        colnames(param_df)[index] <- "fcs_colname"
+        colnames(param_df)[1] <- "fcs_colname"
         rownames(param_df) <- NULL
         
         # make some guesses of how to parse / what columns to use

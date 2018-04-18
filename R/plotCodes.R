@@ -19,6 +19,14 @@
 #' 
 #' @return \code{ggplot} object.
 #' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
@@ -29,20 +37,12 @@
 #' re <- cluster(re, cols_to_use=lineage)
 #' plotCodes(re)
 #' 
-#' @author 
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
-#' 
 #' @import ggplot2 Rtsne
 #' @importFrom dplyr funs group_by summarize_all
 #' @importFrom grDevices png
 #' @importFrom gridExtra arrangeGrob grid.arrange
 #' @importFrom stats prcomp
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="plotCodes", 
     signature=signature(x="daFrame"), 

@@ -33,6 +33,8 @@
 #' 
 #' @param x,object a \code{\link{daFrame}}.
 #' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
 #' @examples
 #' # construct daFrame
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -44,6 +46,7 @@
 #' re <- cluster(re, cols_to_use=lineage)
 #' 
 #' # view data summary
+#' library(SummarizedExperiment)
 #' cbind(metadata(re)$experiment_info, cells=n_cells(re))
 #' 
 #' # access row / cell data
@@ -62,8 +65,6 @@
 #' 
 #' # plot relative change in area under CDF curve vs. k
 #' metadata(re)$delta_area
-#' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 # ------------------------------------------------------------------------------
 
 #' @rdname daFrame-methods
@@ -79,8 +80,14 @@ setMethod(f="n_cells",
     definition=function(x) return(metadata(x)$n_cells))
 
 #' @rdname daFrame-methods
+setMethod(f="marker_classes",
+    signature="daFrame",
+    definition=function(x) 
+        return(setNames(unlist(colData(x)$marker_class), colnames(x))))
+
+#' @rdname daFrame-methods
 setMethod(f="type_markers",      
-    signature="daFrame", 
+    signature="daFrame",
     definition=function(x) return(colnames(x)[
         colData(x)$marker_class == "cell_type"]))
 
@@ -104,3 +111,20 @@ setMethod(f="cluster_codes",
 setMethod(f="cluster_ids",  
     signature="daFrame", 
     definition=function(x) return(rowData(x)$cluster_id))
+
+# ==============================================================================
+# replacement method for 'marker_class' in 'colData'
+# ------------------------------------------------------------------------------
+
+setReplaceMethod(f="marker_classes", 
+    signature=signature(x="daFrame"), 
+    definition=function(x, value) {
+        valid_classes <- levels(marker_classes(x))
+        if (any(!value %in% valid_classes))
+            stop("Invalid replacement value(s).",
+                "\n  Valid marker classes are: ",
+                paste(dQuote(valid_classes), collapse=", "))
+        colData(x)$marker_class <- factor(value, levels=valid_classes)
+        return(x)
+    }
+)

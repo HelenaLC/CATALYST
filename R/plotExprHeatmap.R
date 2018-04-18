@@ -37,12 +37,14 @@
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @import ComplexHeatmap SummarizedExperiment
-#' @importFrom dplyr funs group_by summarize_all
+#' @importFrom dplyr funs group_by_ summarize_all
 #' @importFrom grDevices colorRampPalette
+#' @importFrom magrittr %>%
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom S4Vectors metadata
 #' @importFrom scales hue_pal
 #' @importFrom stats dist hclust
+#' @importFrom utils suppressForeignCheck
 #' @export
 # ==============================================================================
 
@@ -51,12 +53,11 @@ setMethod(f="plotExprHeatmap",
     definition=function(x, anno=TRUE, color_by="condition",
         palette=brewer.pal(n=8, name="YlGnBu"), scale=TRUE, draw_freqs=FALSE,  
         clustering_distance="euclidean", clustering_linkage="average") {
-        
-        md <- S4Vectors::metadata(x)$experiment_info
-        
+
         # compute medians across samples
+        utils::suppressForeignCheck("sample_id")
         med_exprs <- data.frame(exprs(x), sample_id=sample_ids(x)) %>%
-            group_by(sample_id) %>% summarize_all(funs(median))
+            group_by_(~sample_id) %>% summarize_all(funs(median))
         med_exprs <- data.frame(med_exprs, row.names=1)
         if (scale) 
             med_exprs <- scale_exprs(med_exprs)
@@ -96,6 +97,7 @@ setMethod(f="plotExprHeatmap",
         }
         
         if (!is.null(color_by)) {
+            md <- S4Vectors::metadata(x)$experiment_info
             row_anno <- data.frame(md[, color_by], row.names=md$sample_id)
             n <- nlevels(md[, color_by])
             row_anno <- Heatmap(

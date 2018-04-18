@@ -2,11 +2,10 @@
 # Heatmap of median marker expressions across clusters
 # ------------------------------------------------------------------------------
 #' @rdname plotClusterHeatmap
-#' @title Median marker expressions across clusters
+#' @title Plot cluster heatmap
 #' 
 #' @description 
-#' Plots a heatmap of median lineage marker expressions across clusters, 
-#' and median functional marker expressions within each cluster across samples.
+#' Plots heatmaps summarizing a clustering and/or metaclustering of interest.
 #'
 #' @param x expression matrix.
 #' @param hm2 a character string that specifies the right-hand side heatmap. 
@@ -36,6 +35,23 @@
 #' expression values scaled between 0 and 1 using 1% and 99% percentiles as 
 #' boundaries. Hierarchical clustering is performed on the unscaled data.
 #' 
+#' In its 1st panel, \code{plotClusterHeatmap} will display
+#' median (scaled, arcsinh-transformed) cell-type marker expressions (across all samples).
+#' Depending on argument \code{hm2}, the 2nd panel will contain one of:
+#' \itemize{
+#' \item relataive cluster abundances by sample
+#' \item median (scaled, arcsinh-transformed) cell-state marker expressions (across all samples)
+#' \item median (scaled, arcsinh-transformed) cell-state marker expressions by sample
+#' }
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch
+#' 
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+#' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
@@ -49,23 +65,15 @@
 #' plotClusterHeatmap(re, hm2="state_markers", k=16, split_by='condition')
 #' plotClusterHeatmap(re, hm2="pS6", k=12, m=8)
 #' 
-#' @author
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
-#' CyTOF workflow: Differential discovery in 
-#' high-throughput high-dimensional cytometry datasets.
-#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
-#' 
 #' @import ComplexHeatmap
-#' @importFrom dplyr funs group_by summarise_all
+#' @importFrom dplyr funs group_by_ summarise_all
 #' @importFrom grDevices colorRampPalette
+#' @importFrom magrittr %>%
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom reshape2 dcast
+#' @importFrom reshape2 acast
 #' @importFrom S4Vectors metadata
 #' @importFrom stats dist
-#' @export
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="plotClusterHeatmap", 
     signature=signature(x="daFrame"), 
@@ -90,7 +98,7 @@ setMethod(f="plotClusterHeatmap",
         
         # medians marker exprs. across clusters
         med_exprs <- data.frame(exprs(x), cluster_ids) %>%
-            group_by(cluster_ids) %>% summarize_all(funs(median))
+            group_by_(~cluster_ids) %>% summarize_all(funs(median))
         
         # hierarchical clustering on cell-type markers
         d <- stats::dist(med_exprs[, type_markers(x)])
@@ -134,7 +142,7 @@ setMethod(f="plotClusterHeatmap",
             if (scale) {
                 es0 <- scale_exprs(exprs(x)[inds, ])
                 hm1_es <- data.frame(es0, cluster_id=cluster_ids[inds]) %>%
-                    group_by(cluster_id) %>% summarize_all(funs(median))
+                    group_by_(~cluster_id) %>% summarize_all(funs(median))
                 hm2_es <- es0
             } else if (!many) {
                 hm1_es <- med_exprs
@@ -142,7 +150,7 @@ setMethod(f="plotClusterHeatmap",
             } else {
                 hm2_es <- exprs(x)[inds, ]
                 hm1_es <- data.frame(hm2_es, cluster_id=cluster_ids[inds]) %>%
-                    group_by(cluster_id) %>% summarize_all(funs(median))
+                    group_by_(~cluster_id) %>% summarize_all(funs(median))
             }
 
             # add clusters if any missing
@@ -213,7 +221,7 @@ setMethod(f="plotClusterHeatmap",
                     meds <- data.frame(hm2_es, 
                         sample_id=sample_ids(x)[inds], 
                         cluster_id=cluster_ids[inds]) %>%
-                        group_by(sample_id, cluster_id) %>% 
+                        group_by_(~sample_id, ~cluster_id) %>% 
                         summarise_all(funs(median))
                     for (ch in hm2) {
                         ch_meds <- acast(
