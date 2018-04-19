@@ -142,11 +142,11 @@ setValidity(Class="dbFrame",
 #'     mergings done with \code{\link{mergeClusters}}}
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import ConsensusClusterPlus Rtsne SummarizedExperiment
 #' @importFrom flowCore colnames exprs fsApply parameters pData
 #' @importFrom FlowSOM BuildSOM ReadInput
 #' @importFrom methods new
 #' @importFrom S4Vectors DataFrame SimpleList
+#' @importFrom SummarizedExperiment SummarizedExperiment
 #' @export
 # ------------------------------------------------------------------------------
 
@@ -260,7 +260,8 @@ setValidity(Class="daFrame",
         # check colData(x)$marker_class
         valid_classes <- c("type", "state", "none")
         lvls <- levels(colData(object)$marker_class)
-        if (any(is.na(match(lvls, valid_classes))))
+        if (any(is.na(match(lvls, valid_classes)))
+            | any(!colData(object)$marker_class %in% lvls))
             return(message("colData(", x, ")$marker_class ",
                 "should be of type factor\nwith levels ", 
                 paste(dQuote(valid_classes), collapse=", "), "."))

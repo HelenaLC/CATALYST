@@ -219,8 +219,6 @@ setGeneric("cluster_ids",
 # Generics to replace slots in a daFrame
 # ------------------------------------------------------------------------------
 
-#' @rdname daFrame-methods
-#' @export
 setGeneric("marker_classes<-",      
     function(x, value) standardGeneric("marker_classes<-"))
 
@@ -316,4 +314,4 @@ setGeneric("plotAbundances",
 #' @param ... optional arguments.
 #' @export
 setGeneric("plotDiffHeatmap", 
-    function(x, ...) standardGeneric("plotDiffHeatmap"))
+    function(x, y, ...) standardGeneric("plotDiffHeatmap"))

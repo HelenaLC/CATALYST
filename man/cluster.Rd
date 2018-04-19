@@ -9,7 +9,7 @@
 cluster(x, ...)
 
 \S4method{cluster}{daFrame}(x, cols_to_use, xdim = 10, ydim = 10,
-  maxK = 20)
+  maxK = 20, seed = 1)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -24,6 +24,8 @@ The default 10x10 grid will yield 100 clusters.}
 \item{maxK}{numeric. Specifies the maximum number of clusters to evaluate
 in the metaclustering. For \code{maxK = 20}, for example, 
 metaclustering will be performed for 2 through 20 clusters.}
+
+\item{seed}{numeric. Sets random seed in \code{ConsensusClusterPlus()}.}
 }
 \value{
 The function will add information to the following slots 

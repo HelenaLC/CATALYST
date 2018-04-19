@@ -13,8 +13,11 @@
 #' @examples
 #' launchGUI()
 #'
+#' @import shinydashboard 
 #' @importFrom shiny runApp
-#' @import DT shinyBS shinydashboard shinyjs
+#' @importFrom DT datatable dataTableOutput formatStyle renderDataTable
+#' @importFrom shinyBS bsButton bsPopover
+#' @importFrom shinyjs hide disable extendShinyjs useShinyjs
 #' @export
 
 launchGUI <- function() {

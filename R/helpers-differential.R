@@ -100,3 +100,25 @@ plot_delta_area <- function(mc) {
             axis.text=element_text(color="black"),
             panel.grid.major=element_line(color="grey", size=.2))
 }
+
+# ==============================================================================
+# get differential analysis type from differential test result 
+# as returned by 'diffcyt::testDA_*()' & 'diffcyt::testDS_*()'
+# ------------------------------------------------------------------------------
+get_dt_type <- function(x) {
+    k <- nlevels(rowData(x)$cluster_id)
+    da <- c("cluster_id", "logFC", "logCPM", "LR", "PValue", "FDR")
+    ds <- c("cluster_id", "marker", "ID", "logFC", "AvgExpr", "t", "P.Value", "adj.P.Val", "B")
+    if (names(assays(y)) == "counts" && nrow(y) == k 
+        && all.equal(colnames(rowData(x)), da)) {
+        return("DA")
+    } else if (nrow(y) == (k * nlevels(rowData(x)$marker))
+        && all.equal(colnames(rowData(x)), ds)) {
+        return("DS")
+    } else {
+        stop(deparse(substitute(x)), " does not seem to be ", 
+            "a valid differential test result.\n",
+            "Should be a 'SummarizedExperiment' as returned by ", 
+            "'diffcyt::testDA_*()' or 'diffcyt::testDS_*()'.")
+    }
+}

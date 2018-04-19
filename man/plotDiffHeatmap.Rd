@@ -3,26 +3,23 @@
 \docType{methods}
 \name{plotDiffHeatmap}
 \alias{plotDiffHeatmap}
-\alias{plotDiffHeatmap,daFrame-method}
+\alias{plotDiffHeatmap,daFrame,SummarizedExperiment-method}
 \title{Plot differential heatmap}
 \usage{
-plotDiffHeatmap(x, ...)
+plotDiffHeatmap(x, y, ...)
 
-\S4method{plotDiffHeatmap}{daFrame}(x, y, type = c("DA", "DS"), top_n = 20,
+\S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y, top_n = 20,
   all = FALSE, order = TRUE, th = 0.1)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
-
-\item{...}{optional arguments.}
 
 \item{y}{a \code{SummarizedExperiment} containing differential testing
 results as returned by one of \code{\link[diffcyt]{testDA_edgeR}}, 
 \code{\link[diffcyt]{testDA_voom}}, \code{\link[diffcyt]{testDA_GLMM}}, 
 \code{\link[diffcyt]{testDS_limma}}, or \code{\link[diffcyt]{testDS_LMM}}.}
 
-\item{type}{character string. Specifies whether to plot a heatmap for 
-differential abundance (DA) or differential state (DS) test results.}
+\item{...}{optional arguments.}
 
 \item{top_n}{numeric. Number of top clusters (if \code{type = "DA"}) or
 cluster-marker combinations (if \code{type = "DS"}) to display.}
