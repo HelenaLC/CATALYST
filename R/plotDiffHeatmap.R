@@ -14,9 +14,6 @@
 #'   results as returned by one of \code{\link[diffcyt]{testDA_edgeR}}, 
 #'   \code{\link[diffcyt]{testDA_voom}}, \code{\link[diffcyt]{testDA_GLMM}}, 
 #'   \code{\link[diffcyt]{testDS_limma}}, or \code{\link[diffcyt]{testDS_LMM}}.
-#' @param type 
-#'   character string. Specifies whether to plot a heatmap for 
-#'   differential abundance (DA) or differential state (DS) test results.
 #' @param top_n 
 #'   numeric. Number of top clusters (if \code{type = "DA"}) or
 #'   cluster-marker combinations (if \code{type = "DS"}) to display.
@@ -48,7 +45,7 @@
 #' 
 #' @author Lukas M Weber, Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
-#' @import ComplexHeatmap dplyr
+#' @import ComplexHeatmap 
 #' @importFrom circlize colorRamp2
 #' @importFrom dplyr group_by_ summarize_at
 #' @importFrom magrittr %>%
@@ -57,47 +54,55 @@
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotDiffHeatmap", 
-    signature=signature(x="daFrame"), 
-    definition=function(x, y, type=c("DA", "DS"), 
-        top_n=20, all=FALSE, order=TRUE, th=0.1) {
+    signature=signature(x="daFrame", y="SummarizedExperiment"), 
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1) {
+
+        # get differential analysis type
+        type <- get_dt_type(y)
         
-        type <- match.arg(type, c("DA", "DS"))
+        # get no. of clusters
+        k <- switch(type, 
+            DA = nrow(y),
+            DS = nrow(y) / nlevels(rowData(y)$marker))
         
-        # get no. of clusters & cluster IDs
-        k <- nlevels(rowData(y)$cluster_id)
+        # validity check
+        check_daFrame_dt <- function(x, y) {
+            
+        }
+        
+        # get cluster IDs
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
         df <- data.frame(exprs(x), 
             sample_id=sample_ids(x), 
             cluster_id=cluster_ids)
         
         # compute medians across samples & clusters
-        meds_across_samples <- df %>% group_by_(~sample_id) %>% 
+        meds_by_sample <- df %>% group_by_(~sample_id) %>% 
             summarize_at(colnames(x), funs(median))
-        meds_across_clusters <- df %>% group_by_(~cluster_id) %>% 
+        meds_by_cluster <- df %>% group_by_(~cluster_id) %>% 
             summarise_at(colnames(x), funs(median))
 
         # color scale: 
         # 1%, 50%, 99% percentiles across medians & markers
-        qs <- quantile(unlist(meds_across_clusters),
-            c(0.01, 0.5, 0.99), TRUE)
+        qs <- quantile(unlist(meds_by_cluster), c(.01, .5, .99), TRUE)
         hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
         
         # get clusters or cluster-marker combinations to plot
-        dt <- rowData(dt)
+        y <- rowData(y)
         if (order) {
-            cols <- colnames(dt) %in% c("FDR", "adj.P.Val", "p_adj")
-            dt <- dt[order(dt[, cols]), , drop=FALSE]
+            cols <- colnames(y) %in% c("FDR", "adj.P.Val", "p_adj")
+            y <- y[order(y[, cols]), , drop=FALSE]
         }
-        if (all | top_n > nrow(dt)) 
-            top_n <- nrow(dt)
-        top <- dt[seq_len(top_n), ]
-        meds_across_clusters <- meds_across_clusters[
-            match(top$cluster_id, rownames(meds_across_clusters)), ]
+        if (all | top_n > nrow(y)) 
+            top_n <- nrow(y)
+        top <- y[seq_len(top_n), ]
+        meds_by_cluster <- meds_by_cluster[
+            match(top$cluster_id, rownames(meds_by_cluster)), ]
         
         # 1st heatmap:
         # median cell-type marker expressions across clusters
-        hm1 <- Heatmap(col=hm_cols, name="expression", 
-            matrix=meds_across_clusters[, type_markers(x)],
+        hm1 <- Heatmap(
+            meds_by_cluster[, type_markers(x)], hm_cols, "expression", 
             column_title="type_markers", column_title_side="bottom", 
             cluster_columns=FALSE, row_names_side="left", 
             clustering_distance_rows="euclidean",
@@ -119,18 +124,17 @@ setMethod(f="plotDiffHeatmap",
             counts <- reshape2::acast(counts, cluster_id~sample_id, value.var="n", fill=0)
             counts <- counts[top$cluster_id, , drop=FALSE]
             
-            hm2 <- Heatmap(matrix=counts, name="n_cells",
-                col=colorRamp2(range(counts), c("black", "gold")),
-                cluster_columns=FALSE, show_row_names=FALSE)
+            hm2 <- Heatmap(
+                counts, colorRamp2(range(counts), c("black", "gold")), 
+                "n_cells", cluster_columns=FALSE, show_row_names=FALSE)
         } else if (type == "DS") { 
-            hm2 <- Heatmap(col=hm_cols, show_heatmap_legend=FALSE,
-                matrix=meds_across_clusters[, state_markers(x)],
-                column_title="state_markers", 
-                column_title_side="bottom", 
-                cluster_columns=FALSE, 
-                row_names_side = "left", 
+            hm2 <- Heatmap(
+                meds_by_cluster[, state_markers(x)], hm_cols, 
+                column_title="state_markers", column_title_side="bottom", 
+                cluster_columns=FALSE, row_names_side = "left", 
                 clustering_distance_rows="euclidean",
-                clustering_method_rows="median")
+                clustering_method_rows="median",
+                show_heatmap_legend=FALSE)
         }
         
         # if type = "DS", 3rd heatmap:
@@ -164,5 +168,23 @@ setMethod(f="plotDiffHeatmap",
             DS="top DS cluster-marker combinations")
         draw(hm1+hm2+hm3+row_anno, column_title=main, 
             column_title_gp=gpar(fontface="bold", fontsize=12))
+    }
+)
+
+# ==============================================================================
+# method for when 'y' is a list as returned by diffcyt()
+# ------------------------------------------------------------------------------
+setMethod(f="plotDiffHeatmap", 
+    signature=signature(x="daFrame", y="list"), 
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1) {
+        if (all.equal(names(y), c("res", "d_se", "d_counts", "d_medians", 
+            "d_medians_by_cluster_marker", "d_medians_by_sample_marker"))) {
+            plotDiffHeatmap(x, y$res, top_n=20, all=FALSE, order=TRUE, th=0.1)
+        } else {
+            stop(deparse(substitute(y)), " does not seem to be ", 
+                "a valid differential test result.\n",
+                "Should be a 'SummarizedExperiment' as returned by ", 
+                "'diffcyt::testDA_*()' or 'diffcyt::testDS_*()'.")
+        }
     }
 )

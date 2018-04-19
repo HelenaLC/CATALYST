@@ -20,6 +20,8 @@
 #'   numeric. Specifies the maximum number of clusters to evaluate
 #'   in the metaclustering. For \code{maxK = 20}, for example, 
 #'   metaclustering will be performed for 2 through 20 clusters.
+#' @param seed
+#'   numeric. Sets random seed in \code{ConsensusClusterPlus()}.
 #' 
 #' @return 
 #' The function will add information to the following slots 
@@ -83,7 +85,7 @@
 
 setMethod(f="cluster",
     signature=signature(x="daFrame"),
-    definition=function(x, cols_to_use, xdim=10, ydim=10, maxK=20) {
+    definition=function(x, cols_to_use, xdim=10, ydim=10, maxK=20, seed=1) {
         
         # replace dash with underscore
         cols_to_use <- gsub("-", "_", cols_to_use)
@@ -96,10 +98,8 @@ setMethod(f="cluster",
         
         # metaclustering
         message("o running ConsensusClusterPlus metaclustering...")
-        pdf(NULL)
         mc <- suppressMessages(ConsensusClusterPlus(t(som$map$codes), 
-            maxK=maxK, reps=100, distance="euclidean", plot="pdf"))
-        dev.off()
+            maxK=maxK, reps=100, distance="euclidean", seed=seed))
         
         # get cluster codes
         k <- xdim * ydim
@@ -113,11 +113,9 @@ setMethod(f="cluster",
         cluster_codes <- data.frame(cluster_codes, check.names=FALSE)
 
         rowData(x)$cluster_id <- as.factor(som$map$mapping[, 1])
-        colData(x)$marker_class <- data.frame(
-            row.names=colnames(exprs(x)),
-            marker_class=factor(c("state", "type")[
-                as.numeric(colnames(exprs(x)) %in% cols_to_use)+1],
-                levels=levels(marker_classes(x))))
+        colData(x)$marker_class <- factor(c("state", "type")[
+            as.numeric(colnames(exprs(x)) %in% cols_to_use)+1],
+            levels=levels(marker_classes(x)))
         metadata(x)$SOM_codes <- som$map$codes
         metadata(x)$cluster_codes <- cluster_codes
         metadata(x)$delta_area <- plot_delta_area(mc)

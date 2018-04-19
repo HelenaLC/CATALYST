@@ -28,7 +28,8 @@
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- tSNE(re, n=250)
 #'
-#' @import Rtsne SummarizedExperiment
+#' @import Rtsne  
+#' @importFrom S4Vectors metadata
 # ------------------------------------------------------------------------------
 
 setMethod(f="tSNE",
