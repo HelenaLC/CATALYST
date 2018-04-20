@@ -53,7 +53,7 @@ setMethod(f="plotMDS",
         md <- metadata(x)$experiment_info
         m <- match(rownames(df), md$sample_id)
         df <- data.frame(df, md[m, ])
-      
+        
         ggplot(df, aes_string(x="MDS1", y="MDS2", col=color_by)) + 
             geom_label_repel(aes_string(label="sample_id"), 
                 show.legend=FALSE) + geom_point(alpha=.75) + 
