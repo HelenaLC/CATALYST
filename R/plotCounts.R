@@ -37,9 +37,8 @@ setMethod(f="plotCounts",
             stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
                 "Should be one of: ", paste(dQuote(valid), collapse=", "))
         
-        n_cells <- metadata(x)$n_cells
-        max <- ceiling(max(n_cells)/1e3)*1e3 + 1e3
-        df <- data.frame(n_cells, md)
+        max <- ceiling(max(n_cells(x))/1e3)*1e3 + 1e3
+        df <- data.frame(n_cells(x), md)
         
         ggplot(df, aes_string(x="sample_id", y="n_cells",
             fill=color_by)) + geom_bar(stat="identity", width=.75) +  

@@ -52,7 +52,7 @@ nrs <- function(x, n=3) {
 # ------------------------------------------------------------------------------
 row_anno <- function(anno, cols, name, clustering, dend) {
     Heatmap(matrix=anno, col=cols, name=name, 
-        rect_gp=gpar(col="white"), width=unit(.5, "cm"),
+        rect_gp=gpar(col="white"), width=unit(.4, "cm"),
         cluster_rows=clustering, cluster_columns=FALSE,
         show_row_dend=dend, row_dend_reorder=FALSE)
 }

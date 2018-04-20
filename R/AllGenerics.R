@@ -216,13 +216,6 @@ setGeneric("cluster_ids",
     function(x) standardGeneric("cluster_ids"))
 
 # ==============================================================================
-# Generics to replace slots in a daFrame
-# ------------------------------------------------------------------------------
-
-setGeneric("marker_classes<-",      
-    function(x, value) standardGeneric("marker_classes<-"))
-
-# ==============================================================================
 # Generics for differential analysis
 # ------------------------------------------------------------------------------
 

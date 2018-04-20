@@ -24,8 +24,6 @@
 \alias{sample_ids,daFrame-method}
 \alias{cluster_codes,daFrame-method}
 \alias{cluster_ids,daFrame-method}
-\alias{marker_classes<-,daFrame,character-method}
-\alias{marker_classes<-,daFrame,ANY-method}
 \title{Extraction and replacement methods 
 for objects of class \code{daFrame}}
 \usage{
@@ -58,10 +56,6 @@ cluster_ids(x)
 \S4method{cluster_codes}{daFrame}(x)
 
 \S4method{cluster_ids}{daFrame}(x)
-
-\S4method{marker_classes}{daFrame,character}(x) <- value
-
-\S4method{marker_classes}{daFrame,ANY}(x) <- value
 }
 \arguments{
 \item{x, object}{a \code{\link{daFrame}}.}

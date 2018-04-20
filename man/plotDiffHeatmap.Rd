@@ -4,12 +4,16 @@
 \name{plotDiffHeatmap}
 \alias{plotDiffHeatmap}
 \alias{plotDiffHeatmap,daFrame,SummarizedExperiment-method}
+\alias{plotDiffHeatmap,daFrame,list-method}
 \title{Plot differential heatmap}
 \usage{
 plotDiffHeatmap(x, y, ...)
 
 \S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y, top_n = 20,
   all = FALSE, order = TRUE, th = 0.1)
+
+\S4method{plotDiffHeatmap}{daFrame,list}(x, y, top_n = 20, all = FALSE,
+  order = TRUE, th = 0.1)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -42,18 +46,55 @@ Heatmaps summarizing differental abundance
 \details{
 For DA tests, \code{plotDiffHeatmap} will display
 \itemize{
-\item median (arcsinh-transformed) cell-type marker expressions (across all samples)
-\item cluster abundances by samples
-\item row annotations indicating the significance of detected clusters
+  \item median (arcsinh-transformed) 
+    cell-type marker expressions (across all samples)
+  \item cluster abundances by samples
+  \item row annotations indicating if detected clusteres
+    are significant (i.e. adj. p-value >= \code{th})
 }
 For DS tests, \code{plotDiffHeatmap} will display
-\itemize{
-\item median (arcsinh-transformed) cell-type marker expressions (across all samples)
-\item median (arcsinh-transformed) cell-state marker expressions (across all samples)
-\item median (arcsinh-transformed) cell-state marker expressions by sample
-\item row annotations indicating the significance of detected cluster-marker combinations
+  \itemize{
+  \item median (arcsinh-transformed) 
+    cell-type marker expressions (across all samples)
+  \item median (arcsinh-transformed) 
+    cell-state marker expressions by sample
+  \item row annotations indicating if detected cluster-marker combinations
+    are significant (i.e. adj. p-value >= \code{th})
 }
+}
+\examples{
+# construct daFrame
+data(PBMC_fs, PBMC_panel, PBMC_md)
+re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+
+# run clustering
+lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
+re <- cluster(re, cols_to_use=lineage)
+
+## differential analysis
+library(diffcyt)
+
+# create design & constrast matrix
+design <- createDesignMatrix(PBMC_md, cols_design=3:4)
+contrast <- createContrast(c(0, 1, 0, 0, 0, 0, 0))
+
+# test for
+# - differential abundance (DA) of clusters
+# - differential states (DS) within clusters
+da <- diffcyt(re, design =design, contrast = contrast, 
+    analysis_type = "DA", method_DA = "diffcyt-DA-edgeR")
+ds <- diffcyt(re, design = design, contrast = contrast, 
+    analysis_type = "DS", method_DS = "diffcyt-DS-limma")
+    
+# display test results for
+# - top DA clusters
+# - top DS cluster-marker combintations
+plotDiffHeatmap(re, da)
+plotDiffHeatmap(re, ds)
+
 }
 \author{
-Lukas M Weber, Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Lukas M Weber and 
+Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 }

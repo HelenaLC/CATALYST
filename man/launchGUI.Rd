@@ -17,7 +17,7 @@ Detailed user guides are available inside the app. To use the app
 online, please visit \emph{http://imlspenticton.uzh.ch:3838/CATALYSTLite}.
 }
 \examples{
-launchGUI()
+\dontrun{launchGUI}
 
 }
 \author{

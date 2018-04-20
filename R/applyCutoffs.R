@@ -75,7 +75,8 @@ setMethod(f="applyCutoffs",
             th <- sep_cutoffs(x)[rownames(bc_key(x)) == id]
             deltas(x)[inds[[id]]] < th
         }), ids)
-        inds <- sapply(ids, function(id) inds[[id]][!below_th[[id]]])
+        inds <- setNames(lapply(ids, function(id) 
+            inds[[id]][!below_th[[id]]]), ids)
         for (id in ids) bc_ids(x)[inds[[id]][below_th[[id]]]] <- 0
         
         # subset barcode populations
@@ -83,7 +84,7 @@ setMethod(f="applyCutoffs",
         bc_cols <- which(ms %in% colnames(bc_key(x)))
         n_bcs <- length(bc_cols)
         bcs <- exprs(x)[, bc_cols]
-        bcs <- sapply(inds, function(x) bcs[x, ])
+        bcs <- setNames(lapply(inds, function(x) bcs[x, ]), names(inds))
         
         # compute mhl_dists
         mhl_dists <- numeric(nrow(exprs(x)))
