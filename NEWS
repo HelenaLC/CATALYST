@@ -35,7 +35,7 @@ o The following functions are newly available:
       > non-redundancy scores
 
   - tSNE(), plotSNE():
-      > run & visualise t-SNE
+      > run & visualize t-SNE
 
   - cluster(), mergeClusters():
       > FlowSOM clustering, ConsensusClusterPlus 
@@ -48,5 +48,5 @@ o The following functions are newly available:
       > relative cluster abundances
 
   - plotClusterHeatmap(), plotDiffHeatmap()
-      > ComplexHeatmap's summarizing clustering 
-        & {diffcyt} differential analysis results
+      > ComplexHeatmap's summarizing clustering,
+        meta-clustering & differential analysis results
