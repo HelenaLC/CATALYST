@@ -29,27 +29,61 @@
 #' @details 
 #' For DA tests, \code{plotDiffHeatmap} will display
 #' \itemize{
-#' \item median (arcsinh-transformed) cell-type marker expressions (across all samples)
-#' \item cluster abundances by samples
-#' \item row annotations indicating the significance of detected clusters
+#'   \item median (arcsinh-transformed) 
+#'     cell-type marker expressions (across all samples)
+#'   \item cluster abundances by samples
+#'   \item row annotations indicating if detected clusteres
+#'     are significant (i.e. adj. p-value >= \code{th})
 #' }
 #' For DS tests, \code{plotDiffHeatmap} will display
-#' \itemize{
-#' \item median (arcsinh-transformed) cell-type marker expressions (across all samples)
-#' \item median (arcsinh-transformed) cell-state marker expressions by sample
-#' \item row annotations indicating the significance of detected cluster-marker combinations
+#'   \itemize{
+#'   \item median (arcsinh-transformed) 
+#'     cell-type marker expressions (across all samples)
+#'   \item median (arcsinh-transformed) 
+#'     cell-state marker expressions by sample
+#'   \item row annotations indicating if detected cluster-marker combinations
+#'     are significant (i.e. adj. p-value >= \code{th})
 #' }
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
 #' 
-#' @author Lukas M Weber, Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Lukas M Weber and 
+#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @examples
+#' # construct daFrame
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
+#' # run clustering
+#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+#'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
+#' re <- cluster(re, cols_to_use=lineage)
+#' 
+#' ## differential analysis
+#' library(diffcyt)
+#' 
+#' # create design & constrast matrix
+#' design <- createDesignMatrix(PBMC_md, cols_design=3:4)
+#' contrast <- createContrast(c(0, 1, 0, 0, 0, 0, 0))
+#' 
+#' # test for
+#' # - differential abundance (DA) of clusters
+#' # - differential states (DS) within clusters
+#' da <- diffcyt(re, design =design, contrast = contrast, 
+#'     analysis_type = "DA", method_DA = "diffcyt-DA-edgeR")
+#' ds <- diffcyt(re, design = design, contrast = contrast, 
+#'     analysis_type = "DS", method_DS = "diffcyt-DS-limma")
+#'     
+#' # display test results for
+#' # - top DA clusters
+#' # - top DS cluster-marker combintations
+#' plotDiffHeatmap(re, da)
+#' plotDiffHeatmap(re, ds)
 #' 
 #' @import ComplexHeatmap 
 #' @importFrom circlize colorRamp2
-#' @importFrom dplyr group_by_ summarize_all count
+#' @importFrom dplyr group_by_ count summarise_all summarise_at 
 #' @importFrom magrittr %>%
 #' @importFrom stats quantile
 #' @importFrom tidyr complete
@@ -74,7 +108,7 @@ setMethod(f="plotDiffHeatmap",
         # compute medians by samples & clusters
         df <- data.frame(exprs(x), sample_id=sample_ids(x), cluster_id=cluster_ids)
         meds_by_sample <- data.frame(df %>% group_by_(~sample_id) %>% 
-                summarize_at(colnames(x), median), row.names=1)
+                summarise_at(colnames(x), median), row.names=1)
         meds_by_cluster <- data.frame(df %>% group_by_(~cluster_id) %>% 
                 summarise_at(colnames(x), median), row.names=1)
 
@@ -150,11 +184,15 @@ setMethod(f="plotDiffHeatmap",
 # ==============================================================================
 # method for when 'y' is a list as returned by diffcyt()
 # ------------------------------------------------------------------------------
+#' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="daFrame", y="list"), 
     definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1) {
-        if (all.equal(names(y), c("res", "d_se", "d_counts", "d_medians", 
-            "d_medians_by_cluster_marker", "d_medians_by_sample_marker"))) {
+        nms1 <- c("res", "d_se", "d_counts", "d_medians", 
+            "d_medians_by_cluster_marker", "d_medians_by_sample_marker")
+        nms2 <- c("res", "d_cat", "d_counts", "d_medians")
+        if (sum(names(y) %in% nms1) == length(nms1) 
+            | sum(names(y) %in% nms2) == length(nms2)) {
             plotDiffHeatmap(x, y$res, top_n=20, all=FALSE, order=TRUE, th=0.1)
         } else {
             stop(deparse(substitute(y)), " does not seem to be ", 

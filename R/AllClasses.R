@@ -242,7 +242,8 @@ daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
     row_data <- S4Vectors::DataFrame(
         sample_id=rep(md[[md_cols$id]], n_cells), 
         sapply(md_cols$factors, function(i) rep(md[[i]], n_cells)))
-    col_data <- S4Vectors::DataFrame(row.names=colnames(es), marker_name=chs, 
+    col_data <- S4Vectors::DataFrame(row.names=colnames(es), 
+        channel_name=chs, marker_name=colnames(es), 
         marker_class=factor("none", levels=c("type", "state", "none")))
     
     new("daFrame", 

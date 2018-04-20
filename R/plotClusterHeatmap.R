@@ -120,8 +120,8 @@ setMethod(f="plotClusterHeatmap",
         }
         # merging row annotation
         if (length(m) != 0) {
-            anno <- cluster_codes(x)[, m][match(
-                seq_len(n_clusters), cluster_codes(x)[, k])]
+            anno <- factor(cluster_codes(x)[, m][match(
+                seq_len(n_clusters), cluster_codes(x)[, k])])
             cols <- setNames(cluster_cols[seq_len(nlevels(anno))], levels(anno))
             merging_anno <- row_anno(anno, cols, 
                 "merging_id", row_clustering, draw_dend)

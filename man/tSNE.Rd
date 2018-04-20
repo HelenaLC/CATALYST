@@ -8,12 +8,15 @@
 \usage{
 tSNE(x, ...)
 
-\S4method{tSNE}{daFrame}(x, n = 1000, seed = 42)
+\S4method{tSNE}{daFrame}(x, cols_to_use = NULL, n = 1000, seed = 42)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
+
+\item{cols_to_use}{a character vector. Specifies which antigens to use for clustering.
+If NULL, the function will attempt to use the \code{type_markers(x)}.}
 
 \item{n}{numeric. Specifies the number of cells to downsample to per sample.}
 

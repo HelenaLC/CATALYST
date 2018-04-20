@@ -111,36 +111,3 @@ setMethod(f="cluster_codes",
 setMethod(f="cluster_ids",  
     signature="daFrame", 
     definition=function(x) return(rowData(x)$cluster_id))
-
-# ==============================================================================
-# replacement method for 'marker_class' in 'colData'
-# ------------------------------------------------------------------------------
-
-#' @rdname daFrame-methods
-#' @export
-setReplaceMethod(f="marker_classes",
-    signature=signature(x="daFrame", value="character"),
-    definition=function(x, value) {
-        valid_classes <- c("type", "state", "none")
-        print(length(value))
-        print(value[seq_along(value)])
-        if (any(!value %in% valid_classes))
-            stop("Invalid replacement value(s).",
-                "\n  Valid marker classes are: ",
-                paste(dQuote(valid_classes), collapse=", "))
-        x@colData$marker_class <- factor(value, levels=valid_classes)
-        return(x)
-    }
-)
-
-#' @rdname daFrame-methods
-#' @export
-setReplaceMethod(f="marker_classes",
-    signature=signature(x="daFrame", value="ANY"),
-    definition=function(x, value) {
-        valid_classes <- c("type", "state", "none")
-        stop("Invalid replacement value(s).",
-            "\n  Valid marker classes are: ",
-            paste(dQuote(valid_classes), collapse=", "))
-    }
-)

@@ -98,9 +98,10 @@ setMethod(f="cluster",
         
         # metaclustering
         message("o running ConsensusClusterPlus metaclustering...")
+        pdf(NULL)
         mc <- suppressMessages(ConsensusClusterPlus(t(som$map$codes), 
-            maxK=maxK, reps=100, distance="euclidean", seed=seed))
-        graphics.off()
+            maxK=maxK, reps=100, distance="euclidean", seed=seed, plot="pdf"))
+        dev.off()
         
         # get cluster codes
         k <- xdim * ydim

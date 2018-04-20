@@ -5,6 +5,9 @@
 #' 
 #' @param x 
 #'   a \code{\link{daFrame}}.
+#' @param cols_to_use
+#'   a character vector. Specifies which antigens to use for clustering.
+#'   If NULL, the function will attempt to use the \code{type_markers(x)}.
 #' @param n 
 #'   numeric. Specifies the number of cells to downsample to per sample.
 #' @param seed 
@@ -34,7 +37,16 @@
 
 setMethod(f="tSNE",
     signature=signature(x="daFrame"),
-    definition=function(x, n=1000, seed=42) {
+    definition=function(x, cols_to_use=NULL, n=1000, seed=42) {
+        if (is.null(cols_to_use)) {
+            type_markers <- colData(x)$marker_class == "type"
+            if (sum(colData(x)$marker_class == "type") < 3)
+                stop("Please specify either which 'cols_to_use' or", 
+                    "\nat least 3 'type' markers in 'colData(", 
+                    deparse(substitute(x)), ")$marker_class'")
+            cols_to_use <- type_markers
+        }
+        
         message("o downsampling to ", n, " events per sample...")
         dups <- which(!duplicated(exprs(x)[, type_markers(x)]))
         n_cells <- pmin(metadata(x)$n_cells, n)
@@ -46,7 +58,7 @@ setMethod(f="tSNE",
         })
         message("o running tSNE...")
         tsne_inds <- unlist(tsne_inds)
-        tsne_es <- exprs(x)[tsne_inds, cols]
+        tsne_es <- exprs(x)[tsne_inds, cols_to_use]
         tsne <- Rtsne(tsne_es, check_duplicates=FALSE, pca=FALSE)
         metadata(x)$tsne <- tsne
         metadata(x)$tsne_inds <- tsne_inds

@@ -11,7 +11,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @examples
-#' launchGUI()
+#' \dontrun{launchGUI}
 #'
 #' @import shinydashboard 
 #' @importFrom shiny runApp
