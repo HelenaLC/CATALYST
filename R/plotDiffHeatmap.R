@@ -36,7 +36,6 @@
 #' For DS tests, \code{plotDiffHeatmap} will display
 #' \itemize{
 #' \item median (arcsinh-transformed) cell-type marker expressions (across all samples)
-#' \item median (arcsinh-transformed) cell-state marker expressions (across all samples)
 #' \item median (arcsinh-transformed) cell-state marker expressions by sample
 #' \item row annotations indicating the significance of detected cluster-marker combinations
 #' }
@@ -45,12 +44,16 @@
 #' 
 #' @author Lukas M Weber, Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
+#' @examples
+#' 
+#' 
 #' @import ComplexHeatmap 
 #' @importFrom circlize colorRamp2
-#' @importFrom dplyr group_by_ summarize_at
+#' @importFrom dplyr group_by_ summarize_all count
 #' @importFrom magrittr %>%
 #' @importFrom stats quantile
 #' @importFrom tidyr complete
+#' @importFrom reshape2 acast
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotDiffHeatmap", 
@@ -58,115 +61,88 @@ setMethod(f="plotDiffHeatmap",
     definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1) {
 
         # get differential analysis type
+        y <- rowData(y)
         type <- get_dt_type(y)
         
-        # get no. of clusters
+        # get no. of clusters & cluster IDs
         k <- switch(type, 
             DA = nrow(y),
-            DS = nrow(y) / nlevels(rowData(y)$marker))
-        
-        # validity check
-        check_daFrame_dt <- function(x, y) {
-            
-        }
-        
-        # get cluster IDs
+            DS = nrow(y) / nlevels(y$marker))
+        k <- check_validity_of_k(x, k)
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
-        df <- data.frame(exprs(x), 
-            sample_id=sample_ids(x), 
-            cluster_id=cluster_ids)
         
-        # compute medians across samples & clusters
-        meds_by_sample <- df %>% group_by_(~sample_id) %>% 
-            summarize_at(colnames(x), funs(median))
-        meds_by_cluster <- df %>% group_by_(~cluster_id) %>% 
-            summarise_at(colnames(x), funs(median))
+        # compute medians by samples & clusters
+        df <- data.frame(exprs(x), sample_id=sample_ids(x), cluster_id=cluster_ids)
+        meds_by_sample <- data.frame(df %>% group_by_(~sample_id) %>% 
+                summarize_at(colnames(x), median), row.names=1)
+        meds_by_cluster <- data.frame(df %>% group_by_(~cluster_id) %>% 
+                summarise_at(colnames(x), median), row.names=1)
 
-        # color scale: 
-        # 1%, 50%, 99% percentiles across medians & markers
-        qs <- quantile(unlist(meds_by_cluster), c(.01, .5, .99), TRUE)
+        # color scale: 1%, 50%, 99% percentiles
+        qs <- quantile(meds_by_cluster, c(.01, .5, .99), TRUE)
         hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
         
         # get clusters or cluster-marker combinations to plot
-        y <- rowData(y)
-        if (order) {
-            cols <- colnames(y) %in% c("FDR", "adj.P.Val", "p_adj")
-            y <- y[order(y[, cols]), , drop=FALSE]
-        }
+        if (order)
+            y <- y[order(y$p_adj), , drop=FALSE]
         if (all | top_n > nrow(y)) 
             top_n <- nrow(y)
         top <- y[seq_len(top_n), ]
-        meds_by_cluster <- meds_by_cluster[
-            match(top$cluster_id, rownames(meds_by_cluster)), ]
+        meds_by_cluster <- meds_by_cluster[top$cluster_id, , drop=FALSE]
+        meds_by_cluster <- as.matrix(meds_by_cluster)
+        rownames(meds_by_cluster) <- top$cluster_id
         
         # 1st heatmap:
-        # median cell-type marker expressions across clusters
-        hm1 <- Heatmap(
-            meds_by_cluster[, type_markers(x)], hm_cols, "expression", 
-            column_title="type_markers", column_title_side="bottom", 
-            cluster_columns=FALSE, row_names_side="left", 
-            clustering_distance_rows="euclidean",
-            clustering_method_rows="median")
+        # median type-marker expressions by cluster
+        hm1 <- diff_hm(matrix=meds_by_cluster[, type_markers(x)], 
+            col=hm_cols, name="expression", xlab="type_markers", 
+            row_title="cluster_id", row_names_side="left")
         
-        meds <- df %>% 
-            group_by_(~cluster_id, ~sample_id) %>% 
-            summarise_all(funs(median))
-        meds <- lapply(colnames(x), function(marker) 
-            acast(meds, cluster_id~sample_id, value.var=marker, fill=0))
-        meds <- setNames(meds, colnames(x))
-        meds <- meds[top$cluster_id, , drop=FALSE]
-       
         # 2nd heatmap:
-        # type = "DA": cluster sizes across samples
-        # type = "DS": median cell-state marker expressions across clusters
         if (type == "DA") {
-            counts <- df %>% count(cluster_id, sample_id) %>% complete(sample_id)
-            counts <- reshape2::acast(counts, cluster_id~sample_id, value.var="n", fill=0)
-            counts <- counts[top$cluster_id, , drop=FALSE]
+            # cluster sizes by sample
+            n_cells <- df %>% count(cluster_id, sample_id) %>% complete(sample_id)
+            n_cells <- reshape2::acast(n_cells, cluster_id~sample_id, value.var="n", fill=0)
+            n_cells <- n_cells[top$cluster_id, , drop=FALSE]
             
-            hm2 <- Heatmap(
-                counts, colorRamp2(range(counts), c("black", "gold")), 
-                "n_cells", cluster_columns=FALSE, show_row_names=FALSE)
+            hm2 <- diff_hm(matrix=n_cells, name="n_cells",
+                col=colorRamp2(range(n_cells), c("navy", "yellow")),
+                xlab="sample_id", show_row_names=FALSE)
         } else if (type == "DS") { 
-            hm2 <- Heatmap(
-                meds_by_cluster[, state_markers(x)], hm_cols, 
-                column_title="state_markers", column_title_side="bottom", 
-                cluster_columns=FALSE, row_names_side = "left", 
-                clustering_distance_rows="euclidean",
-                clustering_method_rows="median",
-                show_heatmap_legend=FALSE)
+            # median state-marker expression by sample
+            meds <- df %>% 
+                group_by_(~cluster_id, ~sample_id) %>% 
+                summarise_all(funs(median))
+            meds <- lapply(colnames(x), function(marker) 
+                acast(meds, cluster_id~sample_id, value.var=marker, fill=0))
+            meds <- setNames(meds, colnames(x))
+            meds <- mapply(function(marker, ids) marker[ids, , drop = FALSE], 
+                meds[top$marker], top$cluster_id, SIMPLIFY=FALSE)
+            meds <- do.call(rbind, meds)
+            rownames(meds) <- paste0(top$marker, sprintf("(%s)", top$cluster_id))
+
+            hm2 <- diff_hm(matrix=meds, name="expression\nby sample",
+                col=colorRamp2(range(meds, na.rm=TRUE), c("navy", "yellow")),
+                xlab="sample_id")
         }
-        
-        # if type = "DS", 3rd heatmap:
-        # median cell-state marker expressions across samples
-        
-        # subset top markers & clusters
-        data <- mapply(function(marker, ids) marker[ids, , drop = FALSE], 
-            meds[top$marker], top$cluster_id, SIMPLIFY=FALSE)
-        data <- do.call(rbind, data)
-        
-        hm3 <- Heatmap(
-            matrix=data, name="expression\nby sample",
-            show_column_names=FALSE, cluster_columns=FALSE, 
-            show_row_names=TRUE, row_names_side="right")
-        
-        # row annotation: adj. p-values
-        cols <- colnames(top) %in% c("FDR", "adj.P.Val", "p_adj")
-        s <- top[, cols] <= th
+
+        # row annotation: significant = (adj. p-values <= th)
+        s <- top[, "p_adj"] <= th
         s[is.na(s)] <- FALSE
-        
         df_s <- data.frame(cluster_id=top$cluster_id, s=as.numeric(s)) 
         if (type == "DS") df_s$marker <- top$marker
-        
         row_anno_df <- data.frame("significant"=factor(df_s$s, 
             levels=c(0,1), labels=c("no","yes")), check.names=FALSE)
-        row_anno <- rowAnnotation(df=row_anno_df, width=unit(.8, "cm"),
-            col=list("significant"=c("no"="gray90", "yes"="red2")))
+        
+        row_anno <- rowAnnotation(df=row_anno_df, 
+            gp=gpar(col="white"), width=unit(.4, "cm"),
+            col=list("significant"=c("no"="gray90", "yes"="limegreen")))
         
         # combine panels
-        main <- switch(type, DA="top DA clusters", 
-            DS="top DS cluster-marker combinations")
-        draw(hm1+hm2+hm3+row_anno, column_title=main, 
+        main <- switch(type, 
+            DA = "top DA clusters", 
+            DS = "top DS cluster-marker combinations")
+        draw(hm1 + hm2 + row_anno, column_title=main,
             column_title_gp=gpar(fontface="bold", fontsize=12))
     }
 )
