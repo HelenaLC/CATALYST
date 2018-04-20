@@ -188,11 +188,7 @@ setMethod(f="plotDiffHeatmap",
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="daFrame", y="list"), 
     definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1) {
-        nms1 <- c("res", "d_se", "d_counts", "d_medians", 
-            "d_medians_by_cluster_marker", "d_medians_by_sample_marker")
-        nms2 <- c("res", "d_cat", "d_counts", "d_medians")
-        if (sum(names(y) %in% nms1) == length(nms1) 
-            | sum(names(y) %in% nms2) == length(nms2)) {
+        if (all(c("res", "d_counts", "d_medians") %in% names(y))) {
             plotDiffHeatmap(x, y$res, top_n=20, all=FALSE, order=TRUE, th=0.1)
         } else {
             stop(deparse(substitute(y)), " does not seem to be ", 
