@@ -106,14 +106,13 @@ plot_delta_area <- function(mc) {
 # as returned by 'diffcyt::testDA_*()' & 'diffcyt::testDS_*()'
 # ------------------------------------------------------------------------------
 get_dt_type <- function(x) {
-    k <- nlevels(rowData(x)$cluster_id)
-    da <- c("cluster_id", "logFC", "logCPM", "LR", "PValue", "FDR")
-    ds <- c("cluster_id", "marker", "ID", "logFC", "AvgExpr", "t", "P.Value", "adj.P.Val", "B")
-    if (names(assays(y)) == "counts" && nrow(y) == k 
-        && all.equal(colnames(rowData(x)), da)) {
+    k <- length(unique(x$cluster_id))
+    da <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
+    ds <- c("cluster_id", "marker", "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
+    if (nrow(x) == k && all.equal(colnames(x), da)) {
         return("DA")
-    } else if (nrow(y) == (k * nlevels(rowData(x)$marker))
-        && all.equal(colnames(rowData(x)), ds)) {
+    } else if (nrow(x) == (k * nlevels(x$marker))
+        && all.equal(colnames(x), ds)) {
         return("DS")
     } else {
         stop(deparse(substitute(x)), " does not seem to be ", 
@@ -121,4 +120,16 @@ get_dt_type <- function(x) {
             "Should be a 'SummarizedExperiment' as returned by ", 
             "'diffcyt::testDA_*()' or 'diffcyt::testDS_*()'.")
     }
+}
+
+# ==============================================================================
+# wrapper for heatmaps by plotDiffHeatmap()
+# ------------------------------------------------------------------------------
+diff_hm <- function(matrix, col, name, xlab, ...) {
+    Heatmap(matrix, col, name, ..., cluster_columns=FALSE,
+        column_title=xlab, column_title_side="bottom",
+        clustering_distance_rows="euclidean",
+        clustering_method_rows="median",
+        column_names_gp=gpar(fontsize=8),
+        rect_gp=gpar(col='white'))
 }
