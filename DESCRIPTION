@@ -43,8 +43,7 @@ Imports:
     stats,
     SummarizedExperiment,
     tidyr,
-    utils,
-    zeallot
+    utils
 Suggests: BiocStyle, knitr, rmarkdown, testthat
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1

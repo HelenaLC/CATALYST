@@ -106,8 +106,8 @@ plot_delta_area <- function(mc) {
 # as returned by 'diffcyt::testDA_*()' & 'diffcyt::testDS_*()'
 # ------------------------------------------------------------------------------
 get_dt_type <- function(x) {
-    k <- length(unique(x$cluster_id))
     
+    # check correctness of column names
     da_edgeR <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
     da_GLMM <- c("cluster_id", "p_val", "p_adj")
     da_voom <- c("cluster_id", "log_FC", "AveExpr", "t", "p_val", "p_adj", "B")
@@ -123,6 +123,9 @@ get_dt_type <- function(x) {
     type <- names(which(test))
     if (length(type) == 0) 
         type <- "none"
+    
+    # get no. of clusters
+    k <- length(unique(x$cluster_id))
     
     if (type == "da" && nrow(x) == k) {
         return("DA")

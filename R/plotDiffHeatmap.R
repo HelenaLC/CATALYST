@@ -89,13 +89,15 @@
 #' @importFrom stats quantile
 #' @importFrom tidyr complete
 #' @importFrom reshape2 acast
-#' @importFrom zeallot %<-%
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="matrix", y="SummarizedExperiment"), 
     definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
-        zeallot::`%<-%`(c(sample_ids, cluster_ids, marker_classes), list(...))
+        z <- list(...)
+        sample_ids <- z$sample_ids
+        cluster_ids <- z$cluster_ids
+        marker_classes <- z$marker_classes
         
         # get differential analysis type
         y <- rowData(y)
