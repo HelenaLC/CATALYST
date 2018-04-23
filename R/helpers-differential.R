@@ -107,14 +107,28 @@ plot_delta_area <- function(mc) {
 # ------------------------------------------------------------------------------
 get_dt_type <- function(x) {
     k <- length(unique(x$cluster_id))
-    da <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
-    ds <- c("cluster_id", "marker", "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
-    if (nrow(x) == k && all.equal(colnames(x), da)) {
+    
+    da_edgeR <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
+    da_GLMM <- c("cluster_id", "p_val", "p_adj")
+    da_voom <- c("cluster_id", "log_FC", "AveExpr", "t", "p_val", "p_adj", "B")
+    
+    ds_limma <- c("cluster_id", "marker", "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
+    ds_LMM <- c("cluster_id", "marker", "p_val", "p_adj")
+    
+    res_nms <- setNames(
+        list(da_edgeR, da_GLMM, da_voom, ds_limma, ds_LMM),
+        c(rep("da", 3), rep("ds", 2)))
+    test <- sapply(res_nms, function(nms)
+        sum(names(x) %in% nms) == length(names(x)))
+    type <- names(which(test))
+    if (length(type) == 0) 
+        type <- "none"
+    
+    if (type == "da" && nrow(x) == k) {
         return("DA")
-    } else if (nrow(x) == (k * nlevels(x$marker))
-        && all.equal(colnames(x), ds)) {
+    } else if (type == "ds" && nrow(x) == (k * nlevels(x$marker))) {
         return("DS")
-    } else {
+    } else if (type == "none") {
         stop(deparse(substitute(x)), " does not seem to be ", 
             "a valid differential test result.\n",
             "Should be a 'SummarizedExperiment' as returned by ", 

@@ -8,12 +8,13 @@
 #' & differential state testing results.
 #' 
 #' @param x 
-#'   a \code{\link{daFrame}}.
+#'   a \code{\link{daFrame}} or \code{SummarizedExperiment}.
 #' @param y 
 #'   a \code{SummarizedExperiment} containing differential testing
 #'   results as returned by one of \code{\link[diffcyt]{testDA_edgeR}}, 
 #'   \code{\link[diffcyt]{testDA_voom}}, \code{\link[diffcyt]{testDA_GLMM}}, 
 #'   \code{\link[diffcyt]{testDS_limma}}, or \code{\link[diffcyt]{testDS_LMM}}.
+#'   Alternatively, a list as returned by \code{\link[diffcyt]{diffcyt}}.
 #' @param top_n 
 #'   numeric. Number of top clusters (if \code{type = "DA"}) or
 #'   cluster-marker combinations (if \code{type = "DS"}) to display.
@@ -88,25 +89,20 @@
 #' @importFrom stats quantile
 #' @importFrom tidyr complete
 #' @importFrom reshape2 acast
+#' @importFrom zeallot %<-%
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotDiffHeatmap", 
-    signature=signature(x="daFrame", y="SummarizedExperiment"), 
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1) {
-
+    signature=signature(x="matrix", y="SummarizedExperiment"), 
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+        zeallot::`%<-%`(c(sample_ids, cluster_ids, type_markers), list(...))
+        
         # get differential analysis type
         y <- rowData(y)
         type <- get_dt_type(y)
         
-        # get no. of clusters & cluster IDs
-        k <- switch(type, 
-            DA = nrow(y),
-            DS = nrow(y) / nlevels(y$marker))
-        k <- check_validity_of_k(x, k)
-        cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
-        
         # compute medians by samples & clusters
-        df <- data.frame(exprs(x), sample_id=sample_ids(x), cluster_id=cluster_ids)
+        df <- data.frame(x, sample_id=sample_ids, cluster_id=cluster_ids)
         meds_by_sample <- data.frame(df %>% group_by_(~sample_id) %>% 
                 summarise_at(colnames(x), median), row.names=1)
         meds_by_cluster <- data.frame(df %>% group_by_(~cluster_id) %>% 
@@ -128,7 +124,7 @@ setMethod(f="plotDiffHeatmap",
         
         # 1st heatmap:
         # median type-marker expressions by cluster
-        hm1 <- diff_hm(matrix=meds_by_cluster[, type_markers(x)], 
+        hm1 <- diff_hm(matrix=meds_by_cluster[, type_markers], 
             col=hm_cols, name="expression", xlab="type_markers", 
             row_title="cluster_id", row_names_side="left")
         
@@ -181,13 +177,41 @@ setMethod(f="plotDiffHeatmap",
     }
 )
 
-# ==============================================================================
-# method for when 'y' is a list as returned by diffcyt()
 # ------------------------------------------------------------------------------
 #' @rdname plotDiffHeatmap
+setMethod(f="plotDiffHeatmap",
+    signature=signature(x="daFrame", y="SummarizedExperiment"),
+    definition = function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+        
+        # get cluster IDs
+        k <- nlevels(rowData(y)$cluster_id)
+        k <- check_validity_of_k(x, k)
+        cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
+        
+        plotDiffHeatmap(exprs(x), y, top_n=20, all=FALSE, order=TRUE, th=0.1, 
+            sample_ids=sample_ids(x), 
+            cluster_ids=cluster_ids, 
+            type_markers=type_markers(x))
+    }
+)
+
+#' @rdname plotDiffHeatmap
+setMethod(f="plotDiffHeatmap",
+    signature=signature(x="SummarizedExperiment", y="SummarizedExperiment"),
+    definition = function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+        
+        plotDiffHeatmap(assay(x), y, top_n=20, all=FALSE, order=TRUE, th=0.1, 
+            sample_ids=rowData(x)$sample_id,
+            cluster_ids=rowData(x)$cluster_id,
+            type_markers=colData(x)$marker_class == "type")
+    }
+)
+
+#' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap", 
-    signature=signature(x="daFrame", y="list"), 
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1) {
+    signature=signature(x="ANY", y="list"), 
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+        
         if (all(c("res", "d_counts", "d_medians") %in% names(y))) {
             plotDiffHeatmap(x, y$res, top_n=20, all=FALSE, order=TRUE, th=0.1)
         } else {

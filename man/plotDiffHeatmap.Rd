@@ -3,25 +3,34 @@
 \docType{methods}
 \name{plotDiffHeatmap}
 \alias{plotDiffHeatmap}
+\alias{plotDiffHeatmap,matrix,SummarizedExperiment-method}
 \alias{plotDiffHeatmap,daFrame,SummarizedExperiment-method}
-\alias{plotDiffHeatmap,daFrame,list-method}
+\alias{plotDiffHeatmap,SummarizedExperiment,SummarizedExperiment-method}
+\alias{plotDiffHeatmap,ANY,list-method}
 \title{Plot differential heatmap}
 \usage{
 plotDiffHeatmap(x, y, ...)
 
-\S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y, top_n = 20,
-  all = FALSE, order = TRUE, th = 0.1)
+\S4method{plotDiffHeatmap}{matrix,SummarizedExperiment}(x, y, top_n = 20,
+  all = FALSE, order = TRUE, th = 0.1, ...)
 
-\S4method{plotDiffHeatmap}{daFrame,list}(x, y, top_n = 20, all = FALSE,
-  order = TRUE, th = 0.1)
+\S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y, top_n = 20,
+  all = FALSE, order = TRUE, th = 0.1, ...)
+
+\S4method{plotDiffHeatmap}{SummarizedExperiment,SummarizedExperiment}(x, y,
+  top_n = 20, all = FALSE, order = TRUE, th = 0.1, ...)
+
+\S4method{plotDiffHeatmap}{ANY,list}(x, y, top_n = 20, all = FALSE,
+  order = TRUE, th = 0.1, ...)
 }
 \arguments{
-\item{x}{a \code{\link{daFrame}}.}
+\item{x}{a \code{\link{daFrame}} or \code{SummarizedExperiment}.}
 
 \item{y}{a \code{SummarizedExperiment} containing differential testing
 results as returned by one of \code{\link[diffcyt]{testDA_edgeR}}, 
 \code{\link[diffcyt]{testDA_voom}}, \code{\link[diffcyt]{testDA_GLMM}}, 
-\code{\link[diffcyt]{testDS_limma}}, or \code{\link[diffcyt]{testDS_LMM}}.}
+\code{\link[diffcyt]{testDS_limma}}, or \code{\link[diffcyt]{testDS_LMM}}.
+Alternatively, a list as returned by \code{\link[diffcyt]{diffcyt}}.}
 
 \item{...}{optional arguments.}
 
