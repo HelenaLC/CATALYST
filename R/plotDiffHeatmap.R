@@ -95,7 +95,7 @@
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="matrix", y="SummarizedExperiment"), 
     definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
-        zeallot::`%<-%`(c(sample_ids, cluster_ids, type_markers), list(...))
+        zeallot::`%<-%`(c(sample_ids, cluster_ids, marker_classes), list(...))
         
         # get differential analysis type
         y <- rowData(y)
@@ -109,7 +109,7 @@ setMethod(f="plotDiffHeatmap",
                 summarise_at(colnames(x), median), row.names=1)
 
         # color scale: 1%, 50%, 99% percentiles
-        qs <- quantile(meds_by_cluster, c(.01, .5, .99), TRUE)
+        qs <- quantile(meds_by_cluster[, marker_classes != "none"], c(.01, .5, .99), TRUE)
         hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
         
         # get clusters or cluster-marker combinations to plot
@@ -124,7 +124,7 @@ setMethod(f="plotDiffHeatmap",
         
         # 1st heatmap:
         # median type-marker expressions by cluster
-        hm1 <- diff_hm(matrix=meds_by_cluster[, type_markers], 
+        hm1 <- diff_hm(matrix=meds_by_cluster[, marker_classes == "type"], 
             col=hm_cols, name="expression", xlab="type_markers", 
             row_title="cluster_id", row_names_side="left")
         
@@ -190,8 +190,8 @@ setMethod(f="plotDiffHeatmap",
         
         plotDiffHeatmap(exprs(x), y, top_n=20, all=FALSE, order=TRUE, th=0.1, 
             sample_ids=sample_ids(x), 
-            cluster_ids=cluster_ids, 
-            type_markers=type_markers(x))
+            cluster_ids=cluster_ids,
+            marker_classes=colData(x)$marker_class)
     }
 )
 
@@ -203,7 +203,7 @@ setMethod(f="plotDiffHeatmap",
         plotDiffHeatmap(assay(x), y, top_n=20, all=FALSE, order=TRUE, th=0.1, 
             sample_ids=rowData(x)$sample_id,
             cluster_ids=rowData(x)$cluster_id,
-            type_markers=colData(x)$marker_class == "type")
+            marker_classes=colData(x)$marker_class)
     }
 )
 
