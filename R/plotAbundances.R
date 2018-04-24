@@ -51,12 +51,7 @@ setMethod(f="plotAbundances",
         by=c("sample_id", "cluster_id"), 
         facet="condition") {
     
-        # validity checks
-        opts <- setdiff(colnames(rowData(x)), c("sample_id", "cluster_id"))
-        if (!facet %in% opts)
-            stop("Invalid argument 'facet'.\nShould be one of ", 
-                paste(dQuote(opts), collapse=", "), ".")
-        
+        by <- match.arg(by)
         k <- check_validity_of_k(x, k)
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
         counts <- table(cluster_ids, sample_ids(x))
@@ -77,7 +72,7 @@ setMethod(f="plotAbundances",
                 axis.text=element_text(color="black"),
                 axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
         
-        switch(match.arg(by),
+        switch(by,
             sample_id = p + facet_wrap(facet, scales="free_x") +
                 geom_bar(aes_string(x="sample_id", fill="factor(cluster_id)"), 
                     position="fill", stat="identity") +
