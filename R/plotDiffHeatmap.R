@@ -104,7 +104,7 @@ setMethod(f="plotDiffHeatmap",
         type <- get_dt_type(y)
         
         # compute medians by samples & clusters
-        df <- data.frame(x, sample_id=sample_ids, cluster_id=cluster_ids)
+        df <- data.frame(x, sample_id=sample_ids, cluster_id=cluster_ids, check.names = FALSE)
         meds_by_sample <- data.frame(df %>% group_by_(~sample_id) %>% 
                 summarise_at(colnames(x), median), row.names=1)
         meds_by_cluster <- data.frame(df %>% group_by_(~cluster_id) %>% 
