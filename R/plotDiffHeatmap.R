@@ -149,7 +149,7 @@ setMethod(f="plotDiffHeatmap",
                 acast(meds, cluster_id~sample_id, value.var=marker, fill=0))
             meds <- setNames(meds, colnames(x))
             meds <- mapply(function(marker, ids) marker[ids, , drop = FALSE], 
-                meds[top$marker], top$cluster_id, SIMPLIFY=FALSE)
+                meds[as.character(top$marker)], top$cluster_id, SIMPLIFY=FALSE)
             meds <- do.call(rbind, meds)
             rownames(meds) <- paste0(top$marker, sprintf("(%s)", top$cluster_id))
 
