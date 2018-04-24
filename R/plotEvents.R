@@ -1,34 +1,36 @@
-# ==============================================================================
-# Plot events
-# ------------------------------------------------------------------------------
 #' @rdname plotEvents
 #' @title Event plot
 #' 
-#' @description 
-#' Shows normalized barcode intensities for a given barcode.
+#' @description Plots normalized barcode intensities for a given barcode.
 #'
-#' @param x a \code{\link{dbFrame}}.
+#' @param x 
+#'   a \code{\link{dbFrame}}.
 #' @param which 
-#' "all", numeric or character. Specifies which barcode(s) to plot. 
-#' Valid values are IDs that occur as row names in the \code{bc_key} 
-#' of the supplied \code{\link{dbFrame}}, or 0 for unassigned events. 
-#' Defaults to "all".
+#'   \code{"all"}, numeric or character. Specifies which barcode(s) to plot. 
+#'   Valid values are IDs that occur as row names in the \code{bc_key} of the 
+#'   supplied \code{\link{dbFrame}}, or 0 for unassigned events. 
 #' @param n_events 
-#' numeric. Specifies number of events to plot. Defaults to 100.
+#'   numeric. Specifies number of events to plot. Defaults to 100.
 #' @param out_path 
-#' a character string. If specified, outputs will be generated 
-#' in this location. Defaults to NULL.
+#'   character string. If specified, outputs will be generated here.
 #' @param name_ext 
-#' a character string. If specified, will be appended to the plot's name. 
-#' Defaults to NULL.
+#'   character string. If specified, will be appended to the file name. 
 #' 
 #' @return 
-#' plots intensities normalized by population for each barcode specified
+#' Plots intensities normalized by population for each barcode specified
 #' by \code{which}: Each event corresponds to the intensities plotted on a 
 #' vertical line at a given point along the x-axis. Events are scaled to the 
 #' 95\% quantile of the population it has been assigned to. Barcodes with 
 #' less than 50 event assignments will be skipped; it is strongly recoomended
 #' to remove such populations or reconsider their separation cutoffs.
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @references
+#' Zunder, E.R. et al. (2015).
+#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+#' and single-cell deconvolution algorithm.
+#' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
@@ -41,19 +43,12 @@
 #' re <- estCutoffs(re)
 #' re <- applyCutoffs(x = re)
 #' plotEvents(x = re, which = "D1", n_events = 500)
-#' 
-#' @references
-#' Zunder, E.R. et al. (2015).
-#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
-#' and single-cell deconvolution algorithm.
-#' \emph{Nature Protocols} \bold{10}, 316-333. 
 #'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2
 #' @importFrom graphics plot
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette pdf dev.off
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="plotEvents", 
     signature=signature(x="dbFrame"), 

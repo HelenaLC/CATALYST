@@ -1,7 +1,3 @@
-# ==============================================================================
-# normalization with bead standards
-# ------------------------------------------------------------------------------
-
 #' @rdname normCytof
 #' @title Bead-based normalization
 #' 
@@ -10,29 +6,29 @@
 #' using bead standards with automated bead gating.
 #'
 #' @param x 
-#' a \code{\link{flowFrame}} or character of the FCS file to be normalized.
+#'   a \code{\link{flowFrame}} or character of the FCS file to be normalized.
 #' @param y 
-#' \code{"dvs"} (for bead masses 140, 151, 153, 165, 175) or \code{"beta"} 
-#' (for bead masses 139, 141, 159, 169, 175) or a numeric vector of bead masses.
+#'   \code{"dvs"} (for bead masses 140, 151, 153, 165, 175) or \code{"beta"} 
+#'   (for bead masses 139, 141, 159, 169, 175) or a numeric vector of bead masses.
 #' @param out_path 
-#' a character string. If specified, outputs will be generated 
-#' in this location. If NULL (the default), \code{normCytof} will return 
-#' a \code{\link{flowFrame}} of the normalized data (if \code{remove=FALSE}) 
-#' or a \code{\link{flowSet}} containing normalized cells and beads 
-#' (if \code{remove=TRUE}).
+#'   a character string. If specified, outputs will be generated here. If NULL
+#'   (the default), \code{normCytof} will return a \code{\link{flowFrame}} of 
+#'   the normalized data (if \code{remove=FALSE}) or a \code{\link{flowSet}} 
+#'   containing normalized cells and beads (if \code{remove=TRUE}).
 #' @param remove_beads 
-#' logical. If TRUE (the default) beads will be removed and normalized cells and
-#' beads returned separately.
+#'   logical. If TRUE (the default) beads will be removed and 
+#'   normalized cells and beads returned separately.
 #' @param norm_to 
-#' a \code{\link{flowFrame}} or character of an FCS file from which baseline 
-#' values should be computed and to which the input data should be normalized.
-#' @param k integer width of the median window used for bead smoothing.
+#'   a \code{\link{flowFrame}} or character of an FCS file from which baseline 
+#'   values should be computed and to which the input data should be normalized.
+#' @param k 
+#'   integer width of the median window used for bead smoothing.
 #' @param trim 
-#' a single non-negative numeric. A \emph{median} +/- ... \emph{mad} rule is
-#' applied to the preliminary population of bead events to remove bead-bead 
-#' doublets and low signal beads prior to estimating normalization factors.
+#'   a single non-negative numeric. A \emph{median} +/- ... \emph{mad} rule is
+#'   applied to the preliminary population of bead events to remove bead-bead 
+#'   doublets and low signal beads prior to estimating normalization factors.
 #' @param verbose  
-#' logical. Should extra information on progress be reported? Defaults to TRUE.
+#'   logical. Should extra information on progress be reported?
 #' 
 #' @return
 #' if \code{out_path=NULL} (the default) a \code{\link{flowFrame}} of the 
@@ -40,24 +36,24 @@
 #' normalized cells and beads (if \code{remove=TRUE}). Else, a character of the 
 #' location where output FCS files and plots have been generated.
 #' 
-#' @examples
-#' data(raw_data)
-#' ff <- concatFCS(raw_data)
-#' normCytof(x = ff, y = "dvs", k=300)
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #'
 #' @references 
 #' Finck, R. et al. (2013).
 #' Normalization of mass cytometry data with bead standards.
 #' \emph{Cytometry A} \bold{83A}, 483-494.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @examples
+#' data(raw_data)
+#' ff <- concatFCS(raw_data)
+#' normCytof(x = ff, y = "dvs", k = 120)
+#' 
 #' @import ggplot2 grid gridExtra
-#' @import matrixStats
 #' @importFrom flowCore colnames exprs flowFrame flowSet read.FCS write.FCS
 #' @importFrom grDevices pdf dev.off
+#' @importFrom matrixStats colMins
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom stats approx mad runmed
-
 # ------------------------------------------------------------------------------
 
 setMethod(f="normCytof", 
@@ -112,7 +108,7 @@ setMethod(f="normCytof",
                 stop("'norm_to' should be a single character or flowFrame.")
             if (sum(flowCore::isFCSfile(norm_to)) != 1) 
                 stop(norm_to, " is not a valid FCS file.")
-            norm_to <- flowCore::read.FCS(norm_to)
+            norm_to <- flowCore::read.FCS(norm_to) 
         }
         es2 <- flowCore::exprs(norm_to)
         es2_t <- asinh(es2/5)

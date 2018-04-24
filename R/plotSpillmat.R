@@ -1,31 +1,24 @@
-# ==============================================================================
-# Plot spillover matrix heat map
-# ------------------------------------------------------------------------------
-
 #' @rdname plotSpillmat
 #' @title Spillover matrix heat map
 #' 
-#' @description 
-#' Generates a heat map of the spillover matrix annotated with 
-#' estimated spill percentages.
+#' @description Generates a heat map of the spillover matrix 
+#' annotated with estimated spill percentages.
 #'
 #' @param bc_ms 
-#' a vector of numeric masses corresponding to barcode channels.
+#'   a vector of numeric masses corresponding to barcode channels.
 #' @param SM 
-#' spillover matrix returned from \code{computeSpillmat}.
-#' @param annotate
-#' logical. If TRUE (default), spill percentages are shown inside bins and
-#' rows/columns are annotated with the total amount of spill caused/received. 
-#' @param palette
-#' an optional vector of colors to interpolate.
+#'   spillover matrix returned from \code{computeSpillmat}.
 #' @param out_path 
-#' a character string. If specified, outputs will be generated 
-#' in this location. Defaults to NULL.
+#'   character string. If specified, outputs will be generated here.
 #' @param name_ext 
-#' a character string. If specified, will be appended to the plot's name. 
-#' Defaults to NULL.
+#'   character string. If specified, will be appended to the plot's name. 
+#' @param annotate
+#'   logical. If TRUE (default), spill percentages are shown inside bins 
+#'   and rows are annotated with the total amount of spill received. 
 #' 
-#' @return plots estimated spill percentages as a heat map. 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @return Plots estimated spill percentages as a heat map. 
 #' Colours are ramped to the highest spillover value present
 #' 
 #' @examples
@@ -41,73 +34,65 @@
 #' spillMat <- computeSpillmat(x = re)
 #' plotSpillmat(bc_ms = bc_ms, SM = spillMat)
 #'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @import ggplot2 grid gridExtra
 #' @importFrom grDevices colorRampPalette
-#' @export
+#' @importFrom htmlwidgets saveWidget
+#' @importFrom plotly ggplotly
+# ------------------------------------------------------------------------------
 
-# ==============================================================================
-
-plotSpillmat <- function(bc_ms, SM, annotate=TRUE, 
-    palette=NULL, out_path=NULL, name_ext=NULL) {
+setMethod(f="plotSpillmat",
+    signature=signature(bc_ms="numeric", SM="matrix"),
+    definition=function(bc_ms, SM, 
+        out_path=NULL, name_ext=NULL, annotate=TRUE) {
     
-    nms <- colnames(SM)
-    ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
-    bc_cols <- which(ms %in% bc_ms)
-    bc_range <- min(bc_cols) : max(bc_cols)
-    SM <- make_symetric(SM)[bc_range, bc_range]
-    diag(SM) <- 1
-    n <- length(bc_range)
-    axis_labs <- nms[bc_range]
-    lab_cols <- rep("grey", n)
-    lab_cols[axis_labs %in% nms[bc_cols]] <- "black"
-    
-    df <- data.frame(c1=rep(1:n, n), 
-        c2=rev(rep(1:n, each=n)), 
-        spill=round(100*c(t(SM)), 1))
-    
-    max <- ceiling(max(df$spill[df$spill != 100])/.25)*.25
-    
-    if (is.null(palette)) 
-        palette <- c("white","lightcoral", "red2", "darkred")
-    if (!palette[1] %in% c("white", "#FFFFFF"))
-        palette <- c("white", palette)
-    pal <- colorRampPalette(palette)(max*100)
-    
-    p <- ggplot(df, aes_string(x="c1", y="c2")) + 
-        geom_tile(aes_string(fill="spill"), col="lightgrey", size=.1) + 
-        scale_fill_gradientn(colors=pal, limits=c(0, max), guide=FALSE) +
-        scale_x_discrete(limits=1:n, expand=c(0,0), labels=axis_labs) +
-        scale_y_discrete(limits=1:n, expand=c(0,0), labels=rev(axis_labs)) +
-        coord_fixed() + xlab(NULL) + ylab(NULL) + theme_bw() + theme(
-            panel.grid.major=element_blank(), panel.border=element_blank(),
-            axis.text.x=element_text(vjust=.5, angle=90, color="black"),
-            axis.text.y=element_text(vjust=.5, color=rev(lab_cols)))
-    
-    if (annotate) {
-        spill_labs <- sprintf("%.1f", df$spill)
-        spill_labs[df$spill == 0 | df$spill == 100] <- ""
+        nms <- colnames(SM)
+        ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
+        bc_cols <- which(ms %in% bc_ms)
+        bc_range <- min(bc_cols) : max(bc_cols)
+        SM <- make_symetric(SM)[bc_range, bc_range]
+        n <- length(bc_range)
+        axis_labs <- nms[bc_range]
+        ex <- !axis_labs %in% nms[bc_cols]
+        lab_cols <- rep("black", n)
+        lab_cols[ex] <- "grey"
         
-        row_sums <- round(rowSums(t(matrix(df$spill, n)))-100, 2)
-        col_sums <- round(colSums(t(matrix(df$spill, n)))-100, 2)
-        row_labs <- format(row_sums, digits=2)
-        col_labs <- format(col_sums, digits=2)
+        df <- reshape2::melt(100*SM)
+        colnames(df) <- c("Emitting", "Receiving", "spill")
+        df$Spillover <- paste0(sprintf("%2.3f", df$spill), "%")
+        max <- ceiling(max(100*SM[row(SM) != col(SM)])/.25)*.25
+        overallReceived <- paste0(sprintf("%2.2f", 
+            rowSums(t(matrix(df$spill, n)))-100, "%"))
+        overallReceived[ex] <- NA
         
-        p <- p + geom_text(aes_string(label="spill_labs"), size=3) +
-            annotate("text", rep(n+1.15, n), 1:n, label=rev(row_labs), 
-                fontface="bold", size=2.5, col=rev(lab_cols)) +
-            annotate("text", 1:n+.1, rep(n+1, n), label=col_labs,      
-                fontface="bold", size=2.5, angle=30) 
+        p <- ggplot(df, 
+            aes_string(x="Receiving", y="Emitting", group="Spillover")) + 
+            geom_tile(aes_string(fill="spill"), col="lightgrey") + 
+            scale_fill_gradientn(
+                colors=c("white", "lightcoral", "red2", "darkred"), 
+                limits=c(0, max), na.value="lightgrey", guide=FALSE) +
+            scale_x_discrete(limits=colnames(SM), expand=c(0,0)) +
+            scale_y_discrete(limits=rev(rownames(SM)), expand=c(0,0)) +
+            coord_fixed() + labs(x=NULL, y=NULL) + theme_bw() + theme(
+                panel.grid=element_blank(), panel.border=element_blank(),
+                axis.text.x=element_text(angle=45))
+        
+        if (annotate) {
+            spill_labs <- sprintf("%.1f", df$spill)
+            spill_labs[df$spill == 0 | df$spill == 100] <- ""
+            if (is.null(out_path)) size <- 3 else size <- 2
+            p <- p + geom_text(aes_string(label="spill_labs"), size=size)
+        }
+        
+        if (!is.null(out_path)) {
+            p <- ggplotly(p, width=720, height=720,
+                tooltip=c("Emitting", "Receiving", "Spillover")) %>%
+                layout(margin=list(l=72, b=58))
+            htmltools::save_html(p, file.path(out_path, 
+                paste0("SpillMat", name_ext, ".html")))
+        } else {
+            ggplotly(p, width=720, height=720,
+                tooltip=c("Emitting", "Receiving", "Spillover")) %>%
+                layout(margin=list(l=72, b=58))
+        }
     }
-    
-    p <- ggplot_gtable(ggplot_build(p))
-    p$layout$clip[p$layout$name == "panel"] <- "off"
-    
-    if (!is.null(out_path)) {
-        pdf(file.path(out_path, paste0("SpillMat", name_ext, ".pdf")), 8.1, 8)
-        grid::grid.draw(p)
-        dev.off()
-    } else {
-        grid::grid.draw(p)
-    }
-}
+)

@@ -1,31 +1,28 @@
-# ==============================================================================
-# Assign preliminary barcode IDs
-# ------------------------------------------------------------------------------
-
 #' @rdname assignPrelim
 #' @title Single-cell debarcoding (1)
 #' 
-#' @description 
-#' Assigns a preliminary barcode ID to each event.
+#' @description Assigns a preliminary barcode ID to each event.
 #'
 #' @param x 
-#' a \code{\link{flowFrame}} or character of an FCS file name.
-#' @param y 
-#' the debarcoding scheme. A binary matrix with sample names as row names and 
-#' numeric masses as column names OR a vector of numeric masses corresponding
-#' to barcode channels. When the latter is supplied, \code{assignPrelim} will 
-#' create a scheme of the appropriate format internally.
+#'   a \code{\link{flowFrame}} or character of an FCS file name.
+#' @param y
+#'   the debarcoding scheme. A binary matrix with sample names as row names and 
+#'   numeric masses as column names OR a vector of numeric masses corresponding
+#'   to barcode channels. When the latter is supplied, \code{assignPrelim} will
+#'   create a scheme of the appropriate format internally.
 #' @param cofactor 
-#' cofactor used for asinh transformation.
+#'   numeric. Cofactor used for asinh transformation.
 #' @param verbose
-#' logical. Should extra information on progress be reported? Defaults to TRUE.
+#'   logical. Should extra information on progress be reported?
 #'
 #' @return 
 #' Returns a \code{\link{dbFrame}} containing measurement intensities,
 #' the debarcoding key, a numeric verctor of barcode IDs and separations
 #' between positive and negative barcode populations, and barcode intensities
 #' normalized by population. 
-#'
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
 #' @references 
 #' Zunder, E.R. et al. (2015).
 #' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
@@ -35,12 +32,11 @@
 #' @examples
 #' data(sample_ff, sample_key)
 #' assignPrelim(x = sample_ff, y = sample_key)
-#' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import matrixStats
-#' @importFrom stats quantile
+#'
 #' @importFrom flowCore colnames exprs flowFrame read.FCS
-# ==============================================================================
+#' @importFrom matrixStats rowMaxs
+#' @importFrom stats quantile
+# ------------------------------------------------------------------------------
 
 setMethod(f="assignPrelim",
     signature=signature(x="flowFrame", y="data.frame"),
@@ -69,6 +65,7 @@ setMethod(f="assignPrelim",
         # assign barcode ID to ea. event 
         if (verbose) message("Debarcoding data...")
         bc_ids <- get_ids(bcs, y, ids, verbose)
+        inds <- match(bc_ids, ids)
         
         # NORMALIZE BY POPULATION
         # rescale transformed barcodes for ea. population
@@ -76,13 +73,12 @@ setMethod(f="assignPrelim",
         if (verbose) message("Normalizing...")
         normed_bcs <- matrix(0, nrow=nrow(x), ncol=ncol(bcs), 
             dimnames=list(NULL, colnames(bcs)))
-        for (i in ids) {
-            key_ind <- ids == i
-            inds <- bc_ids == i
-            if (sum(inds) > 1) {
-                pos_bcs <- bcs[inds, y[key_ind, ] == 1]
+        for (i in seq_along(ids)) {
+            pos <- which(inds == i)
+            if (any(pos)) {
+                pos_bcs <- bcs[pos, y[i, ] == 1]
                 norm_val <- stats::quantile(pos_bcs, .95)
-                normed_bcs[inds, ] <- bcs[inds, ] / norm_val
+                normed_bcs[pos, ] <- bcs[pos, ] / norm_val
             }
         }
         
@@ -97,11 +93,11 @@ setMethod(f="assignPrelim",
         if (verbose) message("Computing counts and yields...")
         yields <- counts <- matrix(0, nrow=n_bcs, ncol=n_seps)
         for (i in seq_along(ids)) {
-            sub <- bc_ids == ids[i]
+            pos <- which(inds == i)
             for (j in seq_along(seps)) {
-                k <- deltas[sub] >= seps[j]
+                k <- deltas[pos] >= seps[j]
                 yields[i, j] <- sum(k)
-                counts[i, j] <- sum(k & deltas[sub] < seps[j + 1])
+                counts[i, j] <- sum(k & deltas[pos] < seps[j + 1])
                 if (j == n_seps)
                     counts[i, j] <- sum(k)
             }

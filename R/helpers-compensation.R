@@ -3,9 +3,8 @@
 # ------------------------------------------------------------------------------
 get_spill_cols <- function(ms, mets, l=CATALYST::isotope_list) {
     ms <- as.numeric(ms)
-    spill_cols <- list()
+    spill_cols <- vector("list", length(ms))
     for (i in seq_along(ms)) {
-        if (is.na(ms[i])) next
         p1 <- m1 <- ox <- iso <- NULL
         if ((ms[i] + 1)  %in% ms) p1 <- which(ms == (ms[i] + 1))
         if ((ms[i] - 1)  %in% ms) m1 <- which(ms == (ms[i] - 1)) 
@@ -58,7 +57,6 @@ make_symetric <- function(x) {
 # ==============================================================================
 # plot for estTrim()
 # ------------------------------------------------------------------------------
-
 plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
     opt <- trms[which.min(text$e)]
     ggplot(df, aes_string(x="t", y="m")) +
@@ -76,7 +74,8 @@ plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
             expand=c(0,0), breaks=c(0, yMin:yMax)) +
         labs(x="Trim value used for estimation of spill values", 
             y="Median counts upon compensation") + 
-        theme_classic() + theme(legend.position="none", 
+        theme_classic() + 
+        theme(legend.position="none", 
             axis.text=element_text(size=8),
             axis.title=element_text(size=10), 
             panel.grid.major.y=element_blank(),
@@ -87,7 +86,7 @@ plot_estTrim <- function(df, trms, xMin, xMax, yMin, yMax, rect, text) {
 # ==============================================================================
 # check validity of input spillover matrix in compCytof()
 # ------------------------------------------------------------------------------
-check_spillMat <- function(sm) {
+check_sm <- function(sm) {
     if (any(sm < 0))
         stop("\nThe supplied spillover matrix is invalid ",
             "as it contains negative entries.\n",
@@ -96,33 +95,62 @@ check_spillMat <- function(sm) {
         stop("\nThe supplied spillover matrix is invalid ",
             "as it contains entries greater than 1.\n",
             "Valid spill values are non-negative and mustn't exceed 1.")
-    sii <- sm[cbind(which(rownames(sm) %in% colnames(sm)), 
-        which(colnames(sm) %in% rownames(sm)))]
+    
+    cnames <- colnames(sm)[which(colnames(sm) %in% rownames(sm))]
+    sii <- sm[cbind(cnames, cnames)]
     if (any(sii != 1))
         stop("\nThe supplied spillover matrix is invalid ",
             "as its diagonal contains entries != 1.\n")
 }
 
 # ==============================================================================
-# check which channels of input flowFrame are not 
-# contained in spillover matrix and give warning
+# Helper functions to get mass and metal from a channel name
 # ------------------------------------------------------------------------------
-prep_spillMat <- function(new_chs, sm_chs) {
-    new_mets <- gsub("[[:digit:]]+Di", "", new_chs)
-    old_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", sm_chs))
-    new_ms <- as.numeric(gsub("[[:punct:][:alpha:]]", "", new_chs))
-    ms <- c(old_ms, new_ms)
-    o <- order(ms)
-    ms <- ms[o]
-    nms <- c(sm_chs, new_chs)[o]
-    # get potential spillover interactions 
-    all_mets <- gsub("[[:digit:]]+Di", "", nms)
-    spill_cols <- get_spill_cols(ms, all_mets)
+get_ms_from_chs <- function(chs) {
+    gsub("[[:punct:][:alpha:]]", "", chs)
+}
+get_mets_from_chs <- function(chs) { 
+    gsub("([[:punct:]]*)([[:digit:]]*)(Di)*", "", chs)
+}
+
+# ==============================================================================
+# This function compares a list of spillover channels to
+# a provided spillover matrix and provides warnings for cases
+# where the spillovermatrix has no information about a potential
+# expected spillover among the new channels.
+# ------------------------------------------------------------------------------
+warn_new_intearctions <- function(chs_new, sm) {
+    chs_emitting  <- rownames(sm)
+    chs_receiving <- colnames(sm)
+    chs <- list(chs_new, chs_emitting, chs_receiving)
+    chs <- stats::setNames(chs, c("new", "emitting", "receiving"))
+    
+    # get the metals and masses from the names
+    mets <- lapply(chs, get_mets_from_chs)
+    ms <- lapply(chs, get_ms_from_chs)
+    
+    # get the potential mass channels a channel could cause spillover in
+    spill_cols <- get_spill_cols(ms$new, mets$new)
     
     first <- TRUE
-    for (i in seq_along(new_ms)) {
-        idx <- which(ms == new_ms[i] & all_mets == new_mets[i])
-        if (length(idx) > 0) {
+    for (i in order(ms$new)) {
+        # check if the provided spillovermatrix had the 
+        # current channel measured as a spill emitter
+        is_new_emitting <- !chs$new[i] %in% chs$emitting
+        cur_spillms <- ms$new[spill_cols[[i]]]
+        
+        if (is_new_emitting) {
+            # if channel was never measured, no information is present
+            # for spill in any of the potential spill receiver channels
+            mass_new_rec <- cur_spillms
+        } else {
+            # if it has been measured, no information is only present
+            # for the channels which were not considered spill receivers 
+            # in the spillover matrix provided
+            mass_new_rec <- cur_spillms[!cur_spillms %in% ms$receiving]
+        }
+        
+        if (length(mass_new_rec) > 0) {
             if (first) {
                 message("WARNING: ",
                     "Compensation is likely to be inaccurate.\n",
@@ -132,9 +160,8 @@ prep_spillMat <- function(new_chs, sm_chs) {
                     "have not been estimated:")
                 first <- FALSE
             }
-            message(nms[idx], " -> ", paste(
-                nms[spill_cols[[idx]]], collapse=", "))
+            message(chs$new[i], " -> ", paste(
+                chs$new[ms$new %in% mass_new_rec], collapse=", "))
         }
     }
-    return(list(old=old_ms, new=new_ms))
 }

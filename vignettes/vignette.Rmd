@@ -8,9 +8,9 @@ author:
 - name: Stéphane Chevrier
 - name: Bernd Bodenmiller
 - name: Mark D Robinson
-package: "`r pkg_ver('CATALYST')`"
+package: "`r BiocStyle::pkg_ver('CATALYST')`"
 abstract: >
-    By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to (theoretically) 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed `r Rpackage("CATALYST")` (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm.
+    By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to (theoretically) 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed `r BiocStyle::Biocpkg("CATALYST")` (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm.
 bibliography: refs.bib
 csl: science.csl
 vignette: >
@@ -25,15 +25,15 @@ output:
 # Data examples
 
 - **Normalization:**  
-`raw_data` is a `flowSet` with 3 experiments, each containing 2'500 raw measurements with a variation of signal over time. Samples were mixed with DVS beads capture by mass channels 140, 151, 153, 165 and 175.
+`raw_data` is a `flowSet` with 2 experiments, each containing 2'500 raw measurements with a variation of signal over time. Samples were mixed with DVS beads captured by mass channels 140, 151, 153, 165 and 175.
 - **Debarocoding:**  
-To demonstrate the debarcoding work-flow with `r Rpackage("CATALYST")`, we provide `sample_ff` which follows a 6-choose-3 barcoding scheme where mass channels 102, 104, 105, 106, 108, and 110 were used for labeling such that each of the 20 individual barcodes are positive for exactly 3 out of the 6 barcode channels. Accompanying this, `sample_key` contains a binary code of length 6 for each sample, e.g. 111000, as its unique identifier.
+To demonstrate the debarcoding work-flow with `r BiocStyle::Biocpkg("CATALYST")`, we provide `sample_ff` which follows a 6-choose-3 barcoding scheme where mass channels 102, 104, 105, 106, 108, and 110 were used for labeling such that each of the 20 individual barcodes are positive for exactly 3 out of the 6 barcode channels. Accompanying this, `sample_key` contains a binary code of length 6 for each sample, e.g. 111000, as its unique identifier.
 - **Compensation:**  
-Alongside the multiplexed-stained cell sample `cells`, the package contains 36 single-antibody stained controls in `ss_exp` where beads were stained with antibodies captured by mass channels 139, 141 through 156, and 158 through 176, respectively, and pooled together. Note that, to decrease running time, we downsampled to a total of 10'000 events. Lastly, `isotope_list` contains a named list of isotopic compositions for all elements within 75 through 209 u corresponding to the CyTOF mass range at the time of writing [@isotopes].
+Alongside the multiplexed-stained cell sample `mp_cells`, the package contains 36 single-antibody stained controls in `ss_exp` where beads were stained with antibodies captured by mass channels 139, 141 through 156, and 158 through 176, respectively, and pooled together. Note that, to decrease running time, we downsampled to a total of 10'000 events. Lastly, `isotope_list` contains a named list of isotopic compositions for all elements within 75 through 209 u corresponding to the CyTOF mass range at the time of writing [@isotopes].
 
 # Normalization
 
-`r Rpackage("CATALYST")` provides an implementation of bead-based normalization as described by Finck et al. [@Finck13]. Here, identification of bead-singlets (used for normalization), as well as of bead-bead and cell-bead doublets (to be removed) is automated as follows: 
+`r BiocStyle::Biocpkg("CATALYST")` provides an implementation of bead-based normalization as described by Finck et al. [@Finck13]. Here, identification of bead-singlets (used for normalization), as well as of bead-bead and cell-bead doublets (to be removed) is automated as follows: 
 
 1. beads are identified as events with their top signals in the bead channels
 1. cell-bead doublets are remove by applying a separation cutoff to the distance between the lowest bead and highest non-bead signal
@@ -66,13 +66,13 @@ Since bead gating is automated here, normalization comes down to a single functi
 
 By default, we apply a $median\;\pm5\;mad$ rule to remove low- and high-signal events from the bead population used for estimating normalization factors. The extent to which bead populations are trimmed can be adjusted via `trim`. The population will become increasingly narrow and bead-bead doublets will be exluded as the `trim` value decreases. Notably, slight *over-trimming* will **not** affect normalization. It is therefore recommended to choose a `trim` value that is small enough to assure removal of doublets at the cost of a small bead population to normalize to.
 
-```{r fig.width=15, fig.height=7.5}
-normCytof(x=ff, y="dvs", k=300)
+```{r message=FALSE, fig.width=8, fig.height=5}
+normCytof(x=ff, y="dvs", k=80)
 ```
 
 # Debarcoding
 
-`r Rpackage("CATALYST")` provides an implementation of the single-cell deconvolution algorithm described by Zunder et al. [@Zunder15]. The package contains three functions for debarcoding and three visualizations that guide selection of thresholds and give a sense of barcode assignment quality.
+`r BiocStyle::Biocpkg("CATALYST")` provides an implementation of the single-cell deconvolution algorithm described by Zunder et al. [@Zunder15]. The package contains three functions for debarcoding and three visualizations that guide selection of thresholds and give a sense of barcode assignment quality.
 
 In summary, events are assigned to a sample when i) their positive and negative barcode populations are separated by a distance larger than a threshold value and ii) the combination of their positive barcode channels appears in the barcoding scheme. Depending on the supplied scheme, there are two possible ways of arriving at preliminary event assignments:
 
@@ -94,7 +94,7 @@ All data required for debarcoding are held in objects of class `dbFrame` (see Ap
 
 ### `assignPrelim`: Assignment of preliminary IDs
 
-The debarcoding process commences by assigning each event a preliminary barcode ID. `assignPrelim` thereby takes either a binary barcoding scheme or a vector of numeric masses as input, and accordingly assigns each event the appropirate row name or mass as ID. FCS files are read into R with `read.FCS` of the `r Biocpkg("flowCore")` package, and are represented as an object of class `flowFrame`:
+The debarcoding process commences by assigning each event a preliminary barcode ID. `assignPrelim` thereby takes either a binary barcoding scheme or a vector of numeric masses as input, and accordingly assigns each event the appropirate row name or mass as ID. FCS files are read into R with `read.FCS` of the `r BiocStyle::Biocpkg("flowCore")` package, and are represented as an object of class `flowFrame`:
 
 ```{r}
 data(sample_ff)
@@ -121,14 +121,14 @@ re0
 
 As opposed to a single global cutoff, `estCutoffs` will estimate a sample-specific cutoff to deal with barcode population cell yields that decline in an asynchronous fashion. Thus, the choice of thresholds for the distance between negative and positive barcode populations can be *i) automated* and *ii) independent for each barcode*. Nevertheless, reviewing the yield plots (see below), checking and possibly refining separation cutoffs is advisable. 
 
-For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. To facilitate robust estimation, we fit a linear and a three-parameter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@drc] (Figure \@ref(fig:estCutoffs)). As an adequate cutoff estimate, we target a point that marks the end of the plateau regime and on-set of yield decline to appropriately balance confidence in barcode assignment and cell yield. 
+For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. To facilitate robust estimation, we fit a linear and a three-parameter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r BiocStyle::CRANpkg("drc")` R package [@drc] (Figure \@ref(fig:estCutoffs)). As an adequate cutoff estimate, we target a point that marks the end of the plateau regime and on-set of yield decline to appropriately balance confidence in barcode assignment and cell yield. 
 
 The goodness of the linear fit relative to the log-logistic fit is weighed as follow: 
 $$w = \frac{\text{RSS}_{log-logistic}}{\text{RSS}_{log-logistic}+\text{RSS}_{linear}}$$
 
 The cutoffs for both functions are defined as:
 
-$$c_{linear} = \frac{\beta_0}{2\beta_1}$$
+$$c_{linear} = -\frac{\beta_0}{2\beta_1}$$
 $$c_{log-logistic}=\underset{x}{\arg\min}\:\frac{\vert\:f'(x)\:\vert}{f(x)} > 0.1$$
 
 The final cutoff estimate $c$ is defined as the weighted mean between these estimates:
@@ -179,7 +179,7 @@ plotYields(x=re, which="C1")
 Option `which=0` will render a summary plot of all barcodes. Here, the overall yield achieved by applying the current set of cutoff values will be shown. All yield functions should behave as described above: decline, stagnation, decline. Convergence to 0 yield at low cutoffs is a strong indicator that staining in this channel did not work, and excluding the channel entirely is sensible in this case. It is thus recommended to **always** view the all-barcodes yield plot to eliminate uninformative populations, since small populations may cause difficulties when computing spill estimates.
 
 ```{r fig.width=9, fig.height=5}
-plotYields(x=re, which=0, legend=FALSE)
+plotYields(x=re, which=0)
 ```
  
 ---
@@ -209,12 +209,12 @@ plotMahal(x=re, which="A5")
 
 # Compensation
 
-`r Rpackage("CATALYST")` performs compensation via a two-step approach comprising: 
+`r BiocStyle::Biocpkg("CATALYST")` performs compensation via a two-step approach comprising: 
 
 i. identification of single positive populations via single-cell debarcoding (SCD) of single-stained beads (or cells)
 i. estimation of a spillover matrix (SM) from the populations identified, followed by compensation via multiplication of measurement intensities by its inverse, the compensation matrix (CM).
 
-As in conventional flow cytometry, we can model spillover linearly, with the channel stained for as predictor, and spill-effected channels as response. Thus, the intensity observed in a given channel $j$ are a linear combination of its real signal and contributions of other channels that spill into it. Let $s_{ij}$ denote the proportion of channel $j$ signal that is due to channel $i$, and $w_j$ the set of channels that spill into channel $j$. Then
+***Retrieval of real signal.*** As in conventional flow cytometry, we can model spillover linearly, with the channel stained for as predictor, and spill-effected channels as response. Thus, the intensity observed in a given channel $j$ are a linear combination of its real signal and contributions of other channels that spill into it. Let $s_{ij}$ denote the proportion of channel $j$ signal that is due to channel $i$, and $w_j$ the set of channels that spill into channel $j$. Then
 
 $$I_{j, observed}\; = I_{j, real} + \sum_{i\in w_j}{s_{ij}}$$
 
@@ -225,13 +225,15 @@ $$I_{observed}\; = I_{real} \cdot SM$$
 Therefore, we can estimate the real signal, $I_{real}\;$, as:
 
 $$I_{real} = I_{observed}\; \cdot {SM}^{-1} = I_{observed}\; \cdot CM$$ 
-where $\text{SM}^{-1}$ is termed compensation matrix ($\text{CM}$).
+where $\text{SM}^{-1}$ is termed compensation matrix ($\text{CM}$). This approach is implemented in `compCytof(..., method = "flow")` and makes use of `r BiocStyle::Biocpkg("flowCore")`'s `compensate` function.
 
-<<<<<<< HEAD
-Because any signal not in a single stain experiment???s primary channel $j$ results from channel crosstalk, each spill entry $s_{ij}$ can be approximated by the slope of a linear regression with channel $j$ signal as the response, and channel $i$ signals as the predictors, where $i\in w_j$. `r Rpackage("CATALYST")` offers two alternative ways for spillover estimation, summarized in Figure \@ref(fig:methods).
-=======
-Because any signal not in a single stain experiment’s primary channel $j$ results from channel crosstalk, each spill entry $s_{ij}$ can be approximated by the slope of a linear regression with channel $j$ signal as the response, and channel $i$ signals as the predictors, where $i\in w_j$. `r Rpackage("CATALYST")` offers two alternative ways for spillover estimation, summarized in Figure \@ref(fig:methods).
->>>>>>> upstream/master
+While mathematically exact, the solution to this equation will yield negative values, and does not account for the fact that real signal would be strictly non-negative counts. A computationally efficient way to adress this is the use of non-negative linear least squares (NNLS):
+
+$$\min \: \{ \: ( I_{observed} - SM \cdot I_{real} ) ^ T \cdot ( I_{observed} - SM \cdot I_{real} ) \: \} \quad \text{s.t.} \: I_{real} ≥ 0$$
+
+This approach will solve for $I_{real}$ such that the least squares criterion is optimized under the constraint of non-negativity. To arrive at such a solution we apply the Lawson-Hanson algorithm [@nnls1; @nnls2] for NNLS implemented in the  `r BiocStyle::Rpackage("nnls")` R package (`method="nnls"`).
+
+***Estimation of SM.*** Because any signal not in a single stain experiment’s primary channel $j$ results from channel crosstalk, each spill entry $s_{ij}$ can be approximated by the slope of a linear regression with channel $j$ signal as the response, and channel $i$ signals as the predictors, where $i\in w_j$. `computeSpillmat()` offers two alternative ways for spillover estimation, summarized in Figure \@ref(fig:methods).
 
 The `default` method approximates this slope with the following single-cell derived estimate: Let $i^+$ denote the set of cells that are possitive in channel $i$, and $s_{ij}^c$ be the channel $i$ to $j$ spill computed for a cell $c$ that has been assigned to this population. We approximate $s_{ij}^c$ as the ratio between the signal in unstained spillover receiving and stained spillover emitting channel, $I_j$ and $I_i$, respectively. The expected background in these channels, $m_j^-$ and $m_i^-$, is computed as the median signal of events that are i) negative in the channels for which spill is estimated ($i$ and $j$); ii) not assigned to potentionally interacting channels; and, iii) not unassigned, and subtracted from all measurements:
 
@@ -333,30 +335,29 @@ Assuming a linear spillover, `compCytof` compensates mass spectrometry based exp
 
 If `out_path=NULL` (the default), the function will return a `flowFrame` of the compensated data. Else, compensated data will be written to the specified location as FCS 3.0 standard files. Multiple data sets may be corrected based on the same spill estimates if the input `x` is a character string specifying the location of the FCS files to be compensated.
 
-```{r}
+```{r, message=FALSE}
 data(mp_cells)
-comped_cells <- compCytof(x=mp_cells, y=spillMat)
+comped_flow <- compCytof(x=mp_cells, y=spillMat, method="flow")
+comped_nnls <- compCytof(x=mp_cells, y=spillMat, method="nnls")
 ```
 
 ```{r echo=FALSE, message=FALSE, results='hide'}
 cf <- 20
-ss_t <- asinh(exprs(ss_exp)/cf)
-ss_comped_t <- asinh(exprs(compCytof(ss_exp, spillMat))/cf)
 cells_t <- asinh(exprs(mp_cells)/cf)
-comped_cells_t <- asinh(exprs(comped_cells)/cf)
+comped_flow_t <- asinh(exprs(comped_flow)/cf)
+comped_nnls_t <- asinh(exprs(comped_nnls)/cf)
 ```
 
 ```{r echo=FALSE, fig.width=9, fig.height=9}
-par(mfrow=c(2,2), pty="s")
+par(mfrow=c(1,3), pty="s")
 which <- c("La139Di", "Gd155Di")
 #which <- c("Yb171Di", "Yb172Di")
 which <- c("Er167Di", "Er168Di")
 cols <- colorRampPalette(rev(RColorBrewer::brewer.pal(10, "Spectral")))
 bw <- .25; n <- 64
-smoothScatter(ss_t[, which],           nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Single stains')
-smoothScatter(ss_comped_t[, which],    nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Compensated')
-smoothScatter(cells_t[, which],        nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Multiplexed cells')
-smoothScatter(comped_cells_t[, which], nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Compensated')
+smoothScatter(cells_t[, which],       nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Uncompensated')
+smoothScatter(comped_flow_t[, which], nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='Flow compensated')
+smoothScatter(comped_nnls_t[, which], nrpoints=0, nbin=n, bandwidth=bw, colramp=cols, main='NNLS compensated')
 ```
 
 # Appendix

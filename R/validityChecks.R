@@ -51,3 +51,49 @@ check_validity_which <- function(which, ids, fct) {
     }
     as.character(which)
 }
+
+# ==============================================================================
+# Validity check for clustering 'k': should be...
+#       - a numeric that accesses the FlowSOM clustering (100),
+#         or ConsensusClusterPlus metaclustering (2, ..., 20)
+#       - a character string that matches with a 'label' specifying
+#         a merging done with 'mergeClusters'
+# ------------------------------------------------------------------------------
+check_validity_of_k <- function(x, k) {
+    available_clusterings <- colnames(S4Vectors::metadata(x)$cluster_codes)
+    is_valid_clustering <- as.character(k) %in% available_clusterings
+    if (!is.null(k) && !is_valid_clustering) {
+        if (is.numeric(k)) {
+            txt <- k 
+        } else {
+            txt <- dQuote(k)
+        }
+        ks <- suppressWarnings(as.numeric(colnames(cluster_codes(x))))
+        ks <- ks[!is.na(ks)]
+        stop("Clustering 'k = ", txt, "' doesnt't exist. ", 
+            "Should be one of\n  ", paste(c(ks, dQuote(setdiff(
+                available_clusterings, ks))), collapse=", "))
+    }
+    return(as.character(k))
+}
+
+# ==============================================================================
+# Validity check for columns (used in daFrame constructor): should be...
+#        - a logical vector
+#        - numeric vector of indices
+#        - character vector of column names
+# ------------------------------------------------------------------------------
+check_validity_cols <- function(cols_to_use, col_nms) {
+    n_cols <- length(col_nms)
+    
+    check1 <- is.logical(cols_to_use) & length(cols_to_use) == n_cols
+    check2 <- all(cols_to_use %in% col_nms)
+    check3 <- FALSE
+    if (is.integer(cols_to_use))
+        check3 <- min(cols_to_use >= 1) && max(cols_to_use <= ncol)
+
+    if (!(check1 | check2 | check3))
+        stop("Invalid argument 'cols_to_use'.\nShould be either", 
+            " a logial vector, a numeric vector of indices, or",
+            " a character vector of column names.")
+}

@@ -1,25 +1,32 @@
-# ==============================================================================
-# Apply separation and mahalanobies distance cutoffs
-# ------------------------------------------------------------------------------
-
 #' @rdname applyCutoffs
 #' @title Single-cell debarcoding (2)
 #' 
 #' @description Applies separation and mahalanobies distance cutoffs.
 #'
-#' @param x a \code{\link{dbFrame}}.
-#' @param mhl_cutoff mahalanobis distance threshold above which events should 
-#' be unassigned. This argument will be ignored if the \code{mhl_cutoff} slot 
-#' of the input \code{dbFrame} is specified.
-#' @param sep_cutoffs non-negative numeric of length one or same length as the 
-#' number of rows in the \code{bc_key}. Specifies the distance separation 
-#' cutoffs between positive and negative barcode populations above which events 
-#' should be unassigned. If \code{NULL} (default), \code{applyCutoffs} will try 
-#' to access the 'sep_cutoffs' slot of the supplied \code{dbFrame}.
+#' @param x 
+#'   a \code{\link{dbFrame}}.
+#' @param mhl_cutoff 
+#'   mahalanobis distance threshold above which events should be unassigned. 
+#'   This argument will be ignored if the \code{mhl_cutoff} slot of the input 
+#'   \code{dbFrame} is specified.
+#' @param sep_cutoffs 
+#'   non-negative numeric of length one or of same length as the number of rows 
+#'   in the \code{bc_key(x)}. Specifies the distance separation cutoffs between 
+#'   positive and negative barcode populations below which events should be 
+#'   unassigned. If \code{NULL} (default), \code{applyCutoffs} will try to 
+#'   access the \code{sep_cutoffs} slot of the input \code{dbFrame}.
 #'
 #' @return 
 #' Will update the \code{bc_ids} and, if not already specified, 
-#' \code{sep_cutoffs} and \code{mhl_cutoff} slots of the input \code{dbFrame}.
+#' \code{sep_cutoffs} & \code{mhl_cutoff} slots of \code{x}.
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
+#' @references 
+#' Zunder, E.R. et al. (2015).
+#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
+#' and single-cell deconvolution algorithm.
+#' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
@@ -32,15 +39,8 @@
 #' re <- estCutoffs(x = re)
 #' applyCutoffs(x = re)
 #'
-#' @references 
-#' Zunder, E.R. et al. (2015).
-#' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
-#' and single-cell deconvolution algorithm.
-#' \emph{Nature Protocols} \bold{10}, 316-333. 
-#'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom stats cov mahalanobis
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="applyCutoffs", 
     signature=signature(x="dbFrame"),
@@ -63,25 +63,33 @@ setMethod(f="applyCutoffs",
                     " 'estCutoffs()' first, or specify cutoffs manually.")
         }
         
-        # find which columns correspond to barcode masses
-        # and extract barcode columns
+        # get indices for each barcode population
+        ids <- unique(bc_ids(x))
+        ids <- ids[ids != 0]
+        inds <- setNames(lapply(ids, function(id)
+            which(bc_ids(x) == id)), ids)
+        
+        # get indices of events that fall below 
+        # sep_cutoff & assign bc_id 0 to these
+        below_th <- setNames(lapply(ids, function(id) {
+            th <- sep_cutoffs(x)[rownames(bc_key(x)) == id]
+            deltas(x)[inds[[id]]] < th
+        }), ids)
+        inds <- setNames(lapply(ids, function(id) 
+            inds[[id]][!below_th[[id]]]), ids)
+        for (id in ids) bc_ids(x)[inds[[id]][below_th[[id]]]] <- 0
+        
+        # subset barcode populations
         ms <- gsub("[[:alpha:][:punct:]]", "", colnames(exprs(x)))
         bc_cols <- which(ms %in% colnames(bc_key(x)))
         n_bcs <- length(bc_cols)
         bcs <- exprs(x)[, bc_cols]
+        bcs <- setNames(lapply(inds, function(x) bcs[x, ]), names(inds))
         
-        ids <- unique(bc_ids(x))
-        ids <- ids[ids != 0]
-        
-        # compute mahalanobis distances given current separation cutoff
+        # compute mhl_dists
         mhl_dists <- numeric(nrow(exprs(x)))
-        for (i in ids) {
-            inds <- which(bc_ids(x) == i)
-            ex <- inds[deltas(x)[inds] < 
-                    sep_cutoffs(x)[rownames(bc_key(x)) == i]]
-            inds <- inds[!(inds %in% ex)]
-            bc_ids(x)[ex] <- 0
-            sub  <- bcs[inds, ]
+        for (id in ids) {
+            sub <- bcs[[id]]
             test <- (length(sub) != n_bcs) && (nrow(sub) > n_bcs)
             if (test) {
                 covMat <- stats::cov(sub)
@@ -90,12 +98,13 @@ setMethod(f="applyCutoffs",
                     solve(covMat) %*% covMat, 
                     error=function(e) e)
                 if (!inherits(test, "error"))
-                    mhl_dists[inds] <- stats::mahalanobis(
+                    mhl_dists[inds[[id]]] <- stats::mahalanobis(
                         x=sub, center=colMeans(sub), cov=covMat)
             }
         }
         bc_ids(x)[mhl_dists > mhl_cutoff] <- 0
-        mhl_dists(x)  <- mhl_dists
+        mhl_dists(x) <- mhl_dists
         mhl_cutoff(x) <- mhl_cutoff
-        x
-    })
+        return(x)
+    }
+)
