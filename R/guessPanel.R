@@ -24,6 +24,9 @@
 #' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @examples
+#' # examplary data with Time, DNA, BC channels, etc.
+#' data(raw_data)
+#' guessPanel(raw_data)
 #' 
 #' @importFrom flowCore flowFrame flowSet
 #' @importFrom methods is

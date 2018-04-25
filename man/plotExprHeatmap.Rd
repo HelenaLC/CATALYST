@@ -44,9 +44,7 @@ computed on arcsinh-transformed intensities.
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-plotExprHeatmap(re)
-plotExprHeatmap(re, scale=FALSE)
-plotExprHeatmap(re, plot_freqs=TRUE)
+plotExprHeatmap(re[, 1:5], draw_freqs=TRUE)
 
 }
 \references{

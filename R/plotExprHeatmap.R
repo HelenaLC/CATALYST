@@ -37,9 +37,7 @@
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' plotExprHeatmap(re)
-#' plotExprHeatmap(re, scale=FALSE)
-#' plotExprHeatmap(re, plot_freqs=TRUE)
+#' plotExprHeatmap(re[, 1:5], draw_freqs=TRUE)
 #' 
 #' @import ComplexHeatmap SummarizedExperiment
 #' @importFrom dplyr funs group_by_ summarize_all
@@ -58,6 +56,12 @@ setMethod(f="plotExprHeatmap",
         palette=brewer.pal(n=8, name="YlGnBu"), scale=TRUE, draw_freqs=FALSE,  
         clustering_distance="euclidean", clustering_linkage="average") {
 
+        # validity check
+        valid_opts <- colnames(rowData(x))
+        if (!color_by %in% valid_opts)
+            stop("Invalid argument 'color_by'.\nShould be one of ", 
+                paste(dQuote(valid_opts), collapse=", "), " or NULL.")
+        
         # compute medians across samples
         utils::suppressForeignCheck("sample_id")
         med_exprs <- data.frame(exprs(x), sample_id=sample_ids(x)) %>%
@@ -101,11 +105,12 @@ setMethod(f="plotExprHeatmap",
         }
         
         if (!is.null(color_by)) {
-            md <- S4Vectors::metadata(x)$experiment_info
-            row_anno <- data.frame(md[, color_by], row.names=md$sample_id)
-            n <- nlevels(md[, color_by])
-            row_anno <- Heatmap(
-                matrix=row_anno, col=scales::hue_pal()(n), name=color_by, 
+            md <- metadata(x)$experiment_info
+            m <- match(rownames(med_exprs), md$sample_id)
+            row_anno <- data.frame(md[m, color_by], row.names=md$sample_id[m])
+            names(row_anno) <- color_by
+            row_anno <- Heatmap(matrix=row_anno, name=color_by,
+                col=scales::hue_pal()(nlevels(md[, color_by])),
                 cluster_rows=row_clustering, show_row_names=FALSE, 
                 rect_gp=gpar(col="white"), width=unit(.5, "cm"))
             row_anno + hm + freq_bars + freq_anno

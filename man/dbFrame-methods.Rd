@@ -13,7 +13,6 @@
 \alias{yields}
 \alias{exprs,dbFrame-method}
 \alias{dbFrame-methods}
-\alias{exprs}
 \alias{bc_key}
 \alias{bc_ids}
 \alias{deltas}

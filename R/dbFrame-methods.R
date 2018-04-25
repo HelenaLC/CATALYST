@@ -5,7 +5,7 @@
 #' @title 
 #' Extraction and replacement methods for objects of class \code{dbFrame}
 #' @aliases 
-#' dbFrame-methods exprs bc_key bc_ids deltas normed_bcs mhl_dists 
+#' dbFrame-methods bc_key bc_ids deltas normed_bcs mhl_dists 
 #' sep_cutoffs sep_cutoffs<- mhl_cutoff mhl_cutoff<- counts yields
 #' 
 #' @description
@@ -52,7 +52,6 @@
 #' head(exprs(sample_ff[unassigned, ]))
 # ------------------------------------------------------------------------------
 
-#' @rdname dbFrame-methods
 setMethod(f="exprs",
     signature="dbFrame",
     definition=function(object) return(object@exprs))

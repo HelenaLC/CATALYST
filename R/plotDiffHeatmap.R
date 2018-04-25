@@ -82,7 +82,7 @@
 #' plotDiffHeatmap(re, da)
 #' plotDiffHeatmap(re, ds)
 #' 
-#' @import ComplexHeatmap 
+#' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
 #' @importFrom dplyr group_by_ count summarise_all summarise_at 
 #' @importFrom magrittr %>%

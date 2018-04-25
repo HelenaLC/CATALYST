@@ -37,6 +37,9 @@ Helper function to parse information from the
 \code{parameters} slot of a \code{flowFrame}/\code{flowSet}.
 }
 \examples{
+# examplary data with Time, DNA, BC channels, etc.
+data(raw_data)
+guessPanel(raw_data)
 
 }
 \author{

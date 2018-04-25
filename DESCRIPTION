@@ -44,7 +44,7 @@ Imports:
     SummarizedExperiment,
     tidyr,
     utils
-Suggests: BiocStyle, knitr, rmarkdown, testthat
+Suggests: BiocStyle, knitr, rmarkdown, testthat, diffcyt
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 License: GPL (>=2)

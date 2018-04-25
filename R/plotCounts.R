@@ -38,7 +38,7 @@ setMethod(f="plotCounts",
                 "Should be one of: ", paste(dQuote(valid), collapse=", "))
         
         max <- ceiling(max(n_cells(x))/1e3)*1e3 + 1e3
-        df <- data.frame(n_cells(x), md)
+        df <- data.frame(n_cells=n_cells(x), md)
         
         ggplot(df, aes_string(x="sample_id", y="n_cells",
             fill=color_by)) + geom_bar(stat="identity", width=.75) +  

@@ -7,11 +7,17 @@
 #' @description 
 #' Plots the relative population abundances of the specified clustering.
 #'
-#' @param x a \code{\link{daFrame}}.
-#' @param k specifies which clustering to use.
-#' @param by a character string specifying whether 
-#' to plot frequencies across samples or clusters.
-#' @param group_by a character string.
+#' @param x 
+#'   a \code{\link{daFrame}}.
+#' @param k 
+#'   specifies which clustering to use.
+#' @param by 
+#'   a character string specifying whether to plot 
+#'   frequencies by samples or clusters.
+#' @param facet 
+#'   a character string. Should corresponds to a column name of 
+#'   \code{rowData(x)}. If specified, the data will be grouped 
+#'   according to this variable.
 #' 
 #' @return a \code{ggplot} object.
 #' 
@@ -42,10 +48,12 @@
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
     definition=function(x, k=20, 
-        by=c("sample_id", "cluster_id"), group_by="condition") {
+        by=c("sample_id", "cluster_id"), 
+        facet="condition") {
     
-        check_validity_of_k(x, k)
-        cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
+        by <- match.arg(by)
+        k <- check_validity_of_k(x, k)
+        cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
         counts <- table(cluster_ids, sample_ids(x))
         
         df <- melt(t(t(counts)/colSums(counts))*100, 
@@ -64,19 +72,19 @@ setMethod(f="plotAbundances",
                 axis.text=element_text(color="black"),
                 axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
         
-        switch(match.arg(by),
-            sample_id = p + facet_wrap(group_by, scales="free_x") +
-                geom_bar(aes_string(x="sample_id", fill="cluster_id"), 
+        switch(by,
+            sample_id = p + facet_wrap(facet, scales="free_x") +
+                geom_bar(aes_string(x="sample_id", fill="factor(cluster_id)"), 
                     position="fill", stat="identity") +
                 scale_fill_manual(values=cluster_cols) +
                 scale_y_continuous(expand=c(0,0), labels=seq(0,100,25)) +
                 theme(panel.border=element_blank()),
             cluster_id = p + facet_wrap(~cluster_id, scales="free_y", ncol=4) +
                 guides(fill=FALSE) + geom_boxplot(aes_string(
-                    x=group_by, color=group_by, fill=group_by),
+                    x=facet, color=facet, fill=facet),
                     position=position_dodge(), alpha=.25, outlier.color=NA) + 
                 geom_point(position=position_jitter(width=.25),
-                    aes_string(x=group_by, y="freq", color=group_by)) +
+                    aes_string(x=facet, y="freq", color=facet)) +
                 theme(panel.grid.major=element_line(color="grey", size=.25))
         )
     }
