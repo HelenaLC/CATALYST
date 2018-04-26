@@ -1,12 +1,11 @@
 # ==============================================================================
 # Accessor and replacement methods for class dbFrame
 # ------------------------------------------------------------------------------
-
 #' @rdname dbFrame-methods
 #' @title 
 #' Extraction and replacement methods for objects of class \code{dbFrame}
 #' @aliases 
-#' dbFrame-methods exprs bc_key bc_ids deltas normed_bcs mhl_dists 
+#' dbFrame-methods bc_key bc_ids deltas normed_bcs mhl_dists 
 #' sep_cutoffs sep_cutoffs<- mhl_cutoff mhl_cutoff<- counts yields
 #' 
 #' @description
@@ -33,6 +32,8 @@
 #' }
 #' @param x,object a \code{\link{dbFrame}}.
 #' @param value the replacement value.
+#'
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
 #' @examples 
 #' data(sample_ff, sample_key)
@@ -49,16 +50,8 @@
 #' # subset unassigned events
 #' unassigned <- bc_ids(re) == 0
 #' head(exprs(sample_ff[unassigned, ]))
-#' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-
-# ==============================================================================
-# Access slots in a dbFrame
 # ------------------------------------------------------------------------------
-#' 
-#' @rdname dbFrame-methods
-#' @importFrom flowCore exprs
-#' @export
+
 setMethod(f="exprs",
     signature="dbFrame",
     definition=function(object) return(object@exprs))
@@ -99,7 +92,6 @@ setMethod(f="mhl_cutoff",
     definition=function(x) return(x@mhl_cutoff))
 
 #' @rdname dbFrame-methods
-#' @export
 setMethod(f="counts",
     signature="dbFrame",
     definition=function(x) return(x@counts))

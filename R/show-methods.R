@@ -1,12 +1,11 @@
 # ==============================================================================
-# Show method for dbFrame
+# Show method for class dbFrame
 # ------------------------------------------------------------------------------
-
 setMethod(f="show",
     signature="dbFrame",
     definition=function(object) {
         dims <- dim(exprs(object))
-        cat("dbFrame objectect with\n", 
+        cat("dbFrame object with\n", 
             dims[1], " events, ", 
             dims[2], " observables and ",
             nrow(bc_key(object)), " barcodes:\n", sep="")
@@ -50,3 +49,7 @@ setMethod(f="show",
             print(noquote(tbl))
         }
     })
+
+# ==============================================================================
+# Show method for class daFrame
+# ------------------------------------------------------------------------------

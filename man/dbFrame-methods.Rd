@@ -13,7 +13,6 @@
 \alias{yields}
 \alias{exprs,dbFrame-method}
 \alias{dbFrame-methods}
-\alias{exprs}
 \alias{bc_key}
 \alias{bc_ids}
 \alias{deltas}
@@ -130,7 +129,6 @@ head(exprs(sample_ff[a1, ]))
 # subset unassigned events
 unassigned <- bc_ids(re) == 0
 head(exprs(sample_ff[unassigned, ]))
-
 }
 \author{
 Helena Lucia Crowell \email{crowellh@student.ethz.ch}

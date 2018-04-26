@@ -1,31 +1,50 @@
 Package: CATALYST
 Type: Package
 Title: Cytometry dATa anALYSis Tools
-Version: 1.3.1
+Version: 1.3.2
 Author: Helena Lucia Crowell <crowellh@student.ethz.ch>, Mark D Robinson <mark.robinson@imls.uzh.ch>, Vito RT Zanotelli <vito.zanotelli@uzh.ch>, Stéphane Chevrier, Bernd Bodenmiller
 biocViews: MassSpectrometry, Preprocessing, StatisticalMethod, SingleCell, Normalization
 Maintainer: Helena Lucia Crowell <crowellh@student.ethz.ch>
 Depends: R (>= 3.4)
 Description: Mass cytometry (CyTOF) uses heavy metal isotopes rather than fluorescent tags as reporters to label antibodies, thereby substantially decreasing spectral overlap and allowing for examination of over 50 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed CATALYST (Cytometry dATa anALYSis Tools) to provide a pipeline for preprocessing of cytometry data, including i) normalization using bead standards, ii) single-cell deconvolution, and iii) bead-based compensation.
 Imports:
+    Biobase,
+    circlize,
+    ComplexHeatmap,
+    ConsensusClusterPlus,
+    dplyr,
     drc,
+    DT, 
     flowCore,
+    FlowSOM,
     ggplot2,
+    ggrepel,
     graphics,
     grDevices,
     grid,
     gridExtra,
     htmltools,
+    htmlwidgets,
+    limma,
+    magrittr,
     matrixStats,
     methods,
     nnls,
     plotly,
     RColorBrewer,
-    reshape2, 
-    magrittr,
+    reshape2,
+    Rtsne,
+    S4Vectors,
+    scales,
+    shiny, 
+    shinydashboard, 
+    shinyjs, 
+    shinyBS, 
     stats,
+    SummarizedExperiment,
+    tidyr,
     utils
-Suggests: BiocStyle, knitr, rmarkdown, testthat
+Suggests: BiocStyle, knitr, rmarkdown, testthat, diffcyt
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 License: GPL (>=2)

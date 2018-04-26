@@ -1,31 +1,28 @@
-# ==============================================================================
-# Assign preliminary barcode IDs
-# ------------------------------------------------------------------------------
-
 #' @rdname assignPrelim
 #' @title Single-cell debarcoding (1)
 #' 
-#' @description 
-#' Assigns a preliminary barcode ID to each event.
+#' @description Assigns a preliminary barcode ID to each event.
 #'
 #' @param x 
-#' a \code{\link{flowFrame}} or character of an FCS file name.
-#' @param y 
-#' the debarcoding scheme. A binary matrix with sample names as row names and 
-#' numeric masses as column names OR a vector of numeric masses corresponding
-#' to barcode channels. When the latter is supplied, \code{assignPrelim} will 
-#' create a scheme of the appropriate format internally.
+#'   a \code{\link{flowFrame}} or character of an FCS file name.
+#' @param y
+#'   the debarcoding scheme. A binary matrix with sample names as row names and 
+#'   numeric masses as column names OR a vector of numeric masses corresponding
+#'   to barcode channels. When the latter is supplied, \code{assignPrelim} will
+#'   create a scheme of the appropriate format internally.
 #' @param cofactor 
-#' cofactor used for asinh transformation.
+#'   numeric. Cofactor used for asinh transformation.
 #' @param verbose
-#' logical. Should extra information on progress be reported? Defaults to TRUE.
+#'   logical. Should extra information on progress be reported?
 #'
 #' @return 
 #' Returns a \code{\link{dbFrame}} containing measurement intensities,
 #' the debarcoding key, a numeric verctor of barcode IDs and separations
 #' between positive and negative barcode populations, and barcode intensities
 #' normalized by population. 
-#'
+#' 
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' 
 #' @references 
 #' Zunder, E.R. et al. (2015).
 #' Palladium-based mass tag cell barcoding with a doublet-filtering scheme 
@@ -35,12 +32,11 @@
 #' @examples
 #' data(sample_ff, sample_key)
 #' assignPrelim(x = sample_ff, y = sample_key)
-#' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @import matrixStats
-#' @importFrom stats quantile
+#'
 #' @importFrom flowCore colnames exprs flowFrame read.FCS
-# ==============================================================================
+#' @importFrom matrixStats rowMaxs
+#' @importFrom stats quantile
+# ------------------------------------------------------------------------------
 
 setMethod(f="assignPrelim",
     signature=signature(x="flowFrame", y="data.frame"),

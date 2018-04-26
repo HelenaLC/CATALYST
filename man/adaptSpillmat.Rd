@@ -4,17 +4,16 @@
 \name{adaptSpillmat}
 \alias{adaptSpillmat}
 \alias{adaptSpillmat,matrix,vector-method}
-\title{Adapts a spillovermatrix such that 
-it can be used directly for compensation}
+\title{Adapt spillover matrix}
 \usage{
 adaptSpillmat(input_sm, out_chs)
 
 \S4method{adaptSpillmat}{matrix,vector}(input_sm, out_chs)
 }
 \arguments{
-\item{input_sm}{A previously calculated spillover matrix.}
+\item{input_sm}{a previously calculated spillover matrix.}
 
-\item{out_chs}{The column names that the prepared output spillover matrix should have.
+\item{out_chs}{the column names that the prepared output spillover matrix should have. 
 Numeric names as well as names of the form MetalMass(Di), e.g. Ir191Di 
 or Ir191, will be interpreted as masses with associated metals.}
 
@@ -42,9 +41,9 @@ re <- assignPrelim(x = ss_exp, y = bc_ms)
 re <- estCutoffs(x = re)
 re <- applyCutoffs(x = re)
 # estimate spillover matrix and adapt it
-spillMat <- computeSpillmat(x = re)
+sm <- computeSpillmat(x = re)
 chs <- flowCore::colnames(ss_exp)
-adaptSpillmat(spillMat, chs)
+adaptSpillmat(sm, chs)
 
 }
 \author{

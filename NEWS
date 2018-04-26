@@ -1,38 +1,52 @@
-=====================================
-	*** Version 1.1.5 ***
-—————————————————————————————————————
+=========================
+  *** Version 1.4.0 ***
+-------------------------
 
-o bug fix
+CATALYST now provides a series of visualization tools 
+for differential analysis. These have been adapted from 
 
-=====================================
-	*** Version 1.1.4 ***
-—————————————————————————————————————
+  Nowicka M, Krieg C, Weber LM et al.
 
-o revision of estCutoffs() section in vignette
+       "CyTOF workflow: differential discovery in
+  high-throughput high-dimensional cytometry datasets"
 
-=====================================
-	*** Version 1.1.3 ***
-—————————————————————————————————————
+  F1000Research 2017, 6:748 (doi: 10.12688/f1000research.11622.2)
 
-o significantly improved cutoff estimation
-o bug fix when writing out FCS files with outFCS()
-o re-styling of plotYields() output
+and may be used in conjunction with
 
-=====================================
-	*** Version 1.1.2 ***
-—————————————————————————————————————
+  Weber L (2018) 
 
-o estCutoffs():
-  estimation of separation cutoffs using 4-parameter log-logistic regression
+  "diffcyt: differential discovery in high-dimensional 
+        cytometry via high-resolution clustering" 
 
-o computeSpillmat(), estTrim(): 
-  options “method” and “interactions” allowing specification of
-  how spillover should be estimated and which interactions to consider
+  R package version 0.99.11, https://github.com/lmweber/diffcyt
 
-o S. Chevrier and B. Bodenmiller added as authors
+--------------------------------------------------
 
-=====================================
-	*** Version 1.1.1 ***
-—————————————————————————————————————
+o Data returned by & used throughout differential analysis
+  are held in objects of the 'daFrame-class'
 
-o first official release as part of Bioconductor 3.5
+o The following functions are newly available:
+
+  - plotCounts(), plotMDS(), plotExprs(), plotMedsExprs():
+      > general overview of data features
+
+  - plotNRS(): 
+      > non-redundancy scores
+
+  - tSNE(), plotSNE():
+      > run & visualize t-SNE
+
+  - cluster(), mergeClusters():
+      > FlowSOM clustering, ConsensusClusterPlus 
+        meta-clustering, and manual cluster merging
+
+  - plotCodes():
+      > PCA & t-SNE of SOM codes 
+    
+  - plotAbundances():
+      > relative cluster abundances
+
+  - plotClusterHeatmap(), plotDiffHeatmap()
+      > ComplexHeatmap's summarizing clustering,
+        meta-clustering & differential analysis results
