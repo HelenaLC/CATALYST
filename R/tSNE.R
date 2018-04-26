@@ -27,9 +27,18 @@
 #' @seealso \code{\link{plotSNE}}
 #' 
 #' @examples
+#' # construct daFrame
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' re <- tSNE(re, n=250)
+#' 
+#' # run t-SNE
+#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+#'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
+#' re <- tSNE(re, cols_to_use=lineage, n=50)
+#' 
+#' par(pty="s")
+#' tsne <- S4Vectors::metadata(re)$tsne$Y
+#' plot(tsne, pch=20)
 #'
 #' @import Rtsne  
 #' @importFrom S4Vectors metadata
@@ -48,7 +57,7 @@ setMethod(f="tSNE",
         }
         
         message("o downsampling to ", n, " events per sample...")
-        dups <- which(!duplicated(exprs(x)[, type_markers(x)]))
+        dups <- which(!duplicated(exprs(x)[, cols_to_use]))
         n_cells <- pmin(metadata(x)$n_cells, n)
         inds <- split(seq_len(nrow(exprs(x))), sample_ids(x))
         set.seed(seed)
