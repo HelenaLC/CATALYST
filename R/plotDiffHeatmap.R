@@ -95,31 +95,24 @@ setMethod(f="plotDiffHeatmap",
     signature=signature(x="matrix", y="SummarizedExperiment"), 
     definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
         z <- list(...)
-        md <- z$md
         sample_ids <- z$sample_ids
         cluster_ids <- z$cluster_ids
         marker_classes <- z$marker_classes
-        is_marker <- marker_classes != "none"
-        markers <- colnames(x)[is_marker]
         
         # get differential analysis type
         y <- rowData(y)
         type <- get_dt_type(y)
         
         # compute medians by samples & clusters
-        df <- data.frame(x, check.names=FALSE,
-            sample_id=sample_ids, cluster_id=cluster_ids)
+        df <- data.frame(x, sample_id=sample_ids, cluster_id=cluster_ids)
         meds_by_sample <- data.frame(df %>% group_by_(~sample_id) %>% 
                 summarise_at(colnames(x), median), row.names=1)
         meds_by_cluster <- data.frame(df %>% group_by_(~cluster_id) %>% 
                 summarise_at(colnames(x), median), row.names=1)
 
         # color scale: 1%, 50%, 99% percentiles
-        qs <- stats::quantile(
-            meds_by_cluster[, is_marker], 
-            probs=c(.01, .5, .99), na.rm=TRUE)
-        hm_cols <- circlize::colorRamp2(
-            breaks=qs, colors=c("royalblue3", "white", "tomato2"))
+        qs <- quantile(meds_by_cluster[, marker_classes != "none"], c(.01, .5, .99), TRUE)
+        hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
         
         # get clusters or cluster-marker combinations to plot
         if (order)
@@ -156,14 +149,12 @@ setMethod(f="plotDiffHeatmap",
                 acast(meds, cluster_id~sample_id, value.var=marker, fill=0))
             meds <- setNames(meds, colnames(x))
             meds <- mapply(function(marker, ids) marker[ids, , drop = FALSE], 
-                meds[as.character(top$marker)], top$cluster_id, SIMPLIFY=FALSE)
+                meds[top$marker], top$cluster_id, SIMPLIFY=FALSE)
             meds <- do.call(rbind, meds)
             rownames(meds) <- paste0(top$marker, sprintf("(%s)", top$cluster_id))
-            md
-            colnames(meds)
 
             hm2 <- diff_hm(matrix=meds, name="expression\nby sample",
-                col=circlize::colorRamp2(range(meds, na.rm=TRUE), c("navy", "yellow")),
+                col=colorRamp2(range(meds, na.rm=TRUE), c("navy", "yellow")),
                 xlab="sample_id")
         }
 
@@ -202,8 +193,7 @@ setMethod(f="plotDiffHeatmap",
         plotDiffHeatmap(exprs(x), y, top_n=20, all=FALSE, order=TRUE, th=0.1, 
             sample_ids=sample_ids(x), 
             cluster_ids=cluster_ids,
-            marker_classes=colData(x)$marker_class,
-            md=metadata(x)$experiment_info)
+            marker_classes=colData(x)$marker_class)
     }
 )
 
@@ -215,8 +205,7 @@ setMethod(f="plotDiffHeatmap",
         plotDiffHeatmap(assay(x), y, top_n=20, all=FALSE, order=TRUE, th=0.1, 
             sample_ids=rowData(x)$sample_id,
             cluster_ids=rowData(x)$cluster_id,
-            marker_classes=colData(x)$marker_class,
-            md=metadata(x)$experiment_info)
+            marker_classes=colData(x)$marker_class)
     }
 )
 
