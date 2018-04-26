@@ -38,13 +38,13 @@ lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33",
 re <- cluster(re, cols_to_use=lineage)
 
 # run t-SNE
-re <- tSNE(re, n=100)
+re <- tSNE(re, n=50)
 
 # color by clustering
 plotSNE(re, color_by=12)
 
 # color by marker expression
-plotSNE(re, color_by="pS6", facet="condition")
+plotSNE(re, color_by="pNFkB", facet="condition")
 
 }
 \references{

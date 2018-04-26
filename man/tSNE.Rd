@@ -30,9 +30,18 @@ for their computation into the metadata slot of the input \code{daFrame}.
 Runs t-SNE dimensionality reduction on a \code{\link{daFrame}}.
 }
 \examples{
+# construct daFrame
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-re <- tSNE(re, n=250)
+
+# run t-SNE
+lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
+re <- tSNE(re, cols_to_use=lineage, n=50)
+
+par(pty="s")
+tsne <- S4Vectors::metadata(re)$tsne$Y
+plot(tsne, pch=20)
 
 }
 \references{
