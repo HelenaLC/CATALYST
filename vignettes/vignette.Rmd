@@ -135,7 +135,7 @@ The final cutoff estimate $c$ is defined as the weighted mean between these esti
 
 $$c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}$$
 
-![(\#fig:estCutoffs) Description of the automatic cutoff estimation for each individual population. The bar graphs indicate the distribution of cells relative to the barcode distance and the dotted line corresponds to the yield upon debarcoding as a function of the applied separation cutoff. This curve is fitted with a linear regression (blue line) and a three parameter log-logistic function (red line). The cutoff estimate is defined as the mean of estimates derived from both fits, weighted with the goodness of the respective fit.](estCutoffs.png)
+![(\#fig:estCutoffs) Description of the automatic cutoff estimation for each individual population. The bar graphs indicate the distribution of cells relative to the barcode distance and the dotted line corresponds to the yield upon debarcoding as a function of the applied separation cutoff. This curve is fitted with a linear regression (blue line) and a three parameter log-logistic function (red line). The cutoff estimate is defined as the mean of estimates derived from both fits, weighted with the goodness of the respective fit.](estCutoffs.png){width="976px" height="263px"}
 
 ```{r}
 # estimate separation cutoffs
@@ -172,14 +172,16 @@ outFCS(x=re, y=sample_ff)
 
 For each barcode, `plotYields` will show the distribution of barcode separations and yields upon debarcoding as a function of separation cutoffs. If available, the currently used separation cutoff as well as its resulting yield within the population is indicated in the plot's main title.
 
-```{r fig.width=9, fig.height=5}
-plotYields(x=re, which="C1")
-```
- 
 Option `which=0` will render a summary plot of all barcodes. Here, the overall yield achieved by applying the current set of cutoff values will be shown. All yield functions should behave as described above: decline, stagnation, decline. Convergence to 0 yield at low cutoffs is a strong indicator that staining in this channel did not work, and excluding the channel entirely is sensible in this case. It is thus recommended to **always** view the all-barcodes yield plot to eliminate uninformative populations, since small populations may cause difficulties when computing spill estimates.
 
-```{r fig.width=9, fig.height=5}
-plotYields(x=re, which=0)
+```{r eval=FALSE}
+plotYields(x=re, which=c("C1", 0))
+```
+
+```{r echo=FALSE, fig.width=5, fig.height=3}
+ps <- plotYields(x=re, which=c("C1", 0))
+for (i in seq_along(ps)) assign(sprintf("p%s", i), ps[[i]])
+p1; p2
 ```
  
 ---
@@ -188,13 +190,10 @@ plotYields(x=re, which=0)
 
 Normalized intensities for a barcode can be viewed with `plotEvents`. Here, each event corresponds to the intensities plotted on a vertical line at a given point along the x-axis. Option `which=0` will display unassigned events, and the number of events shown for a given sample may be varied via `n_events`. If `which="all"`, the function will render an event plot for all IDs (including 0) with events assigned.
 
-```{r fig.width=9, fig.height=5}
-# event plot for unassigned events
-plotEvents(x=re, which=0, n_events=1000)
-```
-
-```{r fig.width=9, fig.height=5}
-plotEvents(x=re, which="D1", n_events=500)
+```{r fig.width=9, fig.height=4.5}
+# event plots for unassigned events
+# & barcode population D1
+plotEvents(x=re, which=c(0, "D1"), n_events=20)
 ```
 
 ---
@@ -204,7 +203,7 @@ plotEvents(x=re, which="D1", n_events=500)
 Function `plotMahal` will plot all inter-barcode interactions for the population specified with argument `which`. Events are colored by their Mahalanobis distance. <span style="color:firebrick">*NOTE: For more than 7 barcodes (up to 128 samples) the function will render an error, as this visualization is infeasible and hardly informative. Using the default Mahalanobis cutoff value of 30 is recommended in such cases.*</span> 
 
 ```{r warning=FALSE, fig.width=6, fig.height=6.5} 
-plotMahal(x=re, which="A5")
+plotMahal(x=re, which="B3")
 ```
 
 # Compensation
@@ -247,7 +246,7 @@ In a population-based fashion, as done in conventional flow cytometry, `method =
 
 $$s_{ij} = \frac{m_j^+-m_j^-}{m_i^+-m_i^-}$$
 
-![(\#fig:methods) Population versus single-cell based spillover estimation.](methods.png)
+![(\#fig:methods) Population versus single-cell based spillover estimation.](methods.png){width="800px" height="360px"}
 
 On the basis of their additive nature, spill values are estimated independently for every pair of interacting channels. `interactions = "default"` thereby exclusively takes into account interactions that are sensible from a chemical and physical point of view:
 
@@ -275,7 +274,7 @@ Lu    | 175, 176                          |
 
 :(\#tab:isotopes) List of isotopes available for each metal used in CyTOF. In addition to $M\pm1$ and $M+16$ channels, these mass channels are considered during estimation of spill to capture channel crosstalk that is due to isotopic contanimations [@isotopes].
 
-![(\#fig:interactions) Heat map of spill expected interactions. These are considered by the default method of computeSpillmat.](interactions.png)
+![(\#fig:interactions) Heat map of spill expected interactions. These are considered by the default method of computeSpillmat.](interactions.png){height="600px" width="590px"}
 
 Alternatively, `interactions = "all"` will compute a spill estimate for all $n\cdot(n-1)$ possible interactions, where $n$ denotes the number of measurement parameters. Estimates falling below the threshold specified by `th` will be set to zero. Lastly, note that diagonal entries $s_{ii} = 1$ for all $i\in 1, ..., n$, so that spill is relative to the total signal measured in a given channel.
 
@@ -302,23 +301,11 @@ spillMat <- computeSpillmat(x=re)
 
 ---
 
-### `estTrim`: Estimation of an optimal trim value
-
-To optimize results achieved upon compensation, `estTrim` will estimate the SM for a range of trim values, and evaluate, for each barcode population, the sum over absolute cubed medians of each negative channel upon compensation. The function will return a figure of population- and channel-wise median counts for each trim value, and highlight the value that minimizes this sum.
-
-```{r fig.width=8, fig.height=6}
-# estimate trim value minimizing sum of absolute cubed 
-# population- and channel-wise medians upon compensation
-estTrim(x=re, min=0, max=.12, step=.02, method="classic")
-```
-
----
-
 ### `plotSpillmat`: Spillover matrix heat map
 
 `plotSpillmat` provides a visualization of estimated spill percentages as a heat map. Channels without a single-antibody stained control are annotated in grey, and colours are ramped to the highest spillover value present. Option `annotate=TRUE` (the default) will display spill values inside each bin, and the total amount of spill caused and received by each channel on the top and to the right, respectively.
 
-```{r fig.width=7.5, fig.height=7.5} 
+```{r fig.width=4, fig.height=4} 
 plotSpillmat(bc_ms=bc_ms, SM=spillMat) 
 ```
 
@@ -348,10 +335,8 @@ comped_flow_t <- asinh(exprs(comped_flow)/cf)
 comped_nnls_t <- asinh(exprs(comped_nnls)/cf)
 ```
 
-```{r echo=FALSE, fig.width=9, fig.height=9}
-par(mfrow=c(1,3), pty="s")
-which <- c("La139Di", "Gd155Di")
-#which <- c("Yb171Di", "Yb172Di")
+```{r echo=FALSE, fig.width=8.6, fig.height=3.2}
+par(mfrow=c(1,3))
 which <- c("Er167Di", "Er168Di")
 cols <- colorRampPalette(rev(RColorBrewer::brewer.pal(10, "Spectral")))
 bw <- .25; n <- 64
