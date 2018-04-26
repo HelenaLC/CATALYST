@@ -145,13 +145,6 @@ setGeneric("plotMahal",
 # ==============================================================================
 # Generics for compensation
 # ------------------------------------------------------------------------------
-
-#' @rdname estTrim
-#' @param ... optional arguments.
-#' @export
-setGeneric("estTrim", 
-    function(x, ...) standardGeneric("estTrim"))
-
 #' @rdname computeSpillmat
 #' @param ... optional arguments.
 #' @export
