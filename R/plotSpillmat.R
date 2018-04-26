@@ -36,7 +36,7 @@
 #'
 #' @import ggplot2 grid gridExtra
 #' @importFrom grDevices colorRampPalette
-#' @importFrom htmlwidgets saveWidget
+#' @importFrom htmltools save_html
 #' @importFrom plotly ggplotly
 # ------------------------------------------------------------------------------
 
