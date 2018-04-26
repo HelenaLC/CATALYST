@@ -96,3 +96,21 @@ setMethod(f="plotSpillmat",
         }
     }
 )
+
+setMethod(f="plotSpillmat",
+    signature=signature(bc_ms="ANY", SM="data.frame"),
+    definition=function(bc_ms, SM, 
+        out_path=NULL, name_ext=NULL, annotate=TRUE) {
+        plotSpillmat(bc_ms, as.matrix(SM), 
+            out_path=NULL, name_ext=NULL, annotate=TRUE)
+    }
+)
+
+setMethod(f="plotSpillmat",
+    signature=signature(bc_ms="character", SM="ANY"),
+    definition=function(bc_ms, SM, 
+        out_path=NULL, name_ext=NULL, annotate=TRUE) {
+        plotSpillmat(as.numeric(bc_ms), as.matrix(SM), 
+            out_path=NULL, name_ext=NULL, annotate=TRUE)
+    }
+)
