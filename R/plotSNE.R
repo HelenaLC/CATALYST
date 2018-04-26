@@ -1,11 +1,7 @@
-# ==============================================================================
-# tSNE-method for dbFrame-class
-# ------------------------------------------------------------------------------
 #' @rdname plotSNE
-#' @title MDS plot
+#' @title plot t-SNE
 #' 
-#' @description 
-#' Multi-dimensional scaling (MDS) plot on median marker expressions.
+#' @description t-SNE plot colored by marker expression or clustering. 
 #'
 #' @param x a \code{\link{daFrame}}.
 #' @param color_by numeric value or character string specifying a clustering
@@ -15,23 +11,35 @@
 #' 
 #' @return a \code{ggplot} object.
 #' 
-#' @examples
-#' data(PBMC_fs, PBMC_panel, PBMC_md)
-#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' re <- tSNE(re)
-#' plotSNE(re, color_by=12)
-#' plotSNE(re, color_by="pS6", facet="condition")
+#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
-#' @author
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
+#' @examples
+#' # construct daFrame
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' 
+#' # run clustering
+#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+#'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
+#' re <- cluster(re, cols_to_use=lineage)
+#' 
+#' # run t-SNE
+#' re <- tSNE(re, n=100)
+#' 
+#' # color by clustering
+#' plotSNE(re, color_by=12)
+#' 
+#' # color by marker expression
+#' plotSNE(re, color_by="pS6", facet="condition")
+#' 
 #' @import ggplot2
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 setMethod(f="plotSNE",
     signature=signature(x="daFrame"),

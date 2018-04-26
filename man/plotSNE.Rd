@@ -4,7 +4,7 @@
 \name{plotSNE}
 \alias{plotSNE}
 \alias{plotSNE,daFrame-method}
-\title{MDS plot}
+\title{plot t-SNE}
 \usage{
 plotSNE(x, ...)
 
@@ -25,13 +25,25 @@ One of \code{names(rowData(x))}. Defaults to NULL.}
 a \code{ggplot} object.
 }
 \description{
-Multi-dimensional scaling (MDS) plot on median marker expressions.
+t-SNE plot colored by marker expression or clustering.
 }
 \examples{
+# construct daFrame
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-re <- tSNE(re)
+
+# run clustering
+lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
+    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
+re <- cluster(re, cols_to_use=lineage)
+
+# run t-SNE
+re <- tSNE(re, n=100)
+
+# color by clustering
 plotSNE(re, color_by=12)
+
+# color by marker expression
 plotSNE(re, color_by="pS6", facet="condition")
 
 }
