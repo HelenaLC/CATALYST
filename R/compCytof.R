@@ -64,7 +64,6 @@
 setMethod(f="compCytof",
     signature=signature(x="flowFrame", y="matrix"),
     definition=function(x, y, out_path=NULL, method="flow") {
-        
         sm <- adaptSpillmat(y, flowCore::colnames(x))
         if (method == "flow") { 
             ff_comped <- flowCore::compensate(x, sm)
