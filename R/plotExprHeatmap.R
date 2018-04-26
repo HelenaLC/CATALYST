@@ -47,7 +47,6 @@
 #' @importFrom S4Vectors metadata
 #' @importFrom scales hue_pal
 #' @importFrom stats dist hclust
-#' @importFrom utils suppressForeignCheck
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotExprHeatmap", 
@@ -63,7 +62,6 @@ setMethod(f="plotExprHeatmap",
                 paste(dQuote(valid_opts), collapse=", "), " or NULL.")
         
         # compute medians across samples
-        utils::suppressForeignCheck("sample_id")
         med_exprs <- data.frame(exprs(x), sample_id=sample_ids(x)) %>%
             group_by_(~sample_id) %>% summarize_all(funs(median))
         med_exprs <- data.frame(med_exprs, row.names=1)
