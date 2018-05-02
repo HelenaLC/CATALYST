@@ -271,7 +271,6 @@ observeEvent(input$gateBeads, {
 ffsNormed <- reactive({
     # check that all samples have been gated
     req(vals$beadInds, !any(vapply(vals$beadInds, is.null, logical(1))))
-    print(length(vals$beadInds))
     showNotification(h4(strong("Normalizing...")), 
         id="id", type="message", duration=NULL, closeButton=FALSE)
     ffsNormed <- lapply(seq_along(ffsNorm()), function(i) {

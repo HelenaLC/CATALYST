@@ -2,21 +2,17 @@ debaParsModule <- function(module) {
     tagList(
         hr(style="border-color:black"),
         # automated cutoff estimation
-        checkboxInput(
-            inputId=paste0("checkbox_estCutoffs", module), 
-            label="Estimate separation cutoffs", 
-            value=TRUE),
         # population-specific cutoffs
-        checkboxInput(
-            inputId=paste0("checkbox_adjustCutoff", module), 
-            label="Adjust population-specific cutoffs"),
-        uiOutput(
-            outputId=paste0("adjustCutoffUI", module)),
-        checkboxInput(
-            inputId=paste0("checkbox_globalCutoff", module),
-            label="Enter global separation cutoff"),
-        uiOutput(
-            outputId=paste0("globalCutoffUI", module)),
+        # global cutoff
+        radioButtons(
+            inputId=paste0("deba_cutoffs", module),
+            label=NULL,
+            choiceValues=c("est_cutoffs", "adj_cutoffs", "global_cutoff"),
+            choiceNames=c(
+                "Estimate separation cutoffs",
+                "Adjust population-specific cutoffs",
+                "Enter global separation cutoff")),
+        uiOutput(outputId=paste0("deba_cutoffs_UI", module)),
         # mahalanobis distance cutoff
         div(style="display:inline-block; vertical-align:middle; width:75%",
             sliderInput(

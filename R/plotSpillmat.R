@@ -45,6 +45,7 @@ setMethod(f="plotSpillmat",
     definition=function(bc_ms, SM, 
         out_path=NULL, name_ext=NULL, annotate=TRUE) {
     
+        SM <- check_sm(SM)
         nms <- colnames(SM)
         ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
         bc_cols <- which(ms %in% bc_ms)
@@ -110,7 +111,7 @@ setMethod(f="plotSpillmat",
     signature=signature(bc_ms="character", SM="ANY"),
     definition=function(bc_ms, SM, 
         out_path=NULL, name_ext=NULL, annotate=TRUE) {
-        plotSpillmat(as.numeric(bc_ms), as.matrix(SM), 
+        plotSpillmat(as.numeric(bc_ms), SM, 
             out_path=NULL, name_ext=NULL, annotate=TRUE)
     }
 )

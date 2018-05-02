@@ -14,42 +14,41 @@ fsComp <- reactive({
         if (!is.null(ffControls())) {
             controls <- ffControls()
             description(controls)[c("GUID", "ORIGINALGUID")] <- 
-                identifier(controls) <- input$controlsFCS$name
+                identifier(controls) <- input$fcsControls$name
             fs <- as(c(controls, lapply(seq_along(fs), 
                 function(i) fs[[i]])), "flowSet")
         }
         return(fs)
-    } else {
-        if (vals$keepDataNorm) {
-            n <- length(ffsNormed())
+    } else if (vals$keepDataNorm) {
             ffs <- ffsNormed()
             if (input$box_removeBeads) {
-                for (i in seq_len(n)) {
+                for (i in seq_along(ffs)) {
                     removed <- mhlDists()[[i]] < vals$mhlCutoffs[i]
                     ffs[[i]] <- ffs[[i]][!removed, ]
                 }
             }
             fs <- as(ffs, "flowSet")
             nms <- gsub(".fcs", "_normed.fcs", smplNmsNorm(), ignore.case=TRUE)
-        } else {
-            req(input$fcsComp)
-            n <- nrow(input$fcsComp)
-            # check validity of input FCS files
-            valid <- check_FCS_fileInput(input$fcsComp, n)
-            if (!valid) return()
-            ffs <- lapply(seq_len(n), function(i) 
-                flowCore::read.FCS(
-                    filename=input$fcsComp[[i, "datapath"]],
-                    transformation=FALSE,
-                    truncate_max_range=FALSE))
-            fs <- as(ffs, "flowSet")
-            nms <- input$fcsComp$name
-        }
-        for (i in seq_len(n))
-            description(fs[[i]])[c("GUID", "ORIGINALGUID")] <- 
-                identifier(fs[[i]]) <- nms[i]
-        return(fs)
+    } else {
+        req(input_ffs_comp())
+        fs <- as(input_ffs_comp(), "flowSet")
+        nms <- input$fcsComp$name
     }
+    for (i in seq_along(fs))
+        description(fs[[i]])[c("GUID", "ORIGINALGUID")] <- 
+            identifier(fs[[i]]) <- nms[i]
+    return(fs)
+})
+
+# read & check input FCS files
+input_ffs_comp <- eventReactive(input$fcsComp, {
+    n <- nrow(input$fcsComp)
+    req(check_FCS_fileInput(input$fcsComp, n))
+    lapply(seq_len(n), function(i) 
+        flowCore::read.FCS(
+            filename=input$fcsComp[[i, "datapath"]],
+            transformation=FALSE,
+            truncate_max_range=FALSE))
 })
 
 # render fileInput for spillover matrix CSV or single-stains FCS
@@ -57,39 +56,13 @@ fsComp <- reactive({
 output$upload_or_est_sm_UI <- renderUI({
     switch(input$upload_or_est_sm, 
         upload_sm=fileInput(
-            inputId="inputSpillMat", 
+            inputId="input_sm", 
             label="Upload spillover matrix (CSV)", 
             accept=".csv"),
         est_sm=fileInput(
-            inputId="controlsFCS", 
+            inputId="fcsControls", 
             label="Upload single-stains (FCS)", 
             accept=".fcs"))
-})
-
-# render radioButtons for compensation method selection
-output$compensation_method_selection <- renderUI({
-    req(spillMat())
-    tagList(
-        hr(style="border-color:black"),
-        radioButtons(
-            inputId="compensation_method", 
-            label="Select method:",
-            choices=c(
-                "Flow compensation"="flow",
-                "NNLS compensation"="nnls")))
-})
-
-# render fileInput for multiplexed data
-# once a spillover matrix (CSV) has been uploaded
-# or single-stains have been checked
-output$uploadMp <- renderUI({
-    req(!vals$keepDataNorm,
-        is.data.frame(spillMat()) || !is.null(vals$ffControls_metsChecked))
-    fileInput(
-        inputId="fcsComp", 
-        label="Upload multiplexed data (FCS)", 
-        multiple=TRUE,
-        accept=".fcs")
 })
 
 # ------------------------------------------------------------------------------
@@ -102,12 +75,12 @@ ffControls <- reactive({
     if (!is.null(ff)) return(ff)
     ff <- vals$ffControls_msChecked
     if (!is.null(ff)) return(ff)
-    req(input$controlsFCS)
+    req(input$fcsControls)
     # check validity of input FCS file
-    valid <- check_FCS_fileInput(input$controlsFCS, 1)
+    valid <- check_FCS_fileInput(input$fcsControls, 1)
     if (!valid) return()
     flowCore::read.FCS(
-        filename=input$controlsFCS$datapath,
+        filename=input$fcsControls$datapath,
         transformation=FALSE,
         truncate_max_range=FALSE)
 })
@@ -144,14 +117,15 @@ observeEvent(input$debarcodeComp, {
     vals$cutoff_ests_comp <- sep_cutoffs(CATALYST::estCutoffs(x=vals$dbFrame1Comp))
     removeNotification(id="estimating_sep_cutoffs")
     # render deconvolution parameter UI
-    output$debaParsComp <- renderUI(tagList(
-        debaParsModule(module="Comp"),
+    output$debaParsComp <- renderUI(
+        debaParsModule(module="Comp"))
+    output$est_sm <- renderUI(
         bsButton(
-            inputId="compensate", 
+            inputId="est_sm", 
             label="Estimate spillover", 
             style="warning",
             size="small",
-            block=TRUE)))
+            block=TRUE))
     enable(id="debarcodeComp")
 })
 
@@ -162,7 +136,7 @@ observeEvent(input$debarcodeComp, {
 output$deba_cutoffs_UIComp <- renderUI({
     switch(input$deba_cutoffsComp,
         est_cutoffs=NULL,
-        adjust_cutoffs=
+        adj_cutoffs=
             adjustCutoffUI(
                 dbFrame=vals$dbFrame2Comp, 
                 choices=adjustCutoffChoicesComp(),
@@ -281,43 +255,52 @@ observeEvent(input$next_yieldPlotComp, {
 # ------------------------------------------------------------------------------
 
 # estimate spillover from controls
-spillMatEst <- eventReactive(input$compensate, {
+estimated_sm <- eventReactive(input$est_sm, {
     req(dbFrameComp())
-    CATALYST::computeSpillmat(dbFrameComp())
+    showNotification(h4(strong("Estimating spillover...")),
+        id="msg", type="message", duration=NULL, closeButton=FALSE)
+    sm <- CATALYST::computeSpillmat(dbFrameComp())
+    removeNotification(id="msg")
+    return(sm)
+})
+
+input_sm <- eventReactive(input$input_sm, {
+    is_csv <- length(grep("(.csv)$", input$input_sm$name)) == 1
+    if (!is_csv) {
+        showNotification(type="error", closeButton=FALSE,
+            h4(strong("Input spillover matrix should be a CSV file.")))
+        return()
+    }
+    sm <- read.csv(input$input_sm$datapath, row.names=1)
+    sm <- tryCatch(CATALYST:::check_sm(sm), error=function(e) e)
+    if (inherits(sm, "error")) {
+        showNotification(type="error", closeButton=FALSE,
+            h4(strong("Input spillover matrix seems to be invalid.")))
+        return()
+    } 
+    return(sm)
 })
 
 # get spillover matrix
-spillMat <- reactive({
+sm <- reactive({
     x <- input$upload_or_est_sm
-    if (x == "upload_sm" && !is.null(input$inputSpillMat)) {
-        # validity check
-        isCSV <- length(grep("(.csv)$", input$inputSpillMat$name)) == 1
-        if (!isCSV) {
-            showNotification(
-                h4(strong("Input spillover matrix should be a CSV file.")),
-                duration=NULL, type="error")
-            return(NULL)
-        }
-        read.csv(input$inputSpillMat$datapath, check.names=FALSE, row.names=1)
-    } else {
-        spillMatEst()
-    }
+    switch (x,
+        upload_sm = req(input_sm()),
+        est_sm = req(estimated_sm()))
 })
 
 # copy original spillover matrix for adjustments
-observeEvent(spillMat(), {
-    vals$sm <- spillMat()
+observeEvent(sm(), { 
+    vals$sm <- sm()
 })
 
 # plotSpillmat()
 output$plotSpillmat <- renderPlotly({
     req(vals$sm)
     x <- input$upload_or_est_sm
-    if (x == "upload_sm") {
-        ms <- CATALYST:::get_ms_from_chs(colnames(vals$sm))
-    } else if (x == "est_sm") {
-        ms <- rownames(bc_key(dbFrameComp()))
-    }
+    ms <- switch (x,
+        upload_sm = CATALYST:::get_ms_from_chs(colnames(vals$sm)),
+        est_sm = rownames(bc_key(dbFrameComp())))
     pdf(NULL)
     CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
 })
@@ -326,35 +309,42 @@ output$plotSpillmat <- renderPlotly({
 # compensate, render download & "Go to debarcoding" button
 # ------------------------------------------------------------------------------
 
+# toggle bsButton "Compensate"
+observe({
+    test <- req(sm(), fsComp())
+    toggleState(id="compensate", condition=test)
+})
+
 # compensate input flowFrame(s)
 nnlsComped <- reactive({
     req(fsComp(), vals$sm, input$compensation_method == "nnls")
     showNotification(h4(strong("Compensating using NNLS...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
-    fs <- fsApply(fsComp(), function(ff) 
-        CATALYST::compCytof(ff, vals$sm, NULL, "nnls"))
+    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "nnls")
     removeNotification(id="msg")
     return(fs)
 })
 flowComped <- reactive({
-    req(fsComp(), vals$sm, input$compensation_method == "flow")
+    req(input$compensation_method == "flow", vals$sm, fsComp())
     showNotification(h4(strong("Compensating using method 'flow'...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
-    fs <- fsApply(fsComp(), function(ff) 
-        CATALYST::compCytof(ff, vals$sm, NULL, "flow"))
+    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "flow")
     removeNotification(id="msg")
     return(fs)
 })
-fsComped <- reactive({
-    req(method <- input$compensation_method)
+fsComped <- eventReactive(input$compensate, {
+    disable(id="compensate")
+    method <- input$compensation_method
     fs <- switch(method, nnls=nnlsComped(), flow=flowComped())
     nms <- keyword(fs, "ORIGINALGUID")
     for (i in seq_along(fs))
         description(fs[[i]])$GUID <- identifier(fs[[i]]) <- nms[i]
+    enable(id="compensate")
     return(fs)
 })
 
-# render download buttons and bsButton "Go to debarcoding' 
+# render download buttons 
+# & bsButton "Go to debarcoding" 
 # when data has been compensated
 output$compensationSidebar <- renderUI({
     req(fsComped())
@@ -374,10 +364,14 @@ observeEvent(input$goToDeba, {
 # ------------------------------------------------------------------------------
 
 # render UI
-output$panel_scatters <- renderUI({
-    req(spillMat())
-    panel_scatters(samples=smplNmsComp())
+observeEvent(input$compensate, {
+    output$panel_scatters <- renderUI(
+        panel_scatters(samples=smplNmsComp()))
 })
+#  <- renderUI({
+#     req(sm())
+#     panel_scatters(samples=smplNmsComp())
+# })
 
 # keep track of currently selected sample
 selectedSmplComp <- reactive({
@@ -454,10 +448,10 @@ observeEvent(input$adjustSpill, {
 
 # bsButton revert current / all spill adjustments
 observeEvent(input$revert, {
-    vals$sm[ch1(), ch2()] <- spillMat()[ch1(), ch2()]
+    vals$sm[ch1(), ch2()] <- sm()[ch1(), ch2()]
 })
 observeEvent(input$revertAll, {
-    vals$sm <- spillMat()
+    vals$sm <- sm()
 })
 
 # ------------------------------------------------------------------------------
@@ -489,7 +483,6 @@ es0 <- reactive({
 })
 esC <- reactive({
     req(fsComped(), inds())
-    print("esC")
     lapply(seq_along(fsComped()), function(i)
         exprs(fsComped()[[i]][inds()[[i]], ]))
 })
@@ -524,9 +517,11 @@ output$text_info2 <- renderText({
 
 # get sample and output file names
 smplNmsComp <- reactive({
+    req(fsComp())
     keyword(fsComp(), "ORIGINALGUID")
 })
 outNmsComp <- reactive({
+    req(smplNmsComp())
     gsub(".fcs", "_comped.fcs", smplNmsComp(), ignore.case=TRUE)
 })
 

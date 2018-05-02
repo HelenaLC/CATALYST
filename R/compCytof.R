@@ -56,7 +56,7 @@
 #' spillMat <- computeSpillmat(x = re)
 #' compCytof(x = ss_exp, y = spillMat)
 #'
-#' @importFrom flowCore flowFrame colnames exprs compensate
+#' @importFrom flowCore flowFrame flowSet fsApply colnames exprs compensate
 #' @importFrom nnls nnls
 #' @importFrom stats setNames
 # ------------------------------------------------------------------------------
@@ -86,6 +86,14 @@ setMethod(f="compCytof",
         } else {
             ff_comped
         }
+    })
+
+# ------------------------------------------------------------------------------
+#' @rdname compCytof
+setMethod(f="compCytof",
+    signature=signature(x="flowSet", y="ANY"),
+    definition=function(x, y, out_path=NULL, method="flow") {
+        fsApply(x, compCytof, y, out_path, method)
     })
 
 # ------------------------------------------------------------------------------

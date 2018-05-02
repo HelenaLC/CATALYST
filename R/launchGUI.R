@@ -14,6 +14,7 @@
 #' \dontrun{launchGUI}
 #'
 #' @import shinydashboard 
+#' @importFrom htmltools div
 #' @importFrom shiny runApp
 #' @importFrom DT datatable dataTableOutput formatStyle renderDataTable
 #' @importFrom shinyBS bsButton bsPopover

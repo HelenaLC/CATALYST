@@ -6,22 +6,19 @@ check_FCS_fileInput <- function(input, n=1) {
     invalid <- sum(!sapply(seq_len(n), function(i)
         flowCore::isFCSfile(input[[i, "datapath"]])))
     if (n == 1 && invalid == 1) {
-        showNotification(
+        showNotification(type="error",
             paste0("Input file does not seem to be
-                a valid FCS2.0, FCS3.0 or FCS3.1 file."),
-            duration=NULL, type="error")
+                a valid FCS2.0, FCS3.0 or FCS3.1 file."))
         return(FALSE)
     } else if (invalid == 1) {
-        showNotification(
+        showNotification(type="error",
             paste0("1/", n, " files does not seem to be
-                a valid FCS2.0, FCS3.0 or FCS3.1 file."),
-            duration=NULL, type="error")
+                a valid FCS2.0, FCS3.0 or FCS3.1 file."))
         return(FALSE)
     } else if (invalid > 1) {
-        showNotification(
+        showNotification(type="error",
             paste0(invalid, "/", n, " files don't seem to be
-                valid FCS2.0, FCS3.0 or FCS3.1 files."),
-            duration=NULL, type="error")
+                valid FCS2.0, FCS3.0 or FCS3.1 files."))
         return(FALSE)
     }
     return(TRUE)

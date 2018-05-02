@@ -5,13 +5,13 @@ shinyServer(function(input, output, session) {
     
     output$concatenation_guide <- renderUI(concatenation_guide)
     output$normalization_guide <- renderUI(normalization_guide)
-    output$debarcoding_guide   <- renderUI(debarcoding_guide)
     output$compensation_guide  <- renderUI(compensation_guide)
+    output$debarcoding_guide   <- renderUI(debarcoding_guide)
     
     source("server-concatenation.R", local=TRUE)
     source("server-normalization.R", local=TRUE)
-    source("server-debarcoding.R",   local=TRUE)
     source("server-compensation.R",  local=TRUE)
+    source("server-debarcoding.R",   local=TRUE)
     source("server-FCSchecking.R",   local=TRUE)
     
     # ------------------------------------------------------------------------------

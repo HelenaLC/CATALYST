@@ -70,6 +70,7 @@ observe({
 })
 
 observeEvent(input$debarcodeDeba, {
+    disable(id="debarcodeDeba")
     # assignPrelim()
     showNotification(h4(strong("Assigning preliminary IDs...")), 
         duration=NULL, closeButton=FALSE, id="msg", type="message")
@@ -82,6 +83,7 @@ observeEvent(input$debarcodeDeba, {
     removeNotification(id="estimating_sep_cutoffs")
     # extend sidebar
     output$debarcodingSidebar2 <- renderUI(debarcodingSidebar2)
+    enable(id="debarcodeDeba")
 })
 
 # ------------------------------------------------------------------------------
@@ -91,7 +93,7 @@ observeEvent(input$debarcodeDeba, {
 output$deba_cutoffs_UIDeba <- renderUI({
     switch(input$deba_cutoffsDeba,
         est_cutoffs=NULL,
-        adjust_cutoffs=
+        adj_cutoffs=
             adjustCutoffUI(
                 dbFrame=vals$dbFrame2Deba, 
                 choices=adjustCutoffChoicesDeba(),

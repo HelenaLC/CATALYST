@@ -66,12 +66,27 @@ check_sm <- function(sm) {
         stop("\nThe supplied spillover matrix is invalid ",
             "as it contains entries greater than 1.\n",
             "Valid spill values are non-negative and mustn't exceed 1.")
-    
     cnames <- colnames(sm)[which(colnames(sm) %in% rownames(sm))]
     sii <- sm[cbind(cnames, cnames)]
     if (any(sii != 1))
         stop("\nThe supplied spillover matrix is invalid ",
             "as its diagonal contains entries != 1.\n")
+    test <- all(rownames(sm) %in% colnames(sm))
+    if (!test)
+        stop("\nThe supplied spillover matrix seems to be invalid.\n",
+            "All spill channels must appear as receiving channels:\n",
+            "'all(rownames(sm) %in% colnames(sm))' should return TRUE.")
+    isos <-  paste0(gsub("[0-9]", "", names(unlist(isotope_list))), 
+        as.numeric(unlist(isotope_list)))
+    test <- sapply(dimnames(sm), function(chs) {
+        ms <- get_ms_from_chs(chs)
+        mets <- get_mets_from_chs(chs)
+        all(paste0(mets, ms) %in% isos)
+    })
+    if (any(!test)) 
+        stop("\nThe supplied spillover matrix seems to be invalid.\n",
+            "All isotopes should appear in 'data(isotope_list)'.")
+    sm[, colSums(sm) != 0]
 }
 
 # ==============================================================================

@@ -7,6 +7,7 @@ compensationTab <- fluidPage(
     tags$style("#plotSpillmat{height:100vh !important}"),
     tags$style("#yieldPlotComp{height:70vh !important}"),
     tags$style("#summaryTblComp{height:100vh !important}"),
+    tags$style(type="text/css", "#compensate {margin-top:2px}"),
     sidebarLayout(
         position="left",
         mainPanel(
@@ -31,10 +32,27 @@ compensationTab <- fluidPage(
                     "Use pre-acquired spillover matrix" = "upload_sm",
                     "Estimate spill from controls" = "est_sm")),
             uiOutput(outputId="upload_or_est_sm_UI"),
-            uiOutput(outputId="compensation_method_selection"),
-            uiOutput(outputId="uploadMp"),
+            fileInput(
+                inputId="fcsComp", 
+                label="Upload multiplexed data (FCS)", 
+                multiple=TRUE),
             uiOutput(outputId="selectSinglePosChs"),
             uiOutput(outputId="debaParsComp"),
+            uiOutput(outputId="est_sm"),
+            hr(style="border-color:black"),
+            radioButtons(
+                inputId="compensation_method", 
+                label="Select method:",
+                choices=c(
+                    "Flow compensation"="flow",
+                    "NNLS compensation"="nnls")),
+            bsButton(
+                inputId="compensate", 
+                label="Compensate", 
+                style="danger",
+                size="small",
+                block=TRUE,
+                disabled=TRUE),
             uiOutput("compensationSidebar"))))
 
 # ------------------------------------------------------------------------------
