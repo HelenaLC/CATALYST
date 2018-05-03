@@ -29,6 +29,9 @@
 #'   doublets and low signal beads prior to estimating normalization factors.
 #' @param verbose  
 #'   logical. Should extra information on progress be reported?
+#' @param plot
+#'   logical. Should bead vs. DNA scatters and beads 
+#'   before vs. after normalization be plotted?
 #' 
 #' @return
 #' if \code{out_path=NULL} (the default) a \code{\link{flowFrame}} of the 
@@ -59,7 +62,7 @@
 setMethod(f="normCytof", 
     signature=signature(x="flowFrame"), 
     definition=function(x, y, out_path=NULL, remove_beads=TRUE, norm_to=NULL, 
-        k=500, trim=5, verbose=TRUE) {
+        k=500, trim=5, verbose=TRUE, plot=TRUE) {
     
     # assure width of median window is odd
     if (k %% 2 == 0) k <- k + 1
@@ -143,8 +146,9 @@ setMethod(f="normCytof",
     colnames(smoothed_beads) <- colnames(smoothed_normed_beads) <- 
         chs[c(time_col, bead_cols)]
     
-    outPlots(es_t, bead_inds, remove, bead_cols, dna_cols,
-        smoothed_beads, smoothed_normed_beads, out_path)
+    if (plot)
+        outPlots(es_t, bead_inds, remove, bead_cols, dna_cols,
+            smoothed_beads, smoothed_normed_beads, out_path)
     outNormed(x, normed_es, remove_beads, remove, out_path)
     })
 

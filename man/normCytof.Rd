@@ -10,7 +10,7 @@
 normCytof(x, y, ...)
 
 \S4method{normCytof}{flowFrame}(x, y, out_path = NULL, remove_beads = TRUE,
-  norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
+  norm_to = NULL, k = 500, trim = 5, verbose = TRUE, plot = TRUE)
 
 \S4method{normCytof}{character}(x, y, out_path = NULL, remove_beads = TRUE,
   norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
@@ -41,6 +41,9 @@ applied to the preliminary population of bead events to remove bead-bead
 doublets and low signal beads prior to estimating normalization factors.}
 
 \item{verbose}{logical. Should extra information on progress be reported?}
+
+\item{plot}{logical. Should bead vs. DNA scatters and beads 
+before vs. after normalization be plotted?}
 }
 \value{
 if \code{out_path=NULL} (the default) a \code{\link{flowFrame}} of the 
