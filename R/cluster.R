@@ -27,18 +27,18 @@
 #' The function will add information to the following slots 
 #' of the input \code{daFrame} (and return it):
 #' \itemize{
-#' \item{\code{rowData}\describe{\itemize{
+#' \item{\code{rowData}\itemize{
 #' \item{\code{cluster_id}:
 #'   each cell's cluster ID as inferred by \code{FlowSOM}. 
-#'   One of 1, ..., \code{xdim}x\code{ydim}}.}
+#'   One of 1, ..., \code{xdim}x\code{ydim}.}
 #' }}
-#' \item{\code{colData}\describe{\itemize{
+#' \item{\code{colData}\itemize{
 #' \item{\code{marker_class}: 
 #'   \code{"type"} or \code{"state"}. 
 #'   Specifies whether an antigen has been used for clustering 
-#'   or not, respectively.}}
+#'   or not, respectively.}
 #' }}
-#' \item{\code{metadata}\describe{\itemize{
+#' \item{\code{metadata}\itemize{
 #' \item{\code{SOM_codes}:
 #'   a table with dimensions K x (# cell type markers), 
 #'   where K = \code{xdim} x \code{ydim}. Contains the SOM codes.}
@@ -46,7 +46,7 @@
 #'   a table with dimensions K x (\code{maxK} + 1). 
 #'   Contains the cluster codes for all metaclustering.}
 #' \item{\code{delta_area}: 
-#'   a \code{\link{ggplot}} object. See above for details.}}
+#'   a \code{\link{ggplot}} object. See above for details.}
 #' }}
 #' }
 #' 
