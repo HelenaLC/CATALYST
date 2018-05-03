@@ -15,11 +15,10 @@
 #' @details 
 #' in the following code snippets, \code{x} is a \code{daFrame} object.
 #' \itemize{
-#' \item merging codes are accesible through \code{cluster_codes(x)$id}
-#' \item all functions that ask for specification of a clustering 
-#' (e.g. \code{\link{plotAbundances}}, \code{\link{plotClusterHeatmap}})
-#' take the merging ID as a valid input argument. 
-#' }
+#' \item{merging codes are accesible through \code{cluster_codes(x)$id}}
+#' \item{all functions that ask for specification of a clustering 
+#'   (e.g. \code{\link{plotAbundances}}, \code{\link{plotClusterHeatmap}})
+#'   take the merging ID as a valid input argument.}}
 #' 
 #' @return Writes the newly assigend cluster codes into the metadata slot 
 #' \code{cluster_codes} of the input \code{daFrame} and returns the latter.

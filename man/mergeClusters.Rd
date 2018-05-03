@@ -31,11 +31,10 @@ to store a manual merging inside the input \code{daFrame}.
 \details{
 in the following code snippets, \code{x} is a \code{daFrame} object.
 \itemize{
-\item merging codes are accesible through \code{cluster_codes(x)$id}
-\item all functions that ask for specification of a clustering 
-(e.g. \code{\link{plotAbundances}}, \code{\link{plotClusterHeatmap}})
-take the merging ID as a valid input argument. 
-}
+\item{merging codes are accesible through \code{cluster_codes(x)$id}}
+\item{all functions that ask for specification of a clustering 
+  (e.g. \code{\link{plotAbundances}}, \code{\link{plotClusterHeatmap}})
+  take the merging ID as a valid input argument.}}
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md, merging_table)

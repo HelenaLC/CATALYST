@@ -34,7 +34,7 @@ we target the point that approximately marks the end of the plateau regime
 and the onset of yield decline. To facilitate robust cutoff estimation, 
 we fit a linear and a three-parameter log-logistic function 
 to the yields function:
-\deqn{f(x)=\frac{d}{1+exp(b(log(x)-log(e)))}}{
+\deqn{f(x)=\frac{d}{1+e^{b(log(x)-log(e))}}}{
 f(x) = d / (1 + exp(b * (log(x) - log(e))))}
 The goodness of the linear fit relative to the log-logistic fit 
 is weighed with:
@@ -43,12 +43,12 @@ w = RSS(log-logistic) / (RSS(log-logistic) + RSS(linear))}
 and the cutoffs for both functions are defined as:
 \deqn{c_{linear}=-\frac{\beta_0}{2\beta_1}}{
 c(linear) = - beta0 / (2 * beta1)}
-\deqn{c_{log-logistic}=\underset{x}{argmin}\frac{\vert f'(x)\vert}{
-f(x)}>0.1}{c(log-logistic) = argmin x \{ | f'(x) | / f(x) > 0.1 \}}
+\deqn{c_{log-logistic}=argmin_x\{\frac{\vert f'(x)\vert}{
+f(x)}>0.1\}}{c(log-logistic) = argmin x { | f'(x) | / f(x) > 0.1 }}
 The final cutoff estimate is defined as the weighted mean 
 between these estimates:
 \deqn{c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}}{
-c = (1 - w) * c(log-logistic) + w * c(linear)}
+c = (1 - w) x c(log-logistic) + w x c(linear)}
 }
 \examples{
 data(sample_ff, sample_key)
