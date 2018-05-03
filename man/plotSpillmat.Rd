@@ -4,12 +4,20 @@
 \name{plotSpillmat}
 \alias{plotSpillmat}
 \alias{plotSpillmat,numeric,matrix-method}
+\alias{plotSpillmat,ANY,data.frame-method}
+\alias{plotSpillmat,character,ANY-method}
 \title{Spillover matrix heat map}
 \usage{
 plotSpillmat(bc_ms, SM, ...)
 
 \S4method{plotSpillmat}{numeric,matrix}(bc_ms, SM, out_path = NULL,
-  name_ext = NULL, annotate = TRUE)
+  name_ext = NULL, annotate = TRUE, plotly = TRUE)
+
+\S4method{plotSpillmat}{ANY,data.frame}(bc_ms, SM, out_path = NULL,
+  name_ext = NULL, annotate = TRUE, plotly = TRUE)
+
+\S4method{plotSpillmat}{character,ANY}(bc_ms, SM, out_path = NULL,
+  name_ext = NULL, annotate = TRUE, plotly = TRUE)
 }
 \arguments{
 \item{bc_ms}{a vector of numeric masses corresponding to barcode channels.}
@@ -24,6 +32,8 @@ plotSpillmat(bc_ms, SM, ...)
 
 \item{annotate}{logical. If TRUE (default), spill percentages are shown inside bins 
 and rows are annotated with the total amount of spill received.}
+
+\item{plotly}{logical. Should an interactive plot be rendered?}
 }
 \value{
 Plots estimated spill percentages as a heat map. 
