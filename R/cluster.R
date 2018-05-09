@@ -20,6 +20,8 @@
 #'   numeric. Specifies the maximum number of clusters to evaluate
 #'   in the metaclustering. For \code{maxK = 20}, for example, 
 #'   metaclustering will be performed for 2 through 20 clusters.
+#' @param verbose
+#'   logical. Should information on progress be reported?
 #' @param seed
 #'   numeric. Sets random seed in \code{ConsensusClusterPlus()}.
 #' 
@@ -85,19 +87,22 @@
 
 setMethod(f="cluster",
     signature=signature(x="daFrame"),
-    definition=function(x, cols_to_use, xdim=10, ydim=10, maxK=20, seed=1) {
+    definition=function(x, cols_to_use, 
+        xdim=10, ydim=10, maxK=20, verbose=TRUE, seed=1) {
         
         # replace dash with underscore
         cols_to_use <- gsub("-", "_", cols_to_use)
         
         # flowSOM clustering
-        message("o running FlowSOM clustering...")
+        if (verbose)
+            message("o running FlowSOM clustering...")
         fsom <- ReadInput(flowFrame(exprs(x)))
         som <- BuildSOM(fsom, colsToUse=cols_to_use, 
             silent=TRUE, xdim=xdim, ydim=ydim)
         
         # metaclustering
-        message("o running ConsensusClusterPlus metaclustering...")
+        if (verbose)
+            message("o running ConsensusClusterPlus metaclustering...")
         pdf(NULL)
         mc <- suppressMessages(ConsensusClusterPlus(t(som$map$codes), 
             maxK=maxK, reps=100, distance="euclidean", seed=seed, plot="pdf"))

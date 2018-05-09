@@ -183,14 +183,14 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="daFrame", y="SummarizedExperiment"),
-    definition = function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
         
         # get cluster IDs
         k <- nlevels(rowData(y)$cluster_id)
         k <- check_validity_of_k(x, k)
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
         
-        plotDiffHeatmap(exprs(x), y, top_n=20, all=FALSE, order=TRUE, th=0.1, 
+        plotDiffHeatmap(exprs(x), y, top_n, all, order, th, 
             sample_ids=sample_ids(x), 
             cluster_ids=cluster_ids,
             marker_classes=colData(x)$marker_class)
@@ -201,9 +201,9 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="SummarizedExperiment", y="SummarizedExperiment"),
-    definition = function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
         
-        plotDiffHeatmap(assay(x), y, top_n=20, all=FALSE, order=TRUE, th=0.1, 
+        plotDiffHeatmap(assay(x), y, top_n, all, order, th, 
             sample_ids=rowData(x)$sample_id,
             cluster_ids=rowData(x)$cluster_id,
             marker_classes=colData(x)$marker_class)
@@ -217,7 +217,7 @@ setMethod(f="plotDiffHeatmap",
     definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
         
         if (all(c("res", "d_counts", "d_medians") %in% names(y))) {
-            plotDiffHeatmap(x, y$res, top_n=20, all=FALSE, order=TRUE, th=0.1)
+            plotDiffHeatmap(x, y$res, top_n, all, order, th)
         } else {
             stop(deparse(substitute(y)), " does not seem to be ", 
                 "a valid differential test result.\n",

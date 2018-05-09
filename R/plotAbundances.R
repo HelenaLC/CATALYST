@@ -74,7 +74,7 @@ setMethod(f="plotAbundances",
         
         switch(by,
             sample_id = p + facet_wrap(facet, scales="free_x") +
-                geom_bar(aes_string(x="sample_id", fill="factor(cluster_id)"), 
+                geom_bar(aes_string(x="sample_id", fill="cluster_id"), 
                     position="fill", stat="identity") +
                 scale_fill_manual(values=cluster_cols) +
                 scale_y_continuous(expand=c(0,0), labels=seq(0,100,25)) +

@@ -87,7 +87,7 @@
 setMethod(f="plotClusterHeatmap", 
     signature=signature(x="daFrame"), 
     definition=function(x, hm2=NULL, k=20, m=NULL, cluster_anno=TRUE, 
-        split_by=NULL, scale=TRUE, draw_dend=TRUE, draw_freqs=TRUE, 
+        split_by=NULL, scale=TRUE, draw_dend=TRUE, draw_freqs=FALSE, 
         palette=rev(brewer.pal(11, "RdYlBu"))) {
         
         # check validity of argument 'hm2'
@@ -171,13 +171,11 @@ setMethod(f="plotClusterHeatmap",
                 dimnames=list(NULL, colnames(hm1_es)))
             hm1_es <- rbind(hm1_es, missing)
             
-            hm1 <- Heatmap(
-                matrix=hm1_es[, type_markers(x)],
-                col=hm_cols, name="expression", 
-                column_names_gp=gpar(fontsize=8),
+            hm1 <- Heatmap(matrix=hm1_es[, type_markers(x)], col=hm_cols, 
+                name="expression", column_names_gp=gpar(fontsize=8),
                 rect_gp=gpar(col='white'), na_col="lightgrey", 
-                heatmap_legend_param=list(color_bar="continuous"),
                 cluster_rows=row_clustering, cluster_columns=FALSE,
+                heatmap_legend_param=list(at=seq(0,1,.2), color_bar="continuous"),
                 show_row_dend=draw_dend, column_title=names(groups)[i][many])
             
             # cluster frequencies
@@ -238,9 +236,9 @@ setMethod(f="plotClusterHeatmap",
                             formula=cluster_id~sample_id, value.var=ch)
                         p <- p + Heatmap(matrix=ch_meds, col=hm_cols, 
                             na_col="lightgrey", rect_gp=gpar(col='white'),
+                            show_heatmap_legend=FALSE, show_row_names=FALSE,
                             cluster_rows=row_clustering, cluster_columns=FALSE,
-                            show_heatmap_legend=FALSE, column_title=ch, 
-                            column_names_gp=gpar(fontsize=8))
+                            column_title=ch, column_names_gp=gpar(fontsize=8))
                     }
                 }
             }
