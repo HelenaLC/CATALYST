@@ -30,20 +30,20 @@
 #' @details 
 #' For DA tests, \code{plotDiffHeatmap} will display
 #' \itemize{
-#'   \item median (arcsinh-transformed) 
-#'     cell-type marker expressions (across all samples)
-#'   \item cluster abundances by samples
-#'   \item row annotations indicating if detected clusteres
-#'     are significant (i.e. adj. p-value >= \code{th})
+#'   \item{median (arcsinh-transformed) 
+#'     cell-type marker expressions (across all samples)}
+#'   \item{cluster abundances by samples}
+#'   \item{row annotations indicating if detected clusteres
+#'     are significant (i.e. adj. p-value >= \code{th})}
 #' }
 #' For DS tests, \code{plotDiffHeatmap} will display
 #'   \itemize{
-#'   \item median (arcsinh-transformed) 
-#'     cell-type marker expressions (across all samples)
-#'   \item median (arcsinh-transformed) 
-#'     cell-state marker expressions by sample
-#'   \item row annotations indicating if detected cluster-marker combinations
-#'     are significant (i.e. adj. p-value >= \code{th})
+#'   \item{median (arcsinh-transformed) 
+#'     cell-type marker expressions (across all samples)}
+#'   \item{median (arcsinh-transformed) 
+#'     cell-state marker expressions by sample}
+#'   \item{row annotations indicating if detected cluster-marker combinations
+#'     are significant (i.e. adj. p-value >= \code{th})}
 #' }
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
@@ -66,12 +66,12 @@
 #' 
 #' # create design & constrast matrix
 #' design <- createDesignMatrix(PBMC_md, cols_design=3:4)
-#' contrast <- createContrast(c(0, 1, 0, 0, 0, 0, 0))
+#' contrast <- createContrast(c(0, 1, 0, 0, 0))
 #' 
 #' # test for
 #' # - differential abundance (DA) of clusters
 #' # - differential states (DS) within clusters
-#' da <- diffcyt(re, design =design, contrast = contrast, 
+#' da <- diffcyt(re, design = design, contrast = contrast, 
 #'     analysis_type = "DA", method_DA = "diffcyt-DA-edgeR")
 #' ds <- diffcyt(re, design = design, contrast = contrast, 
 #'     analysis_type = "DS", method_DS = "diffcyt-DS-limma")
@@ -197,6 +197,7 @@ setMethod(f="plotDiffHeatmap",
     }
 )
 
+# ------------------------------------------------------------------------------
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="SummarizedExperiment", y="SummarizedExperiment"),
@@ -209,6 +210,7 @@ setMethod(f="plotDiffHeatmap",
     }
 )
 
+# ------------------------------------------------------------------------------
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="ANY", y="list"), 

@@ -4,6 +4,7 @@
 \name{compCytof}
 \alias{compCytof}
 \alias{compCytof,flowFrame,matrix-method}
+\alias{compCytof,flowSet,ANY-method}
 \alias{compCytof,character,matrix-method}
 \alias{compCytof,ANY,data.frame-method}
 \title{Compensate CyTOF data}
@@ -12,6 +13,8 @@ compCytof(x, y, ...)
 
 \S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL,
   method = "flow")
+
+\S4method{compCytof}{flowSet,ANY}(x, y, out_path = NULL, method = "flow")
 
 \S4method{compCytof}{character,matrix}(x, y, out_path = NULL,
   method = "flow")

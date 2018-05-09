@@ -9,11 +9,11 @@
 #' @param hm2 
 #'   character string. Specifies the right-hand side heatmap. One of:
 #'   \itemize{
-#'   \item \code{"abundances"}: cluster frequencies across samples
-#'   \item \code{"state_markers"}: median cell state marker expressions 
-#'     across clusters (analogous to the left-hand side heatmap)
-#'   \item a character string/vector corresponding to one/multiple marker(s): 
-#'     median marker expressions across samples and clusters}
+#'   \item{\code{"abundances"}: cluster frequencies across samples}
+#'   \item{\code{"state_markers"}: median cell state marker expressions 
+#'     across clusters (analogous to the left-hand side heatmap)}
+#'   \item{a character string/vector corresponding to one/multiple marker(s): 
+#'     median marker expressions across samples and clusters}}
 #' @param k 
 #'   numeric or character string. Specifies the clustering 
 #'   across which median marker expressions should be computed.
@@ -44,9 +44,11 @@
 #' median (scaled, arcsinh-transformed) cell-type marker expressions (across all samples).
 #' Depending on argument \code{hm2}, the 2nd panel will contain one of:
 #' \itemize{
-#' \item relataive cluster abundances by sample
-#' \item median (scaled, arcsinh-transformed) cell-state marker expressions (across all samples)
-#' \item median (scaled, arcsinh-transformed) cell-state marker expressions by sample
+#' \item{relataive cluster abundances by sample}
+#' \item{median (scaled, arcsinh-transformed) 
+#'   cell-state marker expressions (across all samples)}
+#' \item{median (scaled, arcsinh-transformed) 
+#'   cell-state marker expressions by sample}
 #' }
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.

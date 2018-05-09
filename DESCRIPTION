@@ -24,7 +24,6 @@ Imports:
     grid,
     gridExtra,
     htmltools,
-    htmlwidgets,
     limma,
     magrittr,
     matrixStats,

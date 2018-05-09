@@ -15,6 +15,8 @@
 #' @param annotate
 #'   logical. If TRUE (default), spill percentages are shown inside bins 
 #'   and rows are annotated with the total amount of spill received. 
+#' @param plotly
+#'   logical. Should an interactive plot be rendered?
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
@@ -42,8 +44,8 @@
 
 setMethod(f="plotSpillmat",
     signature=signature(bc_ms="numeric", SM="matrix"),
-    definition=function(bc_ms, SM, 
-        out_path=NULL, name_ext=NULL, annotate=TRUE) {
+    definition=function(bc_ms, SM, out_path=NULL, 
+        name_ext=NULL, annotate=TRUE, plotly=TRUE) {
     
         SM <- check_sm(SM)
         nms <- colnames(SM)
@@ -75,7 +77,7 @@ setMethod(f="plotSpillmat",
             scale_y_discrete(limits=rev(rownames(SM)), expand=c(0,0)) +
             coord_fixed() + labs(x=NULL, y=NULL) + theme_bw() + theme(
                 panel.grid=element_blank(), panel.border=element_blank(),
-                axis.text.x=element_text(angle=45))
+                axis.text.x=element_text(angle=45, vjust=1, hjust=1))
         
         if (annotate) {
             spill_labs <- sprintf("%.1f", df$spill)
@@ -84,34 +86,43 @@ setMethod(f="plotSpillmat",
             p <- p + geom_text(aes_string(label="spill_labs"), size=size)
         }
         
-        if (!is.null(out_path)) {
+        if (plotly)
             p <- ggplotly(p, width=720, height=720,
                 tooltip=c("Emitting", "Receiving", "Spillover")) %>%
-                layout(margin=list(l=72, b=58))
-            htmltools::save_html(p, file.path(out_path, 
-                paste0("SpillMat", name_ext, ".html")))
+                layout(margin=list(l=72, b=58)) 
+        
+        if (!is.null(out_path)) {
+            if (class(p)[1] == "plotly") {
+                htmltools::save_html(p, 
+                    file.path(out_path, paste0("SpillMat", name_ext, ".html")))
+            } else {
+                ggsave(plot=p, width=7, height=7,
+                    file.path(out_path, paste0("SpillMat", name_ext, ".pdf")))
+            }
         } else {
-            ggplotly(p, width=720, height=720,
-                tooltip=c("Emitting", "Receiving", "Spillover")) %>%
-                layout(margin=list(l=72, b=58))
+            p
         }
     }
 )
 
+# ------------------------------------------------------------------------------
+#' @rdname plotSpillmat
 setMethod(f="plotSpillmat",
     signature=signature(bc_ms="ANY", SM="data.frame"),
     definition=function(bc_ms, SM, 
-        out_path=NULL, name_ext=NULL, annotate=TRUE) {
-        plotSpillmat(bc_ms, as.matrix(SM), 
-            out_path=NULL, name_ext=NULL, annotate=TRUE)
+        out_path=NULL, name_ext=NULL, annotate=TRUE, plotly=TRUE) {
+        plotSpillmat(bc_ms, as.matrix(SM), out_path=NULL, 
+            name_ext=NULL, annotate=TRUE, plotly=TRUE)
     }
 )
 
+# ------------------------------------------------------------------------------
+#' @rdname plotSpillmat
 setMethod(f="plotSpillmat",
     signature=signature(bc_ms="character", SM="ANY"),
     definition=function(bc_ms, SM, 
-        out_path=NULL, name_ext=NULL, annotate=TRUE) {
-        plotSpillmat(as.numeric(bc_ms), SM, 
-            out_path=NULL, name_ext=NULL, annotate=TRUE)
+        out_path=NULL, name_ext=NULL, annotate=TRUE, plotly=TRUE) {
+        plotSpillmat(as.numeric(bc_ms), SM, out_path=NULL, 
+            name_ext=NULL, annotate=TRUE, plotly=TRUE)
     }
 )

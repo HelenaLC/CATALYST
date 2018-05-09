@@ -57,7 +57,7 @@ make_symetric <- function(x) {
 # ==============================================================================
 # check validity of input spillover matrix in compCytof()
 # ------------------------------------------------------------------------------
-check_sm <- function(sm) {
+check_sm <- function(sm, l=CATALYST::isotope_list) {
     if (any(sm < 0))
         stop("\nThe supplied spillover matrix is invalid ",
             "as it contains negative entries.\n",
@@ -76,8 +76,7 @@ check_sm <- function(sm) {
         stop("\nThe supplied spillover matrix seems to be invalid.\n",
             "All spill channels must appear as receiving channels:\n",
             "'all(rownames(sm) %in% colnames(sm))' should return TRUE.")
-    isos <-  paste0(gsub("[0-9]", "", names(unlist(isotope_list))), 
-        as.numeric(unlist(isotope_list)))
+    isos <-  paste0(gsub("[0-9]", "", names(unlist(l))), as.numeric(unlist(l)))
     test <- sapply(dimnames(sm), function(chs) {
         ms <- get_ms_from_chs(chs)
         mets <- get_mets_from_chs(chs)

@@ -130,19 +130,19 @@ setValidity(Class="dbFrame",
 #'   \item{\code{colData}}{
 #'     a data.frame with the following columns:
 #'     \itemize{
-#'       \item \code{marker_name} original column name in the input \code{flowSet}
-#'       \item \code{marker_class} one of \code{"type"} or \code{"state"}}}
+#'       \item{\code{marker_name} original column name in the input \code{flowSet}}
+#'       \item{\code{marker_class} one of \code{"type"} or \code{"state"}}}}
 #'   \item{\code{metadata}}{
 #'     a named list containing:
 #'     \itemize{
-#'       \item \code{design}: the original metadata-table
-#'       \item \code{panel}: the original panel-table
-#'       \item \code{n_cells}: the number of events measured per sample
-#'       \item \code{SOM_codes}: a k x p matrix of SOM codes, where
-#'         k = no. of clusters, and p = no. of measurement parameters
-#'       \item \code{cluster_codes}: cluster codes for the initial \pkg{FlowSOM} 
+#'       \item{\code{design}: the original metadata-table}
+#'       \item{\code{panel}: the original panel-table}
+#'       \item{\code{n_cells}: the number of events measured per sample}
+#'       \item{\code{SOM_codes}: a k x p matrix of SOM codes, where
+#'         k = no. of clusters, and p = no. of measurement parameters}
+#'       \item{\code{cluster_codes}: cluster codes for the initial \pkg{FlowSOM} 
 #'         clustering, the \pkg{ConsensusClusterPlus} metaclustering, and manual 
-#'         mergings done with \code{\link{mergeClusters}}}}}
+#'         mergings done with \code{\link{mergeClusters}}}}}}
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom flowCore colnames exprs fsApply parameters pData

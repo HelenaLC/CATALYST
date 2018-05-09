@@ -9,7 +9,7 @@
 plotYields(x, ...)
 
 \S4method{plotYields}{dbFrame}(x, which = 0, out_path = NULL,
-  name_ext = NULL)
+  name_ext = NULL, plotly = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
@@ -23,6 +23,8 @@ Valid values are IDs that occur as row names of \code{bc_key(x)};
 \item{out_path}{character string. If specified, outputs will be generated here.}
 
 \item{name_ext}{character string. If specified, will be appended to the plot's name.}
+
+\item{plotly}{logical. Should an interactive plot be rendered?}
 }
 \value{
 plots the distribution of barcode separations and yields upon 
