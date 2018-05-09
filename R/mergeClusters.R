@@ -56,7 +56,7 @@ setMethod(f="mergeClusters",
         k <- max(table$old_cluster)
         m <- match(cluster_codes(x)[, k], table$old_cluster)
         new_ids <- table$new_cluster[m]
-        metadata(x)$cluster_codes[, id] <- new_ids
+        metadata(x)$cluster_codes[, id] <- factor(new_ids)
         return(x)
     }
 )
