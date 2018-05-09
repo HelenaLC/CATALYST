@@ -92,7 +92,7 @@ check_validity_cols <- function(cols_to_use, col_nms) {
     if (is.integer(cols_to_use))
         check3 <- min(cols_to_use >= 1) && max(cols_to_use <= ncol)
 
-    if (!(check1 | check2 | check3))
+    if (!any(check1, check2, check3))
         stop("Invalid argument 'cols_to_use'.\nShould be either", 
             " a logial vector, a numeric vector of indices, or",
             " a character vector of column names.")
