@@ -10,6 +10,8 @@
 #'   If NULL, the function will attempt to use the \code{type_markers(x)}.
 #' @param n 
 #'   numeric. Specifies the number of cells to downsample to per sample.
+#' @param verbose
+#'   logical. Should information on progress be reported?
 #' @param seed 
 #'   numeric. Specifies the seed to be set before sampling
 #' 
@@ -46,7 +48,7 @@
 
 setMethod(f="tSNE",
     signature=signature(x="daFrame"),
-    definition=function(x, cols_to_use=NULL, n=1000, seed=42) {
+    definition=function(x, cols_to_use=NULL, n=1000, verbose=TRUE, seed=42) {
         if (is.null(cols_to_use)) {
             type_markers <- colData(x)$marker_class == "type"
             if (sum(colData(x)$marker_class == "type") < 3)
@@ -56,7 +58,8 @@ setMethod(f="tSNE",
             cols_to_use <- type_markers
         }
         
-        message("o downsampling to ", n, " events per sample...")
+        if (verbose)
+            message("o downsampling to ", n, " events per sample...")
         dups <- which(!duplicated(exprs(x)[, cols_to_use]))
         n_cells <- pmin(metadata(x)$n_cells, n)
         inds <- split(seq_len(nrow(exprs(x))), sample_ids(x))
@@ -65,7 +68,8 @@ setMethod(f="tSNE",
             s <- sample(inds[[i]], n_cells[i], replace=FALSE)
             intersect(s, dups)
         })
-        message("o running tSNE...")
+        if (verbose)
+            message("o running tSNE...")
         tsne_inds <- unlist(tsne_inds)
         tsne_es <- exprs(x)[tsne_inds, cols_to_use]
         tsne <- Rtsne(tsne_es, check_duplicates=FALSE, pca=FALSE)
