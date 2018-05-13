@@ -47,7 +47,8 @@
 
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, by=c("sample_id", "cluster_id"), group=NULL) {
+    definition=function(x, k=20, 
+        by=c("sample_id", "cluster_id"), group="condition") {
     
         # validity checks
         by <- match.arg(by)
