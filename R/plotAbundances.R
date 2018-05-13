@@ -14,10 +14,10 @@
 #' @param by 
 #'   a character string specifying whether to plot 
 #'   frequencies by samples or clusters.
-#' @param facet 
+#' @param group 
 #'   a character string. Should corresponds to a column name of 
-#'   \code{rowData(x)}. If specified, the data will be grouped 
-#'   according to this variable.
+#'   \code{rowData(x)} other than "sample_id" and "cluster_id". 
+#'   If specified, the data will be grouped according to this variable.
 #' 
 #' @return a \code{ggplot} object.
 #' 
@@ -47,18 +47,26 @@
 
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, 
-        by=c("sample_id", "cluster_id"), 
-        facet="condition") {
+    definition=function(x, k=20, by=c("sample_id", "cluster_id"), group=NULL) {
     
+        # validity checks
         by <- match.arg(by)
         k <- check_validity_of_k(x, k)
+        valid <- setdiff(colnames(rowData(x)), c("sample_id", "cluster_id"))
+        if (!group %in% valid)
+            stop("Argument 'group = ", dQuote(group), "' invalid.\n",
+                "Should be one of: ", paste(dQuote(valid), collapse=", "))
+        
+        # get cluster IDs & abundances
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
         counts <- table(cluster_ids, sample_ids(x))
         
+        # get frequencies by cluster & sample
         df <- melt(t(t(counts)/colSums(counts))*100, 
             varnames=c("cluster_id", "sample_id"),
             value.name="freq")
+        
+        # add metadata
         md <- metadata(x)$experiment_info
         m <- match(df$sample_id, md$sample_id)
         df <- data.frame(df, md[m, setdiff(names(md), names(df))])
@@ -68,23 +76,24 @@ setMethod(f="plotAbundances",
                 panel.grid.minor=element_blank(),
                 panel.grid.major=element_blank(),
                 strip.background=element_rect(fill=NA, color=NA),
+                strip.text=element_text(face="bold"),
                 axis.ticks.x=element_blank(),
                 axis.text=element_text(color="black"),
                 axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
         
         switch(by,
-            sample_id = p + facet_wrap(facet, scales="free_x") +
-                geom_bar(aes_string(x="sample_id", fill="cluster_id"), 
+            sample_id = p + facet_wrap(group, scales="free_x") +
+                geom_bar(aes_string(x="sample_id", fill="factor(cluster_id)"), 
                     position="fill", stat="identity") +
-                scale_fill_manual(values=cluster_cols) +
+                scale_fill_manual("cluster_id", values=cluster_cols) +
                 scale_y_continuous(expand=c(0,0), labels=seq(0,100,25)) +
                 theme(panel.border=element_blank()),
             cluster_id = p + facet_wrap(~cluster_id, scales="free_y", ncol=4) +
                 guides(fill=FALSE) + geom_boxplot(aes_string(
-                    x=facet, color=facet, fill=facet),
+                    x=group, color=group, fill=group),
                     position=position_dodge(), alpha=.25, outlier.color=NA) + 
                 geom_point(position=position_jitter(width=.25),
-                    aes_string(x=facet, y="freq", color=facet)) +
+                    aes_string(x=group, y="freq", color=group)) +
                 theme(panel.grid.major=element_line(color="grey", size=.25))
         )
     }
