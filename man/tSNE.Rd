@@ -8,7 +8,8 @@
 \usage{
 tSNE(x, ...)
 
-\S4method{tSNE}{daFrame}(x, cols_to_use = NULL, n = 1000, seed = 42)
+\S4method{tSNE}{daFrame}(x, cols_to_use = NULL, n = 1000, verbose = TRUE,
+  seed = 42)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -19,6 +20,8 @@ tSNE(x, ...)
 If NULL, the function will attempt to use the \code{type_markers(x)}.}
 
 \item{n}{numeric. Specifies the number of cells to downsample to per sample.}
+
+\item{verbose}{logical. Should information on progress be reported?}
 
 \item{seed}{numeric. Specifies the seed to be set before sampling}
 }

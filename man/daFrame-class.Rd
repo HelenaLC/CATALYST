@@ -6,13 +6,14 @@
 \alias{daFrame}
 \title{Differential analysis frame class}
 \usage{
-daFrame(fs, panel, md, cols_to_use = NULL, cofactor = 5,
+daFrame(x, panel, md, cols_to_use = NULL, cofactor = 5,
   panel_cols = list(channel = "fcs_colname", antigen = "antigen"),
   md_cols = list(file = "file_name", id = "sample_id", factors =
   c("condition", "patient_id")))
 }
 \arguments{
-\item{fs}{a \code{\link[flowCore]{flowSet}} holding all samples.}
+\item{x}{a \code{\link[flowCore]{flowSet}} holding all samples OR
+a character vector that specifies a path to set of FCS files.}
 
 \item{panel}{a 2 column \code{data.frame} that contains for each marker of interest 
 i) its column name in the FCS file, and ii) the targeted protein marker.}
@@ -26,7 +27,8 @@ An exemplary metadata table could look as follows:
   \item \code{patient_id}: the patient ID}}
 
 \item{cols_to_use}{a logical vector OR numeric vector of indices OR character vector 
-of column names. Specifies the columns to keep from \code{fs}.}
+of column names. Specifies which columns to keep from the input
+\code{flowSet}/FCS files.}
 
 \item{cofactor}{numeric. Cofactor to use for arcsinh-transformation.}
 

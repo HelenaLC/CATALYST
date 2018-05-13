@@ -9,7 +9,7 @@
 plotAbundances(x, ...)
 
 \S4method{plotAbundances}{daFrame}(x, k = 20, by = c("sample_id",
-  "cluster_id"), facet = "condition")
+  "cluster_id"), group = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -21,9 +21,9 @@ plotAbundances(x, ...)
 \item{by}{a character string specifying whether to plot 
 frequencies by samples or clusters.}
 
-\item{facet}{a character string. Should corresponds to a column name of 
-\code{rowData(x)}. If specified, the data will be grouped 
-according to this variable.}
+\item{group}{a character string. Should corresponds to a column name of 
+\code{rowData(x)} other than "sample_id" and "cluster_id". 
+If specified, the data will be grouped according to this variable.}
 }
 \value{
 a \code{ggplot} object.
