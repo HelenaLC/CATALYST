@@ -56,8 +56,8 @@ setMethod(f="plotMDS",
         
         ggplot(df, aes_string(x="MDS1", y="MDS2", col=color_by)) + 
             geom_label_repel(aes_string(label="sample_id"), 
-                show.legend=FALSE) + geom_point(alpha=.75) + 
-            guides(col=guide_legend(overide.aes=list(alpha=1))) +
+                show.legend=FALSE) + geom_point(alpha=.8, size=1.2) + 
+            guides(col=guide_legend(overide.aes=list(alpha=1, size=3))) +
             theme_void() + theme(aspect.ratio=1,
                 panel.grid.minor=element_blank(),
                 panel.grid.major=element_line(color='lightgrey', size=.25), 
