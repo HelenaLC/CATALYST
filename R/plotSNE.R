@@ -87,7 +87,7 @@ setMethod(f="plotSNE",
         if (is.null(facet)) {
             p
         } else {
-            p + facet_wrap(facet)
+            p + facet_wrap(facet, ncol=4)
         }
     }
 )
