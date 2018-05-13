@@ -23,7 +23,7 @@ frequencies by samples or clusters.}
 
 \item{group}{a character string. Should corresponds to a column name of 
 \code{rowData(x)} other than "sample_id" and "cluster_id". 
-If specified, the data will be grouped according to this variable.}
+The default NULL will use the first factor available.}
 }
 \value{
 a \code{ggplot} object.
@@ -39,8 +39,8 @@ lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33",
     "CD123", "CD14", "IgM", "HLA-DR", "CD7")
 re <- cluster(re, cols_to_use=lineage)
 # plot relative population abundances 
-plotAbundances(re, k=12)                 # ...across samples 
-plotAbundances(re, k=8, by="cluster_id") # ...across clusters
+plotAbundances(re, k=12)                 # ...by sample 
+plotAbundances(re, k=8, by="cluster_id") # ...by cluster
 
 }
 \references{

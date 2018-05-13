@@ -17,7 +17,7 @@
 #' @param group 
 #'   a character string. Should corresponds to a column name of 
 #'   \code{rowData(x)} other than "sample_id" and "cluster_id". 
-#'   If specified, the data will be grouped according to this variable.
+#'   The default NULL will use the first factor available.
 #' 
 #' @return a \code{ggplot} object.
 #' 
@@ -37,8 +37,8 @@
 #'     "CD123", "CD14", "IgM", "HLA-DR", "CD7")
 #' re <- cluster(re, cols_to_use=lineage)
 #' # plot relative population abundances 
-#' plotAbundances(re, k=12)                 # ...across samples 
-#' plotAbundances(re, k=8, by="cluster_id") # ...across clusters
+#' plotAbundances(re, k=12)                 # ...by sample 
+#' plotAbundances(re, k=8, by="cluster_id") # ...by cluster
 #' 
 #' @import ggplot2
 #' @importFrom reshape2 melt
@@ -47,16 +47,21 @@
 
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, 
-        by=c("sample_id", "cluster_id"), group="condition") {
+    definition=function(x, k=20, by=c("sample_id", "cluster_id"), group=NULL) {
     
         # validity checks
         by <- match.arg(by)
         k <- check_validity_of_k(x, k)
         valid <- setdiff(colnames(rowData(x)), c("sample_id", "cluster_id"))
-        if (!group %in% valid)
+        if (length(valid) == 0)
+            stop("No factors to group by. Metadata should contain\n", 
+                "at least one column other than 'file' and 'id'.")
+        if (is.null(group)) {
+            group <- valid[1]
+        } else if (!is.character(group) | !group %in% valid) {
             stop("Argument 'group = ", dQuote(group), "' invalid.\n",
                 "Should be one of: ", paste(dQuote(valid), collapse=", "))
+        }
         
         # get cluster IDs & abundances
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
