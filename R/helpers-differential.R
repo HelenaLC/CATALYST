@@ -95,7 +95,7 @@ plot_delta_area <- function(mc) {
         scale_x_continuous(breaks=seq(2, 20, 2), expand=c(0,.5)) +
         scale_y_continuous(limits=c(0, y_max), expand=c(0,.125), 
             breaks=function(x) seq(x[1]+.125, x[2], .5)) +
-        ylab("Relative change in area under CDF curve") +
+        ylab("Relative change\nin area under CDF curve") +
         theme(plot.title=element_text(face="bold"),
             axis.text=element_text(color="black"),
             panel.grid.major=element_line(color="grey", size=.2))
