@@ -145,7 +145,7 @@ setValidity(Class="dbFrame",
 #'         mergings done with \code{\link{mergeClusters}}}}}}
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @importFrom flowCore colnames exprs fsApply parameters pData
+#' @importFrom flowCore colnames exprs fsApply parameters pData read.flowSet
 #' @importFrom FlowSOM BuildSOM ReadInput
 #' @importFrom methods new
 #' @importFrom S4Vectors DataFrame SimpleList
@@ -162,8 +162,9 @@ setClass(
 # constructor
 #' @rdname daFrame-class
 #' 
-#' @param fs 
-#'   a \code{\link[flowCore]{flowSet}} holding all samples.
+#' @param x 
+#'   a \code{\link[flowCore]{flowSet}} holding all samples OR
+#'   a character vector that specifies a path to set of FCS files.
 #' @param panel 
 #'   a 2 column \code{data.frame} that contains for each marker of interest 
 #'   i) its column name in the FCS file, and ii) the targeted protein marker.
@@ -186,19 +187,38 @@ setClass(
 #'   Elements must be named \code{"file"}, \code{"id"}, and \code{"factors"}.
 #' @param cols_to_use 
 #'   a logical vector OR numeric vector of indices OR character vector 
-#'   of column names. Specifies the columns to keep from \code{fs}.
+#'   of column names. Specifies which columns to keep from the input
+#'   \code{flowSet}/FCS files.
 #' @param cofactor 
 #'   numeric. Cofactor to use for arcsinh-transformation.
 #' 
 #' @return an object of class \code{\link{SummarizedExperiment}}.
 #' 
-#' @import SummarizedExperiment
 #' @export
 
-daFrame <- function(fs, panel, md, cols_to_use=NULL, cofactor=5,
+daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     panel_cols=list(channel="fcs_colname", antigen="antigen"),
     md_cols=list(file="file_name", id="sample_id", 
         factors=c("condition", "patient_id"))) {
+    
+    if (is.character(x)) {
+        stopifnot(dir.exists(x))
+        fcs <- list.files(x, ".fcs$", full.names=TRUE, ignore.case=TRUE)
+        if (length(fcs) == 1)
+            stop("The specified path contains only a single FCS file.")
+        stopifnot(all(sapply(fcs, isFCSfile)))
+        # read FCS files as flowSet
+        fs <- read.flowSet(fcs, 
+            transformation=FALSE, 
+            truncate_max_range=FALSE)
+    } else if (class(x) == "flowSet") {
+        fs <- x
+    } else {
+        stop("'x' should be either a flowSet or\na character string",
+            " that specifyies a path to a set of FCS files.")
+    }
+    # check that filenames can be matched b/w flowSet & metadata
+    stopifnot(all(keyword(fs, "FILENAME") %in% md[[md_cols$file]]))
     
     # set/check colnames of panel 
     chs <- flowCore::colnames(fs)
