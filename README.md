@@ -21,7 +21,6 @@ We designed CATALYST (Cytometry dATa anALYSis Tools) to provide:
 * The preprint to this project is accesible on [BioRxiv preprint](https://doi.org/10.1101/185744).
 * Our manuscript is available at [Cell Systems](https://doi.org/10.1016/j.cels.2018.02.010).
 * Scripts to reproduce a majority of the figures from our paper can be found [here](https://github.com/BodenmillerGroup/cyTOFcompensation).
-* For source code, please view CATALYST's [GitHub repository](https://github.com/HelenaLC/CATALYST).
 * To use our web application, go to [CATALYSTLite](http://imlspenticton.uzh.ch:3838/CATALYSTLite).
 
 ---
