@@ -6,9 +6,10 @@
 \alias{adaptSpillmat,matrix,vector-method}
 \title{Adapt spillover matrix}
 \usage{
-adaptSpillmat(input_sm, out_chs)
+adaptSpillmat(input_sm, out_chs, ...)
 
-\S4method{adaptSpillmat}{matrix,vector}(input_sm, out_chs)
+\S4method{adaptSpillmat}{matrix,vector}(input_sm, out_chs,
+  isotope_list = CATALYST::isotope_list)
 }
 \arguments{
 \item{input_sm}{a previously calculated spillover matrix.}
@@ -18,6 +19,10 @@ Numeric names as well as names of the form MetalMass(Di), e.g. Ir191Di
 or Ir191, will be interpreted as masses with associated metals.}
 
 \item{...}{optional arguments.}
+
+\item{isotope_list}{named list. Used to validate the input spillover matrix.
+Names should be metals; list elements numeric vectors of their isotopes.
+See \code{\link{isotope_list}} for the list of isotopes used by default.}
 }
 \value{
 An adapted spillover matrix with column and row names 

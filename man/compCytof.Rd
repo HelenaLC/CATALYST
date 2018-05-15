@@ -12,7 +12,7 @@
 compCytof(x, y, ...)
 
 \S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL,
-  method = "flow")
+  method = "flow", isotope_list = CATALYST::isotope_list)
 
 \S4method{compCytof}{flowSet,ANY}(x, y, out_path = NULL, method = "flow")
 
@@ -34,6 +34,10 @@ in this location. If \code{x} is a character string, file names will be
 inherited from uncompensated FCS files and given extension "_comped".}
 
 \item{method}{\code{"flow"} or \code{"nnls"}.}
+
+\item{isotope_list}{named list. Used to validate the input spillover matrix.
+Names should be metals; list elements numeric vectors of their isotopes.
+See \code{\link{isotope_list}} for the list of isotopes used by default.}
 }
 \value{
 Compensates the input \code{\link{flowFrame}} or, 
