@@ -84,7 +84,7 @@ check_sm <- function(sm, l=CATALYST::isotope_list) {
     })
     if (any(!test)) 
         stop("\nThe supplied spillover matrix seems to be invalid.\n",
-            "All isotopes should appear in 'data(isotope_list)'.")
+            "All isotopes should appear in `", deparse(substitute(l)), "`.")
     sm[, colSums(sm) != 0]
 }
 

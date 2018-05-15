@@ -15,6 +15,10 @@
 #'   inherited from uncompensated FCS files and given extension "_comped".
 #' @param method
 #'   \code{"flow"} or \code{"nnls"}.
+#' @param isotope_list
+#'   named list. Used to validate the input spillover matrix.
+#'   Names should be metals; list elements numeric vectors of their isotopes.
+#'   See \code{\link{isotope_list}} for the list of isotopes used by default.
 #' 
 #' @details
 #' If the spillover matrix (SM) does not contain the same set of columns as 
@@ -63,8 +67,9 @@
 
 setMethod(f="compCytof",
     signature=signature(x="flowFrame", y="matrix"),
-    definition=function(x, y, out_path=NULL, method="flow") {
-        sm <- adaptSpillmat(y, flowCore::colnames(x))
+    definition=function(x, y, out_path=NULL, method="flow", 
+        isotope_list=CATALYST::isotope_list) {
+        sm <- adaptSpillmat(y, flowCore::colnames(x), isotope_list)
         if (method == "flow") { 
             ff_comped <- flowCore::compensate(x, sm)
         } else if (method == "nnls") {

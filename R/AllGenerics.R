@@ -161,7 +161,7 @@ setGeneric("plotSpillmat",
 #' @param ... optional arguments.
 #' @export
 setGeneric("adaptSpillmat", 
-    function(input_sm, out_chs) standardGeneric("adaptSpillmat"))
+    function(input_sm, out_chs, ...) standardGeneric("adaptSpillmat"))
 
 #' @rdname compCytof
 #' @param ... optional arguments.
