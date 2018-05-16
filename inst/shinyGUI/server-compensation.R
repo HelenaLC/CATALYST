@@ -30,25 +30,22 @@ fsComp <- reactive({
             fs <- as(ffs, "flowSet")
             nms <- gsub(".fcs", "_normed.fcs", smplNmsNorm(), ignore.case=TRUE)
     } else {
-        req(input_ffs_comp())
-        fs <- as(input_ffs_comp(), "flowSet")
+        # read & check input FCS files
+        fcs <- req(input$fcsComp)
+        n <- nrow(fcs)
+        req(check_FCS_fileInput(fcs, n))
+        ffs <- lapply(seq_len(n), function(i) 
+            flowCore::read.FCS(
+                filename=fcs[[i, "datapath"]],
+                transformation=FALSE,
+                truncate_max_range=FALSE))
+        fs <- as(ffs, "flowSet")
         nms <- input$fcsComp$name
     }
     for (i in seq_along(fs))
         description(fs[[i]])[c("GUID", "ORIGINALGUID")] <- 
             identifier(fs[[i]]) <- nms[i]
     return(fs)
-})
-
-# read & check input FCS files
-input_ffs_comp <- eventReactive(input$fcsComp, {
-    n <- nrow(input$fcsComp)
-    req(check_FCS_fileInput(input$fcsComp, n))
-    lapply(seq_len(n), function(i) 
-        flowCore::read.FCS(
-            filename=input$fcsComp[[i, "datapath"]],
-            transformation=FALSE,
-            truncate_max_range=FALSE))
 })
 
 # render fileInput for spillover matrix CSV or single-stains FCS
@@ -284,7 +281,7 @@ input_sm <- eventReactive(input$input_sm, {
 # get spillover matrix
 sm <- reactive({
     x <- input$upload_or_est_sm
-    switch (x,
+    switch(x,
         upload_sm = req(input_sm()),
         est_sm = req(estimated_sm()))
 })
