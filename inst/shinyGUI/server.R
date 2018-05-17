@@ -29,4 +29,15 @@ shinyServer(function(input, output, session) {
         # compensation
         mhlCutoffComp = 30   # default Mahalanobis distance cutoff
     )
+    if (!exists("custom_isotope_list")) {
+        showNotification(
+            h4(strong("Using default isotope list.")), 
+            closeButton=FALSE)
+        vals$isotope_list <- CATALYST::isotope_list
+    } else {
+        showNotification(
+            h4(strong("Using custom isotope list.")), 
+            closeButton=FALSE)
+        vals$isotope_list <- custom_isotope_list
+    }
 })

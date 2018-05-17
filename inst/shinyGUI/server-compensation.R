@@ -269,7 +269,7 @@ input_sm <- eventReactive(input$input_sm, {
         return()
     }
     sm <- read.csv(input$input_sm$datapath, row.names=1)
-    sm <- tryCatch(CATALYST:::check_sm(sm), error=function(e) e)
+    sm <- tryCatch(CATALYST:::check_sm(sm, vals$isotope_list), error=function(e) e)
     if (inherits(sm, "error")) {
         showNotification(type="error", closeButton=FALSE,
             h4(strong("Input spillover matrix seems to be invalid.")))
@@ -299,7 +299,7 @@ output$plotSpillmat <- renderPlotly({
         upload_sm = CATALYST:::get_ms_from_chs(colnames(vals$sm)),
         est_sm = rownames(bc_key(dbFrameComp())))
     pdf(NULL)
-    CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
+    CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm, isotope_list=vals$isotope_list)
 })
 
 # ------------------------------------------------------------------------------
@@ -317,7 +317,7 @@ nnlsComped <- reactive({
     req(fsComp(), vals$sm, input$compensation_method == "nnls")
     showNotification(h4(strong("Compensating using NNLS...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
-    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "nnls")
+    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "nnls", vals$isotope_list)
     removeNotification(id="msg")
     return(fs)
 })
@@ -325,7 +325,7 @@ flowComped <- reactive({
     req(input$compensation_method == "flow", vals$sm, fsComp())
     showNotification(h4(strong("Compensating using method 'flow'...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
-    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "flow")
+    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "flow", vals$isotope_list)
     removeNotification(id="msg")
     return(fs)
 })
