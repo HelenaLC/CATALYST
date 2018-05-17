@@ -30,14 +30,35 @@ shinyServer(function(input, output, session) {
         mhlCutoffComp = 30   # default Mahalanobis distance cutoff
     )
     if (!exists("custom_isotope_list")) {
-        showNotification(
-            h4(strong("Using default isotope list.")), 
-            closeButton=FALSE)
+        showNotification(closeButton=FALSE,
+            h4(strong("Using default isotope list.")))
         vals$isotope_list <- CATALYST::isotope_list
     } else {
-        showNotification(
-            h4(strong("Using custom isotope list.")), 
-            closeButton=FALSE)
+        # validate custom isotope list:
+        # 1. is list
+        # 2. all elements are named
+        # 3. no elements are empty
+        # 4. all elements are numeric
+        # 5. no elements contain duplicates
+        l <- custom_isotope_list
+        check1 <- !is.list(l)
+        check2 <- length(names(l)) != length(l)
+        check3 <- any(sapply(l, length) == 0)
+        check4 <- !all(sapply(l, is.numeric))
+        check5 <- any(!equals(sapply(l, length), 
+            sapply(l, function(x) length(unique(x)))))
+        if (any(c(check1, check2, check3, check4, check5))) {
+            showNotification(duration=NULL,
+                "Specified custom isotope list is invalid.
+                Please make sure `custom_isotope_list` is a fully
+                named list with unique, positive numeric elements.")
+            showNotification(closeButton=FALSE,
+                h4(strong("Using default isotope list.")))
+            vals$isotope_list <- CATALYST::isotope_list
+            return()
+        }
+        showNotification(closeButton=FALSE,
+            h4(strong("Using custom isotope list.")))
         vals$isotope_list <- custom_isotope_list
     }
 })
