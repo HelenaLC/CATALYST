@@ -20,7 +20,7 @@ concatFCS(x, ...)
   file_num = FALSE)
 }
 \arguments{
-\item{x}{can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
+\item{x}{can be either a \code{flowSet}, a list of \code{flowFrame}s, 
 a character specifying the location of the FCS files to be concatinated, 
 or a vector of FCS file names.}
 
@@ -28,7 +28,7 @@ or a vector of FCS file names.}
 
 \item{out_path}{character string. If specified, an FCS file of the concatenated data 
 will be written to this location. 
-If NULL (default), a \code{\link[flowCore]{flowFrame}} will be returned.}
+If NULL (default), a \code{flowFrame} will be returned.}
 
 \item{by_time}{logical. Specifies whether files should be ordered by time of acquisition.}
 
@@ -38,7 +38,7 @@ If NULL (default), a \code{\link[flowCore]{flowFrame}} will be returned.}
 to use when merging files.}
 }
 \value{
-a \code{\link{flowFrame}} containing measurement intensities 
+a \code{flowFrame} containing measurement intensities 
 of all input data or a character of the FCS file name.
 }
 \description{
