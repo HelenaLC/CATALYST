@@ -298,7 +298,7 @@ setValidity(Class="daFrame",
                 paste(dQuote(valid_classes), collapse=", "), "."))
         # ----------------------------------------------------------------------
         # check names(metadata(x))
-        md_nms <- c("experiment_info", "n_cells", 
+        md_nms <- c("experiment_info", "n_cells", "cofactor",
             "SOM_codes", "cluster_codes", "delta_area")
         if (!all(names(metadata(object)) %in% md_nms))
             return(message("Invalid names(metadata(", x, ").", 
