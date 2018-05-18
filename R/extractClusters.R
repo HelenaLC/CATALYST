@@ -46,7 +46,7 @@
 #' re <- mergeClusters(re, merging_table, "merging_1")
 #' extractClusters(re, k = "merging_1")
 #' 
-#' @importFrom flowCore write.FCS
+#' @importFrom flowCore identifier<- description<- write.FCS
 # ------------------------------------------------------------------------------
 
 setMethod(f="extractClusters", 

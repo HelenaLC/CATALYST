@@ -163,7 +163,7 @@ setClass(
 #' @rdname daFrame-class
 #' 
 #' @param x 
-#'   a \code{\link[flowCore]{flowSet}} holding all samples OR
+#'   a \code{flowSet} holding all samples OR
 #'   a character vector that specifies a path to set of FCS files.
 #' @param panel 
 #'   a 2 column \code{data.frame} that contains for each marker of interest 
