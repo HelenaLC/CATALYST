@@ -179,7 +179,7 @@ setMethod(f="plotClusterHeatmap",
                 name="expression", column_names_gp=gpar(fontsize=8),
                 rect_gp=gpar(col='white'), na_col="lightgrey", 
                 cluster_rows=row_clustering, cluster_columns=FALSE,
-                heatmap_legend_param=list(at=seq(0,1,.2), color_bar="continuous"),
+                #heatmap_legend_param=list(at=seq(0,1,.2), color_bar="continuous"),
                 show_row_dend=draw_dend, column_title=names(groups)[i][many])
             
             # cluster frequencies
