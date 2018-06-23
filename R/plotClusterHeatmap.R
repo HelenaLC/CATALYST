@@ -71,8 +71,10 @@
 #' re <- cluster(re, cols_to_use=lineage)
 #' 
 #' plotClusterHeatmap(re, hm2="abundances")
+#' plotClusterHeatmap(re, hm2="abundances", draw_freqs = TRUE)
 #' plotClusterHeatmap(re, hm2="state_markers", k=16, split_by='condition')
 #' plotClusterHeatmap(re, hm2="pS6", k=12, m=8)
+#' plotClusterHeatmap(re, hm2="abundances", scale=FALSE, draw_freqs = TRUE)
 #' 
 #' @import ComplexHeatmap
 #' @importFrom dplyr funs group_by_ summarise_all
@@ -149,22 +151,24 @@ setMethod(f="plotClusterHeatmap",
             # left-hand side heatmap:
             # median cell-type marker expressions across clusters
             if (scale) {
-                es0 <- scale_exprs(exprs(x)[inds, ])
-                hm1_es <- data.frame(es0, cluster_id=cluster_ids[inds]) %>%
-                    group_by_(~cluster_id) %>% summarize_all(funs(median))
-                hm2_es <- es0
-            } else if (!many) {
+              es0 <- scale_exprs(exprs(x)[inds, , drop=FALSE])
+              hm1_es <- data.frame(es0, cluster_ids = cluster_ids[inds]) %>% 
+                group_by_(~cluster_ids) %>% summarize_all(funs(median))
+              hm2_es <- es0
+            } else {
+              if (!many) {
                 hm1_es <- med_exprs
                 hm2_es <- exprs(x)
-            } else {
-                hm2_es <- exprs(x)[inds, ]
-                hm1_es <- data.frame(hm2_es, cluster_id=cluster_ids[inds]) %>%
-                    group_by_(~cluster_id) %>% summarize_all(funs(median))
+              } else {
+                hm2_es <- exprs(x)[inds, , drop=FALSE]
+                hm1_es <- data.frame(hm2_es, cluster_ids = cluster_ids[inds]) %>% 
+                  group_by_(~cluster_ids) %>% summarize_all(funs(median))
+              }
             }
-
+            
             # add clusters if any missing
             missing <- levels(cluster_ids)[
-                !levels(cluster_ids) %in% hm1_es$cluster_id]
+                !levels(cluster_ids) %in% hm1_es$cluster_ids]
             missing <- matrix(c(factor(missing), 
                 rep(rep(NA, ncol(exprs(x))), length(missing))), 
                 nrow=length(missing), ncol=ncol(exprs(x))+1, 
@@ -182,7 +186,8 @@ setMethod(f="plotClusterHeatmap",
             freq_bars <- freq_anno <- NULL
             if (draw_freqs) {
                 counts <- as.numeric(table(cluster_ids[inds]))
-                freqs <- round(counts/sum(counts)*100, 2)[row_clustering$order]
+                freqs <- round(counts/sum(counts)*100, 2)
+                # freqs <- round(counts/sum(counts)*100, 2)[row_clustering$order]
                 freq_bars <- rowAnnotation("Frequency [%]"=row_anno_barplot(
                     x=freqs, axis=TRUE, border=FALSE, bar_with=.8, 
                     gp=gpar(fill="grey50", col="white")), width=unit(2, "cm"))
@@ -208,14 +213,23 @@ setMethod(f="plotClusterHeatmap",
                         cluster_ids[inds], sample_ids(x)[inds]))
                     freqs <- t(t(counts) / colSums(counts))
                     keep <- !apply(freqs, 2, function(x) all(is.na(x)))
-                    freqs <- matrix(freqs[, keep], nlevels(cluster_ids[inds]), 
+                    freqs <- matrix(freqs[, keep, drop=FALSE], nlevels(cluster_ids[inds]), 
                         dimnames=list(NULL, names(keep)[keep]))
-                    p <- p + Heatmap(matrix=freqs, 
-                        col=rev(brewer.pal(11, "PuOr")), name="frequency",  
-                        na_col="lightgrey", rect_gp=gpar(col='white'),
-                        show_row_names=FALSE, column_names_gp=gpar(fontsize=8), 
-                        cluster_rows=row_clustering, cluster_columns=FALSE,
-                        heatmap_legend_param=list(color_bar="continuous"))
+                    p <- p + Heatmap(matrix = freqs, 
+                                     #col = rev(RColorBrewer::brewer.pal(11,"PuOr")), 
+                                     name = "frequency", na_col = "lightgrey", 
+                                     rect_gp = gpar(col = "white"), show_row_names = FALSE, 
+                                     column_names_gp = gpar(fontsize = 8), cluster_rows = row_clustering, 
+                                     cluster_columns = FALSE, 
+                                     #heatmap_legend_param = list(color_bar = "continuous")
+                                     )
+                    
+                    # p <- p + Heatmap(matrix=freqs, 
+                    #     col=rev(brewer.pal(11, "PuOr")), name="frequency",  
+                    #     na_col="lightgrey", rect_gp=gpar(col='white'),
+                    #     show_row_names=FALSE, column_names_gp=gpar(fontsize=8), 
+                    #     cluster_rows=row_clustering, cluster_columns=FALSE,
+                    #     heatmap_legend_param=list(color_bar="continuous"))
                 } else if (hm2 == "state_markers") {
                     # median cell state marker expressions across clusters
                     p <- p + Heatmap(show_heatmap_legend=FALSE, 
@@ -246,5 +260,6 @@ setMethod(f="plotClusterHeatmap",
         })
         for (i in seq_along(hms)) 
             draw(hms[[i]])
+        invisible(hms)
     }
 )
