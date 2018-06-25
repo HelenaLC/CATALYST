@@ -165,16 +165,17 @@ setMethod(f="plotClusterHeatmap",
                   group_by_(~cluster_ids) %>% summarize_all(funs(median))
               }
             }
-            
+
             # add clusters if any missing
             missing <- levels(cluster_ids)[
                 !levels(cluster_ids) %in% hm1_es$cluster_ids]
-            missing <- matrix(c(factor(missing), 
-                rep(rep(NA, ncol(exprs(x))), length(missing))), 
-                nrow=length(missing), ncol=ncol(exprs(x))+1, 
-                dimnames=list(NULL, colnames(hm1_es)))
-            hm1_es <- rbind(hm1_es, missing)
-            
+            if(length(missing) > 0) {
+              na_matrix <- matrix(NA, nrow=length(missing), ncol=ncol(hm1_es)-1,
+                                  dimnames = list(NULL, colnames(hm1_es)[-1]))
+              na_df <- data.frame(cluster_ids = missing, na_matrix)
+              hm1_es <- rbind(hm1_es, na_df) %>% arrange(cluster_ids)
+            }
+
             hm1 <- Heatmap(matrix=hm1_es[, type_markers(x)], col=hm_cols, 
                 name="expression", column_names_gp=gpar(fontsize=8),
                 rect_gp=gpar(col='white'), na_col="lightgrey", 
@@ -187,7 +188,7 @@ setMethod(f="plotClusterHeatmap",
             if (draw_freqs) {
                 counts <- as.numeric(table(cluster_ids[inds]))
                 freqs <- round(counts/sum(counts)*100, 2)
-                # freqs <- round(counts/sum(counts)*100, 2)[row_clustering$order]
+                #freqs <- round(counts/sum(counts)*100, 2)[row_clustering$order]
                 freq_bars <- rowAnnotation("Frequency [%]"=row_anno_barplot(
                     x=freqs, axis=TRUE, border=FALSE, bar_with=.8, 
                     gp=gpar(fill="grey50", col="white")), width=unit(2, "cm"))
