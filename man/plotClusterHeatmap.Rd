@@ -78,8 +78,10 @@ lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33",
 re <- cluster(re, cols_to_use=lineage)
 
 plotClusterHeatmap(re, hm2="abundances")
+plotClusterHeatmap(re, hm2="abundances", draw_freqs = TRUE)
 plotClusterHeatmap(re, hm2="state_markers", k=16, split_by='condition')
 plotClusterHeatmap(re, hm2="pS6", k=12, m=8)
+plotClusterHeatmap(re, hm2="abundances", scale=FALSE, draw_freqs = TRUE)
 
 }
 \references{

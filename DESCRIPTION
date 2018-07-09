@@ -1,11 +1,11 @@
 Package: CATALYST
 Type: Package
 Title: Cytometry dATa anALYSis Tools
-Version: 1.5.3
+Version: 1.5.5
 Authors@R: c( 
   person("Helena L.", "Crowell", email="crowellh@student.ethz.ch", role="cre"),  
   person("Vito R.T.", "Zanotelli", email="vito.zanotelli@uzh.ch", role="aut"), 
-  person("Stéphane", "Chevrier", role=c("aut", "dtc")),
+  person("St??phane", "Chevrier", role=c("aut", "dtc")),
   person("Mark D.", "Robinson", email="mark.robinson@imls.uzh.ch", role=c("aut", "fnd")),
   person("Bernd", "Bodenmiller", role="fnd"))
 biocViews: MassSpectrometry, Preprocessing, StatisticalMethod, SingleCell, Normalization
