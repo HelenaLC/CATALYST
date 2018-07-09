@@ -165,6 +165,7 @@ setClass(
 #' @param x 
 #'   a \code{\link[flowCore]{flowSet}} holding all samples OR
 #'   a character vector that specifies a path to set of FCS files.
+#'   Can be \code{"."} for the current working directory.
 #' @param panel 
 #'   a 2 column \code{data.frame} that contains for each marker of interest 
 #'   i) its column name in the FCS file, and ii) the targeted protein marker.
@@ -203,9 +204,9 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     
     if (is.character(x)) {
         stopifnot(dir.exists(x))
-        fcs <- list.files(x, ".fcs$", full.names=TRUE, ignore.case=TRUE)
-        if (length(fcs) == 1)
-            stop("The specified path contains only a single FCS file.")
+        fcs <- list.files(x, ".fcs$", full.names=(x != "."), ignore.case=TRUE)
+        if (length(fcs) < 2)
+            stop("The specified path contains none or only a single FCS file.")
         stopifnot(all(sapply(fcs, isFCSfile)))
         # read FCS files as flowSet
         fs <- read.flowSet(fcs, 
@@ -250,13 +251,12 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     m <- match(keyword(fs, "FILENAME"), md[[md_cols$file]])
     fs <- fs[m]
     
-    md <- data.frame(md)
+    md <- data.frame(as.matrix(md), stringsAsFactors=TRUE)
     chs <- flowCore::colnames(fs)
     m1 <- match(panel[[panel_cols$channel]], chs, nomatch=0)
     m2 <- match(chs, panel[[panel_cols$channel]])
     flowCore::colnames(fs)[m1] <- antigens[m2]
-    es <- matrix(fsApply(fs, exprs), 
-        ncol=length(chs),
+    es <- matrix(fsApply(fs, exprs), ncol=length(chs),
         dimnames=list(NULL, flowCore::colnames(fs)))
     n_cells <- fsApply(fs, nrow)
     n_cells <- setNames(as.numeric(n_cells), md[[md_cols$id]])

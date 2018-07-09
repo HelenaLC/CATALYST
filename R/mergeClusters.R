@@ -47,14 +47,24 @@
 
 setMethod(f="mergeClusters", 
     signature=signature(x="daFrame"), 
-    definition=function(x, table, id) {
-        if (id %in% colnames(metadata(x)$cluster_codes)) {
-            stop("There already exists a clustering named ",
-                id, ". Please specify a different identifier.")
-        }
-        k <- max(table$old_cluster)
-        m <- match(cluster_codes(x)[, k], table$old_cluster)
-        new_ids <- table$new_cluster[m]
+    definition=function(x, table, id, 
+      cols = list(old="old_cluster", new="new_cluster"),
+      overwrite = FALSE) {
+        if (id %in% colnames(metadata(x)$cluster_codes) && !overwrite)
+            stop("There already exists a clustering with ID ",
+                dQuote(id), ".\nPlease specify a different identifier",
+                " or set `overwrite = TRUE`.")
+      
+        stopifnot(is.list(cols))
+        stopifnot(all(sapply(cols, is.character)))
+        stopifnot(length(cols) == 2)
+        stopifnot(all(names(cols) %in% c("old", "new")))
+        stopifnot(all(cols %in% colnames(table)))
+
+        table <- data.frame(table, check.names=FALSE)
+        k <- as.character(max(table[, cols$old]))
+        m <- match(cluster_codes(x)[, k], table[, cols$old])
+        new_ids <- table[m, cols$new]
         metadata(x)$cluster_codes[, id] <- factor(new_ids)
         return(x)
     }

@@ -48,3 +48,44 @@ setMethod(f="plotExprs",
                 axis.title=element_text(color="black"))
     }
 )
+
+plot_clustering_distr_wrapper <- function(x, markers, k = 20, 
+    clustering_distance="euclidean", clustering_linkage="average") {
+    
+    # validity checks
+    if (!all(markers %in% colnames(x))) 
+        stop("Invalid 'markers' specified.\n'",
+            "all(markers %in% colnames(x)' should return TRUE.")
+    k <- check_validity_of_k(x, k)
+    
+    # calculate median expression by cluster
+    cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
+    df <- data.frame(exprs(x)[, markers], cluster_id=cluster_ids)
+    med_exprs <- df %>% group_by_(~cluster_id) %>% summarize_all(funs(median))
+    
+    # sort clusters with hierarchical clustering
+    d <- dist(med_exprs[, markers], method=clustering_distance)
+    h <- hclust(d, method=clustering_linkage)
+    o <- levels(cluster_ids)[rev(h$order)]
+    
+    # calculate cluster frequencies
+    counts <- table(cluster_ids)
+    freqs <- round(as.numeric(counts)/sum(counts)*100, 2)
+    df$cluster_id <- factor(cluster_ids, 
+        labels=paste0(levels(cluster_ids), " (", freqs, "%)")[as.numeric(o)])
+
+    df_dat <- melt(df, id.vars="cluster_id", 
+        value.name="expression", variable.name="antigen")
+    df_dat$reference <- "no"
+    # reference data
+    df_ref <- df_dat
+    df_ref$cluster_id <- "reference"
+    df_ref$reference <- "yes"
+    
+    gg_df <- rbind(df_dat, df_ref)
+    ggplot(gg_df, aes_string(x="expression", y="cluster_id", 
+        col="reference", fill="reference")) + geom_density_ridges(alpha=.3) +
+        facet_wrap(~antigen, scales="free_x", nrow=2) + theme_ridges() + 
+        theme(legend.position="none", axis.title=element_text(size=10),
+            axis.text=element_text(size=8), strip.text=element_text(size=8))
+}

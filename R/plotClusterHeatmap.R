@@ -106,8 +106,8 @@ setMethod(f="plotClusterHeatmap",
         n_clusters <- nlevels(cluster_ids)
         
         # medians marker exprs. across clusters
-        med_exprs <- data.frame(exprs(x), cluster_ids) %>%
-            group_by_(~cluster_ids) %>% summarize_all(funs(median))
+        med_exprs <- data.frame(exprs(x), cluster_id=cluster_ids) %>%
+            group_by_(~cluster_id) %>% summarize_all(funs(median))
         
         # hierarchical clustering on cell-type markers
         d <- stats::dist(med_exprs[, type_markers(x)])
@@ -175,7 +175,7 @@ setMethod(f="plotClusterHeatmap",
                 name="expression", column_names_gp=gpar(fontsize=8),
                 rect_gp=gpar(col='white'), na_col="lightgrey", 
                 cluster_rows=row_clustering, cluster_columns=FALSE,
-                heatmap_legend_param=list(at=seq(0,1,.2), color_bar="continuous"),
+                heatmap_legend_param=list(color_bar="continuous"),
                 show_row_dend=draw_dend, column_title=names(groups)[i][many])
             
             # cluster frequencies

@@ -49,9 +49,9 @@
 setMethod(f="plotMedExprs", 
     signature=signature(x="daFrame"), 
     definition=function(x, k=20, 
-        facette=c("antigen", "cluster_id"), group_by="condition") {
+        facet=c("antigen", "cluster_id"), group_by="condition") {
 
-        facette <- match.arg(facette)
+        facet <- match.arg(facet)
         
         style <- list(ylab("median expression"),
             guides(color=guide_legend(override.aes=list(alpha=1))),
@@ -64,7 +64,7 @@ setMethod(f="plotMedExprs",
                 panel.grid.major=element_line(color="lightgrey", size=.25),
                 strip.background=element_rect(fill="grey90", color=NA)))
         
-        if (facette == "antigen") {
+        if (facet == "antigen") {
             med_exprs <- data.frame(exprs(x), sample_id=sample_ids(x)) %>% 
                 group_by_(~sample_id) %>% summarize_all(funs(median))
             med_exprs <- melt(med_exprs, id.vars=c("sample_id"),
@@ -86,16 +86,16 @@ setMethod(f="plotMedExprs",
         med_exprs <- data.frame(med_exprs, 
             md[m, setdiff(names(md), names(med_exprs))])
         
-        if (facette == "antigen") {
+        if (facet == "antigen") {
             ggplot(med_exprs, 
-                aes_string(x=group_by, y="med_expr", col=group_by)) +
+                aes_string(x=group_by, y="med_expr", col=group_by)) + style + 
                 stat_summary(fun.y="mean", geom="point", size=2.5, shape=21) +
-                facet_wrap(facets="antigen", scales="free_y") + style + theme(
-                axis.text.x=element_blank(), axis.ticks.x=element_blank())
+                facet_wrap(facets="antigen", scales="free_y", ncol=2) + 
+                theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
         } else {
             ggplot(med_exprs, 
-                aes_string(x="antigen", y="med_expr", col=group_by)) +
-                facet_wrap(facets="cluster_id", scales="free_y") + style + 
+                aes_string(x="antigen", y="med_expr", col=group_by)) + style + 
+                facet_wrap(facets="cluster_id", scales="free_y", ncol=2) +
                 theme(axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
         }
     }
