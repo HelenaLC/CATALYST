@@ -118,7 +118,12 @@ setMethod(f="plotClusterHeatmap",
         # clustering row annotation 
         if (cluster_anno) {
             anno <- levels(cluster_ids)
-            cols <- setNames(cluster_cols[seq_len(n_clusters)], anno)
+            if (n_clusters > 30) {
+              cols <- colorRampPalette(cluster_cols)(n_clusters)
+            } else {
+              cols <- cluster_cols[seq_len(n_clusters)]
+            }
+            cols <- setNames(cols, anno)
             cluster_anno <- row_anno(anno, cols, 
                 "cluster_id", row_clustering, draw_dend)
         }
@@ -126,7 +131,12 @@ setMethod(f="plotClusterHeatmap",
         if (length(m) != 0) {
             anno <- factor(cluster_codes(x)[, m][match(
                 seq_len(n_clusters), cluster_codes(x)[, k])])
-            cols <- setNames(cluster_cols[seq_len(nlevels(anno))], levels(anno))
+            if (n_clusters > 30) {
+              cols <- colorRampPalette(cluster_cols)(n_clusters)
+            } else {
+              cols <- cluster_cols[seq_len(nlevels(anno))]
+            }
+            cols <- setNames(cols, levels(anno))
             merging_anno <- row_anno(anno, cols, 
                 "merging_id", row_clustering, draw_dend)
         }
@@ -169,7 +179,7 @@ setMethod(f="plotClusterHeatmap",
             # add clusters if any missing
             missing <- levels(cluster_ids)[
                 !levels(cluster_ids) %in% hm1_es$cluster_ids]
-            if(length(missing) > 0) {
+            if (length(missing) > 0) {
               na_matrix <- matrix(NA, nrow=length(missing), ncol=ncol(hm1_es)-1,
                                   dimnames = list(NULL, colnames(hm1_es)[-1]))
               na_df <- data.frame(cluster_ids = missing, na_matrix)
