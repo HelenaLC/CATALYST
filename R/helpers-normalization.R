@@ -1,5 +1,5 @@
 # ==============================================================================
-# get bead columns
+# get indices of bead columns
 # ------------------------------------------------------------------------------
 get_bead_cols <- function(channels, beads) {
     ms <- gsub("[[:alpha:][:punct:]]", "", channels)
@@ -22,7 +22,6 @@ get_bead_cols <- function(channels, beads) {
 # ==============================================================================
 # get beads and remove bead-bead doublets
 # ------------------------------------------------------------------------------
-
 get_bead_inds <- function(x, y) {
     re <- assignPrelim(x, y, verbose=FALSE)
     re <- estCutoffs(re)
@@ -43,7 +42,6 @@ update_bead_inds <- function(data, bead_inds, bead_cols, trim) {
 # ==============================================================================
 # write FCS of normalized data
 # ------------------------------------------------------------------------------
-
 outNormed <- function(ff, normed_es, remove_beads, remove, out_path) {
     if (remove_beads) {
         cells <- new("flowFrame",
@@ -78,6 +76,57 @@ outNormed <- function(ff, normed_es, remove_beads, remove, out_path) {
                     "_normalized.fcs"))))
         }
     }
+}
+
+# ==============================================================================
+# get axis limits and labels
+# ------------------------------------------------------------------------------
+get_axes <- function(df, cf) {
+    min <- max(apply(df, 2, function(i) -ceiling(abs(min(i))*2)/2))
+    max <- max(apply(df, 2, function(i) ceiling(max(i)*2)/2))
+    
+    if (min != 0) {
+        tcks <- c(-10^(ceiling(log10(abs(sinh(min)*cf))):0), 
+            0, 10^(0:ceiling(log10(sinh(max)*cf))))
+    } else {
+        tcks <- c(0,  10^(0:ceiling(log10(sinh(max)*cf))))
+    }
+    labs <- parse(text=gsub("[[:digit:]]*e", " 10^",
+        format(tcks, scientific=TRUE)))
+    labs[tcks == 0] <- ""
+    tcks <- asinh(tcks/cf)
+    return(list(tcks, labs))
+}
+
+# ==============================================================================
+# bead vs. dna scatter
+# ------------------------------------------------------------------------------
+plotScatter <- function(es, x, y, cf) {
+    # transform and get channel names
+    df <- data.frame(asinh(es[, c(x, y)]/cf))
+    chs <- colnames(df)
+    
+    # get axis limits and labels
+    temp <- get_axes(df, cf)
+    tcks <- temp[[1]]
+    labs <- temp[[2]]
+    
+    ggplot(df, aes_string(x=chs[1], y=chs[2])) + 
+        geom_point(size=.25) + 
+        geom_vline(xintercept=0, col="red2", size=.5) +
+        geom_hline(yintercept=0, col="red2", size=.5) +
+        geom_rug(sides="tr", col="darkblue", alpha=.25, size=.025) +
+        coord_cartesian(xlim=tcks, ylim=tcks, expand=.1) +
+        scale_x_continuous(breaks=tcks, labels=labs) +
+        scale_y_continuous(breaks=tcks, labels=labs) +
+        theme_classic() + theme(
+            aspect.ratio=1,
+            plot.margin=unit(c(0, 0, .5, .5), "cm"),
+            axis.ticks=element_line(size=.5),
+            axis.title=element_text(size=14, face="bold"),
+            axis.text.x=element_text(
+                size=12, color="black", angle=30, hjust=1, vjust=1),
+            axis.text.y=element_text(size=12, color="black", angle=30))
 }
 
 # ==============================================================================
@@ -207,20 +256,9 @@ outPlots <- function(es_t, bead_inds, remove, bead_cols, dna_cols,
             top=textGrob(paste(t1, t2, sep="\n"), just="right",
                 gp=gpar(fontface="bold", fontsize=15)))
     }
-    if (!is.null(out_path)) {
-        pdf(file.path(out_path, "beads_before_vs_after.pdf"), 
-            width=15, height=12.5)
-        grid.arrange(nrow=3, heights=c(6, .5, 6),
-            plotSmoothed(smoothed_beads, "Smoothed beads"), 
-            rectGrob(gp=gpar(fill="white", col="white")),
-            plotSmoothed(smoothed_normed_beads, "Smoothed normalized beads"))
-        dev.off()
-    } else {
-        grid.arrange(nrow=3, heights=c(6, .5, 6),
-            plotSmoothed(smoothed_beads, "Smoothed beads"), 
-            rectGrob(gp=grid::gpar(fill="white", col="white")),
-            plotSmoothed(smoothed_normed_beads, "Smoothed normalized beads"))
-    }
+    p1 <- plotSmoothed(smoothed_beads, "Smoothed beads")
+    p2 <- plotSmoothed(smoothed_normed_beads, "Smoothed normalized beads")
+    arrangeSmoothed(p1, p2, out_path)
 }
 
 # ==============================================================================
@@ -245,4 +283,108 @@ plotSmoothed <- function(df, main) {
     p + scale_color_manual(name=NULL, 
         values=RColorBrewer::brewer.pal(n-1, "Set1")) +
         guides(colour=guide_legend(override.aes=list(size=3)))
+}
+
+arrangeSmoothed <- function(p1, p2, out_path=NULL, shiny=FALSE) {
+    gt <- arrangeGrob(nrow=3, heights=c(5, .5, 5), widths=12,
+        grobs=list(p1, rectGrob(gp=gpar(fill="white", col="white")), p2))
+    if (shiny) {
+        gt
+    } else if (!is.null(out_path)) {
+        png(file.path(out_path, "beads_before_vs_after.png"), 
+            width=1500, height=1200, res=150)
+        grid.draw(gt)
+        dev.off()
+    } else {
+        grid.draw(gt)
+    }
+}
+
+# ==============================================================================
+# plot bead intensitites smoothed by conversion to local medians
+# ------------------------------------------------------------------------------
+plotBeadsVsBeads <- function(
+    beads, mhlDists, cutoff, tcks, labs) {
+    
+    maxDist <- ceiling(max(mhlDists))
+    if (maxDist <= 50) {
+        stp <- 5
+    } else if (maxDist <= 100) {
+        stp <- 10
+    } else {
+        stp <- 25
+    }
+    
+    if (!is.null(cutoff)) {
+        inds <- mhlDists >= cutoff
+        beads <- beads[inds, ]
+        mhlDists <- mhlDists[inds]
+    }
+    
+    # subsample for visualization 
+    N <- nrow(beads)
+    if (N > 1e4) {
+        inds <- sample(N, 1e4)
+        beads <- beads[inds, ]
+        mhlDists <- mhlDists[inds]
+    }
+
+    n <- ncol(beads)
+    if (n %% 2 != 0) {
+        combis <- matrix(c(seq_len(n), n-1), nrow=n/2)
+    } else {
+        combis <- matrix(seq_len(n), ncol=n/2)
+    }
+    nPlots <- ncol(combis)
+    
+    first <- TRUE
+    ps <- vector("list", nPlots+1)
+    for (i in seq_len(nPlots)) {
+        df <- data.frame(
+            x=beads[, combis[1,i]],
+            y=beads[, combis[2,i]],
+            z=mhlDists)
+        ps[[i]] <- ggplot(df) + 
+            geom_point(size=.5, aes_string(x="x", y="y", color="z")) +
+            geom_vline(xintercept=0, size=.5) +
+            geom_hline(yintercept=0, size=.5) +
+            labs(x=colnames(beads)[combis[1,i]], 
+                y=colnames(beads)[combis[2,i]]) +
+            coord_cartesian(xlim=tcks, ylim=tcks, expand=.1) +
+            scale_x_continuous(breaks=tcks, labels=labs) +
+            scale_y_continuous(breaks=tcks, labels=labs) +
+            scale_color_gradientn(
+                colours=c(RColorBrewer::brewer.pal(11, "Spectral")),
+                limits=c(0, maxDist), breaks=seq(0, maxDist, stp),
+                name="Distance from identified beads") +
+            guides(colour=FALSE) + theme_classic() + theme(
+                aspect.ratio=1,
+                plot.margin=unit(c(0, 0, .25, .25), "cm"),
+                panel.grid.minor=element_blank(),
+                panel.grid.major=element_blank(),
+                axis.ticks=element_line(size=.5),
+                axis.title=element_text(size=14, face="bold"),
+                axis.text.x=element_text(
+                    size=12, color="black", angle=30, hjust=1, vjust=1),
+                axis.text.y=element_text(size=12, color="black", angle=30))
+        if (first) {
+            ps[[i]] <- ps[[i]] + 
+                guides(colour=guide_colourbar(
+                    title.position="top", title.hjust=.5)) + 
+                theme(
+                    legend.direction="horizontal",
+                    legend.title=element_text(face="bold", size=12),
+                    legend.text=element_text(size=10),
+                    legend.key=element_rect(colour="white"),
+                    legend.key.height=unit(.5, "cm"),
+                    legend.key.width=unit(.55/nPlots, "npc"))
+            lgd <- get_legend(ps[[i]])
+            ps[[i]] <- ps[[i]] + guides(colour=FALSE)
+            first <- FALSE
+        }
+    }
+    ps[[i+1]] <- lgd
+    grid.arrange(grobs=ps, 
+        layout_matrix=rbind(rep(nPlots+1, nPlots), seq_len(nPlots)), 
+        heights=c(2, 8), widths=rep(8, nPlots))
 }

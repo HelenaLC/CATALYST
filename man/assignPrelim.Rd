@@ -28,14 +28,14 @@ assignPrelim(x, y, ...)
 
 \item{y}{the debarcoding scheme. A binary matrix with sample names as row names and 
 numeric masses as column names OR a vector of numeric masses corresponding
-to barcode channels. When the latter is supplied, \code{assignPrelim} will 
+to barcode channels. When the latter is supplied, \code{assignPrelim} will
 create a scheme of the appropriate format internally.}
 
 \item{...}{optional arguments.}
 
-\item{cofactor}{cofactor used for asinh transformation.}
+\item{cofactor}{numeric. Cofactor used for asinh transformation.}
 
-\item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
+\item{verbose}{logical. Should extra information on progress be reported?}
 }
 \value{
 Returns a \code{\link{dbFrame}} containing measurement intensities,

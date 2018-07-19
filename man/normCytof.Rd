@@ -10,7 +10,7 @@
 normCytof(x, y, ...)
 
 \S4method{normCytof}{flowFrame}(x, y, out_path = NULL, remove_beads = TRUE,
-  norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
+  norm_to = NULL, k = 500, trim = 5, verbose = TRUE, plot = TRUE)
 
 \S4method{normCytof}{character}(x, y, out_path = NULL, remove_beads = TRUE,
   norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
@@ -23,14 +23,13 @@ normCytof(x, y, ...)
 
 \item{...}{optional arguments.}
 
-\item{out_path}{a character string. If specified, outputs will be generated 
-in this location. If NULL (the default), \code{normCytof} will return 
-a \code{\link{flowFrame}} of the normalized data (if \code{remove=FALSE}) 
-or a \code{\link{flowSet}} containing normalized cells and beads 
-(if \code{remove=TRUE}).}
+\item{out_path}{a character string. If specified, outputs will be generated here. If NULL
+(the default), \code{normCytof} will return a \code{\link{flowFrame}} of 
+the normalized data (if \code{remove=FALSE}) or a \code{\link{flowSet}} 
+containing normalized cells and beads (if \code{remove=TRUE}).}
 
-\item{remove_beads}{logical. If TRUE (the default) beads will be removed and normalized cells and
-beads returned separately.}
+\item{remove_beads}{logical. If TRUE (the default) beads will be removed and 
+normalized cells and beads returned separately.}
 
 \item{norm_to}{a \code{\link{flowFrame}} or character of an FCS file from which baseline 
 values should be computed and to which the input data should be normalized.}
@@ -41,7 +40,10 @@ values should be computed and to which the input data should be normalized.}
 applied to the preliminary population of bead events to remove bead-bead 
 doublets and low signal beads prior to estimating normalization factors.}
 
-\item{verbose}{logical. Should extra information on progress be reported? Defaults to TRUE.}
+\item{verbose}{logical. Should extra information on progress be reported?}
+
+\item{plot}{logical. Should bead vs. DNA scatters and beads 
+before vs. after normalization be plotted?}
 }
 \value{
 if \code{out_path=NULL} (the default) a \code{\link{flowFrame}} of the 
@@ -56,7 +58,7 @@ using bead standards with automated bead gating.
 \examples{
 data(raw_data)
 ff <- concatFCS(raw_data)
-normCytof(x = ff, y = "dvs", k=300)
+normCytof(x = ff, y = "dvs", k = 120)
 
 }
 \references{

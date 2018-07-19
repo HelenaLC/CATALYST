@@ -8,8 +8,8 @@
 \usage{
 plotYields(x, ...)
 
-\S4method{plotYields}{dbFrame}(x, which = 0, annotate = TRUE,
-  legend = TRUE, out_path = NULL, name_ext = NULL)
+\S4method{plotYields}{dbFrame}(x, which = 0, out_path = NULL,
+  name_ext = NULL, plotly = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
@@ -17,22 +17,14 @@ plotYields(x, ...)
 \item{...}{optional arguments.}
 
 \item{which}{0, numeric or character. Specifies which barcode(s) to plot. 
-Valid values are IDs that occur as row names in the \code{bc_key} of the 
-supplied \code{\link{dbFrame}}; 0 (the default) will generate a summary plot 
-with all barcodes.}
+Valid values are IDs that occur as row names of \code{bc_key(x)}; 
+0 (the default) will generate a summary plot with all barcodes.}
 
-\item{annotate}{logical. If TRUE (default) and the \code{sep_cutoffs} slot of the supplied
-\code{\link{dbFrame}} is not empty, vertical lines will be drawn at cutoff
-values and the resulting yield will be included in the plot title.}
+\item{out_path}{character string. If specified, outputs will be generated here.}
 
-\item{legend}{logical. Specifies if a legend should be included. 
-This will only affect the summary plot (\code{which=0}).}
+\item{name_ext}{character string. If specified, will be appended to the plot's name.}
 
-\item{out_path}{a character string. If specified, outputs will be generated 
-in this location. Defaults to NULL.}
-
-\item{name_ext}{a character string. If specified, will be appended to the plot's name. 
-Defaults to NULL.}
+\item{plotly}{logical. Should an interactive plot be rendered?}
 }
 \value{
 plots the distribution of barcode separations and yields upon 
