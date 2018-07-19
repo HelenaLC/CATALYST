@@ -12,7 +12,7 @@ daFrame(x, panel, md, cols_to_use = NULL, cofactor = 5,
   c("condition", "patient_id")))
 }
 \arguments{
-\item{x}{a \code{\link[flowCore]{flowSet}} holding all samples OR
+\item{x}{a \code{flowSet} holding all samples OR
 a character vector that specifies a path to set of FCS files.}
 
 \item{panel}{a 2 column \code{data.frame} that contains for each marker of interest 

@@ -4,13 +4,13 @@
 #' @description Concatenates all input data to a single file or object.
 #'
 #' @param x 
-#'   can be either a \code{\link{flowSet}}, a list of \code{\link{flowFrame}}s, 
+#'   can be either a \code{flowSet}, a list of \code{flowFrame}s, 
 #'   a character specifying the location of the FCS files to be concatinated, 
 #'   or a vector of FCS file names.
 #' @param out_path
 #'   character string. If specified, an FCS file of the concatenated data 
 #'   will be written to this location. 
-#'   If NULL (default), a \code{\link[flowCore]{flowFrame}} will be returned.
+#'   If NULL (default), a \code{flowFrame} will be returned.
 #' @param by_time
 #'  logical. Specifies whether files should be ordered by time of acquisition.
 #' @param file_num
@@ -20,7 +20,7 @@
 #'   to use when merging files.
 #'
 #' @return 
-#' a \code{\link{flowFrame}} containing measurement intensities 
+#' a \code{flowFrame} containing measurement intensities 
 #' of all input data or a character of the FCS file name.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}

@@ -8,7 +8,7 @@
 \usage{
 plotExprHeatmap(x, ...)
 
-\S4method{plotExprHeatmap}{daFrame}(x, anno = TRUE, color_by = "condition",
+\S4method{plotExprHeatmap}{daFrame}(x, anno = TRUE, color_by = NULL,
   palette = brewer.pal(n = 8, name = "YlGnBu"), scale = TRUE,
   draw_freqs = FALSE, clustering_distance = "euclidean",
   clustering_linkage = "average")
@@ -24,7 +24,8 @@ plotExprHeatmap(x, ...)
 
 \item{palette}{character vector of colors to interpolate.}
 
-\item{scale}{logical. Specifies whether to mean-variance normalize each channel.}
+\item{scale}{logical. Specifies whether scaled values should be displayed.
+(see below for details)}
 
 \item{draw_freqs}{logical. Specifyies whether to display cell counts and proportions.}
 
@@ -40,6 +41,11 @@ a \code{\link{HeatmapList-class}} object.
 \description{
 Plots median marker expressions across samples 
 computed on arcsinh-transformed intensities.
+}
+\details{
+Scaled values corresponds to cofactor arcsinh-transformed 
+expression values scaled between 0 and 1 using 1% and 99% percentiles as 
+boundaries. Hierarchical clustering is performed on the unscaled data.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)

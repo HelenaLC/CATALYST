@@ -5,7 +5,7 @@
 #' Plots non-redundancy scores (NRS) by markers in decreasing order.
 #'
 #' @param x 
-#'   a \code{\link{daFrame}}
+#'   a \code{\link{daFrame}}.
 #' @param color_by 
 #'   character string. Has to appeara as a column name of \code{rowData(x)}.
 #'   Specifies the color coding.

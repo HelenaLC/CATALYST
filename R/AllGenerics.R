@@ -161,7 +161,7 @@ setGeneric("plotSpillmat",
 #' @param ... optional arguments.
 #' @export
 setGeneric("adaptSpillmat", 
-    function(input_sm, out_chs) standardGeneric("adaptSpillmat"))
+    function(input_sm, out_chs, ...) standardGeneric("adaptSpillmat"))
 
 #' @rdname compCytof
 #' @param ... optional arguments.
@@ -248,6 +248,18 @@ setGeneric("plotExprHeatmap",
 setGeneric("cluster", 
     function(x, ...) standardGeneric("cluster"))
 
+#' @rdname mergeClusters
+#' @param ... optional arguments.
+#' @export
+setGeneric("mergeClusters", 
+    function(x, table, id) standardGeneric("mergeClusters"))
+
+#' @rdname plotAbundances
+#' @param ... optional arguments.
+#' @export
+setGeneric("plotAbundances", 
+    function(x, ...) standardGeneric("plotAbundances"))
+
 #' @rdname plotClusterHeatmap
 #' @param ... optional arguments.
 #' @export
@@ -284,20 +296,14 @@ setGeneric("tSNE",
 setGeneric("plotSNE", 
     function(x, ...) standardGeneric("plotSNE"))
 
-#' @rdname mergeClusters
-#' @param ... optional arguments.
-#' @export
-setGeneric("mergeClusters", 
-    function(x, table, id, ...) standardGeneric("mergeClusters"))
-
-#' @rdname plotAbundances
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotAbundances", 
-    function(x, ...) standardGeneric("plotAbundances"))
-
 #' @rdname plotDiffHeatmap
 #' @param ... optional arguments.
 #' @export
 setGeneric("plotDiffHeatmap", 
     function(x, y, ...) standardGeneric("plotDiffHeatmap"))
+
+#' @rdname extractClusters
+#' @param ... optional arguments.
+#' @export
+setGeneric("extractClusters", 
+    function(x, k, ...) standardGeneric("extractClusters"))

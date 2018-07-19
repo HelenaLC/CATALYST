@@ -11,7 +11,7 @@ plotNRS(x, ...)
 \S4method{plotNRS}{daFrame}(x, color_by = "condition")
 }
 \arguments{
-\item{x}{a \code{\link{daFrame}}}
+\item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 

@@ -41,8 +41,8 @@
 #' re <- cluster(re, cols_to_use=lineage)
 #' 
 #' # merge clusters
-#' re <- mergeClusters(re, merging_table, "merging_1")
-#' plotClusterHeatmap(re, k=20, m="merging_1", hm2="pNFkB")
+#' re <- mergeClusters(re, merging_table, "merging")
+#' plotClusterHeatmap(re, k="merging", hm2="pS6")
 # ------------------------------------------------------------------------------
 
 setMethod(f="mergeClusters", 

@@ -5,7 +5,7 @@
 #' \code{parameters} slot of a \code{flowFrame}/\code{flowSet}.
 #'
 #' @param x 
-#'   a \code{\link[flowCore]{flowFrame}} or \code{\link[flowCore]{flowSet}}.
+#'   a \code{flowFrame} or \code{flowSet}.
 #' @param index 
 #'   numeric. If \code{x} is a \code{flowSet} object, 
 #'   this index specifies which \code{flowFrame} to extract.

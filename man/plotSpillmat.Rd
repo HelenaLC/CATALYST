@@ -11,7 +11,8 @@
 plotSpillmat(bc_ms, SM, ...)
 
 \S4method{plotSpillmat}{numeric,matrix}(bc_ms, SM, out_path = NULL,
-  name_ext = NULL, annotate = TRUE, plotly = TRUE)
+  name_ext = NULL, annotate = TRUE, plotly = TRUE,
+  isotope_list = CATALYST::isotope_list)
 
 \S4method{plotSpillmat}{ANY,data.frame}(bc_ms, SM, out_path = NULL,
   name_ext = NULL, annotate = TRUE, plotly = TRUE)
@@ -34,6 +35,10 @@ plotSpillmat(bc_ms, SM, ...)
 and rows are annotated with the total amount of spill received.}
 
 \item{plotly}{logical. Should an interactive plot be rendered?}
+
+\item{isotope_list}{named list. Used to validate the input spillover matrix.
+Names should be metals; list elements numeric vectors of their isotopes.
+See \code{\link{isotope_list}} for the list of isotopes used by default.}
 }
 \value{
 Plots estimated spill percentages as a heat map. 

@@ -17,6 +17,10 @@
 #'   and rows are annotated with the total amount of spill received. 
 #' @param plotly
 #'   logical. Should an interactive plot be rendered?
+#' @param isotope_list
+#'   named list. Used to validate the input spillover matrix.
+#'   Names should be metals; list elements numeric vectors of their isotopes.
+#'   See \code{\link{isotope_list}} for the list of isotopes used by default.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' 
@@ -45,9 +49,10 @@
 setMethod(f="plotSpillmat",
     signature=signature(bc_ms="numeric", SM="matrix"),
     definition=function(bc_ms, SM, out_path=NULL, 
-        name_ext=NULL, annotate=TRUE, plotly=TRUE) {
+        name_ext=NULL, annotate=TRUE, plotly=TRUE, 
+        isotope_list=CATALYST::isotope_list) {
     
-        SM <- check_sm(SM)
+        SM <- check_sm(SM, isotope_list)
         nms <- colnames(SM)
         ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
         bc_cols <- which(ms %in% bc_ms)

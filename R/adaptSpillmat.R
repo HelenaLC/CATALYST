@@ -11,6 +11,10 @@
 #'   the column names that the prepared output spillover matrix should have. 
 #'   Numeric names as well as names of the form MetalMass(Di), e.g. Ir191Di 
 #'   or Ir191, will be interpreted as masses with associated metals.
+#' @param isotope_list
+#'   named list. Used to validate the input spillover matrix.
+#'   Names should be metals; list elements numeric vectors of their isotopes.
+#'   See \code{\link{isotope_list}} for the list of isotopes used by default.
 #'  
 #' @details
 #' The rules how the spillover matrix is adapted 
@@ -43,10 +47,11 @@
 
 setMethod(f="adaptSpillmat", 
     signature=signature(input_sm="matrix", out_chs="vector"),
-    definition=function(input_sm, out_chs) {
+    definition=function(input_sm, out_chs, 
+        isotope_list=CATALYST::isotope_list) {
         
         # check the spillovermatrix for obvious errors
-        check_sm(input_sm)
+        check_sm(input_sm, isotope_list)
         # make it symmetric
         #input_sm <- make_symetric(input_sm)
         # get the output names, metals and masses

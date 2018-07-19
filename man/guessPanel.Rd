@@ -14,7 +14,7 @@ guessPanel(x, ...)
 \S4method{guessPanel}{flowSet}(x, index = 1)
 }
 \arguments{
-\item{x}{a \code{\link[flowCore]{flowFrame}} or \code{\link[flowCore]{flowSet}}.}
+\item{x}{a \code{flowFrame} or \code{flowSet}.}
 
 \item{...}{optional arguments.}
 

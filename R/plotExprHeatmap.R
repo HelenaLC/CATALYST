@@ -14,7 +14,8 @@
 #' @param palette 
 #'   character vector of colors to interpolate. 
 #' @param scale 
-#'   logical. Specifies whether to mean-variance normalize each channel.
+#'   logical. Specifies whether scaled values should be displayed.
+#'   (see below for details)
 #' @param draw_freqs 
 #'   logical. Specifyies whether to display cell counts and proportions.
 #' @param clustering_distance 
@@ -23,6 +24,10 @@
 #' @param clustering_linkage 
 #'   a character string that specifies the linkage to use in
 #'   \code{\link[stats]{hclust}()} for clustering.
+#' 
+#' @details Scaled values corresponds to cofactor arcsinh-transformed 
+#' expression values scaled between 0 and 1 using 1% and 99% percentiles as 
+#' boundaries. Hierarchical clustering is performed on the unscaled data.
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
 #' 
@@ -51,13 +56,13 @@
 
 setMethod(f="plotExprHeatmap", 
     signature=signature(x="daFrame"), 
-    definition=function(x, anno=TRUE, color_by="condition",
+    definition=function(x, anno=TRUE, color_by=NULL,
         palette=brewer.pal(n=8, name="YlGnBu"), scale=TRUE, draw_freqs=FALSE,  
         clustering_distance="euclidean", clustering_linkage="average") {
 
         # validity check
         valid_opts <- colnames(rowData(x))
-        if (!color_by %in% valid_opts)
+        if (!is.null(color_by) && !color_by %in% valid_opts)
             stop("Invalid argument 'color_by'.\nShould be one of ", 
                 paste(dQuote(valid_opts), collapse=", "), " or NULL.")
         

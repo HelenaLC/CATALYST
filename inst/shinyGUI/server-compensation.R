@@ -30,25 +30,22 @@ fsComp <- reactive({
             fs <- as(ffs, "flowSet")
             nms <- gsub(".fcs", "_normed.fcs", smplNmsNorm(), ignore.case=TRUE)
     } else {
-        req(input_ffs_comp())
-        fs <- as(input_ffs_comp(), "flowSet")
+        # read & check input FCS files
+        fcs <- req(input$fcsComp)
+        n <- nrow(fcs)
+        req(check_FCS_fileInput(fcs, n))
+        ffs <- lapply(seq_len(n), function(i) 
+            flowCore::read.FCS(
+                filename=fcs[[i, "datapath"]],
+                transformation=FALSE,
+                truncate_max_range=FALSE))
+        fs <- as(ffs, "flowSet")
         nms <- input$fcsComp$name
     }
     for (i in seq_along(fs))
         description(fs[[i]])[c("GUID", "ORIGINALGUID")] <- 
             identifier(fs[[i]]) <- nms[i]
     return(fs)
-})
-
-# read & check input FCS files
-input_ffs_comp <- eventReactive(input$fcsComp, {
-    n <- nrow(input$fcsComp)
-    req(check_FCS_fileInput(input$fcsComp, n))
-    lapply(seq_len(n), function(i) 
-        flowCore::read.FCS(
-            filename=input$fcsComp[[i, "datapath"]],
-            transformation=FALSE,
-            truncate_max_range=FALSE))
 })
 
 # render fileInput for spillover matrix CSV or single-stains FCS
@@ -272,7 +269,7 @@ input_sm <- eventReactive(input$input_sm, {
         return()
     }
     sm <- read.csv(input$input_sm$datapath, row.names=1)
-    sm <- tryCatch(CATALYST:::check_sm(sm), error=function(e) e)
+    sm <- tryCatch(CATALYST:::check_sm(sm, vals$isotope_list), error=function(e) e)
     if (inherits(sm, "error")) {
         showNotification(type="error", closeButton=FALSE,
             h4(strong("Input spillover matrix seems to be invalid.")))
@@ -284,7 +281,7 @@ input_sm <- eventReactive(input$input_sm, {
 # get spillover matrix
 sm <- reactive({
     x <- input$upload_or_est_sm
-    switch (x,
+    switch(x,
         upload_sm = req(input_sm()),
         est_sm = req(estimated_sm()))
 })
@@ -302,7 +299,7 @@ output$plotSpillmat <- renderPlotly({
         upload_sm = CATALYST:::get_ms_from_chs(colnames(vals$sm)),
         est_sm = rownames(bc_key(dbFrameComp())))
     pdf(NULL)
-    CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm)
+    CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm, isotope_list=vals$isotope_list)
 })
 
 # ------------------------------------------------------------------------------
@@ -320,7 +317,7 @@ nnlsComped <- reactive({
     req(fsComp(), vals$sm, input$compensation_method == "nnls")
     showNotification(h4(strong("Compensating using NNLS...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
-    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "nnls")
+    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "nnls", vals$isotope_list)
     removeNotification(id="msg")
     return(fs)
 })
@@ -328,7 +325,7 @@ flowComped <- reactive({
     req(input$compensation_method == "flow", vals$sm, fsComp())
     showNotification(h4(strong("Compensating using method 'flow'...")), 
         id="msg", type="message", duration=NULL, closeButton=FALSE)
-    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "flow")
+    fs <- CATALYST::compCytof(fsComp(), vals$sm, NULL, "flow", vals$isotope_list)
     removeNotification(id="msg")
     return(fs)
 })
