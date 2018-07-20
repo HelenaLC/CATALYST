@@ -302,6 +302,11 @@ setGeneric("plotSNE",
 setGeneric("plotDiffHeatmap", 
     function(x, y, ...) standardGeneric("plotDiffHeatmap"))
 
+#' @rdname filter
+#' @export
+setGeneric("filter", 
+    function(x, ...) standardGeneric("filter"))
+
 #' @rdname extractClusters
 #' @param ... optional arguments.
 #' @export
