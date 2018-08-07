@@ -2,6 +2,14 @@
   *** Version 1.4.0 ***
 -------------------------
 
+o plotClusterHeatmap():
+  - fix row ordering in right-hand side heatmap
+  - expand color palette for cluster annotation beyond 30
+
+=========================
+  *** Version 1.4.0 ***
+-------------------------
+
 CATALYST now provides a series of visualization tools 
 for differential analysis. These have been adapted from 
 
