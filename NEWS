@@ -1,12 +1,4 @@
 =========================
-  *** Version 1.4.3 ***
--------------------------
-
-o plotClusterHeatmap():
-  - fix row ordering in right-hand side heatmap
-  - expand color palette for cluster annotation beyond 30
-
-=========================
   *** Version 1.4.0 ***
 -------------------------
 
