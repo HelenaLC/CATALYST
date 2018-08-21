@@ -144,10 +144,12 @@ setMethod(f="plotDiffHeatmap",
             n_cells <- reshape2::acast(n_cells, cluster_id~sample_id, value.var="n", fill=0)
     
             if(normalize) {
+              cn <- colnames(n_cells)
               n_cells <- t(t(n_cells)/colSums(n_cells)) # proportions instead of counts
               n_cells <- asinh(n_cells) # asinh transform
               n_cells <- t(apply(n_cells, 1, scale)) # z-score
               nm <- "z_score"
+              colnames(n_cells) <- cn
             } else {
               nm <- "n_cells"
             }
@@ -171,8 +173,10 @@ setMethod(f="plotDiffHeatmap",
             rownames(meds) <- paste0(top$marker, sprintf("(%s)", top$cluster_id))
             
             if(normalize) {
+              cn <- colnames(meds)
               meds <- t(apply(meds, 1, scale)) # z-score
               nm <- "z_score"
+              colnames(meds) <- cn
             } else {
               nm <- "expression"
             }
