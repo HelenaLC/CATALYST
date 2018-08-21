@@ -26,6 +26,10 @@
 #' @param th 
 #'   numeric. Threshold on adjusted p-values below which clusters (DA) 
 #'   or cluster-marker combinations (DS) should be considered significant.
+#' @param normalize
+#'   logical. if \code{FALSE}, no additional normalization is applied (for DA, 
+#'   cell counts are shown; for DS, median intensities are shown). if \code{TRUE},
+#'   rows are centered and scaled to a Z-score (DA is first converted to proportions and asinh-transformed).
 #' 
 #' @details 
 #' For DA tests, \code{plotDiffHeatmap} will display
@@ -80,7 +84,9 @@
 #' # - top DA clusters
 #' # - top DS cluster-marker combintations
 #' plotDiffHeatmap(re, da)
+#' plotDiffHeatmap(re, da, normalize=TRUE)
 #' plotDiffHeatmap(re, ds)
+#' plotDiffHeatmap(re, ds, normalize=TRUE)
 #' 
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
@@ -93,7 +99,7 @@
 
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="matrix", y="SummarizedExperiment"), 
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, normalize=FALSE, ...) {
         z <- list(...)
         sample_ids <- z$sample_ids
         cluster_ids <- z$cluster_ids
@@ -129,15 +135,26 @@ setMethod(f="plotDiffHeatmap",
         hm1 <- diff_hm(matrix=meds_by_cluster[, marker_classes == "type"], 
             col=hm_cols, name="expression", xlab="type_markers", 
             row_title="cluster_id", row_names_side="left")
-        
+  
+
         # 2nd heatmap:
         if (type == "DA") {
             # cluster sizes by sample
             n_cells <- df %>% count(cluster_id, sample_id) %>% complete(sample_id)
             n_cells <- reshape2::acast(n_cells, cluster_id~sample_id, value.var="n", fill=0)
+    
+            if(normalize) {
+              n_cells <- t(t(n_cells)/colSums(n_cells)) # proportions instead of counts
+              n_cells <- asinh(n_cells) # asinh transform
+              n_cells <- t(apply(n_cells, 1, scale)) # z-score
+              nm <- "z_score"
+            } else {
+              nm <- "n_cells"
+            }
+            
             n_cells <- n_cells[top$cluster_id, , drop=FALSE]
             
-            hm2 <- diff_hm(matrix=n_cells, name="n_cells",
+            hm2 <- diff_hm(matrix=n_cells, name=nm,
                 col=colorRamp2(range(n_cells), c("navy", "yellow")),
                 xlab="sample_id", show_row_names=FALSE)
         } else if (type == "DS") { 
@@ -152,8 +169,15 @@ setMethod(f="plotDiffHeatmap",
                 meds[top$marker], top$cluster_id, SIMPLIFY=FALSE)
             meds <- do.call(rbind, meds)
             rownames(meds) <- paste0(top$marker, sprintf("(%s)", top$cluster_id))
-
-            hm2 <- diff_hm(matrix=meds, name="expression\nby sample",
+            
+            if(normalize) {
+              meds <- t(apply(meds, 1, scale)) # z-score
+              nm <- "z_score"
+            } else {
+              nm <- "expression"
+            }
+            
+            hm2 <- diff_hm(matrix=meds, name=nm,
                 col=colorRamp2(range(meds, na.rm=TRUE), c("navy", "yellow")),
                 xlab="sample_id")
         }
@@ -183,14 +207,14 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="daFrame", y="SummarizedExperiment"),
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, normalize=FALSE, ...) {
         
         # get cluster IDs
         k <- nlevels(rowData(y)$cluster_id)
         k <- check_validity_of_k(x, k)
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
         
-        plotDiffHeatmap(exprs(x), y, top_n, all, order, th, 
+        plotDiffHeatmap(exprs(x), y, top_n, all, order, th, normalize,
             sample_ids=sample_ids(x), 
             cluster_ids=cluster_ids,
             marker_classes=colData(x)$marker_class)
@@ -201,9 +225,9 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="SummarizedExperiment", y="SummarizedExperiment"),
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, normalize=FALSE, ...) {
         
-        plotDiffHeatmap(assay(x), y, top_n, all, order, th, 
+        plotDiffHeatmap(assay(x), y, top_n, all, order, th, normalize,
             sample_ids=rowData(x)$sample_id,
             cluster_ids=rowData(x)$cluster_id,
             marker_classes=colData(x)$marker_class)
@@ -214,10 +238,10 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="ANY", y="list"), 
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, normalize=FALSE, ...) {
         
         if (all(c("res", "d_counts", "d_medians") %in% names(y))) {
-            plotDiffHeatmap(x, y$res, top_n, all, order, th)
+            plotDiffHeatmap(x, y$res, top_n, all, order, th, normalize)
         } else {
             stop(deparse(substitute(y)), " does not seem to be ", 
                 "a valid differential test result.\n",

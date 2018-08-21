@@ -12,16 +12,18 @@
 plotDiffHeatmap(x, y, ...)
 
 \S4method{plotDiffHeatmap}{matrix,SummarizedExperiment}(x, y, top_n = 20,
-  all = FALSE, order = TRUE, th = 0.1, ...)
+  all = FALSE, order = TRUE, th = 0.1, normalize = FALSE, ...)
 
-\S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y, top_n = 20,
-  all = FALSE, order = TRUE, th = 0.1, ...)
+\S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y,
+  top_n = 20, all = FALSE, order = TRUE, th = 0.1,
+  normalize = FALSE, ...)
 
 \S4method{plotDiffHeatmap}{SummarizedExperiment,SummarizedExperiment}(x, y,
-  top_n = 20, all = FALSE, order = TRUE, th = 0.1, ...)
+  top_n = 20, all = FALSE, order = TRUE, th = 0.1,
+  normalize = FALSE, ...)
 
 \S4method{plotDiffHeatmap}{ANY,list}(x, y, top_n = 20, all = FALSE,
-  order = TRUE, th = 0.1, ...)
+  order = TRUE, th = 0.1, normalize = FALSE, ...)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}} or \code{SummarizedExperiment}.}
@@ -44,6 +46,10 @@ should be displayed. If \code{TRUE}, \code{top_n} will be ignored.}
 
 \item{th}{numeric. Threshold on adjusted p-values below which clusters (DA) 
 or cluster-marker combinations (DS) should be considered significant.}
+
+\item{normalize}{logical. if \code{FALSE}, no additional normalization is applied (for DA, 
+cell counts are shown; for DS, median intensities are shown). if \code{TRUE},
+rows are centered and scaled to a Z-score (DA is first converted to proportions and asinh-transformed).}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.
@@ -100,7 +106,9 @@ ds <- diffcyt(re, design = design, contrast = contrast,
 # - top DA clusters
 # - top DS cluster-marker combintations
 plotDiffHeatmap(re, da)
+plotDiffHeatmap(re, da, normalize=TRUE)
 plotDiffHeatmap(re, ds)
+plotDiffHeatmap(re, ds, normalize=TRUE)
 
 }
 \author{
