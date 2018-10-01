@@ -7,9 +7,9 @@
 #' @param x 
 #'   a \code{\link{daFrame}}.
 #' @param ... 
-#'   conditional statements separated by comma. 
+#'   conditional statements separated by comma.
 #'   Left-hand side arguments must occur in the \code{colnames(rowData(x))};
-#'   accepted operators are \code{==}, \code{!=} and \code{%in%}.
+#'   accepted operators are \code{==}, \code{!=} and \code{\%in\%}.
 #' @param k 
 #'   numeric or character string. 
 #'   Specifies the clustering to extract populations from.
@@ -38,12 +38,12 @@
 setMethod(f="filter", 
     signature=signature(x="daFrame"), 
     definition=function(x, ..., k = NULL) {
-
+        
         n <- nrow(x)
         args <- substitute(deparse(...))
         args <- as.character(args)[-1]
         args <- sapply(args, function(x) gsub("\"", "\'", x, fixed = TRUE))
-       
+        
         # check validity of left- & right-hand arguments
         args_split <- sapply(args, strsplit, "(==).|(!=).|(%in%).")
         l <- sapply(args_split, "[[", 1)
