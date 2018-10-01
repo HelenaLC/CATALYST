@@ -113,13 +113,8 @@ setMethod(f="normCytof",
                 stop(norm_to, " is not a valid FCS file.")
             norm_to <- flowCore::read.FCS(norm_to) 
         }
-        es2 <- flowCore::exprs(norm_to)
-        es2_t <- asinh(es2/5)
-        bead_inds2 <- get_bead_inds(norm_to, key)
-        bead_inds2 <- update_bead_inds(es2_t, bead_inds2, bead_cols, trim)
-        
-        bead_es <- es2[bead_inds2, bead_cols]
-        bead_ts <- es2[bead_inds2, time_col]
+        bead_es <- flowCore::exprs(norm_to)[, bead_cols]
+        bead_ts <- flowCore::exprs(norm_to)[, time_col]
     }
     baseline <- colMeans(bead_es)
     bead_slopes <- rowSums(bead_es*baseline) / rowSums(bead_es^2)
