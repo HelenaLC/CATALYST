@@ -39,6 +39,7 @@
 #' plotSNE(re, color_by="pNFkB", facet="condition")
 #' 
 #' @import ggplot2
+#' @importFrom grDevices colorRampPalette
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotSNE",
@@ -54,32 +55,40 @@ setMethod(f="plotSNE",
             stop("'facet' should be either NULL, or one of\n",
                 paste(dQuote(colnames(rowData(x))), collapse=", "))
         
-        tsne_inds <- metadata(x)$tsne_inds
+        inds <- metadata(x)$tsne_inds
         tsne <- metadata(x)$tsne
         
         df <- data.frame(
-            exprs(x)[tsne_inds, ], 
-            rowData(x)[tsne_inds, ],
+            exprs(x)[inds, ], rowData(x)[inds, ],
             tSNE1=tsne$Y[, 1], tSNE2=tsne$Y[, 2])
 
         p <- ggplot(df, aes_string(x="tSNE1", y="tSNE2")) +
             theme_void() + theme(aspect.ratio=1,
                 panel.grid.minor=element_blank(),
-                panel.grid.major=element_line(color="grey", size=.25),
+                panel.grid.major=element_line(color="grey", size=.2),
                 axis.text=element_text(color="black"),
                 axis.title=element_text(color="black", face="bold"))
         
         if (color_by %in% colnames(exprs(x))) {
             pal <- rev(brewer.pal(11, "Spectral"))
-            p <- p + geom_point(size=.75, aes_string(color=color_by)) +
+            p <- p + geom_point(size=.8, aes_string(color=color_by)) +
                 scale_color_gradientn(color_by, colors=pal)
         } else {
-            cluster_ids <- cluster_codes(x)[, color_by][cluster_ids(x)[tsne_inds]]
-            df$cluster_id <- factor(cluster_ids)
-            cols <- cluster_cols[seq_along(unique(df$cluster_id))]
-            names(cols) <- levels(cols)
-            if (length(cols) > 10) n_col <- 2 else n_col <- 1
-            p <- p + geom_point(data=df, size=.75, 
+            # get cluster IDs
+            cluster_ids <- cluster_codes(x)[cluster_ids(x)[inds], color_by]
+            # fix levels if any clusters missing
+            cluster_ids <- factor(cluster_ids)
+            df$cluster_id <- cluster_ids
+            # expand palette if more than 30 clusters
+            n_clusters <- nlevels(cluster_ids)
+            if (n_clusters > 30) {
+                cols <- colorRampPalette(cluster_cols)(n_clusters)
+            } else {
+                cols <- cluster_cols[seq_len(n_clusters)]
+            }
+            names(cols) <- levels(cluster_ids)
+            if (n_clusters > 10) n_col <- 2 else n_col <- 1
+            p <- p + geom_point(data=df, size=.8, 
                 aes_string(color="cluster_id")) +
                 guides(color=guide_legend(override.aes=list(size=3),
                     ncol=n_col)) + scale_color_manual(values=cols)
