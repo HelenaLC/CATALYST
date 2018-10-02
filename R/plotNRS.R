@@ -6,6 +6,10 @@
 #'
 #' @param x 
 #'   a \code{\link{daFrame}}.
+#' @param markers
+#'   character string specifying which markers to include. Defaults to NULL 
+#'   (= all markers). Alternatively, if the \code{colData(x)$marker_class} 
+#'   column is specified, can be one of "type", "state", or "none".
 #' @param color_by 
 #'   character string. Has to appeara as a column name of \code{rowData(x)}.
 #'   Specifies the color coding.
@@ -31,7 +35,7 @@
 
 setMethod(f="plotNRS", 
     signature=signature(x="daFrame"), 
-    definition=function(x, color_by="condition") {
+    definition=function(x, markers=NULL, color_by="condition") {
         
         # validity check
         md <- metadata(x)$experiment_info
@@ -40,10 +44,23 @@ setMethod(f="plotNRS",
             stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
                 "Should be one of: ", paste(dQuote(valid), collapse=", "))
 
+        if (is.null(markers)) {
+            markers <- colnames(exprs(x))
+        } else if (length(markers) == 1 &&
+                markers %in% levels(colData(x)$marker_class)) {
+            idx <- colData(x)$marker_class == markers
+            if (!any(idx))
+                stop(sprintf("No markers matched marker class '%s'.", markers))
+            markers <- colData(x)$marker_name[idx]
+        } else {
+            # replace problematic characters
+            markers <- gsub("-", "_", markers)
+            stopifnot(all(markers %in% colnames(exprs(x))))
+        }
+        
         # calculate NRS
         scores <- t(sapply(md$sample_id, function(i) 
-            nrs(exprs(x)[sample_ids(x) == i, ])))
-        rownames(scores) <- md$sample_id
+            nrs(exprs(x)[sample_ids(x) == i, markers])))
         mean_scores <- colMeans(scores, na.rm=TRUE)
         
         # plot NRS in decreasing order
