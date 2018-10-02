@@ -9,8 +9,8 @@
 #'   a \code{\link{daFrame}}.
 #' @param k 
 #'   numeric or character string. Specifies the clustering to use.
-#'   If \code{facette = "antigen"}, this argument will be ignored.
-#' @param facette 
+#'   If \code{facet = "antigen"}, this argument will be ignored.
+#' @param facet 
 #'   \code{"antigen"} or \code{"cluster_id"}. Note that 
 #'   the latter requires having run \code{\link{cluster}} first.
 #' @param group_by 
@@ -40,7 +40,7 @@
 #' re <- cluster(re, cols_to_use=lineage)
 #' 
 #' # plot median expressions across clusters
-#' plotMedExprs(re, facette="cluster_id", k=8)
+#' plotMedExprs(re, facet="cluster_id", k=8)
 #' 
 #' @importFrom dplyr group_by_ summarize_all
 #' @importFrom reshape2 melt
@@ -49,9 +49,9 @@
 setMethod(f="plotMedExprs", 
     signature=signature(x="daFrame"), 
     definition=function(x, k=20, 
-        facette=c("antigen", "cluster_id"), group_by="condition") {
+        facet=c("antigen", "cluster_id"), group_by="condition") {
 
-        facette <- match.arg(facette)
+        facet <- match.arg(facet)
         
         style <- list(ylab("median expression"),
             guides(color=guide_legend(override.aes=list(alpha=1))),
@@ -64,7 +64,7 @@ setMethod(f="plotMedExprs",
                 panel.grid.major=element_line(color="lightgrey", size=.25),
                 strip.background=element_rect(fill="grey90", color=NA)))
         
-        if (facette == "antigen") {
+        if (facet == "antigen") {
             med_exprs <- data.frame(exprs(x), sample_id=sample_ids(x)) %>% 
                 group_by_(~sample_id) %>% summarize_all(funs(median))
             med_exprs <- melt(med_exprs, id.vars=c("sample_id"),
@@ -86,7 +86,7 @@ setMethod(f="plotMedExprs",
         med_exprs <- data.frame(med_exprs, 
             md[m, setdiff(names(md), names(med_exprs))])
         
-        if (facette == "antigen") {
+        if (facet == "antigen") {
             ggplot(med_exprs, 
                 aes_string(x=group_by, y="med_expr", col=group_by)) +
                 stat_summary(fun.y="mean", geom="point", size=2.5, shape=21) +
