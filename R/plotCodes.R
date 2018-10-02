@@ -77,7 +77,7 @@ setMethod(f="plotCodes",
         if (n_clusters > 30) {
             cols <- colorRampPalette(cluster_cols)(n_clusters)
         } else {
-            cols <- cluster_cols[seq_len(nlevels(anno))]
+            cols <- cluster_cols[seq_len(n_clusters)]
         }
         names(cols) <- levels(df$cluster_id)
         
