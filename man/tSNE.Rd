@@ -8,8 +8,8 @@
 \usage{
 tSNE(x, ...)
 
-\S4method{tSNE}{daFrame}(x, cols_to_use = NULL, n = 1000, verbose = TRUE,
-  seed = 42)
+\S4method{tSNE}{daFrame}(x, cols_to_use = NULL, n = 1000,
+  verbose = TRUE, seed = 42)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}

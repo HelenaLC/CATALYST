@@ -12,11 +12,6 @@
 \alias{exprs,daFrame-method}
 \alias{daFrame-methods}
 \alias{exprs}
-\alias{type_markers}
-\alias{state_markers}
-\alias{n_cells}
-\alias{cluster_codes}
-\alias{cluster_ids}
 \alias{n_cells,daFrame-method}
 \alias{marker_classes,daFrame-method}
 \alias{type_markers,daFrame-method}

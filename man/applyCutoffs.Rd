@@ -8,7 +8,8 @@
 \usage{
 applyCutoffs(x, ...)
 
-\S4method{applyCutoffs}{dbFrame}(x, mhl_cutoff = 30, sep_cutoffs = NULL)
+\S4method{applyCutoffs}{dbFrame}(x, mhl_cutoff = 30,
+  sep_cutoffs = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}

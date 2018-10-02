@@ -9,11 +9,13 @@
 \usage{
 normCytof(x, y, ...)
 
-\S4method{normCytof}{flowFrame}(x, y, out_path = NULL, remove_beads = TRUE,
-  norm_to = NULL, k = 500, trim = 5, verbose = TRUE, plot = TRUE)
+\S4method{normCytof}{flowFrame}(x, y, out_path = NULL,
+  remove_beads = TRUE, norm_to = NULL, k = 500, trim = 5,
+  verbose = TRUE, plot = TRUE)
 
-\S4method{normCytof}{character}(x, y, out_path = NULL, remove_beads = TRUE,
-  norm_to = NULL, k = 500, trim = 5, verbose = TRUE)
+\S4method{normCytof}{character}(x, y, out_path = NULL,
+  remove_beads = TRUE, norm_to = NULL, k = 500, trim = 5,
+  verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{flowFrame}} or character of the FCS file to be normalized.}

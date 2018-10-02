@@ -8,8 +8,8 @@
 \usage{
 extractClusters(x, k, ...)
 
-\S4method{extractClusters}{daFrame}(x, k, clusters = NULL, as = c("flowSet",
-  "fcs"), out_dir = ".", verbose = TRUE)
+\S4method{extractClusters}{daFrame}(x, k, clusters = NULL,
+  as = c("flowSet", "fcs"), out_dir = ".", verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}

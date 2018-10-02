@@ -8,7 +8,8 @@
 \usage{
 outFrames(x, ...)
 
-\S4method{outFrames}{dbFrame}(x, return = "flowSet", which = "assigned")
+\S4method{outFrames}{dbFrame}(x, return = "flowSet",
+  which = "assigned")
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}

@@ -8,9 +8,10 @@
 \usage{
 plotClusterHeatmap(x, ...)
 
-\S4method{plotClusterHeatmap}{daFrame}(x, hm2 = NULL, k = 20, m = NULL,
-  cluster_anno = TRUE, split_by = NULL, scale = TRUE, draw_dend = TRUE,
-  draw_freqs = FALSE, palette = rev(brewer.pal(11, "RdYlBu")))
+\S4method{plotClusterHeatmap}{daFrame}(x, hm2 = NULL, k = 20,
+  m = NULL, cluster_anno = TRUE, split_by = NULL, scale = TRUE,
+  draw_dend = TRUE, draw_freqs = FALSE, palette = rev(brewer.pal(11,
+  "RdYlBu")))
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}

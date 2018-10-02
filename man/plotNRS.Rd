@@ -8,12 +8,16 @@
 \usage{
 plotNRS(x, ...)
 
-\S4method{plotNRS}{daFrame}(x, color_by = "condition")
+\S4method{plotNRS}{daFrame}(x, markers = NULL, color_by = "condition")
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
+
+\item{markers}{character string specifying which markers to include. Defaults to NULL 
+(= all markers). Alternatively, if the \code{colData(x)$marker_class} 
+column is specified, can be one of "type", "state", or "none".}
 
 \item{color_by}{character string. Has to appeara as a column name of \code{rowData(x)}.
 Specifies the color coding.}

@@ -14,8 +14,8 @@ plotDiffHeatmap(x, y, ...)
 \S4method{plotDiffHeatmap}{matrix,SummarizedExperiment}(x, y, top_n = 20,
   all = FALSE, order = TRUE, th = 0.1, ...)
 
-\S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y, top_n = 20,
-  all = FALSE, order = TRUE, th = 0.1, ...)
+\S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y,
+  top_n = 20, all = FALSE, order = TRUE, th = 0.1, ...)
 
 \S4method{plotDiffHeatmap}{SummarizedExperiment,SummarizedExperiment}(x, y,
   top_n = 20, all = FALSE, order = TRUE, th = 0.1, ...)

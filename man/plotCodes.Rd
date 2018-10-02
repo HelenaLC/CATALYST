@@ -8,7 +8,8 @@
 \usage{
 plotCodes(x, ...)
 
-\S4method{plotCodes}{daFrame}(x, k = 20, out_path = NULL, verbose = TRUE)
+\S4method{plotCodes}{daFrame}(x, k = 20, out_path = NULL,
+  verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
