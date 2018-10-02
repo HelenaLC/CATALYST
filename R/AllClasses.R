@@ -254,14 +254,21 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     m <- match(keyword(fs, "FILENAME"), md[[md_cols$file]])
     fs <- fs[m]
     
+    # assure factors
     md <- data.frame(md)
+    for (i in factors) md[, i] <- factor(md[, i])
+
+    # replace channel w/ antigen names
     chs <- flowCore::colnames(fs)
     m1 <- match(panel[[panel_cols$channel]], chs, nomatch=0)
     m2 <- match(chs, panel[[panel_cols$channel]])
     flowCore::colnames(fs)[m1] <- antigens[m2]
-    es <- matrix(fsApply(fs, exprs), 
-        ncol=length(chs),
+    
+    # get exprs.
+    es <- matrix(fsApply(fs, exprs), ncol=length(chs),
         dimnames=list(NULL, flowCore::colnames(fs)))
+    
+    # get nb. of cells per sample
     n_cells <- fsApply(fs, nrow)
     n_cells <- setNames(as.numeric(n_cells), md[[md_cols$id]])
     
@@ -273,6 +280,7 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
         channel_name=chs, marker_name=colnames(es), 
         marker_class=factor("none", levels=c("type", "state", "none")))
     
+    # construct daFrame
     new("daFrame", 
         SummarizedExperiment(
             assays=SimpleList(exprs=es),
