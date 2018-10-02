@@ -131,8 +131,8 @@ setMethod(f="plotClusterHeatmap",
         if (length(m) != 0) {
             anno <- factor(cluster_codes(x)[, m][match(
                 seq_len(n_clusters), cluster_codes(x)[, k])])
-            if (n_clusters > 30) {
-              cols <- colorRampPalette(cluster_cols)(n_clusters)
+            if (nlevels(anno) > 30) {
+              cols <- colorRampPalette(cluster_cols)(nlevels(anno))
             } else {
               cols <- cluster_cols[seq_len(nlevels(anno))]
             }
