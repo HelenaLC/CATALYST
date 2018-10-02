@@ -70,7 +70,7 @@ setMethod(f="normCytof",
     es <- flowCore::exprs(x)
     es_t <- asinh(es/5)
     chs <- flowCore::colnames(x)
-    ms <- gsub("[[:alpha:][:punct:]]", "", chs)
+    ms <- get_ms_from_chs(chs)
     
     # find time, length, DNA and bead channels
     time_col <- grep("time",        chs, ignore.case=TRUE)
@@ -79,7 +79,6 @@ setMethod(f="normCytof",
     bead_cols <- get_bead_cols(chs, y)
     bead_ms <- ms[bead_cols]
     n_beads <- length(bead_ms)
-    ms <- ms[!is.na(as.numeric(ms))]
 
     # identify bead singlets
     if (verbose) message("Identifying beads...")
@@ -94,17 +93,18 @@ setMethod(f="normCytof",
         above_min <- vapply(seq_len(n_beads), 
             function(j) sum(i[j] > min_bead_ints[j]), numeric(1))
         sum(above_min) == n_beads 
+        #any(above_min)
     })
     
     # trim tails
     bead_inds <- update_bead_inds(es_t, bead_inds, bead_cols, trim)
-
+    
     # get slopes - baseline (global mean) versus smoothed bead intensitites
     # and linearly interpolate slopes at non-bead events
     if (verbose) message("Computing normalization factors...")
     if (is.null(norm_to)) {
         bead_es <- es[bead_inds, bead_cols]
-        bead_ts <- es[bead_inds, time_col]
+        bead_ts <- es[bead_inds, time_col ]
     } else {
         if (is.character(norm_to)) {
             if (length(norm_to) != 1) 
@@ -113,8 +113,12 @@ setMethod(f="normCytof",
                 stop(norm_to, " is not a valid FCS file.")
             norm_to <- flowCore::read.FCS(norm_to) 
         }
-        bead_es <- flowCore::exprs(norm_to)[, bead_cols]
-        bead_ts <- flowCore::exprs(norm_to)[, time_col]
+        chs_ref <- flowCore::colnames(norm_to)
+        bead_cols_ref <- get_bead_cols(chs_ref, beads)
+        time_col_ref <- grep("time", chs_ref, ignore.case=TRUE)
+        es_ref <- flowCore::exprs(norm_to)
+        bead_es <- es_ref[, bead_cols_ref]
+        bead_ts <- es_ref[, time_col_ref ]
     }
     baseline <- colMeans(bead_es)
     bead_slopes <- rowSums(bead_es*baseline) / rowSums(bead_es^2)
@@ -142,9 +146,9 @@ setMethod(f="normCytof",
         chs[c(time_col, bead_cols)]
     
     if (plot)
-        outPlots(es_t, bead_inds, remove, bead_cols, dna_cols,
+        outPlots(x, es_t, bead_inds, remove, bead_cols, dna_cols,
             smoothed_beads, smoothed_normed_beads, out_path)
-    outNormed(x, normed_es, remove_beads, remove, out_path)
+    outNormed(x, normed_es, remove_beads, bead_inds, remove, out_path)
     })
 
 # ------------------------------------------------------------------------------
