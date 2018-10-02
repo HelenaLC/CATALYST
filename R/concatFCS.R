@@ -39,9 +39,7 @@ setMethod(f="concatFCS",
     signature=signature(x="flowSet"),
     definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE, 
         pars=NULL, desc=NULL) {
-        
-        ### check validity of pars and desc
-        
+
         n <- length(x)
         if (by_time) {
             # order by time
@@ -101,7 +99,7 @@ setMethod(f="concatFCS",
         
         # get parameters
         # check if descriptions are unique across frames
-        ds <- sapply(fsApply(raw_data, parameters), "[[", 2)
+        ds <- sapply(fsApply(x, parameters), "[[", 2)
         if (!any(apply(ds, 1, function(ds) length(unique(ds)) == 1)))
             message("Descriptions don't match across frames.",
                 " Keeping the 1st flowFrame's descriptions.")
