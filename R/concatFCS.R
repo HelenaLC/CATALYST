@@ -100,15 +100,15 @@ setMethod(f="concatFCS",
         d[paste0("flowCore_$P", seq_len(nPars), "Rmax")] <- paste(maxs-1)
         
         # get parameters
-        PnS <- paste0("$P", seq_len(nPars), "S")
-        descr <- unlist(d[PnS])
-        inds <- PnS %in% names(descr)
-        newD <- rep(NA, nPars)
-        newD[inds] <- descr
-        newD <- as.list(setNames(newD, PnS))
+        # check if descriptions are unique across frames
+        ds <- sapply(fsApply(raw_data, parameters), "[[", 2)
+        if (!any(apply(ds, 1, function(ds) length(unique(ds)) == 1)))
+            message("Descriptions don't match across frames.",
+                " Keeping the 1st flowFrame's descriptions.")
+        ds <- ds[, 1]
         df <- data.frame(list(
             name=colnames(es),
-            desc=PnS,
+            desc=ds,
             range=maxs,
             minRange=mins,
             maxRange=maxs-1))
