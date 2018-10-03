@@ -230,6 +230,12 @@ setGeneric("plotCounts",
 setGeneric("plotExprs", 
     function(x, ...) standardGeneric("plotExprs"))
 
+#' @rdname plotClusterExprs
+#' @param ... optional arguments.
+#' @export
+setGeneric("plotClusterExprs", 
+    function(x, ...) standardGeneric("plotClusterExprs"))
+
 #' @rdname plotMDS
 #' @param ... optional arguments.
 #' @export
