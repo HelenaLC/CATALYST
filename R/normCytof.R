@@ -114,7 +114,7 @@ setMethod(f="normCytof",
             norm_to <- flowCore::read.FCS(norm_to) 
         }
         chs_ref <- flowCore::colnames(norm_to)
-        bead_cols_ref <- get_bead_cols(chs_ref, beads)
+        bead_cols_ref <- get_bead_cols(chs_ref, y)
         time_col_ref <- grep("time", chs_ref, ignore.case=TRUE)
         es_ref <- flowCore::exprs(norm_to)
         bead_es <- es_ref[, bead_cols_ref]
