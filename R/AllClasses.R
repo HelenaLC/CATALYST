@@ -256,7 +256,7 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     
     # assure factors
     md <- data.frame(md)
-    for (i in factors) md[, i] <- factor(md[, i])
+    for (i in md_cols$factors) md[, i] <- factor(md[, i])
 
     # replace channel w/ antigen names
     chs <- flowCore::colnames(fs)
