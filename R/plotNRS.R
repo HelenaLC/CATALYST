@@ -44,14 +44,15 @@ setMethod(f="plotNRS",
             stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
                 "Should be one of: ", paste(dQuote(valid), collapse=", "))
 
+        # check validity of argument 'markers'
         if (is.null(markers)) {
-            markers <- colnames(exprs(x))
+            markers <- colnames(x)
         } else if (length(markers) == 1 &&
                 markers %in% levels(colData(x)$marker_class)) {
             idx <- colData(x)$marker_class == markers
             if (!any(idx))
                 stop(sprintf("No markers matched marker class '%s'.", markers))
-            markers <- colData(x)$marker_name[idx]
+            markers <- colnames(x)[idx]
         } else {
             # replace problematic characters
             markers <- gsub("-", "_", markers)
