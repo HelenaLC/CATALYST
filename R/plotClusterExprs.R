@@ -30,8 +30,10 @@
 #' plotClusterExprs(re)
 #' 
 #' @import ggplot2
-#' @import ggridges
+#' @importFrom dplyr %>% group_by_
+#' @importFrom ggridges geom_density_ridges theme_ridges
 #' @importFrom reshape2 melt
+#' @importFrom stats dist hclust
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotClusterExprs", 
@@ -61,9 +63,18 @@ setMethod(f="plotClusterExprs",
             stopifnot(all(markers %in% colnames(exprs(x))))
         }
         
-        dat <- data.frame(exprs(x)[, markers], rowData(x))
+        # calculate median markers expressions
         cluster_ids <- cluster_codes(x)[cluster_ids(x), k]
+        dat <- data.frame(exprs(x)[, markers], rowData(x))
         dat$cluster_id <- cluster_ids
+        meds <- dat %>% group_by_("cluster_id") %>% 
+            summarise_at(markers, funs(median))
+        
+        # get cluster frequencies
+        freqs <- table(cluster_ids) / nrow(x)
+        freqs <- round(freqs * 100, 2)
+        
+        # constrcut data.frame & reference for plotting
         dat <- melt(dat, id.vars=names(rowData(x)), id.var="cluster_id",
             variable.name="antigen", value.name="expression")
         dat$ref <- "no"
@@ -72,15 +83,21 @@ setMethod(f="plotClusterExprs",
         ref$ref <- "yes"
         df <- rbind(dat, ref)
         
+        # hierarchical clustering
+        d <- dist(meds, method="euclidean")
+        h <- hclust(d, method="average")
+        o <- h$order
+        
         # reorder clusters
-        cluster_ids <- as.character(levels(cluster_ids))
-        ids <- suppressWarnings(as.numeric(cluster_ids))
-        ids <- c("ref", sort(cluster_ids[is.na(ids)]), sort(ids[!is.na(ids)]))
-        df$cluster_id <- factor(df$cluster_id, levels=rev(ids))
+        df$cluster_id <- factor(df$cluster_id, 
+            levels=rev(c("ref", levels(cluster_ids)[o])),
+            labels=rev(c("ref", paste0(names(freqs), " (", freqs, "%)")[o])))
         
         ggplot(df, aes_string(x="expression", y="cluster_id", 
             col="ref", fill="ref")) + geom_density_ridges(alpha=.2) +
             facet_wrap(~antigen, scales="free_x", nrow=2) + 
-            theme_ridges() + theme(legend.position="none")
+            theme_ridges() + theme(legend.position="none",
+                strip.background=element_blank(),
+                strip.text=element_text(face="bold"))
     }
 )
