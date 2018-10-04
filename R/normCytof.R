@@ -15,6 +15,12 @@
 #'   (the default), \code{normCytof} will return a \code{\link{flowFrame}} of 
 #'   the normalized data (if \code{remove=FALSE}) or a \code{\link{flowSet}} 
 #'   containing normalized cells and beads (if \code{remove=TRUE}).
+#' @param fn
+#'   a character string to use as the output file name. Defaults to 
+#'   the file name of the input FCS file or \code{flowFrame}, respectively. 
+#' @param fn_sep
+#'   a character string to use to separate the output file name's prefix
+#'   from the appendage.
 #' @param remove_beads 
 #'   logical. If TRUE (the default) beads will be removed and 
 #'   normalized cells and beads returned separately.
@@ -61,11 +67,18 @@
 
 setMethod(f="normCytof", 
     signature=signature(x="flowFrame"), 
-    definition=function(x, y, out_path=NULL, remove_beads=TRUE, norm_to=NULL, 
+    definition=function(x, y, 
+        out_path=NULL, fn=NULL, fn_sep="_",
+        remove_beads=TRUE, norm_to=NULL, 
         k=500, trim=5, verbose=TRUE, plot=TRUE) {
     
     # assure width of median window is odd
     if (k %% 2 == 0) k <- k + 1
+    
+    # check validity of 'out_path', 'fn', and 'fn_sep'
+    stopifnot(is.null(out_path) || (is.character(out_path) & dir.exists(out_path)))
+    stopifnot(is.null(fn) || is.character(fn))
+    stopifnot(is.character(fn_sep))
     
     es <- flowCore::exprs(x)
     es_t <- asinh(es/5)
@@ -147,8 +160,8 @@ setMethod(f="normCytof",
     
     if (plot)
         outPlots(x, es_t, bead_inds, remove, bead_cols, dna_cols,
-            smoothed_beads, smoothed_normed_beads, out_path)
-    outNormed(x, normed_es, remove_beads, bead_inds, remove, out_path)
+            smoothed_beads, smoothed_normed_beads, out_path, fn, fn_sep)
+    outNormed(x, normed_es, remove_beads, bead_inds, remove, out_path, fn, fn_sep)
     })
 
 # ------------------------------------------------------------------------------

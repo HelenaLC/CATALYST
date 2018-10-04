@@ -9,9 +9,9 @@
 \usage{
 normCytof(x, y, ...)
 
-\S4method{normCytof}{flowFrame}(x, y, out_path = NULL,
-  remove_beads = TRUE, norm_to = NULL, k = 500, trim = 5,
-  verbose = TRUE, plot = TRUE)
+\S4method{normCytof}{flowFrame}(x, y, out_path = NULL, fn = NULL,
+  fn_sep = "_", remove_beads = TRUE, norm_to = NULL, k = 500,
+  trim = 5, verbose = TRUE, plot = TRUE)
 
 \S4method{normCytof}{character}(x, y, out_path = NULL,
   remove_beads = TRUE, norm_to = NULL, k = 500, trim = 5,
@@ -29,6 +29,12 @@ normCytof(x, y, ...)
 (the default), \code{normCytof} will return a \code{\link{flowFrame}} of 
 the normalized data (if \code{remove=FALSE}) or a \code{\link{flowSet}} 
 containing normalized cells and beads (if \code{remove=TRUE}).}
+
+\item{fn}{a character string to use as the output file name. Defaults to 
+the file name of the input FCS file or \code{flowFrame}, respectively.}
+
+\item{fn_sep}{a character string to use to separate the output file name's prefix
+from the appendage.}
 
 \item{remove_beads}{logical. If TRUE (the default) beads will be removed and 
 normalized cells and beads returned separately.}
