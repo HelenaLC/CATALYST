@@ -90,6 +90,10 @@ setMethod(f="cluster",
     definition=function(x, cols_to_use, 
         xdim=10, ydim=10, maxK=20, verbose=TRUE, seed=1) {
         
+        # validity checks
+        stopifnot(is.numeric(xdim), is.numeric(ydim), is.numeric(maxK), is.logical(verbose), is.numeric(seed),
+            length(xdim) == 1, length(ydim) == 1, length(maxK) == 1, length(verbose) == 1, length(seed) == 1)
+        
         # replace dash with underscore
         cols_to_use <- gsub("-", "_", cols_to_use)
         
@@ -97,6 +101,7 @@ setMethod(f="cluster",
         if (verbose)
             message("o running FlowSOM clustering...")
         fsom <- ReadInput(flowFrame(exprs(x)))
+        set.seed(seed)
         som <- BuildSOM(fsom, colsToUse=cols_to_use, 
             silent=TRUE, xdim=xdim, ydim=ydim)
         
