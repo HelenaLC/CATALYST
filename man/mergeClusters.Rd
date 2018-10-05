@@ -13,8 +13,8 @@ mergeClusters(x, table, id)
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
-\item{table}{the merging table; a \code{data.frame} with columns 
-\code{'old_cluster'}, \code{'new_cluster'} and \code{'label'}.}
+\item{table}{a merging table with 2 columns containing the cluster IDs to merge 
+in the 1st, and the cluster IDs to newly assign in the 2nd column.}
 
 \item{id}{character string. Used as a label for the merging.}
 
