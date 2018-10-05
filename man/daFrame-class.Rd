@@ -7,9 +7,9 @@
 \title{Differential analysis frame class}
 \usage{
 daFrame(x, panel, md, cols_to_use = NULL, cofactor = 5,
-  panel_cols = list(channel = "fcs_colname", antigen = "antigen"),
-  md_cols = list(file = "file_name", id = "sample_id", factors =
-  c("condition", "patient_id")))
+  panel_cols = list(channel = "fcs_colname", antigen = "antigen", class =
+  "marker_class"), md_cols = list(file = "file_name", id = "sample_id",
+  factors = c("condition", "patient_id")))
 }
 \arguments{
 \item{x}{a \code{flowSet} holding all samples OR
@@ -33,8 +33,9 @@ of column names. Specifies which columns to keep from the input
 \item{cofactor}{numeric. Cofactor to use for arcsinh-transformation.}
 
 \item{panel_cols}{a named list specifying column names of \code{panel} that contain i) the 
-original channel names in \code{fs}, and ii) the targeted protein marker. 
-Elements must be named \code{"channel"} and \code{"antigen"}.}
+original channel names in \code{fs}, ii) the targeted protein marker, and
+iii) the marker class ("type", "state", or "none" for unspecified markers). 
+Elements must be named \code{"channel"}, \code{"antigen"} and \code{"class"}.}
 
 \item{md_cols}{a named list specifying column names of \code{md} that contain i) the FCS 
 file names, ii) unique sample identifiers, and iii) a character vector of 

@@ -13,6 +13,8 @@
 #'   a \code{\link{daFrame}}.
 #' @param cols_to_use 
 #'   a character vector. Specifies which antigens to use for clustering.
+#'   The default (NULL) uses \code{type_markers(x)}. Must be provided if 
+#'   \code{colData(x)$marker_class} has not been specified.
 #' @param xdim,ydim 
 #'   numeric. Specify the grid size of the self-orginizing map. 
 #'   The default 10x10 grid will yield 100 clusters. 
@@ -72,10 +74,8 @@
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
-#' # specify antigens to use for clustering
-#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-#'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-#' (re <- cluster(re, cols_to_use=lineage))
+#' # run clustering
+#' (re <- cluster(re))
 #' 
 #' @import ConsensusClusterPlus ggplot2
 #' @importFrom flowCore flowFrame
@@ -87,16 +87,26 @@
 
 setMethod(f="cluster",
     signature=signature(x="daFrame"),
-    definition=function(x, cols_to_use, 
+    definition=function(x, cols_to_use=NULL, 
         xdim=10, ydim=10, maxK=20, verbose=TRUE, seed=1) {
         
         # validity checks
         stopifnot(is.numeric(xdim), is.numeric(ydim), is.numeric(maxK), is.logical(verbose), is.numeric(seed),
             length(xdim) == 1, length(ydim) == 1, length(maxK) == 1, length(verbose) == 1, length(seed) == 1)
         
-        # replace dash with underscore
-        cols_to_use <- gsub("-", "_", cols_to_use)
-        
+        if (is.null(cols_to_use)) {
+            stopifnot("marker_class" %in% colnames(colData(x)))
+            cols_to_use <- colnames(x)[colData(x)$marker_class == "type"]
+        } else {
+            # replace problematic characters
+            cols_to_use <- gsub("-", "_", cols_to_use)
+            cols_to_use <- gsub(":", ".", cols_to_use)
+            stopifnot(all(cols_to_use %in% colnames(x)))
+            colData(x)$marker_class <- factor(c("state", "type")[
+                as.numeric(colnames(x) %in% cols_to_use)+1],
+                levels=levels(marker_classes(x)))
+        }
+
         # flowSOM clustering
         if (verbose)
             message("o running FlowSOM clustering...")
@@ -125,9 +135,6 @@ setMethod(f="cluster",
         cluster_codes <- data.frame(cluster_codes, check.names=FALSE)
 
         rowData(x)$cluster_id <- as.factor(som$map$mapping[, 1])
-        colData(x)$marker_class <- factor(c("state", "type")[
-            as.numeric(colnames(exprs(x)) %in% cols_to_use)+1],
-            levels=levels(marker_classes(x)))
         metadata(x)$SOM_codes <- som$map$codes
         metadata(x)$cluster_codes <- cluster_codes
         metadata(x)$delta_area <- plot_delta_area(mc)

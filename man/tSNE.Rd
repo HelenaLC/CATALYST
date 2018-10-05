@@ -38,9 +38,7 @@ data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
 # run t-SNE
-lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-re <- tSNE(re, cols_to_use=lineage, n=50)
+re <- tSNE(re, n=50)
 
 par(pty="s")
 tsne <- S4Vectors::metadata(re)$tsne$Y

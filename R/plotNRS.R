@@ -56,6 +56,7 @@ setMethod(f="plotNRS",
         } else {
             # replace problematic characters
             markers <- gsub("-", "_", markers)
+            markers <- gsub(":", ".", markers)
             stopifnot(all(markers %in% colnames(exprs(x))))
         }
         

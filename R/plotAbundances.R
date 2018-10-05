@@ -33,9 +33,7 @@
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' # run clustering
-#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-#'     "CD123", "CD14", "IgM", "HLA-DR", "CD7")
-#' re <- cluster(re, cols_to_use=lineage)
+#' re <- cluster(re)
 #' # plot relative population abundances 
 #' plotAbundances(re, k=12)                 # ...by sample 
 #' plotAbundances(re, k=8, by="cluster_id") # ...by cluster

@@ -8,15 +8,17 @@
 \usage{
 cluster(x, ...)
 
-\S4method{cluster}{daFrame}(x, cols_to_use, xdim = 10, ydim = 10,
-  maxK = 20, verbose = TRUE, seed = 1)
+\S4method{cluster}{daFrame}(x, cols_to_use = NULL, xdim = 10,
+  ydim = 10, maxK = 20, verbose = TRUE, seed = 1)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{cols_to_use}{a character vector. Specifies which antigens to use for clustering.}
+\item{cols_to_use}{a character vector. Specifies which antigens to use for clustering.
+The default (NULL) uses \code{type_markers(x)}. Must be provided if 
+\code{colData(x)$marker_class} has not been specified.}
 
 \item{xdim, ydim}{numeric. Specify the grid size of the self-orginizing map. 
 The default 10x10 grid will yield 100 clusters.}
@@ -76,10 +78,8 @@ a considerable increase in stability (pleateau onset).
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
-# specify antigens to use for clustering
-lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-(re <- cluster(re, cols_to_use=lineage))
+# run clustering
+(re <- cluster(re))
 
 }
 \references{

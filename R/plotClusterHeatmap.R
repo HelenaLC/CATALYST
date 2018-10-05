@@ -68,9 +68,7 @@
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' # run clustering
-#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-#'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-#' re <- cluster(re, cols_to_use=lineage)
+#' re <- cluster(re)
 #' 
 #' plotClusterHeatmap(re, hm2="abundances")
 #' plotClusterHeatmap(re, hm2="abundances", draw_freqs = TRUE)

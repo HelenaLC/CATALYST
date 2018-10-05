@@ -178,8 +178,9 @@ setClass(
 #'     \item \code{patient_id}: the patient ID}
 #' @param panel_cols 
 #'   a named list specifying column names of \code{panel} that contain i) the 
-#'   original channel names in \code{fs}, and ii) the targeted protein marker. 
-#'   Elements must be named \code{"channel"} and \code{"antigen"}.
+#'   original channel names in \code{fs}, ii) the targeted protein marker, and
+#'   iii) the marker class ("type", "state", or "none" for unspecified markers). 
+#'   Elements must be named \code{"channel"}, \code{"antigen"} and \code{"class"}.
 #' @param md_cols 
 #'   a named list specifying column names of \code{md} that contain i) the FCS 
 #'   file names, ii) unique sample identifiers, and iii) a character vector of 
@@ -197,7 +198,8 @@ setClass(
 #' @export
 
 daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
-    panel_cols=list(channel="fcs_colname", antigen="antigen"),
+    panel_cols=list(channel="fcs_colname", 
+        antigen="antigen", class="marker_class"),
     md_cols=list(file="file_name", id="sample_id", 
         factors=c("condition", "patient_id"))) {
     
@@ -243,6 +245,7 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     
     # replace problematic characters
     antigens <- gsub("-", "_", panel[[panel_cols$antigen]])
+    antigens <- gsub(":", ".", antigens)
     
     # arcsinh-transformation & column subsetting
     fs <- fs[, cols_to_use]
@@ -272,13 +275,27 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     n_cells <- fsApply(fs, nrow)
     n_cells <- setNames(as.numeric(n_cells), md[[md_cols$id]])
     
-    # construct SummarizedExperiment
+    # construct column data
     row_data <- S4Vectors::DataFrame(
         sample_id=rep(md[[md_cols$id]], n_cells), 
         sapply(md_cols$factors, function(i) rep(md[[i]], n_cells)))
-    col_data <- S4Vectors::DataFrame(row.names=colnames(es), 
-        channel_name=chs, marker_name=colnames(es), 
-        marker_class=factor("none", levels=c("type", "state", "none")))
+    
+    # get & check marker classes if provided
+    valid_mcs <- c("type", "state", "none")
+    if (is.null(panel_cols$class)) {
+        mcs <- factor("none", levels=valid_mcs)
+    } else {
+        mcs <- panel[[panel_cols$class]]
+        if (!all(mcs %in% valid_mcs))
+            stop("Invalid marker classes detected.",
+                " Valid classes are 'type', 'state', and 'none'.")
+        levels(mcs) <- valid_mcs
+    }
+    
+    # construct row data
+    col_data <- S4Vectors::DataFrame(
+        row.names=colnames(es), channel_name=chs, 
+        marker_name=colnames(es), marker_class=mcs)
     
     # construct daFrame
     new("daFrame", 
