@@ -9,9 +9,9 @@
 plotClusterHeatmap(x, ...)
 
 \S4method{plotClusterHeatmap}{daFrame}(x, hm2 = NULL, k = 20,
-  m = NULL, cluster_anno = TRUE, split_by = NULL, scale = TRUE,
-  draw_dend = TRUE, draw_freqs = FALSE, palette = rev(brewer.pal(11,
-  "RdYlBu")))
+  m = NULL, fun = c("median", "mean"), cluster_anno = TRUE,
+  split_by = NULL, scale = TRUE, draw_dend = TRUE,
+  draw_freqs = FALSE, palette = rev(brewer.pal(11, "RdYlBu")))
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -31,6 +31,8 @@ across which median marker expressions should be computed.}
 
 \item{m}{numeric or character string. Specifies the metaclustering to be shown. 
 (This is for display only and will not effect any computations!)}
+
+\item{fun}{character string specifying the function to use as summary statistic.}
 
 \item{cluster_anno}{logical. Specifies if clusters should be annotated.}
 
