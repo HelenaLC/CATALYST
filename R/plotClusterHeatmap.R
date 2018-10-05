@@ -20,6 +20,8 @@
 #' @param m 
 #'   numeric or character string. Specifies the metaclustering to be shown. 
 #'   (This is for display only and will not effect any computations!) 
+#' @param fun
+#'   character string specifying the function to use as summary statistic.
 #' @param cluster_anno 
 #'   logical. Specifies if clusters should be annotated.
 #' @param split_by 
@@ -77,7 +79,7 @@
 #' plotClusterHeatmap(re, hm2="abundances", scale=FALSE, draw_freqs = TRUE)
 #' 
 #' @import ComplexHeatmap
-#' @importFrom dplyr funs group_by_ summarise_all
+#' @importFrom dplyr group_by_ summarise_all
 #' @importFrom grDevices colorRampPalette
 #' @importFrom magrittr %>%
 #' @importFrom RColorBrewer brewer.pal
@@ -88,9 +90,11 @@
 
 setMethod(f="plotClusterHeatmap", 
     signature=signature(x="daFrame"), 
-    definition=function(x, hm2=NULL, k=20, m=NULL, cluster_anno=TRUE, 
-        split_by=NULL, scale=TRUE, draw_dend=TRUE, draw_freqs=FALSE, 
+    definition=function(x, hm2=NULL, k=20, m=NULL, fun=c("median", "mean"),
+        cluster_anno=TRUE, split_by=NULL, scale=TRUE, draw_dend=TRUE, draw_freqs=FALSE, 
         palette=rev(brewer.pal(11, "RdYlBu"))) {
+        
+        fun <- match.arg(fun)
         
         # check validity of argument 'hm2'
         if (!is.null(hm2) && !hm2 %in% 
@@ -109,7 +113,7 @@ setMethod(f="plotClusterHeatmap",
         
         # medians marker exprs. across clusters
         med_exprs <- data.frame(exprs(x), cluster_ids) %>%
-            group_by_(~cluster_ids) %>% summarize_all(funs(median))
+            group_by_(~cluster_ids) %>% summarize_all(fun)
         
         # hierarchical clustering on cell-type markers
         d <- stats::dist(med_exprs[, type_markers(x)])
@@ -163,7 +167,7 @@ setMethod(f="plotClusterHeatmap",
             if (scale) {
               es0 <- scale_exprs(exprs(x)[inds, , drop=FALSE])
               hm1_es <- data.frame(es0, cluster_ids = cluster_ids[inds]) %>% 
-                group_by_(~cluster_ids) %>% summarize_all(funs(median))
+                group_by_(~cluster_ids) %>% summarize_all(fun)
               hm2_es <- es0
             } else {
               if (!many) {
@@ -172,7 +176,7 @@ setMethod(f="plotClusterHeatmap",
               } else {
                 hm2_es <- exprs(x)[inds, , drop=FALSE]
                 hm1_es <- data.frame(hm2_es, cluster_ids = cluster_ids[inds]) %>% 
-                  group_by_(~cluster_ids) %>% summarize_all(funs(median))
+                  group_by_(~cluster_ids) %>% summarize_all(fun)
               }
             }
 
@@ -254,7 +258,7 @@ setMethod(f="plotClusterHeatmap",
                         sample_id=sample_ids(x)[inds], 
                         cluster_id=cluster_ids[inds]) %>%
                         group_by_(~sample_id, ~cluster_id) %>% 
-                        summarise_all(funs(median))
+                        summarise_all(fun)
                     for (ch in hm2) {
                         ch_meds <- acast(
                             meds[, c("sample_id", "cluster_id", ch)], 
