@@ -72,6 +72,7 @@ setMethod(f="tSNE",
             message("o running tSNE...")
         tsne_inds <- unlist(tsne_inds)
         tsne_es <- exprs(x)[tsne_inds, cols_to_use]
+        set.seed(seed)
         tsne <- Rtsne(tsne_es, check_duplicates=FALSE, pca=FALSE)
         metadata(x)$tsne <- tsne
         metadata(x)$tsne_inds <- tsne_inds
