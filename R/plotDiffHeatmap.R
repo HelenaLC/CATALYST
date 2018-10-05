@@ -86,6 +86,7 @@
 #' @importFrom circlize colorRamp2
 #' @importFrom dplyr group_by_ count summarise_all summarise_at 
 #' @importFrom magrittr %>%
+#' @importFrom Matrix colSums
 #' @importFrom stats quantile
 #' @importFrom tidyr complete
 #' @importFrom reshape2 acast
@@ -112,7 +113,7 @@ setMethod(f="plotDiffHeatmap",
 
         # color scale: 1%, 50%, 99% percentiles
         qs <- quantile(meds_by_cluster[, marker_classes != "none"], c(.01, .5, .99), TRUE)
-        hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
+        hm_cols <- circlize::colorRamp2(qs, c("royalblue3", "white", "tomato2"))
         
         # get clusters or cluster-marker combinations to plot
         if (order)
@@ -134,11 +135,12 @@ setMethod(f="plotDiffHeatmap",
         if (type == "DA") {
             # cluster sizes by sample
             n_cells <- df %>% count(cluster_id, sample_id) %>% complete(sample_id)
-            n_cells <- reshape2::acast(n_cells, cluster_id~sample_id, value.var="n", fill=0)
+            n_cells <- acast(n_cells, cluster_id~sample_id, value.var="n", fill=0)
             n_cells <- n_cells[top$cluster_id, , drop=FALSE]
+            freqs <- t(t(n_cells) / colSums(n_cells))
             
-            hm2 <- diff_hm(matrix=n_cells, name="n_cells",
-                col=colorRamp2(range(n_cells), c("navy", "yellow")),
+            hm2 <- diff_hm(matrix=freqs, name="frequency",
+                col=colorRamp2(range(freqs), c("navy", "yellow")),
                 xlab="sample_id", show_row_names=FALSE)
         } else if (type == "DS") { 
             # median state-marker expression by sample
