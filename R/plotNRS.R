@@ -57,7 +57,7 @@ setMethod(f="plotNRS",
             # replace problematic characters
             markers <- gsub("-", "_", markers)
             markers <- gsub(":", ".", markers)
-            stopifnot(all(markers %in% colnames(exprs(x))))
+            stopifnot(all(markers %in% colnames(x)))
         }
         
         # calculate NRS
