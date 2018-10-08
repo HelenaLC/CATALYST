@@ -9,7 +9,7 @@
 plotAbundances(x, ...)
 
 \S4method{plotAbundances}{daFrame}(x, k = 20, by = c("sample_id",
-  "cluster_id"), group = NULL)
+  "cluster_id"), group = NULL, shape = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -22,6 +22,10 @@ plotAbundances(x, ...)
 frequencies by samples or clusters.}
 
 \item{group}{a character string. Should corresponds to a column name of 
+\code{rowData(x)} other than "sample_id" and "cluster_id". 
+The default NULL will use the first factor available.}
+
+\item{shape}{a character string. Should correspond to a column name of
 \code{rowData(x)} other than "sample_id" and "cluster_id". 
 The default NULL will use the first factor available.}
 }

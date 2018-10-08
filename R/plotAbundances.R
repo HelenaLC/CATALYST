@@ -18,7 +18,10 @@
 #'   a character string. Should corresponds to a column name of 
 #'   \code{rowData(x)} other than "sample_id" and "cluster_id". 
 #'   The default NULL will use the first factor available.
-#' 
+#' @param shape
+#'   a character string. Should correspond to a column name of
+#'   \code{rowData(x)} other than "sample_id" and "cluster_id". 
+#'   The default NULL will use the first factor available.
 #' @return a \code{ggplot} object.
 #' 
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
@@ -45,8 +48,11 @@
 
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, by=c("sample_id", "cluster_id"), group=NULL) {
+    definition=function(x, k=20, 
+        by=c("sample_id", "cluster_id"), group=NULL, shape=NULL) {
     
+        md <- metadata(x)$experiment_info
+        
         # validity checks
         by <- match.arg(by)
         k <- check_validity_of_k(x, k)
@@ -54,10 +60,16 @@ setMethod(f="plotAbundances",
         if (length(valid) == 0)
             stop("No factors to group by. Metadata should contain\n", 
                 "at least one column other than 'file' and 'id'.")
-        if (is.null(group)) {
+        if (is.null(group) && length(valid) > 0) {
             group <- valid[1]
         } else if (!is.character(group) | !group %in% valid) {
             stop("Argument 'group = ", dQuote(group), "' invalid.\n",
+                "Should be one of: ", paste(dQuote(valid), collapse=", "))
+        }
+        if (is.null(shape) && length(valid) > 1) {
+            shape <- valid[2]
+        } else if (!is.character(shape) | !shape %in% valid) {
+            stop("Argument 'shape = ", dQuote(shape), "' invalid.\n",
                 "Should be one of: ", paste(dQuote(valid), collapse=", "))
         }
         
@@ -71,7 +83,6 @@ setMethod(f="plotAbundances",
             value.name="freq")
         
         # add metadata
-        md <- metadata(x)$experiment_info
         m <- match(df$sample_id, md$sample_id)
         df <- data.frame(df, md[m, setdiff(names(md), names(df))])
         
@@ -85,20 +96,26 @@ setMethod(f="plotAbundances",
                 axis.text=element_text(color="black"),
                 axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
         
-        switch(by,
+        p <- switch(by,
             sample_id = p + facet_wrap(group, scales="free_x") +
                 geom_bar(aes_string(x="sample_id", fill="factor(cluster_id)"), 
                     position="fill", stat="identity") +
                 scale_fill_manual("cluster_id", values=cluster_cols) +
                 scale_y_continuous(expand=c(0,0), labels=seq(0,100,25)) +
                 theme(panel.border=element_blank()),
-            cluster_id = p + facet_wrap(~cluster_id, scales="free_y", ncol=4) +
+            cluster_id = p + facet_wrap("cluster_id", scales="free_y", ncol=4) +
                 guides(fill=FALSE) + geom_boxplot(aes_string(
                     x=group, color=group, fill=group),
                     position=position_dodge(), alpha=.25, outlier.color=NA) + 
                 geom_point(position=position_jitter(width=.25),
-                    aes_string(x=group, y="freq", color=group)) +
-                theme(panel.grid.major=element_line(color="grey", size=.25))
-        )
+                    aes_string(x=group, y="freq", color=group, shape=shape)) +
+                theme(panel.grid.major=element_line(color="grey", size=.25)))
+        if (!is.null(shape)) {
+            shapes <- c(0,7,15, 1,13,19, 2,17, 5,9,18, 3,4,8, 10,13)
+            if (nlevels(md[, shape]) > 6)
+                shapes <- shapes[seq_len(nlevels(md[, shape]))]
+            p <- p + scale_shape_manual(values=shapes)
+        }
+        return(p)
     }
 )
