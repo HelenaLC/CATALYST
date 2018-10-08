@@ -53,6 +53,7 @@ setMethod(f="mergeClusters",
             stop("There already exists a clustering named ",
                 id, ". Please specify a different identifier.")
         
+        table <- data.frame(table)
         k <- max(table[, 1])
         m <- match(cluster_codes(x)[, k], table[, 1])
         new_ids <- table[m, 2]
