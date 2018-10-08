@@ -102,6 +102,7 @@ setMethod(f="cluster",
             cols_to_use <- gsub("-", "_", cols_to_use)
             cols_to_use <- gsub(":", ".", cols_to_use)
             stopifnot(all(cols_to_use %in% colnames(x)))
+            # assign marker classes
             colData(x)$marker_class <- factor(c("state", "type")[
                 as.numeric(colnames(x) %in% cols_to_use)+1],
                 levels=levels(marker_classes(x)))
