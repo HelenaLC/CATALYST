@@ -121,21 +121,22 @@ setMethod(f="cluster",
             message("o running ConsensusClusterPlus metaclustering...")
         pdf(NULL)
         mc <- suppressMessages(ConsensusClusterPlus(t(som$map$codes), 
-            maxK=maxK, reps=100, distance="euclidean", seed=seed, plot="pdf"))
+            maxK=maxK, reps=100, distance="euclidean", seed=seed, plot=NULL))
         dev.off()
         
         # get cluster codes
         k <- xdim * ydim
         mcs <- seq_len(maxK)[-1]
-        cluster_codes <- data.frame(factor(seq_len(k)), 
+        cluster_codes <- data.frame(row.names=NULL, factor(seq_len(k)), 
             sapply(mc[-1], function(x) factor(x$consensusClass)))
-        colnames(cluster_codes) <- c(k, mcs)
+        colnames(cluster_codes) <- c(sprintf("som%s", k), sprintf("meta%s", mcs))
+        
         # reorder factor levels
         cluster_codes <- lapply(cluster_codes, function(codes) 
             factor(codes, levels=sort(as.numeric(levels(codes)))))
-        cluster_codes <- data.frame(cluster_codes, check.names=FALSE)
+        cluster_codes <- data.frame(cluster_codes)
 
-        rowData(x)$cluster_id <- as.factor(som$map$mapping[, 1])
+        rowData(x)$cluster_id <- factor(som$map$mapping[, 1])
         metadata(x)$SOM_codes <- som$map$codes
         metadata(x)$cluster_codes <- cluster_codes
         metadata(x)$delta_area <- plot_delta_area(mc)
