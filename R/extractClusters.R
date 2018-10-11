@@ -41,14 +41,14 @@
 #' re <- cluster(re)
 #' 
 #' # merge clusters
-#' re <- mergeClusters(re, merging_table, "merging_1")
-#' extractClusters(re, k = "merging_1")
+#' re <- mergeClusters(re, k="meta20", table=merging_table, id="merging_1")
+#' extractClusters(re, k="merging_1")
 #' 
 #' @importFrom flowCore identifier<- description<- write.FCS
 # ------------------------------------------------------------------------------
 
 setMethod(f="extractClusters", 
-    signature=signature(x="daFrame"), 
+    signature=signature(x="daFrame", k="character"), 
     definition=function(x, k, clusters=NULL, 
         as=c("flowSet", "fcs"), out_dir=".", verbose=TRUE) {
         

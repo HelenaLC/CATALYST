@@ -8,7 +8,7 @@
 #' @param x 
 #'   a \code{\link{daFrame}}.
 #' @param k 
-#'   numeric or character string. Specifies the clustering to use.
+#'   character string. Specifies the clustering to use.
 #' @param markers
 #'   character string specifying which markers to include. Defaults to NULL 
 #'   (= all markers). Alternatively, if the \code{colData(x)$marker_class} 
@@ -38,7 +38,7 @@
 
 setMethod(f="plotClusterExprs", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, markers=NULL) {
+    definition=function(x, k="meta20", markers=NULL) {
         
         # check that cluster() has been run
         md_cols <- c("SOM_codes", "cluster_codes", "delta_area")

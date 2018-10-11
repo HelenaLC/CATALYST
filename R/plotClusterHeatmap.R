@@ -15,10 +15,10 @@
 #'   \item{a character string/vector corresponding to one/multiple marker(s): 
 #'     median marker expressions across samples and clusters}}
 #' @param k 
-#'   numeric or character string. Specifies the clustering 
+#'   character string. Specifies the clustering 
 #'   across which median marker expressions should be computed.
 #' @param m 
-#'   numeric or character string. Specifies the metaclustering to be shown. 
+#'   character string. Specifies the metaclustering to be shown. 
 #'   (This is for display only and will not effect any computations!) 
 #' @param fun
 #'   character string specifying the function to use as summary statistic.
@@ -72,8 +72,8 @@
 #' 
 #' plotClusterHeatmap(re, hm2="abundances")
 #' plotClusterHeatmap(re, hm2="abundances", draw_freqs = TRUE)
-#' plotClusterHeatmap(re, hm2="state_markers", k=16, split_by='condition')
-#' plotClusterHeatmap(re, hm2="pS6", k=12, m=8)
+#' plotClusterHeatmap(re, hm2="state_markers", k="meta16", split_by='condition')
+#' plotClusterHeatmap(re, hm2="pS6", k="meta12", m="meta8")
 #' plotClusterHeatmap(re, hm2="abundances", scale=FALSE, draw_freqs = TRUE)
 #' 
 #' @import ComplexHeatmap
@@ -88,7 +88,7 @@
 
 setMethod(f="plotClusterHeatmap", 
     signature=signature(x="daFrame"), 
-    definition=function(x, hm2=NULL, k=20, m=NULL, fun=c("median", "mean"),
+    definition=function(x, hm2=NULL, k="meta20", m=NULL, fun=c("median", "mean"),
         cluster_anno=TRUE, split_by=NULL, scale=TRUE, draw_dend=TRUE, draw_freqs=FALSE, 
         palette=rev(brewer.pal(11, "RdYlBu"))) {
         

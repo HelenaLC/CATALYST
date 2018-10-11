@@ -9,7 +9,7 @@
 #' @param x 
 #'   a \code{\link{daFrame}}.
 #' @param k 
-#'   numeric or character string. 
+#'   character string. 
 #'   Specifies the clustering to use for color coding.
 #' @param out_path 
 #'   character string. If specified, output will be generated in this location.
@@ -44,7 +44,7 @@
 
 setMethod(f="plotCodes", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, out_path=NULL, verbose=TRUE) {
+    definition=function(x, k="meta20", out_path=NULL, verbose=TRUE) {
         
         # validity check
         check_validity_of_k(x, k)

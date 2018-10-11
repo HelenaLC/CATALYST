@@ -10,7 +10,7 @@
 #' @param x 
 #'   a \code{\link{daFrame}}.
 #' @param k 
-#'   specifies which clustering to use.
+#'   character string. Specifies which clustering to use.
 #' @param by 
 #'   a character string specifying whether to plot 
 #'   frequencies by samples or clusters.
@@ -38,8 +38,8 @@
 #' # run clustering
 #' re <- cluster(re)
 #' # plot relative population abundances 
-#' plotAbundances(re, k=12)                 # ...by sample 
-#' plotAbundances(re, k=8, by="cluster_id") # ...by cluster
+#' plotAbundances(re, k="meta12")                 # ...by sample 
+#' plotAbundances(re, k="meta8", by="cluster_id") # ...by cluster
 #' 
 #' @import ggplot2
 #' @importFrom reshape2 melt
@@ -48,7 +48,7 @@
 
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, 
+    definition=function(x, k="meta20", 
         by=c("sample_id", "cluster_id"), group=NULL, shape=NULL) {
     
         md <- metadata(x)$experiment_info

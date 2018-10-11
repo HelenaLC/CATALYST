@@ -6,6 +6,8 @@
 #'
 #' @param x 
 #'   a \code{\link{daFrame}}.
+#' @param k
+#'   a character string specifying the clustering to merge.
 #' @param table 
 #'   a merging table with 2 columns containing the cluster IDs to merge 
 #'   in the 1st, and the cluster IDs to newly assign in the 2nd column.
@@ -39,25 +41,35 @@
 #' re <- cluster(re)
 #' 
 #' # merge clusters
-#' re <- mergeClusters(re, merging_table, "merging")
+#' re <- mergeClusters(re, k="meta20", table=merging_table, id="merging")
 #' plotClusterHeatmap(re, k="merging", hm2="pS6")
 # ------------------------------------------------------------------------------
 
 setMethod(f="mergeClusters", 
-    signature=signature(x="daFrame"), 
-    definition=function(x, table, id) {
+    signature=signature(x="daFrame", k="character", 
+        table="data.frame", id="character"), 
+    definition=function(x, k, table, id) {
         
         # validity checks
-        stopifnot(is.character(id), length(id) == 1)
+        check_validity_of_k(x, k)
+        stopifnot(length(id) == 1)
         if (id %in% colnames(metadata(x)$cluster_codes))
             stop("There already exists a clustering named ",
                 id, ". Please specify a different identifier.")
-        
-        table <- data.frame(table)
-        k <- max(table[, 1])
+        stopifnot(length(table[, 1]) == length(unique(length(table[, 1]))))
+
         m <- match(cluster_codes(x)[, k], table[, 1])
         new_ids <- table[m, 2]
         metadata(x)$cluster_codes[, id] <- factor(new_ids)
         return(x)
+    }
+)
+
+setMethod(f="mergeClusters", 
+    signature=signature(x="daFrame", k="character", 
+        table="matrix", id="character"), 
+    definition=function(x, k, table, id) {
+        table <- data.frame(table)
+        mergeClusters(x, k, table, id)
     }
 )

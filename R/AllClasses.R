@@ -189,7 +189,8 @@ setClass(
 #' @param cols_to_use 
 #'   a logical vector OR numeric vector of indices OR character vector 
 #'   of column names. Specifies which columns to keep from the input
-#'   \code{flowSet}/FCS files.
+#'   \code{flowSet}/FCS files. The default NULL uses channels listed in
+#'   \code{panel[ ,panel_cols$channel]}.
 #' @param cofactor 
 #'   numeric. Cofactor to use for arcsinh-transformation.
 #' 
@@ -229,7 +230,7 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     # set/check colnames of panel 
     chs <- flowCore::colnames(fs)
     if (is.null(cols_to_use))
-        cols_to_use <- chs
+        cols_to_use <- as.character(panel[[panel_cols$channel]])
     check_validity_cols(cols_to_use, chs)
     
     # check panel_cols & md_cols 
@@ -277,6 +278,7 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     
     # construct column data
     row_data <- S4Vectors::DataFrame(
+        row.names=NULL,
         sample_id=rep(md[[md_cols$id]], n_cells), 
         sapply(md_cols$factors, function(i) rep(md[[i]], n_cells)))
     

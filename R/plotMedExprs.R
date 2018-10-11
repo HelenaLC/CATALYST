@@ -8,7 +8,7 @@
 #' @param x 
 #'   a \code{\link{daFrame}}.
 #' @param k 
-#'   numeric or character string. Specifies the clustering to use.
+#'   character string. Specifies the clustering to use.
 #'   If \code{facet = "antigen"}, this argument will be ignored.
 #' @param facet 
 #'   \code{"antigen"} or \code{"cluster_id"}. Note that 
@@ -38,7 +38,7 @@
 #' re <- cluster(re)
 #' 
 #' # plot median expressions across clusters
-#' plotMedExprs(re, facet="cluster_id", k=8)
+#' plotMedExprs(re, facet="cluster_id", k="meta8")
 #' 
 #' @importFrom dplyr group_by_ summarize_all
 #' @importFrom reshape2 melt
@@ -46,7 +46,7 @@
 
 setMethod(f="plotMedExprs", 
     signature=signature(x="daFrame"), 
-    definition=function(x, k=20, 
+    definition=function(x, k="meta20", 
         facet=c("antigen", "cluster_id"), group_by="condition") {
 
         facet <- match.arg(facet)

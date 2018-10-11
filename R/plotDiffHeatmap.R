@@ -26,6 +26,12 @@
 #' @param th 
 #'   numeric. Threshold on adjusted p-values below which clusters (DA) 
 #'   or cluster-marker combinations (DS) should be considered significant.
+#' @param val
+#'   if \code{y} contains DA analysis results, specifies which values
+#'   to plot in the right-hand side heatmap:
+#'   \code{"frequency"} for relative population abundances,
+#'   \code{"normalized"} for arcsine-square-root scaled and 
+#'   Z-score normalized population proportions.
 #' 
 #' @details 
 #' For DA tests, \code{plotDiffHeatmap} will display
@@ -92,7 +98,16 @@
 
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="matrix", y="SummarizedExperiment"), 
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, 
+        val=c("frequency", "normalized"), ...) {
+        
+        # validity checks
+        stopifnot(length(top_n) == 1, is.numeric(top_n))
+        stopifnot(length(all) == 1, is.logical(all))
+        stopifnot(length(order) == 1, is.logical(order))
+        stopifnot(length(th) == 1, is.numeric(th))
+        val <- match.arg(val)
+        
         z <- list(...)
         sample_ids <- z$sample_ids
         cluster_ids <- z$cluster_ids
@@ -108,7 +123,7 @@ setMethod(f="plotDiffHeatmap",
                 summarise_at(colnames(x), median), row.names=1)
         meds_by_cluster <- data.frame(df %>% group_by_(~cluster_id) %>% 
                 summarise_at(colnames(x), median), row.names=1)
-
+        
         # color scale: 1%, 50%, 99% percentiles
         qs <- quantile(meds_by_cluster[, marker_classes != "none"], c(.01, .5, .99), TRUE)
         hm_cols <- circlize::colorRamp2(qs, c("royalblue3", "white", "tomato2"))
@@ -136,9 +151,12 @@ setMethod(f="plotDiffHeatmap",
             n_cells <- acast(n_cells, cluster_id~sample_id, value.var="n", fill=0)
             n_cells <- n_cells[top$cluster_id, , drop=FALSE]
             freqs <- t(t(n_cells) / colSums(n_cells))
-            
-            hm2 <- diff_hm(matrix=freqs, name="frequency",
-                col=colorRamp2(range(freqs), c("navy", "yellow")),
+            hm2_mat <- switch(val,
+                frequency=freqs,
+                normalized=z_normalize(asin(sqrt(freqs))))
+            hm2_nm <- paste0("normalized\n"[val == "normalized"], "frequency")
+            hm2 <- diff_hm(matrix=hm2_mat, name=hm2_nm,
+                col=colorRamp2(range(hm2_mat), c("navy", "yellow")),
                 xlab="sample_id", show_row_names=FALSE)
         } else if (type == "DS") { 
             # median state-marker expression by sample
@@ -152,12 +170,12 @@ setMethod(f="plotDiffHeatmap",
                 meds[top$marker], top$cluster_id, SIMPLIFY=FALSE)
             meds <- do.call(rbind, meds)
             rownames(meds) <- paste0(top$marker, sprintf("(%s)", top$cluster_id))
-
+            
             hm2 <- diff_hm(matrix=meds, name="expression\nby sample",
                 col=colorRamp2(range(meds, na.rm=TRUE), c("navy", "yellow")),
                 xlab="sample_id")
         }
-
+        
         # row annotation: significant = (adj. p-values <= th)
         s <- top[, "p_adj"] <= th
         s[is.na(s)] <- FALSE
@@ -183,14 +201,15 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="daFrame", y="SummarizedExperiment"),
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1,
+        val=c("frequency", "normalized"), ...) {
         
         # get cluster IDs
         k <- nlevels(rowData(y)$cluster_id)
         k <- check_validity_of_k(x, k)
         cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
         
-        plotDiffHeatmap(exprs(x), y, top_n, all, order, th, 
+        plotDiffHeatmap(exprs(x), y, top_n, all, order, th, val, 
             sample_ids=sample_ids(x), 
             cluster_ids=cluster_ids,
             marker_classes=colData(x)$marker_class)
@@ -201,9 +220,10 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="SummarizedExperiment", y="SummarizedExperiment"),
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1,
+        val=c("frequency", "normalized"), ...) {
         
-        plotDiffHeatmap(assay(x), y, top_n, all, order, th, 
+        plotDiffHeatmap(assay(x), y, top_n, all, order, th, val,
             sample_ids=rowData(x)$sample_id,
             cluster_ids=rowData(x)$cluster_id,
             marker_classes=colData(x)$marker_class)
@@ -214,10 +234,11 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="ANY", y="list"), 
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1,
+        val=c("frequency", "normalized"), ...) {
         
         if (all(c("res", "d_counts", "d_medians") %in% names(y))) {
-            plotDiffHeatmap(x, y$res, top_n, all, order, th)
+            plotDiffHeatmap(x, y$res, top_n, all, order, th, val)
         } else {
             stop(deparse(substitute(y)), " does not seem to be ", 
                 "a valid differential test result.\n",

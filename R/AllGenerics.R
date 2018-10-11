@@ -258,7 +258,7 @@ setGeneric("cluster",
 #' @param ... optional arguments.
 #' @export
 setGeneric("mergeClusters", 
-    function(x, table, id) standardGeneric("mergeClusters"))
+    function(x, k, table, id) standardGeneric("mergeClusters"))
 
 #' @rdname plotAbundances
 #' @param ... optional arguments.
