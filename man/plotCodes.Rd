@@ -8,7 +8,7 @@
 \usage{
 plotCodes(x, ...)
 
-\S4method{plotCodes}{daFrame}(x, k = 20, out_path = NULL,
+\S4method{plotCodes}{daFrame}(x, k = "meta20", out_path = NULL,
   verbose = TRUE)
 }
 \arguments{
@@ -16,7 +16,7 @@ plotCodes(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{k}{numeric or character string. 
+\item{k}{character string. 
 Specifies the clustering to use for color coding.}
 
 \item{out_path}{character string. If specified, output will be generated in this location.}

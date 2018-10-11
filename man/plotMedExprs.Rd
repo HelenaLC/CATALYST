@@ -8,7 +8,7 @@
 \usage{
 plotMedExprs(x, ...)
 
-\S4method{plotMedExprs}{daFrame}(x, k = 20, facet = c("antigen",
+\S4method{plotMedExprs}{daFrame}(x, k = "meta20", facet = c("antigen",
   "cluster_id"), group_by = "condition")
 }
 \arguments{
@@ -16,7 +16,7 @@ plotMedExprs(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{k}{numeric or character string. Specifies the clustering to use.
+\item{k}{character string. Specifies the clustering to use.
 If \code{facet = "antigen"}, this argument will be ignored.}
 
 \item{facet}{\code{"antigen"} or \code{"cluster_id"}. Note that 
@@ -43,7 +43,7 @@ plotMedExprs(re)
 re <- cluster(re)
 
 # plot median expressions across clusters
-plotMedExprs(re, facet="cluster_id", k=8)
+plotMedExprs(re, facet="cluster_id", k="meta8")
 
 }
 \references{

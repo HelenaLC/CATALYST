@@ -8,14 +8,14 @@
 \usage{
 plotClusterExprs(x, ...)
 
-\S4method{plotClusterExprs}{daFrame}(x, k = 20, markers = NULL)
+\S4method{plotClusterExprs}{daFrame}(x, k = "meta20", markers = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{k}{numeric or character string. Specifies the clustering to use.}
+\item{k}{character string. Specifies the clustering to use.}
 
 \item{markers}{character string specifying which markers to include. Defaults to NULL 
 (= all markers). Alternatively, if the \code{colData(x)$marker_class} 

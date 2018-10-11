@@ -3,12 +3,12 @@
 \docType{methods}
 \name{extractClusters}
 \alias{extractClusters}
-\alias{extractClusters,daFrame-method}
+\alias{extractClusters,daFrame,character-method}
 \title{Extract clusters from a \code{daFrame}}
 \usage{
 extractClusters(x, k, ...)
 
-\S4method{extractClusters}{daFrame}(x, k, clusters = NULL,
+\S4method{extractClusters}{daFrame,character}(x, k, clusters = NULL,
   as = c("flowSet", "fcs"), out_dir = ".", verbose = TRUE)
 }
 \arguments{
@@ -51,8 +51,8 @@ re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 re <- cluster(re)
 
 # merge clusters
-re <- mergeClusters(re, merging_table, "merging_1")
-extractClusters(re, k = "merging_1")
+re <- mergeClusters(re, k="meta20", table=merging_table, id="merging_1")
+extractClusters(re, k="merging_1")
 
 }
 \author{

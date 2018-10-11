@@ -28,7 +28,8 @@ An exemplary metadata table could look as follows:
 
 \item{cols_to_use}{a logical vector OR numeric vector of indices OR character vector 
 of column names. Specifies which columns to keep from the input
-\code{flowSet}/FCS files.}
+\code{flowSet}/FCS files. The default NULL uses channels listed in
+\code{panel[ ,panel_cols$channel]}.}
 
 \item{cofactor}{numeric. Cofactor to use for arcsinh-transformation.}
 

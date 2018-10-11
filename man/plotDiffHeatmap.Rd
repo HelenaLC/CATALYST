@@ -12,16 +12,19 @@
 plotDiffHeatmap(x, y, ...)
 
 \S4method{plotDiffHeatmap}{matrix,SummarizedExperiment}(x, y, top_n = 20,
-  all = FALSE, order = TRUE, th = 0.1, ...)
+  all = FALSE, order = TRUE, th = 0.1, val = c("frequency",
+  "normalized"), ...)
 
 \S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y,
-  top_n = 20, all = FALSE, order = TRUE, th = 0.1, ...)
+  top_n = 20, all = FALSE, order = TRUE, th = 0.1,
+  val = c("frequency", "normalized"), ...)
 
 \S4method{plotDiffHeatmap}{SummarizedExperiment,SummarizedExperiment}(x, y,
-  top_n = 20, all = FALSE, order = TRUE, th = 0.1, ...)
+  top_n = 20, all = FALSE, order = TRUE, th = 0.1,
+  val = c("frequency", "normalized"), ...)
 
 \S4method{plotDiffHeatmap}{ANY,list}(x, y, top_n = 20, all = FALSE,
-  order = TRUE, th = 0.1, ...)
+  order = TRUE, th = 0.1, val = c("frequency", "normalized"), ...)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}} or \code{SummarizedExperiment}.}
@@ -44,6 +47,12 @@ should be displayed. If \code{TRUE}, \code{top_n} will be ignored.}
 
 \item{th}{numeric. Threshold on adjusted p-values below which clusters (DA) 
 or cluster-marker combinations (DS) should be considered significant.}
+
+\item{val}{if \code{y} contains DA analysis results, specifies which values
+to plot in the right-hand side heatmap:
+\code{"frequency"} for relative population abundances,
+\code{"normalized"} for arcsine-square-root scaled and 
+Z-score normalized population proportions.}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.

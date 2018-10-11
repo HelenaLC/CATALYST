@@ -8,7 +8,7 @@
 \usage{
 plotAbundances(x, ...)
 
-\S4method{plotAbundances}{daFrame}(x, k = 20, by = c("sample_id",
+\S4method{plotAbundances}{daFrame}(x, k = "meta20", by = c("sample_id",
   "cluster_id"), group = NULL, shape = NULL)
 }
 \arguments{
@@ -16,7 +16,7 @@ plotAbundances(x, ...)
 
 \item{...}{optional arguments.}
 
-\item{k}{specifies which clustering to use.}
+\item{k}{character string. Specifies which clustering to use.}
 
 \item{by}{a character string specifying whether to plot 
 frequencies by samples or clusters.}
@@ -41,8 +41,8 @@ re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 # run clustering
 re <- cluster(re)
 # plot relative population abundances 
-plotAbundances(re, k=12)                 # ...by sample 
-plotAbundances(re, k=8, by="cluster_id") # ...by cluster
+plotAbundances(re, k="meta12")                 # ...by sample 
+plotAbundances(re, k="meta8", by="cluster_id") # ...by cluster
 
 }
 \references{

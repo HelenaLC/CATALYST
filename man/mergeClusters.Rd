@@ -3,15 +3,18 @@
 \docType{methods}
 \name{mergeClusters}
 \alias{mergeClusters}
-\alias{mergeClusters,daFrame-method}
+\alias{mergeClusters,daFrame,character,data.frame,character-method}
 \title{Manual cluster merging}
 \usage{
-mergeClusters(x, table, id)
+mergeClusters(x, k, table, id)
 
-\S4method{mergeClusters}{daFrame}(x, table, id)
+\S4method{mergeClusters}{daFrame,character,data.frame,character}(x, k,
+  table, id)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
+
+\item{k}{a character string specifying the clustering to merge.}
 
 \item{table}{a merging table with 2 columns containing the cluster IDs to merge 
 in the 1st, and the cluster IDs to newly assign in the 2nd column.}
@@ -44,7 +47,7 @@ re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 re <- cluster(re)
 
 # merge clusters
-re <- mergeClusters(re, merging_table, "merging")
+re <- mergeClusters(re, k="meta20", table=merging_table, id="merging")
 plotClusterHeatmap(re, k="merging", hm2="pS6")
 }
 \references{
