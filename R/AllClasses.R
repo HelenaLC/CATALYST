@@ -42,15 +42,15 @@
 #' @slot mhl_dists
 #'   mahalanobis distances.
 #' @slot sep_cutoffs
-#'   numeric vector of distance separation cutoffs between positive and negative 
-#'   barcode populations above which events will be unassigned.
+#'   numeric vector of distance separation cutoffs between positive 
+#'   and negative barcode populations above which events will be unassigned.
 #' @slot mhl_cutoff
 #'   non-negative and non-zero numeric value specifying the 
 #'   Mahalanobis distance below which events will be unassigned.
 #' @slot counts
 #'   matrix of dimension (# barcodes)x(101) where each row contains the number 
-#'   of events within a barcode for which positive and negative populations 
-#'   are separated by a distance between in [0,0.01), ..., [0.99,1], respectively.
+#'   of events within a barcode for which positive & negative populations are 
+#'   separated by a distance between in [0,0.01), ..., [0.99,1], respectively.
 #' @slot yields
 #'   a matrix of dimension (# barcodes)x(101) where each row contains the 
 #'   percentage of events within a barcode that will be obtained after applying
@@ -130,7 +130,8 @@ setValidity(Class="dbFrame",
 #'   \item{\code{colData}}{
 #'     a data.frame with the following columns:
 #'     \itemize{
-#'       \item{\code{marker_name} original column name in the input \code{flowSet}}
+#'       \item{\code{marker_name} original column name 
+#'         in the input \code{flowSet}}
 #'       \item{\code{marker_class} one of \code{"type"} or \code{"state"}}}}
 #'   \item{\code{metadata}}{
 #'     a named list containing:
@@ -140,8 +141,9 @@ setValidity(Class="dbFrame",
 #'       \item{\code{n_cells}: the number of events measured per sample}
 #'       \item{\code{SOM_codes}: a k x p matrix of SOM codes, where
 #'         k = no. of clusters, and p = no. of measurement parameters}
-#'       \item{\code{cluster_codes}: cluster codes for the initial \pkg{FlowSOM} 
-#'         clustering, the \pkg{ConsensusClusterPlus} metaclustering, and manual 
+#'       \item{\code{cluster_codes}: 
+#'         cluster codes for the initial \pkg{FlowSOM} clustering, 
+#'         the \pkg{ConsensusClusterPlus} metaclustering, and manual 
 #'         mergings done with \code{\link{mergeClusters}}}}}}
 #'
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
@@ -179,8 +181,8 @@ setClass(
 #' @param panel_cols 
 #'   a named list specifying column names of \code{panel} that contain i) the 
 #'   original channel names in \code{fs}, ii) the targeted protein marker, and
-#'   iii) the marker class ("type", "state", or "none" for unspecified markers). 
-#'   Elements must be named \code{"channel"}, \code{"antigen"} and \code{"class"}.
+#'   iii) the marker class ("type", "state" or "none" for unspecified markers). 
+#'   Elements must be named \code{"channel"}, \code{"antigen"}, \code{"class"}.
 #' @param md_cols 
 #'   a named list specifying column names of \code{md} that contain i) the FCS 
 #'   file names, ii) unique sample identifiers, and iii) a character vector of 

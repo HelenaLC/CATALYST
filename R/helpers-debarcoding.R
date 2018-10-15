@@ -49,7 +49,7 @@ get_ids <- function(bcs, bc_key, ids, verbose) {
             abs(diff(bcs[x, bc_orders[x, ]])))
         largest_seps <- apply(diffs, 2, which.max)
         pos <- sapply(seq_len(N), function(x) 
-            bc_orders[x, 1:largest_seps[x]])
+            bc_orders[x, seq_len(largest_seps[x])])
         
         if (verbose) message(" o classifying events")
         # assign binary barcode to ea. event
@@ -88,8 +88,8 @@ get_deltas <- function(data, bc_key, verbose) {
         n_pos_bcs <- sum(bc_key[1, ])    
         
         # get lowest pos. and highest neg. barcode for ea. event
-        lowest_pos  <- data[cbind(1:N, bc_orders[, n_pos_bcs])]
-        highest_neg <- data[cbind(1:N, bc_orders[, n_pos_bcs+1])]
+        lowest_pos  <- data[cbind(seq_len(N), bc_orders[, n_pos_bcs])]
+        highest_neg <- data[cbind(seq_len(N), bc_orders[, n_pos_bcs+1])]
         
         # compute separation b/w pos. and neg. barcodes for ea. event
         deltas <- lowest_pos - highest_neg
@@ -101,9 +101,9 @@ get_deltas <- function(data, bc_key, verbose) {
         
         # find largest barcode separation within ea. event 
         # to assign pos. and neg. barcode values
-        diffs <- sapply(1:N, function(x) abs(diff(data[x, bc_orders[x, ]])))
+        diffs <- sapply(seq_len(N), function(x) abs(diff(data[x, bc_orders[x, ]])))
         largest_seps <- apply(diffs, 2, which.max)
-        deltas <- sapply(1:N, function(x) diffs[largest_seps[x], x])
+        deltas <- sapply(seq_len(N), function(x) diffs[largest_seps[x], x])
     }
     deltas
 }

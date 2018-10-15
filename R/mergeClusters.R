@@ -52,24 +52,17 @@ setMethod(f="mergeClusters",
         
         # validity checks
         check_validity_of_k(x, k)
+        table <- data.frame(table)
         stopifnot(length(id) == 1)
         if (id %in% colnames(metadata(x)$cluster_codes))
             stop("There already exists a clustering named ",
                 id, ". Please specify a different identifier.")
-        stopifnot(length(table[, 1]) == length(unique(length(table[, 1]))))
+        stopifnot(length(table[, 1]) == length(unique(table[, 1])))
+        stopifnot(all(table[, 1] %in% levels(cluster_codes(x)[, k])))
 
         m <- match(cluster_codes(x)[, k], table[, 1])
         new_ids <- table[m, 2]
         metadata(x)$cluster_codes[, id] <- factor(new_ids)
         return(x)
-    }
-)
-
-setMethod(f="mergeClusters", 
-    signature=signature(x="daFrame", k="character", 
-        table="matrix", id="character"), 
-    definition=function(x, k, table, id) {
-        table <- data.frame(table)
-        mergeClusters(x, k, table, id)
     }
 )

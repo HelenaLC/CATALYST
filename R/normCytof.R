@@ -111,13 +111,16 @@ setMethod(f="normCytof",
     
     # trim tails
     bead_inds <- update_bead_inds(es_t, bead_inds, bead_cols, trim)
+    bead_es <- es[bead_inds, bead_cols]
+    bead_ts <- es[bead_inds, time_col ]
     
     # get slopes - baseline (global mean) versus smoothed bead intensitites
     # and linearly interpolate slopes at non-bead events
     if (verbose) message("Computing normalization factors...")
     if (is.null(norm_to)) {
-        bead_es <- es[bead_inds, bead_cols]
-        bead_ts <- es[bead_inds, time_col ]
+        baseline <- colMeans(bead_es)
+        #bead_es <- es[bead_inds, bead_cols]
+        #bead_ts <- es[bead_inds, time_col ]
     } else {
         if (is.character(norm_to)) {
             if (length(norm_to) != 1) 
@@ -130,10 +133,11 @@ setMethod(f="normCytof",
         bead_cols_ref <- get_bead_cols(chs_ref, y)
         time_col_ref <- grep("time", chs_ref, ignore.case=TRUE)
         es_ref <- flowCore::exprs(norm_to)
-        bead_es <- es_ref[, bead_cols_ref]
-        bead_ts <- es_ref[, time_col_ref ]
+        baseline <- colMeans(es_ref[, bead_cols_ref])
+        #bead_es <- es_ref[, bead_cols_ref]
+        #bead_ts <- es_ref[, time_col_ref ]
     }
-    baseline <- colMeans(bead_es)
+    #baseline <- colMeans(bead_es)
     bead_slopes <- rowSums(bead_es*baseline) / rowSums(bead_es^2)
     slopes <- approx(bead_ts, bead_slopes, es[, time_col])$y
     
