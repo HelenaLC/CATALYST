@@ -48,7 +48,8 @@ setMethod(f="concatFCS",
         by_time=TRUE, file_num=FALSE, pars=NULL, desc=NULL) {
 
         # check validity of 'out_path', 'fn', and 'fn_sep'
-        stopifnot(is.null(out_path) || (is.character(out_path) & dir.exists(out_path)))
+        stopifnot(is.null(out_path) || (
+            is.character(out_path) & dir.exists(out_path)))
         stopifnot(is.null(fn) || is.character(fn))
         stopifnot(is.character(fn_sep))
         

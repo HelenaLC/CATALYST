@@ -101,8 +101,8 @@ state_markers(re)
 
 # get cluster ID correspondece between 2 clusterings
 old_ids <- seq_len(20)
-m <- match(old_ids, cluster_codes(re)$`20`)
-new_ids <- cluster_codes(re)$`12`[m]
+m <- match(old_ids, cluster_codes(re)$`meta20`)
+new_ids <- cluster_codes(re)$`meta12`[m]
 data.frame(old_ids, new_ids)
 
 # plot relative change in area under CDF curve vs. k

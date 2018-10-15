@@ -69,7 +69,7 @@ setMethod(f="plotCodes",
                 panel.grid.major=element_line(color='lightgrey', size=.2), 
                 axis.title=element_text(face='bold'),
                 axis.text=element_text(color="black"))
-          
+        
         # expand palette if more than 30 clusters
         n_clusters <- nlevels(df$cluster_id)
         if (n_clusters > 30) {
@@ -80,14 +80,14 @@ setMethod(f="plotCodes",
         names(cols) <- levels(df$cluster_id)
         
         tsne_plot <- p + geom_point(aes_string(x="tSNE1", y="tSNE2")) + 
-                scale_color_manual(values=cols, guide=FALSE) +
-                scale_size(guide=FALSE)
-
+            scale_color_manual(values=cols, guide=FALSE) +
+            scale_size(guide=FALSE)
+        
         if (k > 10) n_row <- 2 else n_row <- 1
         pca_plot <- p + geom_point(aes_string(x="PCA1", y="PCA2")) +
-                guides(color=guide_legend(override.aes=list(size=3), 
-                    nrow=n_row)) + scale_color_manual(values=cols) 
-            
+            guides(color=guide_legend(override.aes=list(size=3), 
+                nrow=n_row)) + scale_color_manual(values=cols) 
+        
         # store legend
         legend <- get_legend(pca_plot)
         legend_height <- sum(legend$heights)
@@ -109,4 +109,3 @@ setMethod(f="plotCodes",
         }
     }
 )
-        

@@ -90,6 +90,7 @@ setMethod(f="normCytof",
     lgth_col <- grep("length",      chs, ignore.case=TRUE)
     dna_cols <- grep("Ir191|Ir193", chs, ignore.case=TRUE)
     bead_cols <- get_bead_cols(chs, y)
+    bead_chs <- chs[bead_cols]
     bead_ms <- ms[bead_cols]
     n_beads <- length(bead_ms)
 
@@ -101,26 +102,24 @@ setMethod(f="normCytof",
     
     # get all events that should be removed later
     # including bead-bead and cell-bead doublets
-    min_bead_ints <- matrixStats::colMins(es_t[bead_inds, bead_cols])
+    min_bead_ints <- matrixStats::colMins(es_t[bead_inds, bead_chs])
     remove <- apply(es_t[, bead_cols], 1, function(i) { 
         above_min <- vapply(seq_len(n_beads), 
             function(j) sum(i[j] > min_bead_ints[j]), numeric(1))
         sum(above_min) == n_beads 
-        #any(above_min)
     })
     
     # trim tails
-    bead_inds <- update_bead_inds(es_t, bead_inds, bead_cols, trim)
-    bead_es <- es[bead_inds, bead_cols]
-    bead_ts <- es[bead_inds, time_col ]
+    bead_inds <- update_bead_inds(es_t, bead_inds, bead_chs, trim)
+    n_bead_events <- sum(bead_inds)
+
+    bead_es <- es[bead_inds, bead_chs]
+    bead_ts <- es[bead_inds, time_col]
     
-    # get slopes - baseline (global mean) versus smoothed bead intensitites
-    # and linearly interpolate slopes at non-bead events
+    # get baseline (global mean) 
     if (verbose) message("Computing normalization factors...")
     if (is.null(norm_to)) {
         baseline <- colMeans(bead_es)
-        #bead_es <- es[bead_inds, bead_cols]
-        #bead_ts <- es[bead_inds, time_col ]
     } else {
         if (is.character(norm_to)) {
             if (length(norm_to) != 1) 
@@ -131,36 +130,34 @@ setMethod(f="normCytof",
         }
         chs_ref <- flowCore::colnames(norm_to)
         bead_cols_ref <- get_bead_cols(chs_ref, y)
+        bead_chs_ref <- chs_ref[bead_cols_ref]
         time_col_ref <- grep("time", chs_ref, ignore.case=TRUE)
         es_ref <- flowCore::exprs(norm_to)
-        baseline <- colMeans(es_ref[, bead_cols_ref])
-        #bead_es <- es_ref[, bead_cols_ref]
-        #bead_ts <- es_ref[, time_col_ref ]
+        baseline <- colMeans(es_ref[, bead_chs_ref])
     }
-    #baseline <- colMeans(bead_es)
-    bead_slopes <- rowSums(bead_es*baseline) / rowSums(bead_es^2)
+    
+    # smooth bead intensitites by conversion to local medians
+    smoothed_beads <- apply(bead_es, 2, runmed, k, "constant")
+    
+    # compute slopes (baseline versus smoothed bead intensitites)
+    # & linearly interpolate slopes at non-bead events
+    bead_slopes <- rowSums(smoothed_beads*baseline) / rowSums(smoothed_beads^2)
     slopes <- approx(bead_ts, bead_slopes, es[, time_col])$y
     
-    # normalize data
+    # normalize raw bead intensities via multiplication with slopes
     normed_es <- cbind(
         es[,  c(time_col, lgth_col)], 
         es[, -c(time_col, lgth_col)]*slopes)
-
-    # bead intensitites smoothed by conversion to local medians
-    smoothed_beads <- data.frame(
-        es[bead_inds, time_col], 
-        vapply(bead_cols, function(i) 
-            stats::runmed(es[bead_inds, i], k, "constant"),
-            numeric(sum(bead_inds))))
-
-    # normalize raw bead intensities via multiplication with slopes
-    smoothed_normed_beads <- data.frame(
-        es[bead_inds, time_col], 
-        vapply(bead_cols, function(i) 
-            stats::runmed(normed_es[bead_inds, i], k, "constant"),
-            numeric(sum(bead_inds))))
-    colnames(smoothed_beads) <- colnames(smoothed_normed_beads) <- 
-        chs[c(time_col, bead_cols)]
+    
+    # smooth normalized beads
+    bead_es_normed <- normed_es[bead_inds, bead_cols]
+    smoothed_normed_beads <- apply(bead_es_normed, 2, runmed, k, "constant")
+    
+    # add time column
+    smoothed_beads <- data.frame(bead_ts, smoothed_beads)
+    smoothed_normed_beads <- data.frame(bead_ts, smoothed_normed_beads)
+    colnames(smoothed_beads)[1] <- 
+        colnames(smoothed_normed_beads)[1] <- chs[time_col]
     
     if (plot)
         outPlots(x, es_t, bead_inds, remove, bead_cols, dna_cols,

@@ -35,8 +35,8 @@ of column names. Specifies which columns to keep from the input
 
 \item{panel_cols}{a named list specifying column names of \code{panel} that contain i) the 
 original channel names in \code{fs}, ii) the targeted protein marker, and
-iii) the marker class ("type", "state", or "none" for unspecified markers). 
-Elements must be named \code{"channel"}, \code{"antigen"} and \code{"class"}.}
+iii) the marker class ("type", "state" or "none" for unspecified markers). 
+Elements must be named \code{"channel"}, \code{"antigen"}, \code{"class"}.}
 
 \item{md_cols}{a named list specifying column names of \code{md} that contain i) the FCS 
 file names, ii) unique sample identifiers, and iii) a character vector of 
@@ -58,7 +58,8 @@ Represents the data returned by and used throughout differential analysis.
   \item{\code{colData}}{
     a data.frame with the following columns:
     \itemize{
-      \item{\code{marker_name} original column name in the input \code{flowSet}}
+      \item{\code{marker_name} original column name 
+        in the input \code{flowSet}}
       \item{\code{marker_class} one of \code{"type"} or \code{"state"}}}}
   \item{\code{metadata}}{
     a named list containing:
@@ -68,8 +69,9 @@ Represents the data returned by and used throughout differential analysis.
       \item{\code{n_cells}: the number of events measured per sample}
       \item{\code{SOM_codes}: a k x p matrix of SOM codes, where
         k = no. of clusters, and p = no. of measurement parameters}
-      \item{\code{cluster_codes}: cluster codes for the initial \pkg{FlowSOM} 
-        clustering, the \pkg{ConsensusClusterPlus} metaclustering, and manual 
+      \item{\code{cluster_codes}: 
+        cluster codes for the initial \pkg{FlowSOM} clustering, 
+        the \pkg{ConsensusClusterPlus} metaclustering, and manual 
         mergings done with \code{\link{mergeClusters}}}}}}
 }
 \author{

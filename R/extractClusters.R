@@ -87,13 +87,15 @@ setMethod(f="extractClusters",
                 ff <- new("flowFrame", exprs=es[u, , drop=FALSE])
                 identifier(ff) <- v
                 description(ff)$note <- paste0(nrow(ff), "/", n, " cells")
-                if (verbose) message("Writing ", nrow(ff), " cells to flowFrame ", dQuote(v), "...")
+                if (verbose) message("Writing ", nrow(ff), 
+                    " cells to flowFrame ", dQuote(v), "...")
                 return(ff)
             },
             fcs = function(u, v) {
                 ff <- new("flowFrame", exprs=es[u, , drop=FALSE])
                 fn <- file.path(out_dir, paste0(v, ".fcs"))
-                if (verbose) message("Writing ", nrow(ff), " cells to ", dQuote(fn), "...")
+                if (verbose) message("Writing ", nrow(ff), 
+                    " cells to ", dQuote(fn), "...")
                 suppressWarnings(write.FCS(ff, fn))
             }
         )

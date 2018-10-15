@@ -79,10 +79,10 @@ re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 re <- cluster(re)
 
 plotClusterHeatmap(re, hm2="abundances")
-plotClusterHeatmap(re, hm2="abundances", draw_freqs = TRUE)
+plotClusterHeatmap(re, hm2="abundances", draw_freqs=TRUE)
 plotClusterHeatmap(re, hm2="state_markers", k="meta16", split_by='condition')
 plotClusterHeatmap(re, hm2="pS6", k="meta12", m="meta8")
-plotClusterHeatmap(re, hm2="abundances", scale=FALSE, draw_freqs = TRUE)
+plotClusterHeatmap(re, hm2="abundances", scale=FALSE, draw_freqs=TRUE)
 
 }
 \references{
