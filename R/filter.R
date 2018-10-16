@@ -30,7 +30,7 @@
 #' filter(re, condition == "Ref", sample_id != "Ref1")
 #' 
 #' # keep only a subset of clusters
-#' filter(re, cluster_id %in% c(7, 8, 18), k = 20)
+#' filter(re, cluster_id %in% c(7, 8, 18), k = "meta20")
 # ------------------------------------------------------------------------------
 
 setMethod(f="filter", 

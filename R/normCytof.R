@@ -126,7 +126,8 @@ setMethod(f="normCytof",
                 stop("'norm_to' should be a single character or flowFrame.")
             if (sum(flowCore::isFCSfile(norm_to)) != 1) 
                 stop(norm_to, " is not a valid FCS file.")
-            norm_to <- flowCore::read.FCS(norm_to) 
+            norm_to <- flowCore::read.FCS(norm_to,
+                transformation=FALSE, truncate_max_range=FALSE)
         }
         chs_ref <- flowCore::colnames(norm_to)
         bead_cols_ref <- get_bead_cols(chs_ref, y)
@@ -141,7 +142,7 @@ setMethod(f="normCytof",
     
     # compute slopes (baseline versus smoothed bead intensitites)
     # & linearly interpolate slopes at non-bead events
-    bead_slopes <- rowSums(smoothed_beads*baseline) / rowSums(smoothed_beads^2)
+    bead_slopes <- rowSums(t(t(smoothed_beads)*baseline))/rowSums(smoothed_beads^2)
     slopes <- approx(bead_ts, bead_slopes, es[, time_col])$y
     
     # normalize raw bead intensities via multiplication with slopes
