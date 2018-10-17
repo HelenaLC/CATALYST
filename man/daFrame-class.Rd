@@ -12,68 +12,61 @@ daFrame(x, panel, md, cols_to_use = NULL, cofactor = 5,
   factors = c("condition", "patient_id")))
 }
 \arguments{
-\item{x}{a \code{flowSet} holding all samples OR
-a character vector that specifies a path to set of FCS files.}
+\item{x}{a \code{flowSet} holding all samples or a path to a set of FCS files.}
 
-\item{panel}{a 2 column \code{data.frame} that contains for each marker of interest 
-i) its column name in the FCS file, and ii) the targeted protein marker.}
+\item{panel}{a data.frame containing, for each channel, 
+its column name in the input data, targeted protein marker,
+and (optionally) class ("type", "state", or "none").}
 
-\item{md}{a \code{data.frame} with columns describing the experiment.
-An exemplary metadata table could look as follows:
-\itemize{
-  \item \code{file_name}: the FCS file name
-  \item \code{sample_id}: a unique sample identifier 
-  \item \code{condition}: brief sample description (e.g. REF) 
-  \item \code{patient_id}: the patient ID}}
+\item{md}{a table with column describing the experiment.
+An exemplary metadata table could look as follows: \itemize{
+\item\code{file_name}: the FCS file name
+\item\code{sample_id}: a unique sample identifier
+\item\code{patient_id}: the patient ID
+\item\code{condition}: brief sample description 
+  (e.g. reference/stimulated, healthy/diseased)}}
 
-\item{cols_to_use}{a logical vector OR numeric vector of indices OR character vector 
-of column names. Specifies which columns to keep from the input
-\code{flowSet}/FCS files. The default NULL uses channels listed in
-\code{panel[ ,panel_cols$channel]}.}
+\item{cols_to_use}{a logical vector, numeric vector of column indices,
+or character vector of channel names. Specified which column to keep 
+from the input data. Defaults to the channels listed in the input panel.}
 
-\item{cofactor}{numeric. Cofactor to use for arcsinh-transformation.}
+\item{cofactor}{numeric cofactor to use for arcsinh-transformation.}
 
-\item{panel_cols}{a named list specifying column names of \code{panel} that contain i) the 
-original channel names in \code{fs}, ii) the targeted protein marker, and
-iii) the marker class ("type", "state" or "none" for unspecified markers). 
-Elements must be named \code{"channel"}, \code{"antigen"}, \code{"class"}.}
+\item{panel_cols}{a named list specifying the column names of \code{md}
+that contain the FCS file names, sample IDs, and factors of interest
+(batch, condition, treatment etc.).}
 
-\item{md_cols}{a named list specifying column names of \code{md} that contain i) the FCS 
-file names, ii) unique sample identifiers, and iii) a character vector of 
-factors descriptive of the samples (e.g. condition, treatment, ect.).
-Elements must be named \code{"file"}, \code{"id"}, and \code{"factors"}.}
+\item{md_cols}{a names list specifying the column names of \code{panel}
+that contain the channel names, targeted protein markers, and (optionally) 
+marker classes.}
 }
 \value{
-an object of class \code{\link{SummarizedExperiment}}.
+an object of class \code{daFrame}.
 }
 \description{
 Represents the data returned by and used throughout differential analysis.
 
 \describe{
-  \item{\code{assays}}{
-    list of length one containing the arcsinh-transformed expressions.}
-  \item{\code{rowData}}{
-    the metadata information for each event, and its cluster ID
-    as inferred by the initial \code{\link{FlowSOM}} clustering.}
-  \item{\code{colData}}{
-    a data.frame with the following columns:
-    \itemize{
-      \item{\code{marker_name} original column name 
-        in the input \code{flowSet}}
-      \item{\code{marker_class} one of \code{"type"} or \code{"state"}}}}
-  \item{\code{metadata}}{
-    a named list containing:
-    \itemize{
-      \item{\code{design}: the original metadata-table}
-      \item{\code{panel}: the original panel-table}
-      \item{\code{n_cells}: the number of events measured per sample}
-      \item{\code{SOM_codes}: a k x p matrix of SOM codes, where
-        k = no. of clusters, and p = no. of measurement parameters}
-      \item{\code{cluster_codes}: 
-        cluster codes for the initial \pkg{FlowSOM} clustering, 
-        the \pkg{ConsensusClusterPlus} metaclustering, and manual 
-        mergings done with \code{\link{mergeClusters}}}}}}
+\item{\code{assays}}{a list of length 1 containing the measurement data.}
+\item{\code{rowData}}{a \code{\link{DataFrame}} containing the row metadata.}
+\item{\code{colData}}{a \code{\link{DataFrame}} containing the column metadata.}
+\item{\code{metadata}}{a named list containing: \itemize{
+  \item{\code{experimental_design}: the original metadata table.}
+  \item{\code{n_cells}: number of events (cells) measured per sample.}
+  \item{\code{cofactor}: numeric cofactor used for arcsinh-transformation.}
+  \item{\code{cluster_codes}:
+    cluster codes for the initial \pkg{FlowSOM} clustering (\code{"som100"}), 
+    the \pkg{ConsensusClusterPlus} metaclustering (\code{"metaX"}), and all
+    manual mergings done with \code{\link{mergeClusters}}.}
+  \item{\code{delta_area}: the Delta Area plot 
+    (see \pkg{ConsensusClusterPlus} for details).}
+  \item{\code{experimental_design}: the original metadata table}}}}
+}
+\examples{
+data(PBMC_fs, PBMC_panel, PBMC_md)
+daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena@crowells.eu}
 }

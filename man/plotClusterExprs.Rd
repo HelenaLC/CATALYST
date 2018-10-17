@@ -31,6 +31,7 @@ marker intensities by cluster.
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+re <- cluster(re)
 plotClusterExprs(re)
 
 }
