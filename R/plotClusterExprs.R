@@ -27,13 +27,16 @@
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' re <- cluster(re)
 #' plotClusterExprs(re)
 #' 
 #' @import ggplot2
 #' @importFrom dplyr %>% group_by_
 #' @importFrom ggridges geom_density_ridges theme_ridges
 #' @importFrom reshape2 melt
+#' @importFrom S4Vectors metadata
 #' @importFrom stats dist hclust
+#' @importFrom SummarizedExperiment colData rowData
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotClusterExprs", 
