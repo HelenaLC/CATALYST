@@ -92,8 +92,8 @@ setMethod(f="cluster",
         
         # validity checks
         stopifnot(is.logical(verbose), length(verbose) == 1,
-            sapply(list(xdim, ydim, maxK, seed), function(arg) 
-                is.numeric(arg) && length(arg) == 1))
+            vapply(list(xdim, ydim, maxK, seed), function(arg) 
+                is.numeric(arg) && length(arg) == 1, logical(1)))
         
         if (is.null(cols_to_use)) {
             stopifnot("marker_class" %in% colnames(colData(x)))
