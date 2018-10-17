@@ -77,11 +77,11 @@ check_sm <- function(sm, l=CATALYST::isotope_list) {
             "All spill channels must appear as receiving channels:\n",
             "'all(rownames(sm) %in% colnames(sm))' should return TRUE.")
     isos <-  paste0(gsub("[0-9]", "", names(unlist(l))), as.numeric(unlist(l)))
-    test <- sapply(dimnames(sm), function(chs) {
+    test <- vapply(dimnames(sm), function(chs) {
         ms <- get_ms_from_chs(chs)
         mets <- get_mets_from_chs(chs)
-        all(paste0(mets, ms) %in% isos)
-    })
+        all(paste0(mets, ms) %in% isos) 
+    }, logical(1))
     if (any(!test)) 
         stop("\nThe supplied spillover matrix seems to be invalid.\n",
             "All isotopes should appear in `", deparse(substitute(l)), "`.")
