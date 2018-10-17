@@ -1,5 +1,5 @@
 # ==============================================================================
-# colors for 20 ConensusClusterPlus metaclusters
+# colors for 30 ConensusClusterPlus metaclusters
 # ------------------------------------------------------------------------------
 cluster_cols <- c(
     "#DC050C", "#FB8072", "#1965B0", "#7BAFDE", "#882E72",

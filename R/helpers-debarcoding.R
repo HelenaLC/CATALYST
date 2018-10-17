@@ -45,16 +45,18 @@ get_ids <- function(bcs, bc_key, ids, verbose) {
         
         # find largest barcode separation within ea. event 
         # to assign pos. and neg. barcode values
-        diffs <- sapply(seq_len(N), function(x) 
-            abs(diff(bcs[x, bc_orders[x, ]])))
+        diffs <- vapply(seq_len(N), function(x) 
+            abs(diff(bcs[x, bc_orders[x, ]])), 
+            numeric(ncol(bc_key)-1))
         largest_seps <- apply(diffs, 2, which.max)
         pos <- sapply(seq_len(N), function(x) 
             bc_orders[x, seq_len(largest_seps[x])])
         
         if (verbose) message(" o classifying events")
         # assign binary barcode to ea. event
-        codes <- t(sapply(seq_len(N), function(x) 
-            as.numeric(seq_len(ncol(bc_key)) %in% pos[[x]])))
+        codes <- t(vapply(seq_len(N), function(x) 
+            as.numeric(seq_len(ncol(bc_key)) %in% pos[[x]]),
+            numeric(ncol(bc_key))))
         
         # assign barcode ID to ea. event
         lookup <- rowSums(2 ^ col(bc_key) * bc_key)
