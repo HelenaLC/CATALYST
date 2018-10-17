@@ -229,11 +229,9 @@ setMethod(f="plotClusterHeatmap",
                     freqs <- matrix(
                         freqs[, keep, drop=FALSE], nlevels(cluster_ids[inds]), 
                         dimnames=list(NULL, names(keep)[keep]))
-                    p <- p + Heatmap(matrix=freqs,
-                        name="frequency", na_col="lightgrey", 
-                        rect_gp=gpar(col="white"), 
-                        show_row_names=FALSE, 
-                        column_names_gp=gpar(fontsize=8), 
+                    p <- p + Heatmap(matrix=freqs, name="frequency", 
+                        na_col="lightgrey", rect_gp=gpar(col="white"), 
+                        show_row_names=FALSE, column_names_gp=gpar(fontsize=8), 
                         cluster_rows=row_clustering, cluster_columns=FALSE)
                 } else if (hm2 == "state_markers") {
                     # median cell state marker expressions across clusters
