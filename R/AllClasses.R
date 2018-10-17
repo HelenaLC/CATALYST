@@ -1,5 +1,5 @@
 # ==============================================================================
-# Debarcoding frame class
+# Debarcoding frame class definition
 # ------------------------------------------------------------------------------
 #' @rdname dbFrame-class
 #' @name dbFrame-class
@@ -59,9 +59,7 @@
 #' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
 #' @importFrom methods new
 #' @export
-# ------------------------------------------------------------------------------
 
-# class definition
 dbFrame <- setClass(
     Class="dbFrame", 
     package="CATALYST", 
@@ -75,8 +73,7 @@ dbFrame <- setClass(
         sep_cutoffs="numeric",
         mhl_cutoff="numeric",
         counts="matrix",
-        yields="matrix")
-)
+        yields="matrix"))
 
 # validity check
 setValidity(Class="dbFrame", 
@@ -112,204 +109,183 @@ setValidity(Class="dbFrame",
 )
 
 # ==============================================================================
-# Differential analysis frame class
+# Differential analysis frame class definition
 # ------------------------------------------------------------------------------
 #' @rdname daFrame-class
 #' @name daFrame-class
-#' 
 #' @title Differential analysis frame class
-#' @description 
-#' Represents the data returned by and used throughout differential analysis.
+#' 
+#' @description Represents the data returned by and used throughout differential analysis.
 #' 
 #' \describe{
-#'   \item{\code{assays}}{
-#'     list of length one containing the arcsinh-transformed expressions.}
-#'   \item{\code{rowData}}{
-#'     the metadata information for each event, and its cluster ID
-#'     as inferred by the initial \code{\link{FlowSOM}} clustering.}
-#'   \item{\code{colData}}{
-#'     a data.frame with the following columns:
-#'     \itemize{
-#'       \item{\code{marker_name} original column name 
-#'         in the input \code{flowSet}}
-#'       \item{\code{marker_class} one of \code{"type"} or \code{"state"}}}}
-#'   \item{\code{metadata}}{
-#'     a named list containing:
-#'     \itemize{
-#'       \item{\code{design}: the original metadata-table}
-#'       \item{\code{panel}: the original panel-table}
-#'       \item{\code{n_cells}: the number of events measured per sample}
-#'       \item{\code{SOM_codes}: a k x p matrix of SOM codes, where
-#'         k = no. of clusters, and p = no. of measurement parameters}
-#'       \item{\code{cluster_codes}: 
-#'         cluster codes for the initial \pkg{FlowSOM} clustering, 
-#'         the \pkg{ConsensusClusterPlus} metaclustering, and manual 
-#'         mergings done with \code{\link{mergeClusters}}}}}}
-#'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
-#' @importFrom flowCore colnames exprs fsApply parameters pData read.flowSet
-#' @importFrom FlowSOM BuildSOM ReadInput
-#' @importFrom methods new
-#' @importFrom S4Vectors DataFrame SimpleList
+#' \item{\code{assays}}{a list of length 1 containing the measurement data.}
+#' \item{\code{rowData}}{a \code{\link{DataFrame}} containing the row metadata.}
+#' \item{\code{colData}}{a \code{\link{DataFrame}} containing the column metadata.}
+#' \item{\code{metadata}}{a named list containing: \itemize{
+#'   \item{\code{experimental_design}: the original metadata table.}
+#'   \item{\code{n_cells}: number of events (cells) measured per sample.}
+#'   \item{\code{cofactor}: numeric cofactor used for arcsinh-transformation.}
+#'   \item{\code{cluster_codes}:
+#'     cluster codes for the initial \pkg{FlowSOM} clustering (\code{"som100"}), 
+#'     the \pkg{ConsensusClusterPlus} metaclustering (\code{"metaX"}), and all
+#'     manual mergings done with \code{\link{mergeClusters}}.}
+#'   \item{\code{delta_area}: the Delta Area plot 
+#'     (see \pkg{ConsensusClusterPlus} for details).}
+#'   \item{\code{experimental_design}: the original metadata table}}}}
+#'       
+#' @author Helena Lucia Crowell \email{helena@crowells.eu}
+#' 
 #' @importFrom SummarizedExperiment SummarizedExperiment
+#' @importFrom methods new
+#' 
 #' @export
+
+setClass(Class="daFrame", package="CATALYST", contains="SummarizedExperiment")
+
+# ==============================================================================
+# daFrame constructor
 # ------------------------------------------------------------------------------
-
-# class definition
-setClass(
-    Class="daFrame", 
-    package="CATALYST", 
-    contains="SummarizedExperiment")
-
-# constructor
 #' @rdname daFrame-class
 #' 
-#' @param x 
-#'   a \code{flowSet} holding all samples OR
-#'   a character vector that specifies a path to set of FCS files.
-#' @param panel 
-#'   a 2 column \code{data.frame} that contains for each marker of interest 
-#'   i) its column name in the FCS file, and ii) the targeted protein marker.
-#' @param md 
-#'   a \code{data.frame} with columns describing the experiment.
-#'   An exemplary metadata table could look as follows:
-#'   \itemize{
-#'     \item \code{file_name}: the FCS file name
-#'     \item \code{sample_id}: a unique sample identifier 
-#'     \item \code{condition}: brief sample description (e.g. REF) 
-#'     \item \code{patient_id}: the patient ID}
-#' @param panel_cols 
-#'   a named list specifying column names of \code{panel} that contain i) the 
-#'   original channel names in \code{fs}, ii) the targeted protein marker, and
-#'   iii) the marker class ("type", "state" or "none" for unspecified markers). 
-#'   Elements must be named \code{"channel"}, \code{"antigen"}, \code{"class"}.
-#' @param md_cols 
-#'   a named list specifying column names of \code{md} that contain i) the FCS 
-#'   file names, ii) unique sample identifiers, and iii) a character vector of 
-#'   factors descriptive of the samples (e.g. condition, treatment, ect.).
-#'   Elements must be named \code{"file"}, \code{"id"}, and \code{"factors"}.
-#' @param cols_to_use 
-#'   a logical vector OR numeric vector of indices OR character vector 
-#'   of column names. Specifies which columns to keep from the input
-#'   \code{flowSet}/FCS files. The default NULL uses channels listed in
-#'   \code{panel[ ,panel_cols$channel]}.
-#' @param cofactor 
-#'   numeric. Cofactor to use for arcsinh-transformation.
+#' @param x a \code{flowSet} holding all samples or a path to a set of FCS files.
+#' @param panel a data.frame containing, for each channel, 
+#'   its column name in the input data, targeted protein marker,
+#'   and (optionally) class ("type", "state", or "none").
+#' @param md a table with column describing the experiment.
+#'   An exemplary metadata table could look as follows: \itemize{
+#'   \item\code{file_name}: the FCS file name
+#'   \item\code{sample_id}: a unique sample identifier
+#'   \item\code{patient_id}: the patient ID
+#'   \item\code{condition}: brief sample description 
+#'     (e.g. reference/stimulated, healthy/diseased)}
+#' @param cols_to_use a logical vector, numeric vector of column indices,
+#'   or character vector of channel names. Specified which column to keep 
+#'   from the input data. Defaults to the channels listed in the input panel.
+#' @param cofactor numeric cofactor to use for arcsinh-transformation.
+#' @param panel_cols a named list specifying the column names of \code{md}
+#'   that contain the FCS file names, sample IDs, and factors of interest
+#'   (batch, condition, treatment etc.).
+#' @param md_cols a names list specifying the column names of \code{panel}
+#'   that contain the channel names, targeted protein markers, and (optionally) 
+#'   marker classes. 
+#'   
+#' @return an object of class \code{daFrame}.
 #' 
-#' @return an object of class \code{\link{SummarizedExperiment}}.
+#' @examples
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' 
+#' @importFrom flowCore colnames exprs exprs<- fsApply isFCSfile keyword read.flowSet
+#' @importFrom SummarizedExperiment SummarizedExperiment
 #' 
 #' @export
 
 daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
-    panel_cols=list(channel="fcs_colname", 
-        antigen="antigen", class="marker_class"),
-    md_cols=list(file="file_name", id="sample_id", 
-        factors=c("condition", "patient_id"))) {
+    panel_cols=list(channel="fcs_colname", antigen="antigen", class="marker_class"),
+    md_cols=list(file="file_name", id="sample_id", factors=c("condition", "patient_id"))) {
     
-    stopifnot(is.numeric(cofactor))
-    stopifnot(length(cofactor) == 1)
-    stopifnot(cofactor > 0)
+    # check validity of input arguments
+    stopifnot(is.numeric(cofactor), length(cofactor) == 1, cofactor > 0)
+    stopifnot(is.list(panel_cols), is.list(md_cols),
+        all(c("channel", "antigen", "class") %in% names(panel_cols)),
+        all(c("file", "id", "factors") %in% names(md_cols)))
     
+    # get input data
     if (is.character(x)) {
         stopifnot(dir.exists(x))
         fcs <- list.files(x, ".fcs$", full.names=TRUE, ignore.case=TRUE)
-        if (length(fcs) == 1)
-            stop("The specified path contains only a single FCS file.")
-        stopifnot(all(sapply(fcs, isFCSfile)))
-        # read FCS files as flowSet
-        fs <- read.flowSet(fcs, 
-            transformation=FALSE, 
-            truncate_max_range=FALSE)
+        if (length(fcs) == 1) 
+            stop("The specified directory contains only a single FCS file.")
+        stopifnot(all(vapply(fcs, flowCore::isFCSfile, logical(1))))
+        fs <- flowCore::read.flowSet(fcs, transformation=FALSE, truncate_max_range=FALSE)
     } else if (class(x) == "flowSet") {
         fs <- x
     } else {
         stop("'x' should be either a flowSet or\na character string",
             " that specifyies a path to a set of FCS files.")
     }
-    # check that filenames can be matched b/w flowSet & metadata
-    stopifnot(all(keyword(fs, "FILENAME") %in% md[[md_cols$file]]))
     
-    # set/check colnames of panel 
+    # check channels listed in panel 
     chs <- flowCore::colnames(fs)
-    if (is.null(cols_to_use))
+    stopifnot(all(panel[[panel_cols$channel]] %in% chs))
+    
+    # default to channels listed in panel
+    if (is.null(cols_to_use)) {
         cols_to_use <- as.character(panel[[panel_cols$channel]])
-    check_validity_cols(cols_to_use, chs)
+    } else {
+        # check validity of 'cols_to_use'
+        check1 <- is.logical(cols_to_use) && length(cols_to_use) == length(chs)
+        check2 <- all(cols_to_use %in% chs)
+        check3 <- is.integer(cols_to_use) && all(cols_to_use %in% seq_along(chs))
+        if (!any(check1, check2, check3))
+            stop("Invalid argument 'cols_to_use'. Should be either", 
+                " a logial vector,\n  a numeric vector of indices, or",
+                " a character vector of column names.")
+    }
     
-    # check panel_cols & md_cols 
-    nms <- list(panel=c("channel", "antigen"), md=c("file", "id", "factors"))
-    input_nms <- list(panel=names(panel_cols), md=names(md_cols))
-    for (i in c("panel", "md"))
-        if (!all(nms[[i]] %in% input_nms[[i]]))
-            stop("Invalid argument ", i, "_cols'.\n",
-                "List elements should be named ",
-                paste(dQuote(nms[[i]]), collapse=", "))
-    check_validity_cols(unlist(panel_cols), colnames(panel))
-    check_validity_cols(unlist(md_cols), colnames(md))
+    # check that filenames match b/w flowSet & metadata
+    stopifnot(all(flowCore::keyword(fs, "FILENAME") %in% md[[md_cols$file]]))
     
-    # replace problematic characters
-    antigens <- gsub("-", "_", panel[[panel_cols$antigen]])
-    antigens <- gsub(":", ".", antigens)
-    
-    # arcsinh-transformation & column subsetting
-    fs <- fs[, cols_to_use]
-    fs <- fsApply(fs, function(ff) {
-        flowCore::exprs(ff) <- asinh(flowCore::exprs(ff)/cofactor)
-        return(ff)
-    })
-    # reorder flowSet according to metadata table
-    m <- match(keyword(fs, "FILENAME"), md[[md_cols$file]])
+    # reorder flowSet according to metadata table & 
+    m <- match(flowCore::keyword(fs, "FILENAME"), md[[md_cols$file]])
     fs <- fs[m]
     
-    # assure factors
+    # transformation
+    fs <- flowCore::fsApply(fs, function(ff) {
+        flowCore::exprs(ff) <- asinh(flowCore::exprs(ff) / cofactor)
+        return(ff)
+    })
+    
+    # assure correctness of formats
     md <- data.frame(md)
-    for (i in md_cols$factors) md[, i] <- factor(md[, i])
-
-    # replace channel w/ antigen names
+    for (i in md_cols$factors) 
+        md[[i]] <- factor(md[[i]])
+    
+    # replace problematic characters
+    antigens <- panel[[panel_cols$antigen]]
+    antigens <- gsub("-", "_", antigens)
+    antigens <- gsub(":", ".", antigens)
+    
+    # column subsetting
+    fs <- fs[, cols_to_use]
     chs <- flowCore::colnames(fs)
+    
+    # replace channel w/ antigen names
     m1 <- match(panel[[panel_cols$channel]], chs, nomatch=0)
-    m2 <- match(chs, panel[[panel_cols$channel]])
+    m2 <- match(chs, panel[[panel_cols$channel]], nomatch=0)
     flowCore::colnames(fs)[m1] <- antigens[m2]
+    chs <- flowCore::colnames(fs)
     
     # get exprs.
-    es <- matrix(fsApply(fs, exprs), ncol=length(chs),
-        dimnames=list(NULL, flowCore::colnames(fs)))
+    es <- matrix(flowCore::fsApply(fs, exprs), 
+        ncol=length(chs), dimnames=list(NULL, chs))
     
     # get nb. of cells per sample
-    n_cells <- fsApply(fs, nrow)
+    n_cells <- flowCore::fsApply(fs, nrow)
     n_cells <- setNames(as.numeric(n_cells), md[[md_cols$id]])
-    
-    # construct column data
-    row_data <- S4Vectors::DataFrame(
-        row.names=NULL,
-        sample_id=rep(md[[md_cols$id]], n_cells), 
-        sapply(md_cols$factors, function(i) rep(md[[i]], n_cells)))
     
     # get & check marker classes if provided
     valid_mcs <- c("type", "state", "none")
-    if (is.null(panel_cols$class)) {
+    if (is.null(panel[[panel_cols$class]])) {
         mcs <- factor("none", levels=valid_mcs)
     } else {
-        mcs <- panel[[panel_cols$class]]
+        mcs <- factor(panel[[panel_cols$class]])
         if (!all(mcs %in% valid_mcs))
             stop("Invalid marker classes detected.",
                 " Valid classes are 'type', 'state', and 'none'.")
         levels(mcs) <- valid_mcs
     }
     
-    # construct row data
-    col_data <- S4Vectors::DataFrame(
-        row.names=colnames(es), channel_name=chs, 
-        marker_name=colnames(es), marker_class=mcs)
+    # construct row & column data
+    row_data <- data.frame(row.names=NULL,
+        apply(md, 2, rep, n_cells)[, names(md) != md_cols$file])
+    col_data <- data.frame(row.names=chs, 
+        channel_name=chs, marker_name=chs, marker_class=mcs)
     
     # construct daFrame
-    new("daFrame", 
-        SummarizedExperiment(
-            assays=SimpleList(exprs=es),
-            rowData=row_data, colData=col_data,
-            metadata=list(
-                experiment_info=md, 
-                n_cells=n_cells, 
-                cofactor=cofactor)))
+    new("daFrame", SummarizedExperiment(
+        assays=list(exprs=es), rowData=row_data, colData=col_data,
+        metadata=list(experiment_info=md, n_cells=n_cells, cofactor=cofactor)))
 }
 
 # validity check
