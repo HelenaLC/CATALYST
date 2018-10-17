@@ -30,6 +30,8 @@ output:
 # load required packages
 suppressPackageStartupMessages({
     library(CATALYST)
+    library(flowCore)
+    library(diffcyt)
     library(SummarizedExperiment)
 })
 ```
@@ -62,7 +64,6 @@ download.file(paste0(url, "/", fcs_zip), destfile = fcs_zip, mode = "wb")
 unzip(fcs_zip)
 
 # read in FCS files as flowSet
-library(flowCore)
 fcs_files <- list.files(pattern = ".fcs$")
 fs <- read.flowSet(fcs_files, transformation = FALSE, truncate_max_range = FALSE)
 ```
@@ -236,7 +237,6 @@ plotSNE(daf, color_by = "meta8", facet = "sample_id")
 Please refer to the `r Biocpkg("diffcyt")` [vignette](https://bioconductor.org/packages/3.7/bioc/vignettes/diffcyt/inst/doc/diffcyt_workflow.html) and R documentation (`??diffcyt`) for more detailed information.
 
 ```{r message=FALSE, warning=FALSE, fig.show='hide'}
-library(diffcyt)
 # create design & constrast matrix
 formula <- createFormula(PBMC_md, cols_fixed = 3, cols_random = 4)
 contrast <- createContrast(c(0, 1))
