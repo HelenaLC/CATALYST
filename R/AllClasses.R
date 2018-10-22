@@ -206,8 +206,7 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     }
     
     # check channels listed in panel 
-    chs <- flowCore::colnames(fs)
-    stopifnot(all(panel[[panel_cols$channel]] %in% chs))
+    stopifnot(all(panel[[panel_cols$channel]] %in% flowCore::colnames(fs)))
     
     # default to channels listed in panel
     if (is.null(cols_to_use)) {
@@ -248,11 +247,11 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     
     # column subsetting
     fs <- fs[, cols_to_use]
-    chs <- flowCore::colnames(fs)
+    chs0 <- flowCore::colnames(fs)
     
     # replace channel w/ antigen names
     m1 <- match(panel[[panel_cols$channel]], chs, nomatch=0)
-    m2 <- match(chs, panel[[panel_cols$channel]], nomatch=0)
+    m2 <- match(chs0, panel[[panel_cols$channel]], nomatch=0)
     flowCore::colnames(fs)[m1] <- antigens[m2]
     chs <- flowCore::colnames(fs)
     
@@ -269,18 +268,18 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     if (is.null(panel[[panel_cols$class]])) {
         mcs <- factor("none", levels=valid_mcs)
     } else {
-        mcs <- factor(panel[[panel_cols$class]])
-        if (!all(mcs %in% valid_mcs))
+        mcs <- factor(panel[[panel_cols$class]], levels=valid_mcs)
+        mcs <- mcs[match(chs0, panel[[panel_cols$channel]])]
+        if (any(is.na(mcs)))
             stop("Invalid marker classes detected.",
                 " Valid classes are 'type', 'state', and 'none'.")
-        levels(mcs) <- valid_mcs
     }
     
     # construct row & column data
     row_data <- data.frame(row.names=NULL,
         apply(md, 2, rep, n_cells)[, names(md) != md_cols$file])
     col_data <- data.frame(row.names=chs, 
-        channel_name=chs, marker_name=chs, marker_class=mcs)
+        channel_name=chs0, marker_name=chs, marker_class=mcs)
     
     # construct daFrame
     new("daFrame", SummarizedExperiment(

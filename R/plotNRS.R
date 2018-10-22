@@ -31,6 +31,7 @@
 #' 
 #' @import ggplot2
 #' @importFrom reshape2 melt
+#' @importFrom S4Vectors metadata
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotNRS", 
@@ -68,8 +69,7 @@ setMethod(f="plotNRS",
         
         # plot NRS in decreasing order
         o <- names(sort(mean_scores, decreasing=TRUE))
-        m <- match(rownames(scores), md$sample_id)
-        scores <- data.frame(scores[, o], md[m, ])
+        scores <- data.frame(scores[, o], md)
         df <- melt(scores, id.var=names(md), 
             variable.name="antigen", value.name="NRS") 
         df$antigen <- factor(df$antigen, levels=o)

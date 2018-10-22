@@ -128,11 +128,6 @@ setMethod(f="plotDiffHeatmap",
         y <- rowData(y)
         type <- get_dt_type(y)
         
-        # compute medians by samples & clusters
-        df <- data.frame(x, sample_id=sample_ids, cluster_id=cluster_ids)
-        meds_by_sample <- data.frame(df %>% group_by_(~sample_id) %>% 
-                summarise_at(colnames(x), median), row.names=1)
-        
         # get clusters or cluster-marker combinations to plot
         if (order)
             y <- y[order(y$p_adj), , drop=FALSE]
@@ -140,6 +135,7 @@ setMethod(f="plotDiffHeatmap",
             top_n <- nrow(y)
         top <- y[seq_len(top_n), ]
         
+        df <- data.frame(x, sample_id=sample_ids, cluster_id=cluster_ids)
         if (hm1) {
             meds_by_cluster <- data.frame(df %>% group_by_(~cluster_id) %>% 
                     summarise_at(colnames(x), median), row.names=1)
