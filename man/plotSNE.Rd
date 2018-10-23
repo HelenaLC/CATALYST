@@ -39,7 +39,7 @@ re <- cluster(re)
 re <- tSNE(re, n=50)
 
 # color by clustering
-plotSNE(re, color_by=12)
+plotSNE(re, color_by="meta12")
 
 # color by marker expression
 plotSNE(re, color_by="pNFkB", facet="condition")
