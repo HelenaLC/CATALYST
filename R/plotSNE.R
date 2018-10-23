@@ -42,7 +42,7 @@
 
 setMethod(f="plotSNE",
     signature=signature(x="daFrame"),
-    definition=function(x, color_by=20, facet=NULL) {
+    definition=function(x, color_by="meta20", facet=NULL) {
         
         # check validity of 'color_by' argument
         color_by <- as.character(color_by)

@@ -8,7 +8,7 @@
 \usage{
 plotSNE(x, ...)
 
-\S4method{plotSNE}{daFrame}(x, color_by = 20, facet = NULL)
+\S4method{plotSNE}{daFrame}(x, color_by = "meta20", facet = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
