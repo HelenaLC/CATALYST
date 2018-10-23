@@ -250,7 +250,7 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
     chs0 <- flowCore::colnames(fs)
     
     # replace channel w/ antigen names
-    m1 <- match(panel[[panel_cols$channel]], chs, nomatch=0)
+    m1 <- match(panel[[panel_cols$channel]], chs0, nomatch=0)
     m2 <- match(chs0, panel[[panel_cols$channel]], nomatch=0)
     flowCore::colnames(fs)[m1] <- antigens[m2]
     chs <- flowCore::colnames(fs)
