@@ -213,6 +213,7 @@ daFrame <- function(x, panel, md, cols_to_use=NULL, cofactor=5,
         cols_to_use <- as.character(panel[[panel_cols$channel]])
     } else {
         # check validity of 'cols_to_use'
+        chs <- flowCore::colnames(fs)
         check1 <- is.logical(cols_to_use) && length(cols_to_use) == length(chs)
         check2 <- all(cols_to_use %in% chs)
         check3 <- is.integer(cols_to_use) && all(cols_to_use %in% seq_along(chs))
