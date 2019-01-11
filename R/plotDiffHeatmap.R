@@ -162,11 +162,10 @@ setMethod(f="plotDiffHeatmap",
         
         # 2nd heatmap:
         if (type == "DA") {
-            # cluster sizes by sample
-            n_cells <- df %>% count(cluster_id, sample_id) %>% complete(sample_id)
-            n_cells <- acast(n_cells, cluster_id~sample_id, value.var="n", fill=0)
-            n_cells <- n_cells[top$cluster_id, , drop=FALSE]
-            freqs <- t(t(n_cells) / colSums(n_cells))
+            # compute relative cluster sizes by sample
+            freqs <- prop.table(table(df$cluster_id, df$sample_id), 2)
+            freqs <- freqs[top$cluster_id, , drop=FALSE]
+            freqs <- as.matrix(unclass(freqs))
             if (normalize)
                 freqs <- z_normalize(asin(sqrt(freqs)))
             hm2 <- diff_hm(matrix=freqs, cluster_rows=!order,
