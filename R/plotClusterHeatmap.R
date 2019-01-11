@@ -77,7 +77,7 @@
 #' plotClusterHeatmap(re, hm2="abundances", scale=FALSE, draw_freqs=TRUE)
 #' 
 #' @import ComplexHeatmap
-#' @importFrom dplyr group_by_ summarise_all
+#' @importFrom dplyr arrange group_by_ summarise_all
 #' @importFrom grDevices colorRampPalette
 #' @importFrom magrittr %>%
 #' @importFrom RColorBrewer brewer.pal
