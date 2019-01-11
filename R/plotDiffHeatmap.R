@@ -162,11 +162,10 @@ setMethod(f="plotDiffHeatmap",
         
         # 2nd heatmap:
         if (type == "DA") {
-            # cluster sizes by sample
-            n_cells <- df %>% count(cluster_id, sample_id) %>% complete(sample_id)
-            n_cells <- acast(n_cells, cluster_id~sample_id, value.var="n", fill=0)
-            n_cells <- n_cells[top$cluster_id, , drop=FALSE]
-            freqs <- t(t(n_cells) / colSums(n_cells))
+            # compute relative cluster sizes by sample
+            freqs <- prop.table(table(df$cluster_id, df$sample_id), 2)
+            freqs <- freqs[top$cluster_id, , drop=FALSE]
+            freqs <- as.matrix(unclass(freqs))
             if (normalize)
                 freqs <- z_normalize(asin(sqrt(freqs)))
             hm2 <- diff_hm(matrix=freqs, cluster_rows=!order,
@@ -201,17 +200,25 @@ setMethod(f="plotDiffHeatmap",
         row_anno_df <- data.frame("significant"=factor(df_s$s, 
             levels=c(0,1), labels=c("no","yes")), check.names=FALSE)
         
-        row_anno <- rowAnnotation(df=row_anno_df, 
-            gp=gpar(col="white"), width=unit(.4, "cm"),
-            col=list("significant"=c("no"="gray90", "yes"="limegreen")))
+        if (anno_signif) {
+            row_anno <- rowAnnotation(df=row_anno_df, 
+                gp=gpar(col="white"), width=unit(.4, "cm"),
+                col=list("significant"=c("no"="gray90", "yes"="limegreen")))
+        } else {
+            row_anno <- NULL
+        }
         
-        pval_hm <- Heatmap(name="p_adj",
-            matrix=matrix(top$p_adj, ncol=1, dimnames=list(
-                format(top$p_adj, digits=3, scientific=TRUE), NULL)), 
-            col=colorRamp2(range(top$p_adj, na.rm=TRUE), c("black", "lightgrey")),
-            width=unit(.4, "cm"), rect_gp=gpar(col="white"), 
-            show_row_names=TRUE, row_names_side="right", 
-            cluster_rows=FALSE, show_column_names=FALSE)
+        if (anno_padj) {
+            pval_hm <- Heatmap(name="p_adj",
+                matrix=matrix(top$p_adj, ncol=1, dimnames=list(
+                    format(top$p_adj, digits=3, scientific=TRUE), NULL)), 
+                col=colorRamp2(range(top$p_adj, na.rm=TRUE), c("black", "lightgrey")),
+                width=unit(.4, "cm"), rect_gp=gpar(col="white"), 
+                show_row_names=TRUE, row_names_side="right", 
+                cluster_rows=FALSE, show_column_names=FALSE)
+        } else {
+            pval_hm <- NULL
+        }
         
         # combine panels
         main <- switch(type, 

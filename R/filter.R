@@ -21,16 +21,16 @@
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md, merging_table)
-#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' # run clustering
-#' re <- cluster(re)
+#' daf <- cluster(daf)
 #' 
 #' # one condition only, remove a single sample
-#' filter(re, condition == "Ref", sample_id != "Ref1")
+#' filter(daf, condition == "Ref", sample_id != "Ref1")
 #' 
 #' # keep only a subset of clusters
-#' filter(re, cluster_id %in% c(7, 8, 18), k = "meta20")
+#' filter(daf, cluster_id %in% c(7, 8, 18), k = "meta20")
 # ------------------------------------------------------------------------------
 
 setMethod(f="filter", 

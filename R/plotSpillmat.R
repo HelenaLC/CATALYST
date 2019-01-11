@@ -43,6 +43,7 @@
 #' @import ggplot2 grid gridExtra
 #' @importFrom grDevices colorRampPalette
 #' @importFrom htmltools save_html
+#' @importFrom methods is
 #' @importFrom plotly ggplotly
 # ------------------------------------------------------------------------------
 
@@ -97,7 +98,7 @@ setMethod(f="plotSpillmat",
                 layout(margin=list(l=72, b=58)) 
         
         if (!is.null(out_path)) {
-            if (class(p)[1] == "plotly") {
+            if (is(p, "plotly")) {
                 htmltools::save_html(p, 
                     file.path(out_path, paste0("SpillMat", name_ext, ".html")))
             } else {

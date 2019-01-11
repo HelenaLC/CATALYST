@@ -173,6 +173,12 @@ setGeneric("compCytof",
 # Generics to access slots in a daFrame
 # ------------------------------------------------------------------------------
 
+#' @rdname daFrame-class
+#' @param ... optional arguments.
+#' @export
+setGeneric("daFrame", 
+    function(x, panel, md, ...) standardGeneric("daFrame"))
+
 #' @rdname daFrame-methods
 #' @export
 setGeneric("n_cells", 
@@ -310,7 +316,7 @@ setGeneric("plotDiffHeatmap",
 
 #' @rdname filter
 #' @export
-setGeneric("filter", 
+setGeneric("filter",
     function(x, ...) standardGeneric("filter"))
 
 #' @rdname extractClusters
