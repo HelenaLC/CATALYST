@@ -177,11 +177,12 @@ setMethod(f="plotDiffHeatmap",
             meds <- df %>% 
                 group_by_(~cluster_id, ~sample_id) %>% 
                 summarise_all(funs(median))
-            meds <- lapply(colnames(x), function(marker) 
-                acast(meds, cluster_id~sample_id, value.var=marker, fill=0))
+            meds <- lapply(colnames(x), function(marker_id) 
+                acast(meds, cluster_id~sample_id, 
+                    value.var=marker_id, fill=0))
             meds <- setNames(meds, colnames(x))
             meds <- mapply(function(marker, ids) marker[ids, , drop = FALSE], 
-                meds[top$marker], top$cluster_id, SIMPLIFY=FALSE)
+                meds[top$marker_id], top$cluster_id, SIMPLIFY=FALSE)
             meds <- do.call(rbind, meds)
             if (normalize)
                 meds <- z_normalize(meds) 

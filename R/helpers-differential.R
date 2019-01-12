@@ -112,15 +112,15 @@ get_dt_type <- function(x) {
     da_GLMM <- c("cluster_id", "p_val", "p_adj")
     da_voom <- c("cluster_id", "log_FC", "AveExpr", "t", "p_val", "p_adj", "B")
     
-    ds_limma <- c("cluster_id", "marker", "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
-    ds_LMM <- c("cluster_id", "marker", "p_val", "p_adj")
+    ds_limma <- c("cluster_id", "marker_id", "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
+    ds_LMM <- c("cluster_id", "marker_id", "p_val", "p_adj")
     
     res_nms <- setNames(
         list(da_edgeR, da_GLMM, da_voom, ds_limma, ds_LMM),
         c(rep("da", 3), rep("ds", 2)))
-    test <- sapply(res_nms, function(nms)
-        sum(names(x) %in% nms) == length(names(x)))
-    type <- names(which(test))
+    test <- sapply(res_nms, function(nms) all.equal(names(x), nms))
+    test <- vapply(test, isTRUE, logical(1))
+    type <- names(test)[test]
     if (length(type) == 0) 
         type <- "none"
     
@@ -129,7 +129,7 @@ get_dt_type <- function(x) {
     
     if (type == "da" && nrow(x) == k) {
         return("DA")
-    } else if (type == "ds" && nrow(x) == (k * nlevels(x$marker))) {
+    } else if (type == "ds" && nrow(x) == (k * nlevels(x$marker_id))) {
         return("DS")
     } else if (type == "none") {
         stop(deparse(substitute(x)), " does not seem to be ", 
