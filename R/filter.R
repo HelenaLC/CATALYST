@@ -2,20 +2,15 @@
 #' @title Filter daFrame
 #' 
 #' @description 
-#' Filters events from a \code{daFrame} using conditional statements.
+#' Filters events/genes from a \code{daFrame} using conditional statements.
 #'
-#' @param x 
-#'   a \code{\link{daFrame}}.
-#' @param ... 
-#'   conditional statements separated by comma.
-#'   Left-hand side arguments must occur in the \code{colnames(rowData(x))};
-#'   accepted operators are \code{==}, \code{!=} and \code{\%in\%}.
-#' @param k 
-#'   numeric or character string. 
-#'   Specifies the clustering to extract populations from.
-#'   Must be one of \code{names(cluster_codes(x))}.
+#' @param .data a \code{\link{daFrame}}.
+#' @param ... conditional statements separated by comma.
+#' @param k numeric or character string. Specifies the clustering to extract 
+#'   populations from. Must be one of \code{names(cluster_codes(x))}.
+#'   Defaults to \code{"som100"}.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @return a \code{daFrame}.
 #' 
@@ -31,74 +26,77 @@
 #' 
 #' # keep only a subset of clusters
 #' filter(daf, cluster_id %in% c(7, 8, 18), k = "meta20")
+#' 
+#' @importFrom dplyr filter mutate_all select
+#' @importFrom S4Vectors metadata
+#' @importFrom SummarizedExperiment colData rowData assays SummarizedExperiment
+#' @export
 # ------------------------------------------------------------------------------
 
 setMethod(f="filter", 
-    signature=signature(x="daFrame"), 
-    definition=function(x, ..., k = NULL) {
+    signature=signature(.data="daFrame"), 
+    definition=function(.data, ..., k = NULL) {
+        x <- .data
+        rd <- sapply(rowData(x), as.character)
+        cd <- sapply(colData(x), as.character)
+        rd <- data.frame(i=seq_len(nrow(x)), rd, 
+            check.names=FALSE, stringsAsFactors=FALSE)
+        cd <- data.frame(i=seq_len(ncol(x)), cd, 
+            check.names=FALSE, stringsAsFactors=FALSE)
+
+        # get cluster IDs for specified clustering
+        if (is.null(k)) k <- "som100"
+        k <- check_validity_of_k(x, k)
+        rd$cluster_id <- cluster_codes(x)[cluster_ids(x), k]
         
-        n <- nrow(x)
-        args <- substitute(deparse(...))
-        args <- as.character(args)[-1]
-        args <- sapply(args, function(x) gsub("\"", "\'", x, fixed = TRUE))
+        # filter rows & columns
+        rdf <- try(filter(rd, ...), silent=TRUE)
+        cdf <- try(filter(cd, ...), silent=TRUE)
+        if (inherits(rdf, "try-error")) rdf <- rd
+        if (inherits(cdf, "try-error")) cdf <- cd
+        ri <- rdf$i; rdf <- select(rdf, -"i")
+        ci <- cdf$i; cdf <- select(cdf, -"i")
         
-        # check validity of left- & right-hand arguments
-        args_split <- sapply(args, strsplit, "(==).|(!=).|(%in%).")
-        l <- sapply(args_split, "[[", 1)
-        l <- sapply(l, function(x) gsub("(!)|[[:blank:]]", "", x))
-        stopifnot(all(l %in% colnames(rowData(x))))
+        # convert to factors
+        rdf <- mutate_all(rdf, factor)
+        cdf <- mutate_all(cdf, factor)
+        # fix marker_class levels
+        cdf$marker_class <- factor(cdf$marker_class, 
+            levels=levels(marker_classes(x))) 
         
-        r <- sapply(args_split, "[[", 2)
-        md <- metadata(x)$experiment_info
-        for (i in seq_along(args)[l != "cluster_id"])
-            stopifnot(all(gsub("\'", "", r[[i]]) %in% md[, l[[i]]]))
-        
-        # filter events
-        if (any(l != "cluster_id")) {
-            for (i in colnames(rowData(x))) assign(i, rowData(x)[, i])
-            inds <- sapply(args[l != "cluster_id"], 
-                function(x) eval(parse(text=x)))
-            inds <- apply(inds, 1, all)
-            if (sum(inds) == 0) 
-                stop("The applied filtering would remove all events.")
-            x <- x[inds, ]
+        # update experimental design table
+        ei <- metadata(x)$experiment_info
+        cols <- intersect(colnames(rdf), colnames(ei))
+        keep <- vapply(cols, function(u) 
+            ei[, u] %in% levels(rdf[, u]), 
+            logical(nrow(ei)))
+        ei <- ei[apply(keep, 1, all), ]
+        rownames(ei) <- NULL
+
+        md <- metadata(x)
+        if (nrow(x) != nrow(rdf)) {
+            # update metadata
+            md$experiment_info <- ei
+            md$n_cells <- table(rdf$sample_id)
+            md$tsne$Y <- md$tsne$Y[ri, ]
+            md$tsne_inds <- md$tsne_inds[ri, ]
+            
+            # update cluster_codes
+            codes <- mutate_all(md$cluster_codes, as.character)
+            codes <- codes[codes[, k] %in% rdf$cluster_id, ]
+            codes <- mutate_all(codes, factor)
+            md$cluster_codes <- codes
         }
         
-        if ("cluster_id" %in% l) {
-            if (is.null(k))
-                stop("Please specify which clustering 'k' to use.")
-            
-            # check that cluster() has been run
-            stopifnot("cluster_codes" %in% names(metadata(x)))
-            stopifnot("cluster_id" %in% names(rowData(x)))
-            
-            # check validity of cluster IDs
-            k <- check_validity_of_k(x, k)
-            stopifnot(all(eval(parse(text=r[l == "cluster_id"])) %in% cluster_codes(x)[, k]))
-            
-            cluster_id <- cluster_codes(x)[cluster_ids(x), k]
-            inds <- eval(parse(text = args[l == "cluster_id"]))
-            if (sum(inds) == 0) 
-                stop("The applied filtering would remove all events.")
-            x <- x[inds, ]
-        }
+        # revert colData(x)$cluster_id to 100 SOM clusters
+        rdf$cluster_id <- factor(cluster_ids(x)[ri], 
+            levels=levels(codes$som100))
         
-        # update factor levels
-        for (i in seq_len(ncol(rowData(x))))
-            rowData(x)[, i] <- factor(as.character(rowData(x)[, i]))
-        
-        # update metadata
-        for (i in colnames(md)) assign(i, md[, i])
-        if (any(l != "cluster_id")) {
-            inds <- sapply(args[l != "cluster_id"], 
-                function(x) eval(parse(text=x)))
-            inds <- apply(inds, 1, all)
-            md <- md[inds, ]
-            rownames(md) <- NULL
-            metadata(x)$experiment_info <- md
-        }
-        metadata(x)$n_cells <- table(sample_ids(x))
-        message(n - nrow(x), " / ", n, " events have been removed.")
-        return(x)
+        # returned filtered daFrame
+        se <- SummarizedExperiment(
+            assays=lapply(assays(x), "[", i=ri, j=ci), 
+            rowData=rdf, colData=cdf, metadata=md)
+        as(se, "daFrame")
     }
 )
+        
