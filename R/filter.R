@@ -80,13 +80,6 @@ setMethod(f="filter",
             md$n_cells <- table(rdf$sample_id)
             md$tsne$Y <- md$tsne$Y[ri, ]
             md$tsne_inds <- md$tsne_inds[ri, ]
-            
-            # update cluster_codes
-            codes <- mutate_all(md$cluster_codes, as.character)
-            codes <- codes[codes[, k] %in% rdf$cluster_id, ]
-            codes <- mutate_all(codes, function(u) 
-                factor(u, levels=sort(as.numeric(unique(u)))))
-            md$cluster_codes <- codes
         }
         
         # revert colData(x)$cluster_id to 100 SOM clusters
