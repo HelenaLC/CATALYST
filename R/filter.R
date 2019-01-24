@@ -84,13 +84,14 @@ setMethod(f="filter",
             # update cluster_codes
             codes <- mutate_all(md$cluster_codes, as.character)
             codes <- codes[codes[, k] %in% rdf$cluster_id, ]
-            codes <- mutate_all(codes, factor)
+            codes <- mutate_all(codes, function(u) 
+                factor(u, levels=sort(as.numeric(unique(u)))))
             md$cluster_codes <- codes
         }
         
         # revert colData(x)$cluster_id to 100 SOM clusters
         rdf$cluster_id <- factor(cluster_ids(x)[ri], 
-            levels=levels(codes$som100))
+            levels=levels(cluster_ids(x)))
         
         # returned filtered daFrame
         se <- SummarizedExperiment(
