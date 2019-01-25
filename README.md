@@ -51,7 +51,7 @@ There are various entry points to using the CATALYST tools. If you are an R user
 ### Contact
 
 For software related issues:
-* Helena L Crowell (crowellh@student.ethz.ch)
+* Helena L Crowell (helena.crowell@uzh.ch)
 * Mark D Robinson (mark.robinson@imls.uzh.ch)
 
 Regarding methodological questions:
