@@ -122,5 +122,5 @@ unassigned <- bc_ids(re) == 0
 head(exprs(sample_ff[unassigned, ]))
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

@@ -62,7 +62,7 @@
 #' the data should thus corresponds to the value of k where there is no longer 
 #' a considerable increase in stability (pleateau onset).
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 

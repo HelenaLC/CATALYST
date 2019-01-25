@@ -25,7 +25,7 @@
 #' according to \code{out_chs}.
 #' 
 #' @author 
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' and Vito RT Zanotelli \email{vito.zanotelli@uzh.ch}
 #' 
 #' @examples

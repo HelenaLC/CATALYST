@@ -24,7 +24,7 @@
 #' less than 50 event assignments will be skipped; it is strongly recoomended
 #' to remove such populations or reconsider their separation cutoffs.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references
 #' Zunder, E.R. et al. (2015).

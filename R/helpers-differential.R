@@ -10,6 +10,12 @@ cluster_cols <- c(
     "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
 # ==============================================================================
+# get cluster IDs from a daFrame for a specified k
+# ------------------------------------------------------------------------------
+get_cluster_ids <- function(x, k, i = TRUE)
+    droplevels(cluster_codes(x)[cluster_ids(x)[i], k])
+
+# ==============================================================================
 # scale expression to values b/w 0 and 1 using 
 # low (1%) and high (99%) quantiles as boundaries
 # ------------------------------------------------------------------------------

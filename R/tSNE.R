@@ -18,7 +18,7 @@
 #' @return Writes the tSNE coordinates and the indicies of the events used 
 #' for their computation into the metadata slot of the input \code{daFrame}.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 

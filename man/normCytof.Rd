@@ -75,5 +75,5 @@ Normalization of mass cytometry data with bead standards.
 \emph{Cytometry A} \bold{83A}, 483-494.
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

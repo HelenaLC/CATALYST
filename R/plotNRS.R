@@ -14,7 +14,7 @@
 #'   character string. Has to appeara as a column name of \code{rowData(x)}.
 #'   Specifies the color coding.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 

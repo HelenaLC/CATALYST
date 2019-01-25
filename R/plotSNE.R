@@ -11,7 +11,7 @@
 #' 
 #' @return a \code{ggplot} object.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
@@ -54,11 +54,11 @@ setMethod(f="plotSNE",
                 paste(dQuote(colnames(rowData(x))), collapse=", "))
         
         inds <- metadata(x)$tsne_inds
-        tsne <- metadata(x)$tsne
+        tsne <- metadata(x)$tsne$Y
         
         df <- data.frame(
             exprs(x)[inds, ], rowData(x)[inds, ],
-            tSNE1=tsne$Y[, 1], tSNE2=tsne$Y[, 2])
+            tSNE1=tsne[, 1], tSNE2=tsne[, 2])
 
         p <- ggplot(df, aes_string(x="tSNE1", y="tSNE2")) +
             theme_void() + theme(aspect.ratio=1,
@@ -73,9 +73,7 @@ setMethod(f="plotSNE",
                 scale_color_gradientn(color_by, colors=pal)
         } else {
             # get cluster IDs
-            cluster_ids <- cluster_codes(x)[cluster_ids(x)[inds], color_by]
-            # fix levels if any clusters missing
-            cluster_ids <- factor(cluster_ids)
+            cluster_ids <- get_cluster_ids(x, color_by, inds)
             df$cluster_id <- cluster_ids
             # expand palette if more than 30 clusters
             n_clusters <- nlevels(cluster_ids)

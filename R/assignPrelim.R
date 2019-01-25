@@ -21,7 +21,7 @@
 #' between positive and negative barcode populations, and barcode intensities
 #' normalized by population. 
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Zunder, E.R. et al. (2015).

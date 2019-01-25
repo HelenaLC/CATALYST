@@ -33,7 +33,7 @@
 #' 
 #' @param x,object a \code{\link{daFrame}}.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @examples
 #' # construct daFrame
