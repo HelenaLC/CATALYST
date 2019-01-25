@@ -7,7 +7,7 @@ author:
   - &IMLS Institute for Molecular Life Sciences, University of Zurich, Switzerland
   - &SIB SIB Swiss Institute of Bioinformatics, University of Zurich, Switzerland
   - Department of Biosystems Science and Engineering ETH, ETH Zurich, Switzerland
-  email: crowellh@student.ethz.ch
+  email: helena.crowell@uzh.ch
 - name: Mark D Robinson
   affiliation:
   - *IMLS
