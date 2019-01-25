@@ -48,7 +48,7 @@
 #' and, on the basis of their additive nature, spillover values are computed 
 #' independently for each interacting pair of channels. 
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Coursey, J.S., Schwab, D.J., Tsai, J.J., Dragoset, R.A. (2015).

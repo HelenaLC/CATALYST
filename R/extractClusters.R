@@ -28,8 +28,8 @@
 #'   logical.
 #'   Should information on progress be reported?
 #' 
-#' @author Mark D Robinson,
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Mark D Robinson and
+#' Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @return a \code{flowSet} or character vector of the output file names.
 #' 

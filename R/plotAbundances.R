@@ -24,7 +24,7 @@
 #'   The default NULL will use the first factor available.
 #' @return a \code{ggplot} object.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
@@ -74,7 +74,7 @@ setMethod(f="plotAbundances",
         }
         
         # get cluster IDs & abundances
-        cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
+        cluster_ids <- get_cluster_ids(x, k)
         counts <- table(cluster_ids, sample_ids(x))
         
         # get frequencies by cluster & sample

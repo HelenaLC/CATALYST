@@ -42,8 +42,7 @@
 #' containing the compensated data. Otherwise, compensated data will be written 
 #' to the specified location as FCS 3.0 standard files. 
 #' 
-#' @author 
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
 #' 
 #' @examples

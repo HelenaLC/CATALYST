@@ -39,7 +39,7 @@
 #' Will update the \code{sep_cutoffs} slot of the input \code{\link{dbFrame}} 
 #' and return the latter.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #'
 #' @references 
 #' Finney, D.J. (1971). Probit Analsis. 

@@ -30,7 +30,7 @@
 #' a \code{flowFrame} containing measurement intensities 
 #' of all input data or a character of the FCS file name.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @examples
 #' data(raw_data)

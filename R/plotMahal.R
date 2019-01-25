@@ -18,7 +18,7 @@
 #' @return Plots all inter-barcode interactions for the population specified
 #' by argument \code{which}. Events are colored by their Mahalanobis distance. 
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Zunder, E.R. et al. (2015).

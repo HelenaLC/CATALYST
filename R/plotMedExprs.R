@@ -17,7 +17,7 @@
 #'   character string. Has to appear as a column name of \code{rowData(x)}. 
 #'   Specifies sample grouping.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 

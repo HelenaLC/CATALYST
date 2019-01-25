@@ -47,7 +47,7 @@ setMethod(f="filter",
         # get cluster IDs for specified clustering
         if (is.null(k)) k <- "som100"
         k <- check_validity_of_k(x, k)
-        rd$cluster_id <- cluster_codes(x)[cluster_ids(x), k]
+        rd$cluster_id <- get_cluster_ids(x, k)
         
         # filter rows & columns
         rdf <- try(filter(rd, ...), silent=TRUE)
@@ -78,8 +78,9 @@ setMethod(f="filter",
             # update metadata
             md$experiment_info <- ei
             md$n_cells <- table(rdf$sample_id)
-            md$tsne$Y <- md$tsne$Y[ri, ]
-            md$tsne_inds <- md$tsne_inds[ri, ]
+            md$tsne$Y <- md$tsne$Y[md$tsne_inds %in% ri, ]
+            inds <- match(md$tsne_inds, ri)
+            md$tsne_inds <- inds[!is.na(inds)]
         }
         
         # revert colData(x)$cluster_id to 100 SOM clusters

@@ -20,7 +20,7 @@
 #' Will update the \code{bc_ids} and, if not already specified, 
 #' \code{sep_cutoffs} & \code{mhl_cutoff} slots of \code{x}.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Zunder, E.R. et al. (2015).

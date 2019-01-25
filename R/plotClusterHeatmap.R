@@ -55,7 +55,7 @@
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
@@ -106,7 +106,7 @@ setMethod(f="plotClusterHeatmap",
         k <- check_validity_of_k(x, k)
         m <- check_validity_of_k(x, m)
         
-        cluster_ids <- cluster_codes(x)[cluster_ids(x), k]
+        cluster_ids <- get_cluster_ids(x, k)
         n_clusters <- nlevels(cluster_ids)
         
         # medians marker exprs. across clusters

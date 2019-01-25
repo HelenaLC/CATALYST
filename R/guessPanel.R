@@ -20,8 +20,8 @@
 #' \item{\code{use_channel}: logical. If TRUE, the channel 
 #' is expected to contain a marker and will be kept.}}
 #' 
-#' @author Mark D Robinson, 
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Mark D Robinson, and
+#' Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @examples
 #' # examplary data with Time, DNA, BC channels, etc.

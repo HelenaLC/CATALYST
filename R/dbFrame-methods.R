@@ -33,7 +33,7 @@
 #' @param x,object a \code{\link{dbFrame}}.
 #' @param value the replacement value.
 #'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @examples 
 #' data(sample_ff, sample_key)

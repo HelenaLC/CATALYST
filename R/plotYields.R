@@ -30,7 +30,7 @@
 #' used separation cutoffs as well as their resulting yields will be indicated 
 #' in the plot`s main title.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #'
 #' @references 
 #' Zunder, E.R. et al. (2015).

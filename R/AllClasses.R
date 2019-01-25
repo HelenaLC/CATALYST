@@ -56,7 +56,7 @@
 #'   percentage of events within a barcode that will be obtained after applying
 #'   a separation cutoff of 0, 0.01, ..., 1, respectively.
 #'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' @importFrom methods new
 #' @export
 
@@ -133,7 +133,7 @@ setValidity(Class="dbFrame",
 #'     (see \pkg{ConsensusClusterPlus} for details).}
 #'   \item{\code{experimental_design}: the original metadata table}}}}
 #'       
-#' @author Helena Lucia Crowell \email{helena@crowells.eu}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @importFrom SummarizedExperiment SummarizedExperiment
 #' @importFrom methods new

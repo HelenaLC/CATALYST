@@ -16,7 +16,7 @@
 #' @param verbose 
 #'   logical. Specifies whether information on progress should be reported.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 

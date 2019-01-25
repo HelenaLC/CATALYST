@@ -25,7 +25,7 @@
 #' @return Writes the newly assigend cluster codes into the metadata slot 
 #' \code{cluster_codes} of the input \code{daFrame} and returns the latter.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 

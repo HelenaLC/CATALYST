@@ -14,7 +14,7 @@
 #'   (= all markers). Alternatively, if the \code{colData(x)$marker_class} 
 #'   column is specified, can be one of "type", "state", or "none".
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 

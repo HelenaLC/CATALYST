@@ -45,7 +45,7 @@
 #' normalized cells and beads (if \code{remove=TRUE}). Else, a character of the 
 #' location where output FCS files and plots have been generated.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #'
 #' @references 
 #' Finck, R. et al. (2013).
