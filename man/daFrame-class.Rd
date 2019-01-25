@@ -83,5 +83,5 @@ daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
 }
 \author{
-Helena Lucia Crowell \email{helena@crowells.eu}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

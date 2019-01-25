@@ -45,5 +45,5 @@ outFrames(x = re, return = "list", which = c("B1", "D4"))
 
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

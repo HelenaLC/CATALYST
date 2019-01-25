@@ -109,5 +109,5 @@ data.frame(old_ids, new_ids)
 metadata(re)$delta_area
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

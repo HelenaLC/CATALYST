@@ -65,5 +65,5 @@ Finney, D.J. (1971). Probit Analsis.
 \emph{Journal of Pharmaceutical Sciences} \bold{60}, 1432.
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

@@ -56,6 +56,6 @@ extractClusters(re, k="merging_1")
 
 }
 \author{
-Mark D Robinson,
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Mark D Robinson and
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

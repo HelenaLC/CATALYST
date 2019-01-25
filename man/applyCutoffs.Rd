@@ -52,5 +52,5 @@ and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

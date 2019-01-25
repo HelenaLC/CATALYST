@@ -83,6 +83,6 @@ compCytof(x = ss_exp, y = spillMat)
 
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
 }

@@ -60,5 +60,5 @@ a separation cutoff of 0, 0.01, ..., 1, respectively.}
 }}
 
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }
