@@ -13,18 +13,19 @@ plotDiffHeatmap(x, y, ...)
 
 \S4method{plotDiffHeatmap}{matrix,SummarizedExperiment}(x, y, top_n = 20,
   all = FALSE, order = TRUE, th = 0.1, hm1 = TRUE,
-  normalize = FALSE, anno_signif = TRUE, anno_padj = TRUE, ...)
+  normalize = TRUE, row_anno = TRUE, ...)
 
 \S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y,
   top_n = 20, all = FALSE, order = TRUE, th = 0.1, hm1 = TRUE,
-  normalize = FALSE, ...)
+  normalize = TRUE, row_anno = TRUE, ...)
 
 \S4method{plotDiffHeatmap}{SummarizedExperiment,SummarizedExperiment}(x, y,
   top_n = 20, all = FALSE, order = TRUE, th = 0.1, hm1 = TRUE,
-  normalize = FALSE, ...)
+  normalize = TRUE, row_anno = TRUE, ...)
 
 \S4method{plotDiffHeatmap}{ANY,list}(x, y, top_n = 20, all = FALSE,
-  order = TRUE, th = 0.1, hm1 = TRUE, normalize = FALSE, ...)
+  order = TRUE, th = 0.1, hm1 = TRUE, normalize = TRUE,
+  row_anno = TRUE, ...)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}} or \code{SummarizedExperiment}.}
@@ -55,11 +56,9 @@ in the right-hand side heatmap. If \code{y} contains DA analysis results,
 relative population abundances will be arcsine-square-root scaled 
 prior to normalization.}
 
-\item{anno_signif}{logical. Should a row annotation indicating whether cluster (DA) 
-or cluster-marker combinations (DS) are significant be included?}
-
-\item{anno_padj}{logical. Should a row annotation for the adjusted p-values of 
-each cluster (DA) or cluster-marker combinations (DS) be included?}
+\item{row_anno}{logical. Should a row annotation indicating whether cluster (DA) 
+or cluster-marker combinations (DS) are significant, 
+as well as adjusted p-values be included?}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.

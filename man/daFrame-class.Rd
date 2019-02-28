@@ -6,8 +6,8 @@
 \alias{daFrame}
 \alias{daFrame,flowSet,data.frame,data.frame-method}
 \alias{daFrame,character,data.frame,data.frame-method}
-\alias{daFrame,ANY,matrix,ANY-method}
-\alias{daFrame,ANY,ANY,matrix-method}
+\alias{daFrame,daFrame,matrix,ANY-method}
+\alias{daFrame,daFrame,ANY,matrix-method}
 \title{Differential analysis frame class}
 \usage{
 daFrame(x, panel, md, ...)
@@ -20,9 +20,9 @@ daFrame(x, panel, md, ...)
 
 \S4method{daFrame}{character,data.frame,data.frame}(x, panel, md, ...)
 
-\S4method{daFrame}{ANY,matrix,ANY}(x, panel, md, ...)
+\S4method{daFrame}{daFrame,matrix,ANY}(x, panel, md, ...)
 
-\S4method{daFrame}{ANY,ANY,matrix}(x, panel, md, ...)
+\S4method{daFrame}{daFrame,ANY,matrix}(x, panel, md, ...)
 }
 \arguments{
 \item{x}{a \code{flowSet} holding all samples or a path to a set of FCS files.}

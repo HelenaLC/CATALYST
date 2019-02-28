@@ -76,10 +76,10 @@ a considerable increase in stability (pleateau onset).
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
-re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
 # run clustering
-(re <- cluster(re))
+(daf <- cluster(daf))
 
 }
 \references{
