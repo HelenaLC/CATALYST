@@ -181,6 +181,11 @@ setGeneric("daFrame",
 
 #' @rdname daFrame-methods
 #' @export
+setGeneric("filter", 
+    function(x, ..., k) standardGeneric("filter"))
+
+#' @rdname daFrame-methods
+#' @export
 setGeneric("n_cells", 
     function(x) standardGeneric("n_cells"))
 
