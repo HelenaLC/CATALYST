@@ -4,8 +4,9 @@
 #' @description 
 #' Filters events/genes from a \code{daFrame} using conditional statements.
 #'
-#' @param .data a \code{\link{daFrame}}.
+#' @param x a \code{\link{daFrame}}.
 #' @param ... conditional statements separated by comma.
+#'   Only rows/columns where the condition evaluates to TRUE are kept.
 #' @param k numeric or character string. Specifies the clustering to extract 
 #'   populations from. Must be one of \code{names(cluster_codes(x))}.
 #'   Defaults to \code{"som100"}.
@@ -27,25 +28,22 @@
 #' # keep only a subset of clusters
 #' filter(daf, cluster_id %in% c(7, 8, 18), k = "meta20")
 #' 
-#' @importFrom dplyr filter mutate_all select
+#' @importFrom dplyr mutate_all select
 #' @importFrom S4Vectors metadata
 #' @importFrom SummarizedExperiment colData rowData assays SummarizedExperiment
-#' @export
 # ------------------------------------------------------------------------------
 
 setMethod(f="filter", 
-    signature=signature(.data="daFrame"), 
-    definition=function(.data, ..., k = NULL) {
-        x <- .data
-        rd <- sapply(rowData(x), as.character)
-        cd <- sapply(colData(x), as.character)
+    signature=signature(x="daFrame", k = "character"), 
+    definition=function(x, ..., k = NULL) {
+        rd <- vapply(rowData(x), as.character, character(nrow(x)))
+        cd <- vapply(colData(x), as.character, character(ncol(x)))
         rd <- data.frame(i=seq_len(nrow(x)), rd, 
             check.names=FALSE, stringsAsFactors=FALSE)
         cd <- data.frame(i=seq_len(ncol(x)), cd, 
             check.names=FALSE, stringsAsFactors=FALSE)
 
         # get cluster IDs for specified clustering
-        if (is.null(k)) k <- "som100"
         k <- check_validity_of_k(x, k)
         rd$cluster_id <- get_cluster_ids(x, k)
         
@@ -94,4 +92,10 @@ setMethod(f="filter",
         as(se, "daFrame")
     }
 )
-        
+
+setMethod(f="filter", 
+    signature=signature(x="daFrame", k = "missing"), 
+    definition=function(x, ..., k = NULL) {
+        filter(x, ..., k = names(cluster_codes(daf))[1])
+    }
+)
