@@ -90,7 +90,7 @@ plot_delta_area <- function(mc) {
     })
     # calculate area under CDF curve, by histogram method &
     # calculate proportional increase relative to prior k
-    areaK <- sapply(h, function(x) cumsum(x$counts * .01)[100])
+    areaK <- vapply(h, function(x) cumsum(x$counts * .01)[100], numeric(1))
     deltaK <- c(areaK[1], diff(areaK) / areaK[seq_len(maxK-2)])
     
     df <- data.frame(k=seq_len(maxK)[-1], y=deltaK)
@@ -124,7 +124,7 @@ get_dt_type <- function(x) {
     res_nms <- setNames(
         list(da_edgeR, da_GLMM, da_voom, ds_limma, ds_LMM),
         c(rep("da", 3), rep("ds", 2)))
-    test <- sapply(res_nms, function(nms) all.equal(names(x), nms))
+    test <- vapply(res_nms, identical, y = names(x), logical(1))
     test <- vapply(test, isTRUE, logical(1))
     type <- names(test)[test]
     if (length(type) == 0) 
@@ -146,11 +146,43 @@ get_dt_type <- function(x) {
 }
 
 # ==============================================================================
+# wrapper to calculate expr. medians by cluster & cluster-sample
+# ------------------------------------------------------------------------------
+calc_meds <- function(x, by, cluster_ids, sample_ids = NULL, top) {
+    by <- switch(by, c = "cluster_id", cs = c("cluster_id", "sample_id"))
+    dt <- data.table(
+        i = seq_len(nrow(x)), 
+        cluster_id = cluster_ids)
+    if (!is.null(sample_ids)) 
+        dt$sample_id <- sample_ids
+    dt_split <- split(dt, by = by, flatten = FALSE, sorted = TRUE)
+    cells <- modify_depth(dt_split, length(by), "i")
+    if (length(by) == 1) {
+        meds <- vapply(cells, function(i) 
+            colMedians(x[i, ]), numeric(ncol(x)))
+        meds <- t(meds)[paste(top$cluster_id), ]
+        colnames(meds) <- colnames(x)
+        return(meds)
+    } else {
+        meds <- t(vapply(seq_len(nrow(top)), function(i) {
+            k <- top$cluster_id[i]
+            m <- top$marker_id[i]
+            vapply(cells[[k]], function(i) median(x[i, m]), numeric(1))
+        }, numeric(nlevels(sample_ids))))
+        rownames(meds) <- paste0(top$marker_id, 
+            sprintf("(%s)", top$cluster_id))
+        return(meds)
+    }
+}
+
+# ==============================================================================
 # wrapper for heatmaps by plotDiffHeatmap()
 # ------------------------------------------------------------------------------
 diff_hm <- function(matrix, col, name, xlab, ...) {
-    Heatmap(matrix, col, name, ..., cluster_columns=FALSE,
-        column_title=xlab, column_title_side="bottom",
+    Heatmap(matrix, col, name, ..., 
+        cluster_columns=FALSE,
+        column_title=xlab, 
+        column_title_side="bottom",
         clustering_distance_rows="euclidean",
         clustering_method_rows="median",
         column_names_gp=gpar(fontsize=8),
@@ -163,8 +195,8 @@ diff_hm <- function(matrix, col, name, xlab, ...) {
 z_normalize <- function(es, th=2.5) {
     es_n <- apply(es, 1, function(x) {
         sd <- stats::sd(x, na.rm=TRUE)
-        x <- x-mean(x, na.rm=TRUE)
-        if (sd != 0) x <- x/sd
+        x <- x - mean(x, na.rm=TRUE)
+        if (sd != 0) x <- x / sd
         x[x >  th] <-  th
         x[x < -th] <- -th
         return(x)

@@ -31,6 +31,7 @@
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
+#' @importFrom dplyr %>% mutate_at
 #' @importFrom flowCore colnames exprs exprs<- flowSet 
 #'   fsApply identifier isFCSfile keyword read.flowSet
 #' @importFrom SummarizedExperiment SummarizedExperiment
@@ -40,7 +41,7 @@ setMethod("daFrame",
     function(x, panel, md, cols_to_use=NULL, cofactor=5,
         panel_cols=list(channel="fcs_colname", antigen="antigen", class="marker_class"),
         md_cols=list(file="file_name", id="sample_id", factors=c("condition", "patient_id"))) {
-        
+
         # check validity of input arguments
         stopifnot(is.list(panel_cols), is.list(md_cols),
             all(c("channel", "antigen", "class") %in% names(panel_cols)),
@@ -83,8 +84,8 @@ setMethod("daFrame",
         })
         
         # assure correctness of formats
-        for (i in md_cols$factors) 
-            md[[i]] <- factor(md[[i]])
+        md <- data.frame(md)
+        md <- md %>% mutate_at(c(md_cols$id, md_cols$factors), factor)
         
         # replace problematic characters
         antigens <- panel[[panel_cols$antigen]]
@@ -122,10 +123,15 @@ setMethod("daFrame",
         }
         
         # construct row & column data
-        row_data <- data.frame(row.names=NULL,
-            apply(md, 2, rep, n_cells)[, names(md) != md_cols$file])
-        col_data <- data.frame(row.names=chs, 
-            channel_name=chs0, marker_name=chs, marker_class=mcs)
+        k <- setdiff(names(md), md_cols$file)
+        row_data <- lapply(md[k], function(u) {
+            v <- as.character(rep(u, n_cells))
+            factor(v, levels = levels(u))
+        })
+        row_data <- data.frame(row_data)
+        col_data <- data.frame(
+            row.names=chs, channel_name=chs0, 
+            marker_name=chs, marker_class=mcs)
         
         # construct daFrame
         new("daFrame", SummarizedExperiment(
@@ -154,10 +160,10 @@ setMethod("daFrame",
 
 #' @rdname daFrame-class
 setMethod("daFrame",
-    signature(x="ANY", panel="matrix", md="ANY"),
+    signature(x="daFrame", panel="matrix", md="ANY"),
     function(x, panel, md, ...) daFrame(x, data.frame(panel), md, ...))
 
 #' @rdname daFrame-class
 setMethod("daFrame",
-    signature(x="ANY", panel="ANY", md="matrix"),
+    signature(x="daFrame", panel="ANY", md="matrix"),
     function(x, panel, md, ...) daFrame(x, panel, data.frame(md), ...))

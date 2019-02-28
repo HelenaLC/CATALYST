@@ -158,7 +158,7 @@ setMethod(f="plotClusterHeatmap",
         }
         
         hm_cols <- colorRampPalette(palette)(100)
-        hms <- sapply(seq_along(groups), function(i) {
+        hms <- lapply(seq_along(groups), function(i) {
             inds <- groups[[i]]
             # left-hand side heatmap:
             # median cell-type marker expressions across clusters

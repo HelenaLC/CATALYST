@@ -74,7 +74,7 @@ setMethod(f="outFrames",
             flowCore::description(ffs[[i]])$GUID <- ids[i]
         }
         
-        empty <- which(sapply(ffs, is.null))
+        empty <- which(vapply(ffs, is.null, logical(1)))
         nSkipped <- length(empty)
         if (nSkipped > 0) {
             ffs <- ffs[-empty] 
@@ -95,10 +95,10 @@ setMethod(f="outFrames",
         
         if (return == "flowSet") {
             set <- as(ffs, "flowSet")
-            flowCore::sampleNames(set) <- sapply(ffs, 
-                function(i) flowCore::description(i)$GUID)
-            set
+            flowCore::sampleNames(set) <- vapply(ffs, function(i) 
+                flowCore::description(i)$GUID, character(1))
+            return(set)
         } else {
-            ffs
+            return(ffs)
         }
     })

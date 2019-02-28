@@ -63,7 +63,7 @@ outNormed <- function(ff, normed_es, remove_beads,
             fn <- file.path(out_path, fn)
             out_nms <- paste0(c("normalised", "beads", "removed"), ".fcs")
             out_nms <- paste(fn, out_nms, sep=fn_sep)
-            suppressWarnings(sapply(seq_len(3), function(i)
+            suppressWarnings(lapply(seq_len(3), function(i)
                 flowCore::write.FCS(fs[[i]], out_nms[i])))
         }
         return(fs)

@@ -57,7 +57,7 @@ setMethod(f="concatFCS",
         if (by_time) {
             # order by time
             bts <- keyword(x, "$BTIM")
-            if (any(sapply(bts, is.null))) {
+            if (any(vapply(bts, is.null, logical(1)))) {
                 message("Not all samples contain information on their",
                     " acquisition time.\nIgnoring argument 'by_time';",
                     " samples will be kept in their original order.")
@@ -113,7 +113,8 @@ setMethod(f="concatFCS",
         
         # get parameters
         # check if descriptions are unique across frames
-        ds <- sapply(fsApply(x, parameters), "[[", 2)
+        ds <- vapply(fsApply(x, parameters), 
+            "[[", i = 2, character(ncol(x[[1]])))
         if (!any(apply(ds, 1, function(ds) length(unique(ds)) == 1)))
             message("Descriptions don't match across frames.",
                 " Keeping the 1st flowFrame's descriptions.")
@@ -171,7 +172,7 @@ setMethod(f="concatFCS",
         out_path=NULL, fn=NULL, fn_sep="_", 
         by_time=TRUE, file_num=FALSE) {
         # check that list elements are flowFrames
-        if (any(sapply(x, class) != "flowFrame")) 
+        if (!any(vapply(x, is, class2 = "flowFrame", logical(1)))) 
             stop("Invalid input; all list elements should be flowFrames.")
         if (length(x) == 1) 
             stop("Only a single flowFrame has been provided.")

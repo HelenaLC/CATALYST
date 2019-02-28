@@ -72,12 +72,13 @@
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
-#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' # run clustering
-#' (re <- cluster(re))
+#' (daf <- cluster(daf))
 #' 
 #' @import ConsensusClusterPlus ggplot2
+#' @importFrom dplyr %>% mutate_all
 #' @importFrom flowCore flowFrame
 #' @importFrom FlowSOM BuildSOM ReadInput
 #' @importFrom graphics hist
@@ -128,14 +129,11 @@ setMethod(f="cluster",
         # get cluster codes
         k <- xdim * ydim
         mcs <- seq_len(maxK)[-1]
-        cluster_codes <- data.frame(row.names=NULL, factor(seq_len(k)), 
-            sapply(mc[-1], function(x) factor(x$consensusClass)))
-        colnames(cluster_codes) <- c(sprintf("som%s", k), sprintf("meta%s", mcs))
         
-        # reorder factor levels
-        cluster_codes <- lapply(cluster_codes, function(codes) 
-            factor(codes, levels=sort(as.numeric(levels(codes)))))
-        cluster_codes <- data.frame(cluster_codes)
+        codes <- vapply(mc[-1], "[[", i = "consensusClass", numeric(k)) %>% 
+            data.frame() %>% mutate_all(factor)
+        cluster_codes <- data.frame(factor(seq_len(k)), codes) %>% 
+            set_colnames(c(sprintf("som%s", k), sprintf("meta%s", mcs)))
 
         rowData(x)$cluster_id <- factor(som$map$mapping[, 1])
         metadata(x)$SOM_codes <- som$map$codes

@@ -103,9 +103,11 @@ get_deltas <- function(data, bc_key, verbose) {
         
         # find largest barcode separation within ea. event 
         # to assign pos. and neg. barcode values
-        diffs <- sapply(seq_len(N), function(x) abs(diff(data[x, bc_orders[x, ]])))
+        diffs <- sapply(seq_len(N), function(x) 
+            abs(diff(data[x, bc_orders[x, ]])))
         largest_seps <- apply(diffs, 2, which.max)
-        deltas <- sapply(seq_len(N), function(x) diffs[largest_seps[x], x])
+        deltas <- sapply(seq_len(N), function(x) 
+            diffs[largest_seps[x], x])
     }
     deltas
 }
