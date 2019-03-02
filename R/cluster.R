@@ -82,6 +82,7 @@
 #' @importFrom flowCore flowFrame
 #' @importFrom FlowSOM BuildSOM ReadInput
 #' @importFrom graphics hist
+#' @importFrom magrittr set_colnames
 #' @importFrom matrixStats colQuantiles
 #' @importFrom reshape2 melt
 # ------------------------------------------------------------------------------
