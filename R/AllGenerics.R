@@ -181,11 +181,6 @@ setGeneric("daFrame",
 
 #' @rdname daFrame-methods
 #' @export
-setGeneric("filter", 
-    function(x, ..., k) standardGeneric("filter"))
-
-#' @rdname daFrame-methods
-#' @export
 setGeneric("n_cells", 
     function(x) standardGeneric("n_cells"))
 
@@ -222,6 +217,11 @@ setGeneric("cluster_ids",
 # ==============================================================================
 # Generics for differential analysis
 # ------------------------------------------------------------------------------
+
+#' @rdname filter
+#' @export
+setGeneric("filter", 
+    function(x, ..., k) standardGeneric("filter"))
 
 #' @rdname guessPanel
 #' @param ... optional arguments.
@@ -301,17 +301,16 @@ setGeneric("plotCodes",
 setGeneric("plotNRS", 
     function(x, ...) standardGeneric("plotNRS"))
 
-#' @rdname tSNE
-#' @param ... optional arguments.
+#' @rdname runDR
 #' @export
-setGeneric("tSNE", 
-    function(x, ...) standardGeneric("tSNE"))
+setGeneric("runDR", 
+    function(x, ...) standardGeneric("runDR"))
 
-#' @rdname plotSNE
+#' @rdname plotDR
 #' @param ... optional arguments.
 #' @export
-setGeneric("plotSNE", 
-    function(x, ...) standardGeneric("plotSNE"))
+setGeneric("plotDR", 
+    function(x, ...) standardGeneric("plotDR"))
 
 #' @rdname plotDiffHeatmap
 #' @param ... optional arguments.
