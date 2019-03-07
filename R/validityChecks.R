@@ -83,7 +83,7 @@
 #        - numeric vector of indices
 #        - character vector of column names
 # ------------------------------------------------------------------------------
-check_validity_cols <- function(cols_to_use, col_nms) {
+.check_validity_cols <- function(cols_to_use, col_nms) {
     n_cols <- length(col_nms)
     
     check1 <- is.logical(cols_to_use) & length(cols_to_use) == n_cols
