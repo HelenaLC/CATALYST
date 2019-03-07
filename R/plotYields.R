@@ -65,16 +65,16 @@ setMethod(f="plotYields",
         out_path=NULL, name_ext=NULL, plotly=TRUE) {
         
         ids <- rownames(bc_key(x))
-        which <- check_validity_which(which, ids, "yields")
+        which <- .check_validity_which(which, ids, "yields")
         n_bcs <- nrow(bc_key(x))
         seps <- seq(0, 1, .01)
-        bc_labs <- get_bc_labs(x)
+        bc_labs <- .get_bc_labs(x)
 
         ps <- vector("list", length(which))
         sep <- ifelse(plotly, "<br>", "\n")
         for (i in seq_along(which)) {
             id <- which[i]
-            ps[[i]] <- plot_yields(id, x, seps, n_bcs, bc_labs)
+            ps[[i]] <- .plot_yields(id, x, seps, n_bcs, bc_labs)
             if (length(sep_cutoffs(x)) != 0) {
                 if (id == 0) {
                     p <- paste0(sprintf("%2.2f", sum(yields(x)[cbind(
