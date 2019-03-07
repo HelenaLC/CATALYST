@@ -64,7 +64,7 @@ setMethod(f="assignPrelim",
         # COMPUTE DEBARCODING
         # assign barcode ID to ea. event 
         if (verbose) message("Debarcoding data...")
-        bc_ids <- get_ids(bcs, y, ids, verbose)
+        bc_ids <- .get_ids(bcs, y, ids, verbose)
         inds <- match(bc_ids, ids)
         
         # NORMALIZE BY POPULATION
@@ -84,7 +84,7 @@ setMethod(f="assignPrelim",
         
         # get deltas from normalized intensities 
         if (verbose) message("Computing deltas...")
-        deltas <- get_deltas(normed_bcs, y, verbose)
+        deltas <- .get_deltas(normed_bcs, y, verbose)
         
         seps <- seq(0, 1, .01)
         n_seps <- length(seps)
