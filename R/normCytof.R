@@ -83,13 +83,13 @@ setMethod(f="normCytof",
     es <- flowCore::exprs(x)
     es_t <- asinh(es/5)
     chs <- flowCore::colnames(x)
-    ms <- get_ms_from_chs(chs)
+    ms <- .get_ms_from_chs(chs)
     
     # find time, length, DNA and bead channels
     time_col <- grep("time",        chs, ignore.case=TRUE)
     lgth_col <- grep("length",      chs, ignore.case=TRUE)
     dna_cols <- grep("Ir191|Ir193", chs, ignore.case=TRUE)
-    bead_cols <- get_bead_cols(chs, y)
+    bead_cols <- .get_bead_cols(chs, y)
     bead_chs <- chs[bead_cols]
     bead_ms <- ms[bead_cols]
     n_beads <- length(bead_ms)
@@ -98,7 +98,7 @@ setMethod(f="normCytof",
     if (verbose) message("Identifying beads...")
     key <- data.frame(matrix(c(0, 0, rep(1, n_beads)), ncol=2+n_beads,
         dimnames=list("is_bead", c(191, 193, bead_ms))), check.names=FALSE)
-    bead_inds <- get_bead_inds(x, key)
+    bead_inds <- .get_bead_inds(x, key)
     
     # get all events that should be removed later
     # including bead-bead and cell-bead doublets
@@ -110,7 +110,7 @@ setMethod(f="normCytof",
     })
     
     # trim tails
-    bead_inds <- update_bead_inds(es_t, bead_inds, bead_chs, trim)
+    bead_inds <- .update_bead_inds(es_t, bead_inds, bead_chs, trim)
     n_bead_events <- sum(bead_inds)
 
     bead_es <- es[bead_inds, bead_chs]
@@ -130,7 +130,7 @@ setMethod(f="normCytof",
                 transformation=FALSE, truncate_max_range=FALSE)
         }
         chs_ref <- flowCore::colnames(norm_to)
-        bead_cols_ref <- get_bead_cols(chs_ref, y)
+        bead_cols_ref <- .get_bead_cols(chs_ref, y)
         bead_chs_ref <- chs_ref[bead_cols_ref]
         time_col_ref <- grep("time", chs_ref, ignore.case=TRUE)
         es_ref <- flowCore::exprs(norm_to)
@@ -161,9 +161,9 @@ setMethod(f="normCytof",
         colnames(smoothed_normed_beads)[1] <- chs[time_col]
     
     if (plot)
-        outPlots(x, es_t, bead_inds, remove, bead_cols, dna_cols,
+        .outPlots(x, es_t, bead_inds, remove, bead_cols, dna_cols,
             smoothed_beads, smoothed_normed_beads, out_path, fn, fn_sep)
-    outNormed(x, normed_es, remove_beads, bead_inds, remove, out_path, fn, fn_sep)
+    .outNormed(x, normed_es, remove_beads, bead_inds, remove, out_path, fn, fn_sep)
     })
 
 # ------------------------------------------------------------------------------

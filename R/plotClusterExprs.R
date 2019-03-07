@@ -49,7 +49,7 @@ setMethod(f="plotClusterExprs",
         stopifnot("cluster_id" %in% colnames(rowData(x)))
         
         # check validity of argument 'k'
-        k <- check_validity_of_k(x, k)
+        k <- .check_validity_of_k(x, k)
         
         # check validity of argument 'markers'
         if (is.null(markers)) {

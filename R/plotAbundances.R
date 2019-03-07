@@ -55,7 +55,7 @@ setMethod(f="plotAbundances",
         
         # validity checks
         by <- match.arg(by)
-        k <- check_validity_of_k(x, k)
+        k <- .check_validity_of_k(x, k)
         valid <- setdiff(colnames(rowData(x)), c("sample_id", "cluster_id"))
         if (length(valid) == 0)
             stop("No factors to group by. Metadata should contain\n", 
@@ -74,7 +74,7 @@ setMethod(f="plotAbundances",
         }
         
         # get cluster IDs & abundances
-        cluster_ids <- get_cluster_ids(x, k)
+        cluster_ids <- .get_cluster_ids(x, k)
         counts <- table(cluster_ids, sample_ids(x))
         
         # get frequencies by cluster & sample
@@ -100,7 +100,7 @@ setMethod(f="plotAbundances",
             sample_id = p + facet_wrap(group, scales="free_x") +
                 geom_bar(aes_string(x="sample_id", fill="factor(cluster_id)"), 
                     position="fill", stat="identity") +
-                scale_fill_manual("cluster_id", values=cluster_cols) +
+                scale_fill_manual("cluster_id", values=.cluster_cols) +
                 scale_y_continuous(expand=c(0,0), labels=seq(0,100,25)) +
                 theme(panel.border=element_blank()),
             cluster_id = p + facet_wrap("cluster_id", scales="free_y", ncol=4) +

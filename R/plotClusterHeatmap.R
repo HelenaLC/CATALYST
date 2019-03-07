@@ -103,10 +103,10 @@ setMethod(f="plotClusterHeatmap",
                 paste0("'colnames(", deparse(substitute(x)), ")'."))
         
         # check validity of arguments 'k' and 'm'
-        k <- check_validity_of_k(x, k)
-        m <- check_validity_of_k(x, m)
+        k <- .check_validity_of_k(x, k)
+        m <- .check_validity_of_k(x, m)
         
-        cluster_ids <- get_cluster_ids(x, k)
+        cluster_ids <- .get_cluster_ids(x, k)
         n_clusters <- nlevels(cluster_ids)
         
         # medians marker exprs. across clusters
@@ -121,12 +121,12 @@ setMethod(f="plotClusterHeatmap",
         if (cluster_anno) {
             anno <- levels(cluster_ids)
             if (n_clusters > 30) {
-                cols <- colorRampPalette(cluster_cols)(n_clusters)
+                cols <- colorRampPalette(.cluster_cols)(n_clusters)
             } else {
-                cols <- cluster_cols[seq_len(n_clusters)]
+                cols <- .cluster_cols[seq_len(n_clusters)]
             }
             cols <- setNames(cols, anno)
-            cluster_anno <- row_anno(anno, cols, 
+            cluster_anno <- .row_anno(anno, cols, 
                 "cluster_id", row_clustering, draw_dend)
         }
         # merging row annotation
@@ -134,12 +134,12 @@ setMethod(f="plotClusterHeatmap",
             anno <- factor(cluster_codes(x)[, m][match(
                 seq_len(n_clusters), cluster_codes(x)[, k])])
             if (nlevels(anno) > 30) {
-                cols <- colorRampPalette(cluster_cols)(nlevels(anno))
+                cols <- colorRampPalette(.cluster_cols)(nlevels(anno))
             } else {
-                cols <- cluster_cols[seq_len(nlevels(anno))]
+                cols <- .cluster_cols[seq_len(nlevels(anno))]
             }
             cols <- setNames(cols, levels(anno))
-            merging_anno <- row_anno(anno, cols, 
+            merging_anno <- .row_anno(anno, cols, 
                 "merging_id", row_clustering, draw_dend)
         }
         
@@ -163,7 +163,7 @@ setMethod(f="plotClusterHeatmap",
             # left-hand side heatmap:
             # median cell-type marker expressions across clusters
             if (scale) {
-                es0 <- scale_exprs(exprs(x)[inds, , drop=FALSE])
+                es0 <- .scale_exprs(exprs(x)[inds, , drop=FALSE])
                 hm1_es <- data.frame(es0, cluster_ids=cluster_ids[inds]) %>% 
                     group_by_(~cluster_ids) %>% summarize_all(fun)
                 hm2_es <- es0
