@@ -3,7 +3,8 @@
 # ------------------------------------------------------------------------------
 #' @rdname daFrame-class
 #' 
-#' @param x a \code{flowSet} holding all samples or a path to a set of FCS files.
+#' @param x a \code{flowSet} holding all samples 
+#'   or a path to a set of FCS files.
 #' @param panel a data.frame containing, for each channel, 
 #'   its column name in the input data, targeted protein marker,
 #'   and (optionally) class ("type", "state", or "none").
@@ -34,13 +35,16 @@
 #' @importFrom dplyr %>% mutate_at
 #' @importFrom flowCore colnames exprs exprs<- flowSet 
 #'   fsApply identifier isFCSfile keyword read.flowSet
-#' @importFrom SummarizedExperiment SummarizedExperiment
+#' @importFrom SingleCellExperiment SingleCellExperiment
 
 setMethod("daFrame",
     signature(x="flowSet", panel="data.frame", md="data.frame"),
     function(x, panel, md, cols_to_use=NULL, cofactor=5,
-        panel_cols=list(channel="fcs_colname", antigen="antigen", class="marker_class"),
-        md_cols=list(file="file_name", id="sample_id", factors=c("condition", "patient_id"))) {
+        panel_cols=list(
+            channel="fcs_colname", antigen="antigen", class="marker_class"),
+        md_cols=list(
+            file="file_name", id="sample_id", 
+            factors=c("condition", "patient_id"))) {
 
         # check validity of input arguments
         stopifnot(is.list(panel_cols), is.list(md_cols),
@@ -58,9 +62,11 @@ setMethod("daFrame",
         } else {
             # check validity of 'cols_to_use'
             chs <- colnames(fs)
-            check1 <- is.logical(cols_to_use) && length(cols_to_use) == length(chs)
+            check1 <- is.logical(cols_to_use) && 
+                length(cols_to_use) == length(chs)
             check2 <- all(cols_to_use %in% chs)
-            check3 <- is.integer(cols_to_use) && all(cols_to_use %in% seq_along(chs))
+            check3 <- is.integer(cols_to_use) && 
+                all(cols_to_use %in% seq_along(chs))
             if (!any(check1, check2, check3))
                 stop("Invalid argument 'cols_to_use'. Should be either", 
                     " a logial vector,\n  a numeric vector of indices, or",
@@ -127,16 +133,24 @@ setMethod("daFrame",
         row_data <- lapply(md[k], function(u) {
             v <- as.character(rep(u, n_cells))
             factor(v, levels = levels(u))
-        })
-        row_data <- data.frame(row_data)
+        }) %>% data.frame(row.names = NULL)
+        
         col_data <- data.frame(
             row.names=chs, channel_name=chs0, 
             marker_name=chs, marker_class=mcs)
         
         # construct daFrame
-        new("daFrame", SummarizedExperiment(
-            assays=list(exprs=es), rowData=row_data, colData=col_data,
-            metadata=list(experiment_info=md, n_cells=n_cells, cofactor=cofactor)))
+        sce <- SingleCellExperiment(
+            assays=list(exprs=es), 
+            rowData=row_data, 
+            colData=col_data,
+            metadata=list(
+                experiment_info=md, 
+                n_cells=n_cells, 
+                cofactor=cofactor))
+        daf <- new("daFrame", sce)
+        daf@elementMetadata <- rowData(sce)
+        return(daf)
     }
 )
 # ------------------------------------------------------------------------------
