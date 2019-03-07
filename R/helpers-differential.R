@@ -1,7 +1,7 @@
 # ==============================================================================
 # colors for 30 ConensusClusterPlus metaclusters
 # ------------------------------------------------------------------------------
-cluster_cols <- c(
+.cluster_cols <- c(
     "#DC050C", "#FB8072", "#1965B0", "#7BAFDE", "#882E72",
     "#B17BA6", "#FF7F00", "#FDB462", "#E7298A", "#E78AC3",
     "#33A02C", "#B2DF8A", "#55A1B1", "#8DD3C7", "#A6761D",
@@ -12,14 +12,33 @@ cluster_cols <- c(
 # ==============================================================================
 # get cluster IDs from a daFrame for a specified k
 # ------------------------------------------------------------------------------
-get_cluster_ids <- function(x, k, i = TRUE)
-    droplevels(cluster_codes(x)[cluster_ids(x)[i], k])
+.get_cluster_ids <- function(x, k, i = TRUE) {
+    i <- as.numeric(as.character(cluster_ids(x)[i]))
+    droplevels(cluster_codes(x)[i, k])
+}
+
+# ==============================================================================
+# wrapper to flip the dimensions of a daFrame
+# such that rows = columns and columns = rows
+# ------------------------------------------------------------------------------
+#' @importFrom SingleCellExperiment SingleCellExperiment
+#' @importFrom SummarizedExperiment assays colData rowData
+#' @importFrom S4Vectors metadata
+.rotate_daf <- function(x) {
+    y <- SingleCellExperiment(
+        assays = lapply(assays(x), t),
+        rowData = colData(x),
+        colData = rowData(x),
+        metadata = metadata(x))
+    y@reducedDims <- x@reducedDims
+    return(y)
+}
 
 # ==============================================================================
 # scale expression to values b/w 0 and 1 using 
 # low (1%) and high (99%) quantiles as boundaries
 # ------------------------------------------------------------------------------
-scale_exprs <- function(x) {
+.scale_exprs <- function(x) {
     qs <- matrixStats::colQuantiles(as.matrix(x), probs=c(.01, .99))
     x_scaled <- t((t(x) - qs[, 1]) / (qs[, 2] - qs[, 1]))
     x_scaled[x_scaled < 0] <- 0
@@ -27,25 +46,10 @@ scale_exprs <- function(x) {
     return(x_scaled)
 }
 
-# ------------------------------------------------------------------------------
-# validity check for plotNRS: 
-# check that input corresponds to list
-# as returned by ConsensusClusterPlus 
-# ------------------------------------------------------------------------------
-is_ConsensusClusterPlus_list <- function(x) {
-    slots <- vapply(x[-1], names, character(5))
-    valid <- apply(slots, 2, all.equal, 
-        c(paste0("consensus", c("Matrix", "Tree", "Class")), "ml", "clrs"))
-    valid <- sum(valid) == length(x) - 1
-    if (!valid)
-        stop("Invalid input: x should be a list 
-            as returned by 'ConsensusClusterPlus'.", call.=FALSE)
-}
-
 # ==============================================================================
 # calculate non-redundancy score (NRS) for ea. sample
 # ------------------------------------------------------------------------------
-nrs <- function(x, n=3) {
+.nrs <- function(x, n=3) {
     pc <- prcomp(x, center=TRUE, scale.=FALSE)
     scores <- rowSums(outer(rep(1, ncol(x)),
         pc$sdev[seq_len(n)]^2) * abs(pc$rotation[, seq_len(n)]))
@@ -56,7 +60,7 @@ nrs <- function(x, n=3) {
 # wrapper for ComplexHeatmap row annotations
 # (called by plotClusterHeatmap)
 # ------------------------------------------------------------------------------
-row_anno <- function(anno, cols, name, clustering, dend) {
+.row_anno <- function(anno, cols, name, clustering, dend) {
     Heatmap(matrix=anno, col=cols, name=name, 
         rect_gp=gpar(col="white"), width=unit(.4, "cm"),
         cluster_rows=clustering, cluster_columns=FALSE,
@@ -66,7 +70,7 @@ row_anno <- function(anno, cols, name, clustering, dend) {
 # ==============================================================================
 # change in area under CDF curve
 # ------------------------------------------------------------------------------
-triangle <- function(m) {
+.triangle <- function(m) {
     n <- ncol(m)
     nm <- matrix(0, ncol=n, nrow=n)
     fm <- m
@@ -79,10 +83,10 @@ triangle <- function(m) {
     m[lower.tri(nm)]
 }
 
-plot_delta_area <- function(mc) {
+.plot_delta_area <- function(mc) {
     # empirical CDF distribution
     maxK <- length(mc)
-    v <- lapply(mc[seq_len(maxK)[-1]], function(x) triangle(x$ml))
+    v <- lapply(mc[seq_len(maxK)[-1]], function(x) .triangle(x$ml))
     h <- lapply(v, function(x) {
         h <- graphics::hist(x, breaks=seq(0, 1, .01), plot=FALSE)
         h$counts <- cumsum(h$counts) / sum(h$counts)
@@ -111,7 +115,7 @@ plot_delta_area <- function(mc) {
 # get differential analysis type from differential test result 
 # as returned by 'diffcyt::testDA_*()' & 'diffcyt::testDS_*()'
 # ------------------------------------------------------------------------------
-get_dt_type <- function(x) {
+.get_dt_type <- function(x) {
     
     # check correctness of column names
     da_edgeR <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
@@ -148,7 +152,8 @@ get_dt_type <- function(x) {
 # ==============================================================================
 # wrapper to calculate expr. medians by cluster & cluster-sample
 # ------------------------------------------------------------------------------
-calc_meds <- function(x, by, cluster_ids, sample_ids = NULL, top) {
+#' @importFrom matrixStats colMedians
+.calc_meds <- function(x, by, cluster_ids, sample_ids = NULL, top) {
     by <- switch(by, c = "cluster_id", cs = c("cluster_id", "sample_id"))
     dt <- data.table(
         i = seq_len(nrow(x)), 
@@ -158,11 +163,10 @@ calc_meds <- function(x, by, cluster_ids, sample_ids = NULL, top) {
     dt_split <- split(dt, by = by, flatten = FALSE, sorted = TRUE)
     cells <- modify_depth(dt_split, length(by), "i")
     if (length(by) == 1) {
-        meds <- vapply(cells, function(i) 
-            colMedians(x[i, ]), numeric(ncol(x)))
-        meds <- t(meds)[paste(top$cluster_id), ]
+        meds <- t(vapply(cells, function(i) 
+            colMedians(x[i, ]), numeric(ncol(x))))
         colnames(meds) <- colnames(x)
-        return(meds)
+        meds[as.character(top$cluster_id), ]
     } else {
         meds <- t(vapply(seq_len(nrow(top)), function(i) {
             k <- top$cluster_id[i]
@@ -178,7 +182,7 @@ calc_meds <- function(x, by, cluster_ids, sample_ids = NULL, top) {
 # ==============================================================================
 # wrapper for heatmaps by plotDiffHeatmap()
 # ------------------------------------------------------------------------------
-diff_hm <- function(matrix, col, name, xlab, ...) {
+.diff_hm <- function(matrix, col, name, xlab, ...) {
     Heatmap(matrix, col, name, ..., 
         cluster_columns=FALSE,
         column_title=xlab, 
@@ -192,7 +196,7 @@ diff_hm <- function(matrix, col, name, xlab, ...) {
 # ==============================================================================
 # wrapper for  Z-score normalization
 # ------------------------------------------------------------------------------
-z_normalize <- function(es, th=2.5) {
+.z_normalize <- function(es, th=2.5) {
     es_n <- apply(es, 1, function(x) {
         sd <- stats::sd(x, na.rm=TRUE)
         x <- x - mean(x, na.rm=TRUE)

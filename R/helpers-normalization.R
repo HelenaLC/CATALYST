@@ -1,7 +1,7 @@
 # ==============================================================================
 # get indices of bead columns
 # ------------------------------------------------------------------------------
-get_bead_cols <- function(channels, beads) {
+.get_bead_cols <- function(channels, beads) {
     ms <- gsub("[[:alpha:][:punct:]]", "", channels)
     if (is.character(beads)) {
         if (beads == "dvs") {
@@ -22,14 +22,14 @@ get_bead_cols <- function(channels, beads) {
 # ==============================================================================
 # get beads and remove bead-bead doublets
 # ------------------------------------------------------------------------------
-get_bead_inds <- function(x, y) {
+.get_bead_inds <- function(x, y) {
     re <- assignPrelim(x, y, verbose=FALSE)
     re <- estCutoffs(re)
     re <- applyCutoffs(re)
     bc_ids(re) == "is_bead"
 }
 
-update_bead_inds <- function(data, bead_inds, bead_cols, trim) {
+.update_bead_inds <- function(data, bead_inds, bead_cols, trim) {
     bead_es <- data[bead_inds, bead_cols]
     meds <- matrixStats::colMedians(bead_es)
     mads <- matrixStats::colMads(   bead_es) * trim
@@ -42,7 +42,7 @@ update_bead_inds <- function(data, bead_inds, bead_cols, trim) {
 # ==============================================================================
 # write FCS of normalized data
 # ------------------------------------------------------------------------------
-outNormed <- function(ff, normed_es, remove_beads, 
+.outNormed <- function(ff, normed_es, remove_beads, 
     bead_inds, remove, out_path, fn, fn_sep) {
     if (is.null(fn)) {
         fn <- flowCore::description(ff)$GUID
@@ -85,7 +85,7 @@ outNormed <- function(ff, normed_es, remove_beads,
 # ==============================================================================
 # get axis limits and labels
 # ------------------------------------------------------------------------------
-get_axes <- function(df, cf) {
+.get_axes <- function(df, cf) {
     min <- max(apply(df, 2, function(i) -ceiling(abs(min(i))*2)/2))
     max <- max(apply(df, 2, function(i) ceiling(max(i)*2)/2))
     
@@ -105,13 +105,13 @@ get_axes <- function(df, cf) {
 # ==============================================================================
 # bead vs. dna scatter
 # ------------------------------------------------------------------------------
-plotScatter <- function(es, x, y, cf) {
+.plotScatter <- function(es, x, y, cf) {
     # transform and get channel names
     df <- data.frame(asinh(es[, c(x, y)]/cf))
     chs <- colnames(df)
     
     # get axis limits and labels
-    temp <- get_axes(df, cf)
+    temp <- .get_axes(df, cf)
     tcks <- temp[[1]]
     labs <- temp[[2]]
     
@@ -136,7 +136,7 @@ plotScatter <- function(es, x, y, cf) {
 # ==============================================================================
 # bead scatters with marginal histograms ontop
 # ------------------------------------------------------------------------------
-plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
+.plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
     
     es <- sinh(es_t)*5
     chs <- colnames(es_t)
@@ -231,7 +231,7 @@ plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
 # ==============================================================================
 # plot bead singlets with marginal histograms and all events removed
 # ------------------------------------------------------------------------------
-outPlots <- function(x, es_t, bead_inds, remove, bead_cols, dna_cols,
+.outPlots <- function(x, es_t, bead_inds, remove, bead_cols, dna_cols,
     smoothed_beads, smoothed_normed_beads, out_path, fn, fn_sep) {
     
     n <- nrow(es_t)
@@ -243,8 +243,8 @@ outPlots <- function(x, es_t, bead_inds, remove, bead_cols, dna_cols,
     t2 <- paste0("All events removed ",
         "(including bead-/cell-bead doublets): ", p2, "\n")
     ps <- c(
-        plotBeads(es_t, bead_inds, bead_cols, dna_cols, TRUE, FALSE, TRUE),
-        plotBeads(es_t, remove,    bead_cols, dna_cols, FALSE, TRUE, TRUE))
+        .plotBeads(es_t, bead_inds, bead_cols, dna_cols, TRUE, FALSE, TRUE),
+        .plotBeads(es_t, remove,    bead_cols, dna_cols, FALSE, TRUE, TRUE))
     
     if (!is.null(out_path)) {
         if (is.null(fn)) {
@@ -267,7 +267,7 @@ outPlots <- function(x, es_t, bead_inds, remove, bead_cols, dna_cols,
     }
     p1 <- plotSmoothed(smoothed_beads, "Smoothed beads")
     p2 <- plotSmoothed(smoothed_normed_beads, "Smoothed normalized beads")
-    arrangeSmoothed(x, p1, p2, out_path, fn, fn_sep)
+    .arrangeSmoothed(x, p1, p2, out_path, fn, fn_sep)
 }
 
 # ==============================================================================
@@ -294,7 +294,7 @@ plotSmoothed <- function(df, main) {
         guides(colour=guide_legend(override.aes=list(size=3)))
 }
 
-arrangeSmoothed <- function(x, p1, p2, out_path, fn, fn_sep, shiny=FALSE) {
+.arrangeSmoothed <- function(x, p1, p2, out_path, fn, fn_sep, shiny=FALSE) {
     gt <- arrangeGrob(nrow=3, heights=c(5, .5, 5), widths=12,
         grobs=list(p1, rectGrob(gp=gpar(fill="white", col="white")), p2))
     if (shiny) {
@@ -316,7 +316,7 @@ arrangeSmoothed <- function(x, p1, p2, out_path, fn, fn_sep, shiny=FALSE) {
 # ==============================================================================
 # plot bead intensitites smoothed by conversion to local medians
 # ------------------------------------------------------------------------------
-plotBeadsVsBeads <- function(
+.plotBeadsVsBeads <- function(
     beads, mhlDists, cutoff, tcks, labs) {
     
     maxDist <- ceiling(max(mhlDists))
@@ -391,7 +391,7 @@ plotBeadsVsBeads <- function(
                     legend.key=element_rect(colour="white"),
                     legend.key.height=unit(.5, "cm"),
                     legend.key.width=unit(.55/nPlots, "npc"))
-            lgd <- get_legend(ps[[i]])
+            lgd <- .get_legend(ps[[i]])
             ps[[i]] <- ps[[i]] + guides(colour=FALSE)
             first <- FALSE
         }

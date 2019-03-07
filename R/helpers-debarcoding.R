@@ -2,7 +2,7 @@
 # return barcode IDs 
 # called by 'assignPrelim()'
 # ------------------------------------------------------------------------------
-get_ids <- function(bcs, bc_key, ids, verbose) {
+.get_ids <- function(bcs, bc_key, ids, verbose) {
     
     cutoff <- 0 # used to prevent large neg. values from appearing
     # to have sufficient separation from values near zero
@@ -76,7 +76,7 @@ get_ids <- function(bcs, bc_key, ids, verbose) {
 # compute barcode separation for ea. event
 # called by 'assignPrelim()'
 # ------------------------------------------------------------------------------
-get_deltas <- function(data, bc_key, verbose) {
+.get_deltas <- function(data, bc_key, verbose) {
     
     N <- nrow(data)
     # order barcode intensities within ea. event
@@ -116,7 +116,7 @@ get_deltas <- function(data, bc_key, verbose) {
 # plot distribution of barcode separations & 
 # yields as a function of separation cutoffs
 # ------------------------------------------------------------------------------
-plot_yields <- function(id, x, seps, n_bcs, bc_labs) {
+.plot_yields <- function(id, x, seps, n_bcs, bc_labs) {
     if (id == 0) {
         pal <- RColorBrewer::brewer.pal(11, "Spectral")
         if (n_bcs > 11) {
@@ -165,7 +165,7 @@ plot_yields <- function(id, x, seps, n_bcs, bc_labs) {
         scale_y_continuous(name="Yield upon debarcoding", 
             breaks=seq(0, max, length=5), labels=paste0(seq(0, 100, 25), "%"),
             limits=c(-.05*max, max+.05*max), expand=c(0,0), sec.axis=sec_axis(
-                trans=~.*1, name="Event count", labels=scientific_10)) +
+                trans=~.*1, name="Event count", labels=.scientific_10)) +
         theme_classic() + theme(axis.text=element_text(color="black"),
             panel.grid.major=element_line(color="grey", size=.25))
 }
@@ -173,7 +173,7 @@ plot_yields <- function(id, x, seps, n_bcs, bc_labs) {
 # ==============================================================================
 # helper for plotEvents()
 # ------------------------------------------------------------------------------
-plot_events <- function(x, inds, n, cols, title) {
+.plot_events <- function(x, inds, n, cols, title) {
     df <- reshape2::melt(data.frame(
         x=seq_len(n), y=normed_bcs(x)[inds, ]), id.var="x")
     y_max <- ceiling(4*max(df$value))/4
@@ -200,7 +200,7 @@ plot_events <- function(x, inds, n, cols, title) {
 # channel name if barcodes are single-positive, 
 # barcode ID and binary code otherwise 
 # ------------------------------------------------------------------------------
-get_bc_labs <- function(x) {
+.get_bc_labs <- function(x) {
     if (sum(rowSums(bc_key(x)) == 1) == nrow(bc_key(x))) {
         colnames(normed_bcs(x))
     } else {
@@ -212,7 +212,7 @@ get_bc_labs <- function(x) {
 # ==============================================================================
 # retrieve legend from ggplot
 # ------------------------------------------------------------------------------
-get_legend <- function(p) {
+.get_legend <- function(p) {
     tmp <- ggplot_gtable(ggplot_build(p)) 
     lgd <- which(vapply(tmp$grobs, function(x) x$name, "") == "guide-box") 
     return(tmp$grobs[[lgd]]) 
@@ -221,6 +221,6 @@ get_legend <- function(p) {
 # ==============================================================================
 # scientific annotation
 # ------------------------------------------------------------------------------
-scientific_10 <- function(x)
+.scientific_10 <- function(x)
     parse(text=gsub("e", " %*% 10^", format(x, scientific=TRUE)))
     

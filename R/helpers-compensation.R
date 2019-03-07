@@ -1,7 +1,7 @@
 # ==============================================================================
 # get spillover columns
 # ------------------------------------------------------------------------------
-get_spill_cols <- function(ms, mets, l=CATALYST::isotope_list) {
+.get_spill_cols <- function(ms, mets, l=CATALYST::isotope_list) {
     ms <- as.numeric(ms)
     spill_cols <- vector("list", length(ms))
     for (i in seq_along(ms)) {
@@ -19,7 +19,7 @@ get_spill_cols <- function(ms, mets, l=CATALYST::isotope_list) {
 # ==============================================================================
 # compute channel i to j spill
 # ------------------------------------------------------------------------------
-get_sij <- function(pos_i, neg_i, pos_j, neg_j, method, trim) {
+.get_sij <- function(pos_i, neg_i, pos_j, neg_j, method, trim) {
     if (length(neg_i) == 0) neg_i <- 0
     if (length(neg_j) == 0) neg_j <- 0
     if (method == "default") {
@@ -43,7 +43,7 @@ get_sij <- function(pos_i, neg_i, pos_j, neg_j, method, trim) {
 # ==============================================================================
 # make spillover matrix symmetrical
 # ------------------------------------------------------------------------------
-make_symetric <- function(x) {
+.make_symetric <- function(x) {
     x <- as.matrix(x)
     dims <- dim(x)
     i <- which.max(dim(x))
@@ -57,7 +57,7 @@ make_symetric <- function(x) {
 # ==============================================================================
 # check validity of input spillover matrix in compCytof()
 # ------------------------------------------------------------------------------
-check_sm <- function(sm, l=CATALYST::isotope_list) {
+.check_sm <- function(sm, l=CATALYST::isotope_list) {
     if (any(sm < 0))
         stop("\nThe supplied spillover matrix is invalid ",
             "as it contains negative entries.\n",
@@ -78,8 +78,8 @@ check_sm <- function(sm, l=CATALYST::isotope_list) {
             "'all(rownames(sm) %in% colnames(sm))' should return TRUE.")
     isos <-  paste0(gsub("[0-9]", "", names(unlist(l))), as.numeric(unlist(l)))
     test <- vapply(dimnames(sm), function(chs) {
-        ms <- get_ms_from_chs(chs)
-        mets <- get_mets_from_chs(chs)
+        ms <- .get_ms_from_chs(chs)
+        mets <- .get_mets_from_chs(chs)
         all(paste0(mets, ms) %in% isos) 
     }, logical(1))
     if (any(!test)) 
@@ -91,10 +91,10 @@ check_sm <- function(sm, l=CATALYST::isotope_list) {
 # ==============================================================================
 # Helper functions to get mass and metal from a channel name
 # ------------------------------------------------------------------------------
-get_ms_from_chs <- function(chs) {
+.get_ms_from_chs <- function(chs) {
     gsub("[[:punct:][:alpha:]]", "", chs)
 }
-get_mets_from_chs <- function(chs) { 
+.get_mets_from_chs <- function(chs) { 
     gsub("([[:punct:]]*)([[:digit:]]*)(Di)*", "", chs)
 }
 
@@ -104,18 +104,18 @@ get_mets_from_chs <- function(chs) {
 # where the spillovermatrix has no information about a potential
 # expected spillover among the new channels.
 # ------------------------------------------------------------------------------
-warn_new_intearctions <- function(chs_new, sm) {
+.warn_new_intearctions <- function(chs_new, sm) {
     chs_emitting  <- rownames(sm)
     chs_receiving <- colnames(sm)
     chs <- list(chs_new, chs_emitting, chs_receiving)
     chs <- stats::setNames(chs, c("new", "emitting", "receiving"))
     
     # get the metals and masses from the names
-    mets <- lapply(chs, get_mets_from_chs)
-    ms <- lapply(chs, get_ms_from_chs)
+    mets <- lapply(chs, .get_mets_from_chs)
+    ms <- lapply(chs, .get_ms_from_chs)
     
     # get the potential mass channels a channel could cause spillover in
-    spill_cols <- get_spill_cols(ms$new, mets$new)
+    spill_cols <- .get_spill_cols(ms$new, mets$new)
     
     first <- TRUE
     for (i in order(ms$new)) {
