@@ -10,9 +10,15 @@
 \alias{sample_ids}
 \alias{cluster_codes}
 \alias{cluster_ids}
-\alias{exprs,daFrame-method}
+\alias{[,daFrame,numeric,missing,missing-method}
 \alias{daFrame-methods}
 \alias{exprs}
+\alias{[,daFrame,missing,numeric,missing-method}
+\alias{reducedDimNames,daFrame-method}
+\alias{reducedDims,daFrame-method}
+\alias{reducedDim,daFrame-method}
+\alias{reducedDimNames<-,daFrame,character-method}
+\alias{exprs,daFrame-method}
 \alias{n_cells,daFrame-method}
 \alias{marker_classes,daFrame-method}
 \alias{type_markers,daFrame-method}
@@ -38,6 +44,18 @@ sample_ids(x)
 cluster_codes(x)
 
 cluster_ids(x)
+
+\S4method{[}{daFrame,numeric,missing,missing}(x, i, j, ..., drop = TRUE)
+
+\S4method{[}{daFrame,missing,numeric,missing}(x, i, j, ..., drop = TRUE)
+
+\S4method{reducedDimNames}{daFrame}(x)
+
+\S4method{reducedDims}{daFrame}(x)
+
+\S4method{reducedDim}{daFrame}(x, type = 1)
+
+\S4method{reducedDimNames}{daFrame,character}(x) <- value
 
 \S4method{exprs}{daFrame}(object)
 

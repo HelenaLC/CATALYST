@@ -21,7 +21,7 @@ normCytof(x, y, ...)
 \item{x}{a \code{\link{flowFrame}} or character of the FCS file to be normalized.}
 
 \item{y}{\code{"dvs"} (for bead masses 140, 151, 153, 165, 175) or \code{"beta"} 
-(for bead masses 139, 141, 159, 169, 175) or a numeric vector of bead masses.}
+(for bead masses 139, 141, 159, 169, 175) or a numeric vector of masses.}
 
 \item{...}{optional arguments.}
 
