@@ -31,7 +31,7 @@
 #' plotClusterExprs(re)
 #' 
 #' @import ggplot2
-#' @importFrom dplyr %>% group_by_
+#' @importFrom dplyr %>% group_by_ summarise_at
 #' @importFrom ggridges geom_density_ridges theme_ridges
 #' @importFrom reshape2 melt
 #' @importFrom S4Vectors metadata

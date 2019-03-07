@@ -88,8 +88,10 @@
 
 setMethod(f="plotClusterHeatmap", 
     signature=signature(x="daFrame"), 
-    definition=function(x, hm2=NULL, k="meta20", m=NULL, fun=c("median", "mean"),
-        cluster_anno=TRUE, split_by=NULL, scale=TRUE, draw_dend=TRUE, draw_freqs=FALSE, 
+    definition=function(x, hm2=NULL, 
+        k="meta20", m=NULL, fun=c("median", "mean"),
+        cluster_anno=TRUE, split_by=NULL, scale=TRUE, 
+        draw_dend=TRUE, draw_freqs=FALSE, 
         palette=rev(brewer.pal(11, "RdYlBu"))) {
         
         fun <- match.arg(fun)

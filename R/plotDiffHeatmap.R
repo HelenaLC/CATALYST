@@ -95,15 +95,8 @@
 #' 
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
-#' @importFrom data.table data.table
-#' @importFrom dplyr group_by_ count summarise_all summarise_at 
-#' @importFrom magrittr %>%
-#' @importFrom Matrix colSums
-#' @importFrom matrixStats colMedians
-#' @importFrom purrr modify_depth
+#' @importFrom scales hue_pal
 #' @importFrom stats quantile
-#' @importFrom tidyr complete
-#' @importFrom reshape2 acast
 # ------------------------------------------------------------------------------
 
 setMethod(f = "plotDiffHeatmap",
@@ -126,9 +119,10 @@ setMethod(f = "plotDiffHeatmap",
         sample_ids <- z$sample_ids
         cluster_ids <- z$cluster_ids
         marker_classes <- z$marker_classes
+        factors <- z$factors
         
         y <- rowData(y)
-        analysis_type <- get_dt_type(y)
+        analysis_type <- .get_dt_type(y)
         
         # get clusters/cluster-marker combinations to plot
         if (order)
@@ -140,10 +134,10 @@ setMethod(f = "plotDiffHeatmap",
         # 1st heatmap: median type-marker expression by cluster
         if (hm1) {
             type_markers <- colnames(x)[marker_classes == "type"]
-            meds <- calc_meds(x[, type_markers], "c", cluster_ids, NULL, top)
+            meds <- .calc_meds(x[, type_markers], "c", cluster_ids, NULL, top)
             qs <- quantile(meds, probs = c(.01, .5, .99), na.rm = TRUE)
             hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
-            hm1 <- diff_hm(
+            hm1 <- .diff_hm(
                 matrix = meds, 
                 col = hm_cols, 
                 name = "expression",
@@ -155,13 +149,16 @@ setMethod(f = "plotDiffHeatmap",
             hm1 <- NULL
         }
         
-        # column annotation: condition
-        m <- match(levels(sample_ids), ei$sample_id)
-        col_anno <- data.frame(condition = ei$condition[m])
-        col_anno <- columnAnnotation(col_anno, gp = gpar(col = "white"),
-            col = list(condition = setNames(
-                hue_pal()(nlevels(ei$condition)), 
-                levels(ei$condition))))
+        # column annotation: factors
+        m <- match(levels(sample_ids), sample_ids)
+        df <- data.frame(factors[m, ], row.names = NULL)
+        lvls <- lapply(seq_len(ncol(df)), function(i) levels(df[[i]]))
+        nlvls <- vapply(lvls, length, numeric(1))
+        cols <- hue_pal()(sum(nlvls))
+        names(cols) <- unlist(lvls)
+        cols <- split(cols, rep.int(seq_len(ncol(df)), nlvls))
+        names(cols) <- names(df)
+        col_anno <- columnAnnotation(df, col = cols, gp = gpar(col = "white"))
         
         # 2nd heatmap:
         if (analysis_type == "DA") {
@@ -170,7 +167,7 @@ setMethod(f = "plotDiffHeatmap",
             frqs <- frqs[top$cluster_id, ]
             frqs <- as.matrix(unclass(frqs))
             if (normalize) {
-                frqs <- z_normalize(asin(sqrt(frqs)))
+                frqs <- .z_normalize(asin(sqrt(frqs)))
                 at <- seq(-2.5, 2.5, 0.5)
                 labels <- at
                 labels[-seq(2, length(at), 2)] <- ""
@@ -180,7 +177,7 @@ setMethod(f = "plotDiffHeatmap",
                 at <- seq(min, max, 0.1)
                 labels <- at
             }
-            hm2 <- diff_hm(matrix = frqs, cluster_rows = !order, 
+            hm2 <- .diff_hm(matrix = frqs, cluster_rows = !order, 
                 col = c("skyblue", "cornflowerblue", "royalblue", 
                     "black", "orange3", "orange", "gold"),
                 name = paste0("normalized\n"[normalize], "frequency"),
@@ -189,9 +186,9 @@ setMethod(f = "plotDiffHeatmap",
                 xlab = "sample_id", top_annotation = col_anno)
         } else {
             # median state-marker expression by sample
-            meds <- calc_meds(x, "cs", cluster_ids, sample_ids, top)
-            if (normalize) meds <- z_normalize(meds) 
-            hm2 <- diff_hm(matrix = meds, cluster_rows=!order,
+            meds <- .calc_meds(x, "cs", cluster_ids, sample_ids, top)
+            if (normalize) meds <- .z_normalize(meds) 
+            hm2 <- .diff_hm(matrix = meds, cluster_rows=!order,
                 name = paste0("normalized\n"[normalize], "expression"),
                 col = c("skyblue", "cornflowerblue", "royalblue", 
                     "black", "orange3", "orange", "gold"),
@@ -228,6 +225,9 @@ setMethod(f = "plotDiffHeatmap",
 
 # ------------------------------------------------------------------------------
 #' @rdname plotDiffHeatmap
+#' @importFrom dplyr %>% select
+#' @importFrom SummarizedExperiment assay colData rowData
+#' @importFrom S4Vectors metadata
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="daFrame", y="SummarizedExperiment"),
     definition=function(x, y, top_n = 20, all = FALSE, order = TRUE,
@@ -235,19 +235,23 @@ setMethod(f="plotDiffHeatmap",
         
         # get cluster IDs
         k <- metadata(y)$clustering_name
-        k <- check_validity_of_k(x, k)
-        cluster_ids <- get_cluster_ids(x, k)
+        k <- .check_validity_of_k(x, k)
+        cluster_ids <- .get_cluster_ids(x, k)
 
         plotDiffHeatmap(exprs(x), y,
             top_n, all, order, th, hm1, normalize, row_anno,
             sample_ids=sample_ids(x), 
             cluster_ids=cluster_ids,
-            marker_classes=colData(x)$marker_class)
+            marker_classes=colData(x)$marker_class,
+            factors=rowData(x) %>% data.frame %>% 
+                select(-c("sample_id", "cluster_id")))
     }
 )
 
 # ------------------------------------------------------------------------------
 #' @rdname plotDiffHeatmap
+#' @importFrom dplyr %>% select
+#' @importFrom SummarizedExperiment assay colData rowData
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="SummarizedExperiment", y="SummarizedExperiment"),
     definition=function(x, y, top_n = 20, all = FALSE, order = TRUE,
@@ -257,7 +261,9 @@ setMethod(f="plotDiffHeatmap",
             top_n, all, order, th, hm1, normalize, row_anno,
             sample_ids=rowData(x)$sample_id,
             cluster_ids=rowData(x)$cluster_id,
-            marker_classes=colData(x)$marker_class)
+            marker_classes=colData(x)$marker_class,
+            factors=rowData(x) %>% data.frame %>% 
+                select(-c("sample_id", "cluster_id")))
     }
 )
 
