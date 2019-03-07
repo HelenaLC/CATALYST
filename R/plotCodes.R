@@ -47,7 +47,7 @@ setMethod(f="plotCodes",
     definition=function(x, k="meta20", out_path=NULL, verbose=TRUE) {
         
         # validity check
-        check_validity_of_k(x, k)
+        .check_validity_of_k(x, k)
         
         codes <- metadata(x)$SOM_codes
         if (verbose) message("o running tSNE...")
@@ -73,9 +73,9 @@ setMethod(f="plotCodes",
         # expand palette if more than 30 clusters
         n_clusters <- nlevels(df$cluster_id)
         if (n_clusters > 30) {
-            cols <- colorRampPalette(cluster_cols)(n_clusters)
+            cols <- colorRampPalette(.cluster_cols)(n_clusters)
         } else {
-            cols <- cluster_cols[seq_len(n_clusters)]
+            cols <- .cluster_cols[seq_len(n_clusters)]
         }
         names(cols) <- levels(df$cluster_id)
         
@@ -89,7 +89,7 @@ setMethod(f="plotCodes",
                 nrow=n_row)) + scale_color_manual(values=cols) 
         
         # store legend
-        legend <- get_legend(pca_plot)
+        legend <- .get_legend(pca_plot)
         legend_height <- sum(legend$heights)
         pca_plot <- pca_plot + theme(legend.position="none")
         
