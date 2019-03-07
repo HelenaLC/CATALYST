@@ -45,18 +45,32 @@ data(PBMC_fs, PBMC_panel, PBMC_md)
 daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 daf <- cluster(daf)
 
-daf <- runDR(daf, "PCA", rows_to_use = cells_use)
-plotDR(daf, "PCA", color_by = "condition")
+# PCA on all cells
+daf <- runDR(daf, "PCA")
+plotDR(daf, "PCA", color_by = "patient_id")
 
-# downsample to 100 cells per sample
-cells_by_sample <- split(seq_len(nrow(daf)), sample_ids(daf))
-cells_use <- unlist(lapply(cells_by_sample, sample, 100))
+# UMAP on 1000 random cells
+daf <- runDR(daf, "UMAP", rows_to_use = sample(nrow(daf), 1e3))
+plotDR(daf, "UMAP", color_by = "condition")
 
-daf <- runDR(daf, "TSNE", rows_to_use = cells_use, use_dimred = "PCA")
-plotDR(daf, "TSNE", color_by = "meta20")
+# PCA on 200 cells per sample
+set.seed(1)
+daf <- runDR(daf, "PCA", rows_to_use = 200, overwrite = TRUE)
+plotDR(daf, "PCA", color_by = "meta5")
 
-daf <- runDR(daf, "UMAP", rows_to_use = cells_use)
-plotDR(daf, "UMAP", color_by = "meta10")
+# re-using PCA for t-SNE will fail when using different cells
+\dontrun{
+daf <- runDR(daf, "TSNE", rows_to_use = 1:500, use_dimred = "PCA")}
+
+# use same seed to assure the same subset of cells is sampled
+set.seed(1)
+daf <- runDR(daf, "TSNE", rows_to_use = 200, use_dimred = "PCA")
+plotDR(daf, "TSNE", color_by = "meta12")
+
+# subsetting can be done 2-ways
+identical(
+  reducedDim(runDR(daf, "PCA", 1:100), "PCA"),
+  reducedDim(runDR(daf[1:100, ], "PCA"), "PCA"))
 
 }
 \author{
