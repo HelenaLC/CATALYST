@@ -9,7 +9,7 @@
 #'   a \code{\link{flowFrame}} or character of the FCS file to be normalized.
 #' @param y 
 #'   \code{"dvs"} (for bead masses 140, 151, 153, 165, 175) or \code{"beta"} 
-#'   (for bead masses 139, 141, 159, 169, 175) or a numeric vector of bead masses.
+#'   (for bead masses 139, 141, 159, 169, 175) or a numeric vector of masses.
 #' @param out_path 
 #'   a character string. If specified, outputs will be generated here. If NULL
 #'   (the default), \code{normCytof} will return a \code{\link{flowFrame}} of 
@@ -76,7 +76,8 @@ setMethod(f="normCytof",
     if (k %% 2 == 0) k <- k + 1
     
     # check validity of 'out_path', 'fn', and 'fn_sep'
-    stopifnot(is.null(out_path) || (is.character(out_path) & dir.exists(out_path)))
+    stopifnot(is.null(out_path) || 
+        (is.character(out_path) & dir.exists(out_path)))
     stopifnot(is.null(fn) || is.character(fn))
     stopifnot(is.character(fn_sep))
     
@@ -142,7 +143,8 @@ setMethod(f="normCytof",
     
     # compute slopes (baseline versus smoothed bead intensitites)
     # & linearly interpolate slopes at non-bead events
-    bead_slopes <- rowSums(t(t(smoothed_beads)*baseline))/rowSums(smoothed_beads^2)
+    bead_slopes <- rowSums(t(t(smoothed_beads)*baseline))/
+        rowSums(smoothed_beads^2)
     slopes <- approx(bead_ts, bead_slopes, es[, time_col])$y
     
     # normalize raw bead intensities via multiplication with slopes
@@ -163,7 +165,8 @@ setMethod(f="normCytof",
     if (plot)
         .outPlots(x, es_t, bead_inds, remove, bead_cols, dna_cols,
             smoothed_beads, smoothed_normed_beads, out_path, fn, fn_sep)
-    .outNormed(x, normed_es, remove_beads, bead_inds, remove, out_path, fn, fn_sep)
+    .outNormed(x, normed_es, remove_beads, 
+        bead_inds, remove, out_path, fn, fn_sep)
     })
 
 # ------------------------------------------------------------------------------
