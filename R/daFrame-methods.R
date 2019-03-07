@@ -65,6 +65,83 @@
 #' metadata(re)$delta_area
 # ------------------------------------------------------------------------------
 
+# assure that reduced dimensions are affected by row subsetting
+#' @rdname daFrame-methods
+#' @param i,j indices specifying elements to extract.
+#' @importFrom dplyr %>% mutate_if
+#' @importFrom methods as
+#' @importFrom SummarizedExperiment rowData rowData<-
+#' @importFrom S4Vectors DataFrame
+#' @export
+setMethod("[", c("daFrame", "numeric", "missing"),
+    function(x, i, j) {
+        dr <- lapply(reducedDimNames(x), function(dr) {
+            k <- paste0("idx.", dr)
+            idx <- x@int_elementMetadata[[k]]
+            reducedDim(x, dr)[which(idx) %in% i, ]
+        })
+        names(dr) <- reducedDimNames(x)
+        x@reducedDims <- as(dr, "SimpleList")
+        
+        y <- as(x, "SingleCellExperiment")[i, ]
+        rd <- rowData(y) %>% data.frame() %>%
+            mutate_if(is.factor, droplevels)
+        rowData(y) <- DataFrame(rd)
+        x <- as(y, "daFrame")
+        return(x)
+    }
+)
+
+# assure that reduced dimensions are unaffected by column subsetting
+#' @rdname daFrame-methods
+#' @importFrom methods as
+#' @export
+setMethod("[", c("daFrame", "missing", "numeric"),
+    function(x, i, j) {
+        dr <- x@reducedDims
+        x <- as(as(x, "SingleCellExperiment")[, j], "daFrame")
+        x@reducedDims <- dr
+        return(x)
+    }
+)
+
+#' @rdname daFrame-methods
+#' @export
+setMethod("[", c("daFrame", "numeric", "numeric"),
+    function(x, i, j) x[i, ][, j])
+
+# the following wrappers for reducedDimNames & reducedDim(s) assure that 
+# reduced dimensions are called without dimnames (this is necessary b/c 
+# dims. are reversed in a daFrame, and nrow(DR) != ncol(x) causes errors)
+#' @rdname daFrame-methods
+#' @export
+setMethod("reducedDimNames", "daFrame", function(x) names(x@reducedDims))
+
+#' @rdname daFrame-methods
+#' @export
+setMethod("reducedDims", "daFrame", function(x) x@reducedDims)
+
+#' @rdname daFrame-methods
+#' @param dr character string specifying the dim. reduction to extract.
+#' @export
+setMethod("reducedDim", "daFrame", function(x, dr = 1) 
+    tryCatch(error = function(e) NULL, x@reducedDims[[dr]]))
+
+#' @rdname daFrame-methods
+#' @param value a character vector containing 
+#'   the desired dimensionality reduction names.
+#' @importFrom SingleCellExperiment reducedDimNames<-
+#' @export
+setReplaceMethod("reducedDimNames", c("daFrame", "character"),
+    function(x, value) {
+        dr <- reducedDims(x)
+        names(dr) <- value
+        names(x@int_elementMetadata) <- sprintf("idx.%s", names(dr))
+        x@reducedDims <- dr
+        return(x)
+    }
+)
+
 #' @rdname daFrame-methods
 #' @importFrom Biobase exprs
 #' @export
