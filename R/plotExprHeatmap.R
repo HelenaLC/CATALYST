@@ -71,7 +71,7 @@ setMethod(f="plotExprHeatmap",
             group_by_(~sample_id) %>% summarize_all(funs(median))
         med_exprs <- data.frame(med_exprs, row.names=1)
         if (scale) 
-            med_exprs <- scale_exprs(med_exprs)
+            med_exprs <- .scale_exprs(med_exprs)
         
         d <- stats::dist(med_exprs, method=clustering_distance)
         row_clustering <- stats::hclust(d, method=clustering_linkage)
