@@ -49,7 +49,7 @@
             abs(diff(bcs[x, bc_orders[x, ]])), 
             numeric(ncol(bc_key)-1))
         largest_seps <- apply(diffs, 2, which.max)
-        pos <- sapply(seq_len(N), function(x) 
+        pos <- lapply(seq_len(N), function(x) 
             bc_orders[x, seq_len(largest_seps[x])])
         
         if (verbose) message(" o classifying events")
@@ -65,7 +65,7 @@
         
         # exclude events whose pos. barcodes are still very low 
         # (using bcs, not normalized bcs)
-        pos_bcs <- sapply(seq_len(N), function(x) bcs[x, pos[[x]]])
+        pos_bcs <- lapply(seq_len(N), function(x) bcs[x, pos[[x]]])
         ex <- lapply(pos_bcs, function(x) any(x < cutoff))
         bc_ids[is.na(bc_ids) | unlist(ex)] <- 0
     }
@@ -103,11 +103,13 @@
         
         # find largest barcode separation within ea. event 
         # to assign pos. and neg. barcode values
-        diffs <- sapply(seq_len(N), function(x) 
-            abs(diff(data[x, bc_orders[x, ]])))
+        diffs <- vapply(seq_len(N), function(x) 
+            abs(diff(data[x, bc_orders[x, ]])),
+            numeric(ncol(bc_key) - 1))
         largest_seps <- apply(diffs, 2, which.max)
-        deltas <- sapply(seq_len(N), function(x) 
-            diffs[largest_seps[x], x])
+        deltas <- vapply(seq_len(N), function(x) 
+            diffs[largest_seps[x], x],
+            numeric(1))
     }
     deltas
 }

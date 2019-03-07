@@ -122,7 +122,8 @@
     da_GLMM <- c("cluster_id", "p_val", "p_adj")
     da_voom <- c("cluster_id", "log_FC", "AveExpr", "t", "p_val", "p_adj", "B")
     
-    ds_limma <- c("cluster_id", "marker_id", "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
+    ds_limma <- c("cluster_id", "marker_id", 
+        "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
     ds_LMM <- c("cluster_id", "marker_id", "p_val", "p_adj")
     
     res_nms <- setNames(
@@ -152,7 +153,9 @@
 # ==============================================================================
 # wrapper to calculate expr. medians by cluster & cluster-sample
 # ------------------------------------------------------------------------------
+#' @importFrom data.table data.table
 #' @importFrom matrixStats colMedians
+#' @importFrom purrr map_depth
 .calc_meds <- function(x, by, cluster_ids, sample_ids = NULL, top) {
     by <- switch(by, c = "cluster_id", cs = c("cluster_id", "sample_id"))
     dt <- data.table(
@@ -161,7 +164,7 @@
     if (!is.null(sample_ids)) 
         dt$sample_id <- sample_ids
     dt_split <- split(dt, by = by, flatten = FALSE, sorted = TRUE)
-    cells <- modify_depth(dt_split, length(by), "i")
+    cells <- map_depth(dt_split, length(by), "i")
     if (length(by) == 1) {
         meds <- t(vapply(cells, function(i) 
             colMedians(x[i, ]), numeric(ncol(x))))
