@@ -85,6 +85,8 @@
 #' @importFrom magrittr set_colnames
 #' @importFrom matrixStats colQuantiles
 #' @importFrom reshape2 melt
+#' @importFrom SummarizedExperiment rowData rowData<-
+#' @importFrom S4Vectors DataFrame
 # ------------------------------------------------------------------------------
 
 setMethod(f="cluster",
@@ -135,11 +137,14 @@ setMethod(f="cluster",
             data.frame() %>% mutate_all(factor)
         cluster_codes <- data.frame(factor(seq_len(k)), codes) %>% 
             set_colnames(c(sprintf("som%s", k), sprintf("meta%s", mcs)))
-
-        rowData(x)$cluster_id <- factor(som$map$mapping[, 1])
+        
+        y <- as(x, "SingleCellExperiment")
+        rowData(y)$cluster_id <- factor(som$map$mapping[, 1])
+        x <- as(y, "daFrame")
+        
         metadata(x)$SOM_codes <- som$map$codes
         metadata(x)$cluster_codes <- cluster_codes
-        metadata(x)$delta_area <- plot_delta_area(mc)
+        metadata(x)$delta_area <- .plot_delta_area(mc)
         return(x)
     }
 )
