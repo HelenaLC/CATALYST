@@ -51,7 +51,7 @@ setMethod(f="mergeClusters",
     definition=function(x, k, table, id) {
         
         # validity checks
-        check_validity_of_k(x, k)
+        .check_validity_of_k(x, k)
         table <- data.frame(table)
         stopifnot(length(id) == 1)
         if (id %in% colnames(metadata(x)$cluster_codes))
