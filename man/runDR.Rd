@@ -47,16 +47,16 @@ daf <- cluster(daf)
 
 # PCA on all cells
 daf <- runDR(daf, "PCA")
-plotDR(daf, "PCA", color_by = "patient_id")
 
 # UMAP on 1000 random cells
 daf <- runDR(daf, "UMAP", rows_to_use = sample(nrow(daf), 1e3))
-plotDR(daf, "UMAP", color_by = "condition")
+
+reducedDims(daf)
+head(reducedDim(daf, "UMAP"))
 
 # PCA on 200 cells per sample
 set.seed(1)
 daf <- runDR(daf, "PCA", rows_to_use = 200, overwrite = TRUE)
-plotDR(daf, "PCA", color_by = "meta5")
 
 # re-using PCA for t-SNE will fail when using different cells
 \dontrun{
@@ -65,12 +65,22 @@ daf <- runDR(daf, "TSNE", rows_to_use = 1:500, use_dimred = "PCA")}
 # use same seed to assure the same subset of cells is sampled
 set.seed(1)
 daf <- runDR(daf, "TSNE", rows_to_use = 200, use_dimred = "PCA")
-plotDR(daf, "TSNE", color_by = "meta12")
 
-# subsetting can be done 2-ways
-identical(
-  reducedDim(runDR(daf, "PCA", 1:100), "PCA"),
-  reducedDim(runDR(daf[1:100, ], "PCA"), "PCA"))
+# number of rows used for each DR:
+vapply(reducedDims(daf), nrow, numeric(1))
+
+# running on subset can be done 2-ways
+daf2 <- runDR(daf, "MDS", 1:100)
+daf3 <- runDR(daf[1:100, ], "MDS")
+
+# option 1 keeps object-dimensions
+identical(dim(daf2), dim(daf))
+
+# option 2 keeps only specified rows
+identical(dim(daf3), c(100, ncol(daf)))
+
+# reduced dimension are identical
+identical(reducedDim(daf2), reducedDim(daf2))
 
 }
 \author{
