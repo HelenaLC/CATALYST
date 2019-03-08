@@ -65,51 +65,6 @@
 #' metadata(re)$delta_area
 # ------------------------------------------------------------------------------
 
-# assure that reduced dimensions are affected by row subsetting
-#' @rdname daFrame-methods
-#' @param i,j indices specifying elements to extract.
-#' @importFrom dplyr %>% mutate_if
-#' @importFrom methods as
-#' @importFrom SummarizedExperiment rowData rowData<-
-#' @importFrom S4Vectors DataFrame
-#' @export
-setMethod("[", c("daFrame", "numeric", "missing"),
-    function(x, i, j) {
-        dr <- lapply(reducedDimNames(x), function(dr) {
-            k <- paste0("idx.", dr)
-            idx <- x@int_elementMetadata[[k]]
-            reducedDim(x, dr)[which(idx) %in% i, ]
-        })
-        names(dr) <- reducedDimNames(x)
-        x@reducedDims <- as(dr, "SimpleList")
-        
-        y <- as(x, "SingleCellExperiment")[i, ]
-        rd <- rowData(y) %>% data.frame() %>%
-            mutate_if(is.factor, droplevels)
-        rowData(y) <- DataFrame(rd)
-        x <- as(y, "daFrame")
-        return(x)
-    }
-)
-
-# assure that reduced dimensions are unaffected by column subsetting
-#' @rdname daFrame-methods
-#' @importFrom methods as
-#' @export
-setMethod("[", c("daFrame", "missing", "numeric"),
-    function(x, i, j) {
-        dr <- x@reducedDims
-        x <- as(as(x, "SingleCellExperiment")[, j], "daFrame")
-        x@reducedDims <- dr
-        return(x)
-    }
-)
-
-#' @rdname daFrame-methods
-#' @export
-setMethod("[", c("daFrame", "numeric", "numeric"),
-    function(x, i, j) x[i, ][, j])
-
 # the following wrappers for reducedDimNames & reducedDim(s) assure that 
 # reduced dimensions are called without dimnames (this is necessary b/c 
 # dims. are reversed in a daFrame, and nrow(DR) != ncol(x) causes errors)
