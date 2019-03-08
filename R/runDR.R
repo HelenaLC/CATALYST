@@ -25,17 +25,17 @@
 #' 
 #' # PCA on all cells
 #' daf <- runDR(daf, "PCA")
-#' plotDR(daf, "PCA", color_by = "patient_id")
 #' 
 #' # UMAP on 1000 random cells
 #' daf <- runDR(daf, "UMAP", rows_to_use = sample(nrow(daf), 1e3))
-#' plotDR(daf, "UMAP", color_by = "condition")
+#' 
+#' reducedDims(daf)
+#' head(reducedDim(daf, "UMAP"))
 #' 
 #' # PCA on 200 cells per sample
 #' set.seed(1)
 #' daf <- runDR(daf, "PCA", rows_to_use = 200, overwrite = TRUE)
-#' plotDR(daf, "PCA", color_by = "meta5")
-#' 
+#'
 #' # re-using PCA for t-SNE will fail when using different cells
 #' \dontrun{
 #' daf <- runDR(daf, "TSNE", rows_to_use = 1:500, use_dimred = "PCA")}
@@ -43,12 +43,22 @@
 #' # use same seed to assure the same subset of cells is sampled
 #' set.seed(1)
 #' daf <- runDR(daf, "TSNE", rows_to_use = 200, use_dimred = "PCA")
-#' plotDR(daf, "TSNE", color_by = "meta12")
 #' 
-#' # subsetting can be done 2-ways
-#' identical(
-#'   reducedDim(runDR(daf, "MDS", 1:100), "MDS"),
-#'   reducedDim(runDR(daf[1:100, ], "MDS"), "MDS"))
+#' # number of rows used for each DR:
+#' vapply(reducedDims(daf), nrow, numeric(1))
+#' 
+#' # running on subset can be done 2-ways
+#' daf2 <- runDR(daf, "MDS", 1:100)
+#' daf3 <- runDR(daf[1:100, ], "MDS")
+#' 
+#' # option 1 keeps object-dimensions
+#' identical(dim(daf2), dim(daf))
+#' 
+#' # option 2 keeps only specified rows
+#' identical(dim(daf3), c(100, ncol(daf)))
+#' 
+#' # reduced dimension are identical
+#' identical(reducedDim(daf2), reducedDim(daf2))
 #' 
 #' @return a \code{daFrame} with an additional entry titled "\code{dr}"
 #'   in the \code{reducedDims} slot of the input \code{daFrame}. 
@@ -57,8 +67,9 @@
 #'   
 #' @importFrom methods is
 #' @importFrom scater runDiffusionMap runMDS runPCA runTSNE runUMAP
-#' @importFrom SingleCellExperiment int_elementMetadata 
-#'   reducedDimNames reducedDim reducedDims reducedDims<- 
+#' @importFrom SingleCellExperiment 
+#'   int_elementMetadata int_elementMetadata<- reducedDimNames
+#'   reducedDim reducedDim<- reducedDims reducedDims<- 
 
 setMethod("runDR", 
     signature = signature(x = "daFrame"),
@@ -72,11 +83,14 @@ setMethod("runDR",
             stop(paste("A dimension reduction of type", dQuote(dr), 
                 "is already present.\n  Run with 'overwrite = TRUE'",
                 "to force replacement."))
+        
+        use_dimred <- list(...)$use_dimred
+        stopifnot(use_dimred %in% reducedDimNames(x))
             
         if (is.null(rows_to_use)) {
             rows_to_use <- seq_len(nrow(x))
         } else if (is.numeric(rows_to_use)) {
-            stopifnot(all.equal(as.integer(rows_to_use), rows_to_use))
+            stopifnot(all.equal(as.integer(rows_to_use), unname(rows_to_use)))
             if (length(rows_to_use) == 1) {
                 idx <- split(seq_len(nrow(x)), sample_ids(x))
                 rows_to_use <- lapply(idx, function(i)
@@ -106,20 +120,28 @@ setMethod("runDR",
         fun <- get(paste0("run", dr))
         rows_to_use <- sort(rows_to_use)
         y <- .rotate_daf(x[rows_to_use, ])
-        if (dr == "TSNE" && !is.null(list(...)$use_dimred)) {
-            use_dimred <- list(...)$use_dimred
-            idx <- int_elementMetadata(x)
-            k <- sprintf("idx.%s", use_dimred)
-            k <- grep(k, names(idx))
-            if (!identical(rows_to_use, which(idx[[k]])))
-                stop(paste("The DR 'use_dimred =", dQuote(use_dimred), "'",
-                    "seems to have been computed\n  for different cells",
-                    "than specified with 'rows_to_use'.\n  Please run", 
-                    sprintf("'runDR(.., %s)'", dQuote(use_dimred)), 
-                    "using the same set of cells."))
-            reducedDims(y) <- reducedDims(y)[use_dimred]
-        } else {
+        if (is.null(use_dimred)) {
             reducedDims(y) <- NULL
+        } else {
+            if (dr != "PCA") {
+                idx <- int_elementMetadata(x)
+                k <- sprintf("idx.%s", use_dimred)
+                k <- grep(k, names(idx))
+                if (!identical(rows_to_use, which(idx[[k]])))
+                    stop(paste("The DR 'use_dimred =", dQuote(use_dimred), "'",
+                        "seems to have been computed\n  for different cells",
+                        "than specified with 'rows_to_use'.\n  Please run",
+                        sprintf("'runDR(.., %s)'", dQuote(use_dimred)),
+                        "using the same set of cells."))
+                i <- idx[[k]][rows_to_use]
+                use_dr <- reducedDim(y, use_dimred)[i, ]
+                use_dr <- as(list(use_dr), "SimpleList")
+                names(use_dr) <- use_dimred
+                reducedDims(y) <- use_dr
+            } else if (dr == "PCA") {
+                warning("'use_dimred' is not an argument to",
+                    "  'scater::runPCA' and will be ignored.")
+            }
         }
         
         # compute DR
@@ -129,9 +151,10 @@ setMethod("runDR",
         colnames(res) <- paste0(dr, seq_len(ncol(res)))
         x@reducedDims[[dr]] <- res
         # store cells used in int_elementMetadata
-        l <- seq_len(nrow(x)) %in% rows_to_use
+        l <- logical(nrow(x))
+        l[rows_to_use] <- TRUE
         k <- sprintf("idx.%s", dr)
-        x@int_elementMetadata[[k]] <- l
+        int_elementMetadata(x)[[k]] <- l
         return(x)
     }
 )
