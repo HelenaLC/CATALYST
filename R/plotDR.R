@@ -55,7 +55,7 @@ setMethod("plotDR",
         # get reduced dimensions & cell indices used for computation
         idx <- int_elementMetadata(x)
         idx <- idx[[sprintf("idx.%s", dr)]]
-        x <- x[unlist(idx), ]
+        x <- x[idx, ]
         dr <- reducedDim(x, dr)
         df <- data.frame(dr, exprs(x), rowData(x), check.names = FALSE)
         
