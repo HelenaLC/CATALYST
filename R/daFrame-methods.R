@@ -32,6 +32,9 @@
 #' }
 #' 
 #' @param x,object a \code{\link{daFrame}}.
+#' @param dr character string specifying the dim. reduction to extract.
+#' @param value a character vector containing 
+#'   the desired dimensionality reduction names.
 #' 
 #' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
@@ -69,22 +72,22 @@
 # reduced dimensions are called without dimnames (this is necessary b/c 
 # dims. are reversed in a daFrame, and nrow(DR) != ncol(x) causes errors)
 #' @rdname daFrame-methods
+#' @importFrom SingleCellExperiment reducedDimNames
 #' @export
 setMethod("reducedDimNames", "daFrame", function(x) names(x@reducedDims))
 
 #' @rdname daFrame-methods
+#' @importFrom SingleCellExperiment reducedDims
 #' @export
 setMethod("reducedDims", "daFrame", function(x) x@reducedDims)
 
 #' @rdname daFrame-methods
-#' @param dr character string specifying the dim. reduction to extract.
+#' @importFrom SingleCellExperiment reducedDims
 #' @export
 setMethod("reducedDim", "daFrame", function(x, dr = 1) 
     tryCatch(error = function(e) NULL, x@reducedDims[[dr]]))
 
 #' @rdname daFrame-methods
-#' @param value a character vector containing 
-#'   the desired dimensionality reduction names.
 #' @importFrom SingleCellExperiment reducedDimNames<-
 #' @export
 setReplaceMethod("reducedDimNames", c("daFrame", "character"),

@@ -68,7 +68,7 @@
 #' @importFrom methods is
 #' @importFrom scater runDiffusionMap runMDS runPCA runTSNE runUMAP
 #' @importFrom SingleCellExperiment 
-#'   int_elementMetadata int_elementMetadata<- reducedDimNames
+#'   int_elementMetadata int_elementMetadata<-
 #'   reducedDim reducedDim<- reducedDims reducedDims<- 
 
 setMethod("runDR", 
