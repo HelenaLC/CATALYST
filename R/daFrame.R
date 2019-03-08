@@ -148,9 +148,7 @@ setMethod("daFrame",
                 experiment_info=md, 
                 n_cells=n_cells, 
                 cofactor=cofactor))
-        daf <- new("daFrame", sce)
-        daf@elementMetadata <- rowData(sce)
-        return(daf)
+        new("daFrame", sce)
     }
 )
 # ------------------------------------------------------------------------------
