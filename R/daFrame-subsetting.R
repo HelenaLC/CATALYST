@@ -52,7 +52,7 @@ setMethod("[",
         }) %>% SimpleList
         drop <- vapply(dr, nrow, numeric(1)) == 0
         if (any(drop))
-            message("Dropping DR(s) out of bonds: ", 
+            message("Dropping DR(s) out of bounds: ", 
                 paste(dQuote(names(dr)[drop]), collapse = ", "))
         x@reducedDims <- dr[!drop]
         return(x)
