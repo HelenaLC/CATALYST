@@ -154,10 +154,7 @@ setMethod(f="sample_ids",
 #' @rdname daFrame-methods
 setMethod(f="cluster_codes",  
     signature="daFrame", 
-    definition=function(x) {
-        stopifnot("cluster_codes" %in% names(metadata(x)))
-        return(metadata(x)$cluster_codes)
-})
+    definition=function(x) return(metadata(x)$cluster_codes))
 
 #' @rdname daFrame-methods
 setMethod(f="cluster_ids", 

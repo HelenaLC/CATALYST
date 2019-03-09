@@ -44,8 +44,6 @@ setMethod("plotDR",
             names(cluster_codes(x)), names(rowData(x))))
             stop("Argument 'color_by' invalid. Should correspond\n", 
                 "to either a marker, clustering, or rowData column.")
-        if (color_by %in% names(cluster_codes(x)))
-            .check_validity_of_k(x, color_by)
 
         # check validity of 'facet' argument
         if (!is.null(facet) && !facet %in% names(rowData(x)))
@@ -64,7 +62,8 @@ setMethod("plotDR",
                 panel.grid.minor=element_blank(),
                 panel.grid.major=element_line(color="grey", size=.2),
                 axis.text=element_text(color="black"),
-                axis.title=element_text(color="black", face="bold"))
+                axis.title=element_text(color="black", face="bold"),
+                axis.title.y=element_text(angle=90))
         
         if (color_by %in% colnames(x)) {
             p <- p +
