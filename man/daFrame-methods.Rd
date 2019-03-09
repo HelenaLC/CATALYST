@@ -2,7 +2,8 @@
 % Please edit documentation in R/AllGenerics.R, R/daFrame-methods.R,
 %   R/daFrame-subsetting.R
 \docType{methods}
-\name{n_cells}
+\name{ei}
+\alias{ei}
 \alias{n_cells}
 \alias{marker_classes}
 \alias{type_markers}
@@ -17,6 +18,7 @@
 \alias{reducedDim,daFrame-method}
 \alias{reducedDimNames<-,daFrame,character-method}
 \alias{exprs,daFrame-method}
+\alias{ei,daFrame-method}
 \alias{n_cells,daFrame-method}
 \alias{marker_classes,daFrame-method}
 \alias{type_markers,daFrame-method}
@@ -28,6 +30,8 @@
 \title{Extraction and replacement methods 
 for objects of class \code{daFrame}}
 \usage{
+ei(x)
+
 n_cells(x)
 
 marker_classes(x)
@@ -40,7 +44,7 @@ sample_ids(x)
 
 cluster_codes(x)
 
-cluster_ids(x)
+cluster_ids(x, ...)
 
 \S4method{reducedDimNames}{daFrame}(x)
 
@@ -51,6 +55,8 @@ cluster_ids(x)
 \S4method{reducedDimNames}{daFrame,character}(x) <- value
 
 \S4method{exprs}{daFrame}(object)
+
+\S4method{ei}{daFrame}(x)
 
 \S4method{n_cells}{daFrame}(x)
 
@@ -64,17 +70,22 @@ cluster_ids(x)
 
 \S4method{cluster_codes}{daFrame}(x)
 
-\S4method{cluster_ids}{daFrame}(x)
+\S4method{cluster_ids}{daFrame}(x, k = NULL)
 
 \S4method{[}{daFrame,ANY,ANY,ANY}(x, i, j)
 }
 \arguments{
 \item{x, object}{a \code{\link{daFrame}}.}
 
+\item{...}{optional arguments.}
+
 \item{dr}{character string specifying the dim. reduction to extract.}
 
 \item{value}{a character vector containing 
 the desired dimensionality reduction names.}
+
+\item{k}{character string specifying the clustering to extract.
+Valid values are \code{names(cluster_codes(x))}.}
 
 \item{i, j}{indices specifying elements to extract.}
 }

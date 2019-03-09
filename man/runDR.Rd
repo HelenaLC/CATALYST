@@ -77,10 +77,17 @@ daf3 <- runDR(daf[1:100, ], "MDS")
 identical(dim(daf2), dim(daf))
 
 # option 2 keeps only specified rows
-identical(dim(daf3), c(100, ncol(daf)))
+all.equal(dim(daf3), c(100, ncol(daf)))
 
 # reduced dimension are identical
 identical(reducedDim(daf2), reducedDim(daf2))
+
+# run t-SNE on B-cell clusters only
+data(merging_table)
+daf <- mergeClusters(daf, "meta20", merging_table, "merging")
+cells_use <- grep("B-cells", cluster_ids(daf, "merging"))
+daf <- runDR(daf, "TSNE", cells_use, overwrite = TRUE)
+plotDR(daf, "TSNE", "merging")
 
 }
 \author{
