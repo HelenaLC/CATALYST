@@ -6,8 +6,8 @@ data(PBMC_fs, PBMC_panel, PBMC_md)
 x <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
 test_that("using nothing", {
-    expect_identical(x[ ], x)
-    expect_identical(x[, ], x)
+    expect_equal(x[ ], x)
+    expect_equal(x[, ], x)
     expect_error(x[, , ])
 })
 
@@ -46,14 +46,12 @@ test_that("using numerics", {
     expect_identical(rowData(x[, j]), rowData(x))
     expect_identical(colData(x[i, ]), colData(x))
     
-    expect_identical(rowData(x[i, ]), rowData(x)[i, ])
+    expect_equivalent(rowData(x[i, ]), rowData(x)[i, ])
     expect_identical(colData(x[, j]), colData(x)[j, ])
-    
-    expect_identical(metadata(x[i, j]), metadata(x))
 })
 
 test_that("col-subsetting doesn't affect DR", {
-    i <- sample(nrow(x), 10)
+    i <- sample(nrow(x), 100)
     j <- sample(ncol(x), 10)
     y <- runDR(x, "PCA", i)
     expect_identical(
@@ -72,9 +70,19 @@ test_that("row-subsetting doesn't affects DR within bonds", {
 test_that("row-subsetting affects DR out of bonds", {
     n <- 10
     i1 <- sample(nrow(x), n)
-    i2 <- sample(i1, n-1)
+    i2 <- sample(i1, n-5)
     y <- runDR(x, "PCA", i1)
+    m <- match(sort(i1), i2, nomatch = 0)
     expect_equivalent(
-        reducedDim(y[i2, ], "PCA"),
-        reducedDim(y, "PCA")[order(i2), ])
+        reducedDim(y, "PCA")[m, ],
+        reducedDim(y[i2, ], "PCA"))
+})
+
+test_that("drop DR out of bonds", {
+    n <- 10
+    i1 <- sample(nrow(x), n)
+    i2 <- seq_len(nrow(x))
+    i2 <- setdiff(i2, i1)
+    y <- runDR(x, "PCA", i1)
+    expect_message(y[i2, ])
 })
