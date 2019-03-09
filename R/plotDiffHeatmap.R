@@ -236,7 +236,7 @@ setMethod(f="plotDiffHeatmap",
         # get cluster IDs
         k <- metadata(y)$clustering_name
         k <- .check_validity_of_k(x, k)
-        cluster_ids <- .get_cluster_ids(x, k)
+        cluster_ids <- cluster_ids(x, k)
 
         plotDiffHeatmap(exprs(x), y,
             top_n, all, order, th, hm1, normalize, row_anno,

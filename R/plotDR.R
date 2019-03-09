@@ -72,7 +72,7 @@ setMethod("plotDR",
                 scale_color_viridis_c()
         } else if (color_by %in% names(cluster_codes(x))) {
             # get cluster IDs
-            df$cluster_id  <- .get_cluster_ids(x, color_by)
+            df$cluster_id  <- cluster_ids(x, color_by)
             # expand palette if more than 30 clusters
             nk <- nlevels(df$cluster_id )
             if (nk > 30) {

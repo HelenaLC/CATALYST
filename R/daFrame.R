@@ -32,6 +32,7 @@
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
+#' @importFrom methods new
 #' @importFrom dplyr %>% mutate_at
 #' @importFrom flowCore colnames exprs exprs<- flowSet 
 #'   fsApply identifier isFCSfile keyword read.flowSet
@@ -113,8 +114,7 @@ setMethod("daFrame",
             ncol=length(chs), dimnames=list(NULL, chs))
         
         # get nb. of cells per sample
-        n_cells <- as.numeric(fsApply(fs, nrow))
-        n_cells <- setNames(n_cells, md[[md_cols$id]])
+        md$n_cells <- as.numeric(fsApply(fs, nrow))
         
         # get & check marker classes if provided
         valid_mcs <- c("type", "state", "none")
@@ -129,9 +129,10 @@ setMethod("daFrame",
         }
         
         # construct row & column data
-        k <- setdiff(names(md), md_cols$file)
+        k <- c(md_cols$file, "n_cells")
+        k <- setdiff(names(md), k)
         row_data <- lapply(md[k], function(u) {
-            v <- as.character(rep(u, n_cells))
+            v <- as.character(rep(u, md$n_cells))
             factor(v, levels = levels(u))
         }) %>% data.frame(row.names = NULL)
         
@@ -146,7 +147,7 @@ setMethod("daFrame",
             colData=col_data,
             metadata=list(
                 experiment_info=md, 
-                n_cells=n_cells, 
+                #n_cells=n_cells, 
                 cofactor=cofactor))
         new("daFrame", sce)
     }

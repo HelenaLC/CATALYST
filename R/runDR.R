@@ -55,10 +55,17 @@
 #' identical(dim(daf2), dim(daf))
 #' 
 #' # option 2 keeps only specified rows
-#' identical(dim(daf3), c(100, ncol(daf)))
+#' all.equal(dim(daf3), c(100, ncol(daf)))
 #' 
 #' # reduced dimension are identical
 #' identical(reducedDim(daf2), reducedDim(daf2))
+#' 
+#' # run t-SNE on B-cell clusters only
+#' data(merging_table)
+#' daf <- mergeClusters(daf, "meta20", merging_table, "merging")
+#' cells_use <- grep("B-cells", cluster_ids(daf, "merging"))
+#' daf <- runDR(daf, "TSNE", cells_use, overwrite = TRUE)
+#' plotDR(daf, "TSNE", "merging")
 #' 
 #' @return a \code{daFrame} with an additional entry titled "\code{dr}"
 #'   in the \code{reducedDims} slot of the input \code{daFrame}. 
@@ -86,23 +93,19 @@ setMethod("runDR",
         
         use_dimred <- list(...)$use_dimred
         stopifnot(use_dimred %in% reducedDimNames(x))
-            
+           
         if (is.null(rows_to_use)) {
-            rows_to_use <- seq_len(nrow(x))
-        } else if (is.numeric(rows_to_use)) {
-            stopifnot(all.equal(as.integer(rows_to_use), unname(rows_to_use)))
-            if (length(rows_to_use) == 1) {
-                idx <- split(seq_len(nrow(x)), sample_ids(x))
-                rows_to_use <- lapply(idx, function(i)
-                    sample(i, min(rows_to_use, length(i))))
-                rows_to_use <- unname(unlist(rows_to_use))
-            } else {
-                stopifnot(all(rows_to_use %in% seq_len(nrow(x))))
-            }
-        } else {
-            stop("Invalid argument 'rows_to_use'. Should be NULL,", 
-                " a single integer value, or a vector of row indices.")
+            rows_to_use <- TRUE
+        } else if (is.numeric(rows_to_use) && length(rows_to_use) == 1) {
+            idx <- split(seq_len(nrow(x)), sample_ids(x))
+            rows_to_use <- lapply(idx, function(i)
+                sample(i, min(rows_to_use, length(i))))
+            rows_to_use <- unname(unlist(rows_to_use))
         }
+        is <- seq_len(nrow(x))[rows_to_use]
+        rows_to_use <- sort(is)
+        if (length(rows_to_use) == 0)
+            stop("Argument 'rows_to_use' invalid; 0 cells specified.")
 
         stopifnot(is.null(cols_to_use) || 
             is.character(cols_to_use) && all(cols_to_use %in% colnames(x)) ||
@@ -118,7 +121,6 @@ setMethod("runDR",
         }
         
         fun <- get(paste0("run", dr))
-        rows_to_use <- sort(rows_to_use)
         y <- .rotate_daf(x[rows_to_use, ])
         if (is.null(use_dimred)) {
             reducedDims(y) <- NULL

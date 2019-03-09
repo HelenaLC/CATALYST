@@ -181,6 +181,11 @@ setGeneric("daFrame",
 
 #' @rdname daFrame-methods
 #' @export
+setGeneric("ei", 
+    function(x) standardGeneric("ei"))
+
+#' @rdname daFrame-methods
+#' @export
 setGeneric("n_cells", 
     function(x) standardGeneric("n_cells"))
 
@@ -210,9 +215,10 @@ setGeneric("cluster_codes",
     function(x) standardGeneric("cluster_codes"))
 
 #' @rdname daFrame-methods
+#' @param ... optional arguments.
 #' @export
 setGeneric("cluster_ids",  
-    function(x) standardGeneric("cluster_ids"))
+    function(x, ...) standardGeneric("cluster_ids"))
 
 # ==============================================================================
 # Generics for differential analysis

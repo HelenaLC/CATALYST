@@ -165,7 +165,7 @@ setValidity(
                 paste(dQuote(valid_classes), collapse=", "), "."))
         # ----------------------------------------------------------------------
         # check metadata(x)$n_cells
-        if (nrow(object) != sum(metadata(object)$n_cells))
-            return(message("nrow(", x, ") != sum(metadata(", x, ")$n_cells)"))
+        ei <- metadata(object)$experiment_info
+        stopifnot(nrow(object) == sum(ei$n_cells))
     }
 )

@@ -45,7 +45,7 @@ setMethod(f="filter",
 
         # get cluster IDs for specified clustering
         k <- .check_validity_of_k(x, k)
-        rd$cluster_id <- .get_cluster_ids(x, k)
+        rd$cluster_id <- cluster_ids(x, k)
         
         # filter rows & columns
         rdf <- try(filter(rd, ...), silent=TRUE)

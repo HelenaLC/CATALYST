@@ -10,14 +10,6 @@
     "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
 # ==============================================================================
-# get cluster IDs from a daFrame for a specified k
-# ------------------------------------------------------------------------------
-.get_cluster_ids <- function(x, k, i = TRUE) {
-    i <- as.numeric(as.character(cluster_ids(x)[i]))
-    droplevels(cluster_codes(x)[i, k])
-}
-
-# ==============================================================================
 # wrapper to flip the dimensions of a daFrame
 # such that rows = columns and columns = rows
 # ------------------------------------------------------------------------------

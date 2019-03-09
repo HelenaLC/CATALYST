@@ -74,7 +74,7 @@ setMethod(f="plotAbundances",
         }
         
         # get cluster IDs & abundances
-        cluster_ids <- .get_cluster_ids(x, k)
+        cluster_ids <- cluster_ids(x, k)
         counts <- table(cluster_ids, sample_ids(x))
         
         # get frequencies by cluster & sample

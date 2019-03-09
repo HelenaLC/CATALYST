@@ -108,7 +108,7 @@ setMethod(f="plotClusterHeatmap",
         k <- .check_validity_of_k(x, k)
         m <- .check_validity_of_k(x, m)
         
-        cluster_ids <- .get_cluster_ids(x, k)
+        cluster_ids <- cluster_ids(x, k)
         n_clusters <- nlevels(cluster_ids)
         
         # medians marker exprs. across clusters

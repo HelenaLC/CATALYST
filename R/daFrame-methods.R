@@ -32,6 +32,8 @@
 #' }
 #' 
 #' @param x,object a \code{\link{daFrame}}.
+#' @param k character string specifying the clustering to extract.
+#'   Valid values are \code{names(cluster_codes(x))}.
 #' @param dr character string specifying the dim. reduction to extract.
 #' @param value a character vector containing 
 #'   the desired dimensionality reduction names.
@@ -108,9 +110,23 @@ setMethod(f="exprs",
     definition=function(object) return(assays(object)$exprs))
 
 #' @rdname daFrame-methods
+setMethod(f="ei",
+    signature="daFrame",
+    definition=function(x) {
+        stopifnot("experiment_info" %in% names(metadata(x)))
+        return(metadata(x)$experiment_info)
+    }
+)
+
+#' @rdname daFrame-methods
 setMethod(f="n_cells",
     signature="daFrame",
-    definition=function(x) return(metadata(x)$n_cells))
+    definition=function(x) {
+        stopifnot("n_cells" %in% names(ei(x)))
+        stopifnot("sample_id" %in% names(ei(x)))
+        return(setNames(ei(x)$n_cells, ei(x)$sample_id))
+    }
+)
 
 #' @rdname daFrame-methods
 setMethod(f="marker_classes",
@@ -121,14 +137,14 @@ setMethod(f="marker_classes",
 #' @rdname daFrame-methods
 setMethod(f="type_markers",      
     signature="daFrame",
-    definition=function(x) return(colnames(x)[
-        colData(x)$marker_class == "type"]))
+    definition=function(x)
+        return(colnames(x)[marker_classes(x) == "type"]))
 
 #' @rdname daFrame-methods
 setMethod(f="state_markers",      
     signature="daFrame",
-    definition=function(x) return(colnames(x)[
-        colData(x)$marker_class == "state"]))
+    definition=function(x) 
+        return(colnames(x)[marker_classes(x) == "state"]))
 
 #' @rdname daFrame-methods
 setMethod(f="sample_ids",  
@@ -138,9 +154,21 @@ setMethod(f="sample_ids",
 #' @rdname daFrame-methods
 setMethod(f="cluster_codes",  
     signature="daFrame", 
-    definition=function(x) return(metadata(x)$cluster_codes))
+    definition=function(x) {
+        stopifnot("cluster_codes" %in% names(metadata(x)))
+        return(metadata(x)$cluster_codes)
+})
 
 #' @rdname daFrame-methods
-setMethod(f="cluster_ids",  
+setMethod(f="cluster_ids", 
     signature="daFrame", 
-    definition=function(x) return(rowData(x)$cluster_id))
+    definition=function(x, k = NULL) {
+        stopifnot("cluster_id" %in% names(rowData(x)))
+        stopifnot(!is.null(cluster_codes(x)))
+        k <- ifelse(is.null(k),
+            names(cluster_codes(x))[1],
+            .check_validity_of_k(x, k))
+        i <- rowData(x)$cluster_id
+        i <- as.numeric(as.character(i))
+        droplevels(cluster_codes(x)[i, k])
+})
