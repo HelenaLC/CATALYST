@@ -157,6 +157,8 @@
         dt$sample_id <- sample_ids
     dt_split <- split(dt, by = by, flatten = FALSE, sorted = TRUE)
     cells <- map_depth(dt_split, length(by), "i")
+    top <- data.frame(top) %>% 
+        mutate_if(is.factor, as.character)
     if (length(by) == 1) {
         meds <- t(vapply(cells, function(i) 
             colMedians(x[i, ]), numeric(ncol(x))))
