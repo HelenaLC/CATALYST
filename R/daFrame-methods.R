@@ -32,6 +32,11 @@
 #' }
 #' 
 #' @param x,object a \code{\link{daFrame}}.
+#' @param k character string specifying the clustering to extract.
+#'   Valid values are \code{names(cluster_codes(x))}.
+#' @param dr character string specifying the dim. reduction to extract.
+#' @param value a character vector containing 
+#'   the desired dimensionality reduction names.
 #' 
 #' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
@@ -65,6 +70,38 @@
 #' metadata(re)$delta_area
 # ------------------------------------------------------------------------------
 
+# the following wrappers for reducedDimNames & reducedDim(s) assure that 
+# reduced dimensions are called without dimnames (this is necessary b/c 
+# dims. are reversed in a daFrame, and nrow(DR) != ncol(x) causes errors)
+#' @rdname daFrame-methods
+#' @importFrom SingleCellExperiment reducedDimNames
+#' @export
+setMethod("reducedDimNames", "daFrame", function(x) names(x@reducedDims))
+
+#' @rdname daFrame-methods
+#' @importFrom SingleCellExperiment reducedDims
+#' @export
+setMethod("reducedDims", "daFrame", function(x) x@reducedDims)
+
+#' @rdname daFrame-methods
+#' @importFrom SingleCellExperiment reducedDims
+#' @export
+setMethod("reducedDim", "daFrame", function(x, dr = 1) 
+    tryCatch(error = function(e) NULL, x@reducedDims[[dr]]))
+
+#' @rdname daFrame-methods
+#' @importFrom SingleCellExperiment reducedDimNames<-
+#' @export
+setReplaceMethod("reducedDimNames", c("daFrame", "character"),
+    function(x, value) {
+        dr <- reducedDims(x)
+        names(dr) <- value
+        names(x@int_elementMetadata) <- sprintf("idx.%s", names(dr))
+        x@reducedDims <- dr
+        return(x)
+    }
+)
+
 #' @rdname daFrame-methods
 #' @importFrom Biobase exprs
 #' @export
@@ -73,9 +110,23 @@ setMethod(f="exprs",
     definition=function(object) return(assays(object)$exprs))
 
 #' @rdname daFrame-methods
+setMethod(f="ei",
+    signature="daFrame",
+    definition=function(x) {
+        stopifnot("experiment_info" %in% names(metadata(x)))
+        return(metadata(x)$experiment_info)
+    }
+)
+
+#' @rdname daFrame-methods
 setMethod(f="n_cells",
     signature="daFrame",
-    definition=function(x) return(metadata(x)$n_cells))
+    definition=function(x) {
+        stopifnot("n_cells" %in% names(ei(x)))
+        stopifnot("sample_id" %in% names(ei(x)))
+        return(setNames(ei(x)$n_cells, ei(x)$sample_id))
+    }
+)
 
 #' @rdname daFrame-methods
 setMethod(f="marker_classes",
@@ -86,14 +137,14 @@ setMethod(f="marker_classes",
 #' @rdname daFrame-methods
 setMethod(f="type_markers",      
     signature="daFrame",
-    definition=function(x) return(colnames(x)[
-        colData(x)$marker_class == "type"]))
+    definition=function(x)
+        return(colnames(x)[marker_classes(x) == "type"]))
 
 #' @rdname daFrame-methods
 setMethod(f="state_markers",      
     signature="daFrame",
-    definition=function(x) return(colnames(x)[
-        colData(x)$marker_class == "state"]))
+    definition=function(x) 
+        return(colnames(x)[marker_classes(x) == "state"]))
 
 #' @rdname daFrame-methods
 setMethod(f="sample_ids",  
@@ -106,6 +157,15 @@ setMethod(f="cluster_codes",
     definition=function(x) return(metadata(x)$cluster_codes))
 
 #' @rdname daFrame-methods
-setMethod(f="cluster_ids",  
+setMethod(f="cluster_ids", 
     signature="daFrame", 
-    definition=function(x) return(rowData(x)$cluster_id))
+    definition=function(x, k = NULL) {
+        stopifnot("cluster_id" %in% names(rowData(x)))
+        stopifnot(!is.null(cluster_codes(x)))
+        k <- ifelse(is.null(k),
+            names(cluster_codes(x))[1],
+            .check_validity_of_k(x, k))
+        i <- rowData(x)$cluster_id
+        i <- as.numeric(as.character(i))
+        droplevels(cluster_codes(x)[i, k])
+})

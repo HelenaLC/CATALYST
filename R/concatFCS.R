@@ -69,7 +69,7 @@ setMethod(f="concatFCS",
         nPars <- ncol(x[[1]])
         nEvents <- as.numeric(keyword(x, "$TOT"))
         
-        es <- concat_fs(x, nEvents)
+        es <- .concat_fs(x, nEvents)
         
         # get descriptions
         d <- description(x[[1]])

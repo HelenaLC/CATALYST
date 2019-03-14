@@ -43,8 +43,8 @@ alter_pars <- function(ff, pars) {
 # ------------------------------------------------------------------------------
 
 get_ms_and_mets <- function(chs) {
-    ms <- CATALYST:::get_ms_from_chs(chs)
-    mets <- CATALYST:::get_mets_from_chs(chs)
+    ms <- CATALYST:::.get_ms_from_chs(chs)
+    mets <- CATALYST:::.get_mets_from_chs(chs)
     setNames(list(ms, mets), c("Mass", "Metal"))
 }
 

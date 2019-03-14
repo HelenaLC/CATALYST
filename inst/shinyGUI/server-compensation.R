@@ -87,7 +87,7 @@ output$selectSinglePosChs <- renderUI({
     req(input$upload_or_est_sm == "est_sm", 
         !is.null(vals$fsComp_metsChecked))
     chs <- flowCore::colnames(ffControls())
-    ms <- as.numeric(CATALYST:::get_ms_from_chs(chs))
+    ms <- as.numeric(CATALYST:::.get_ms_from_chs(chs))
     tagList(
         hr(style="border-color:black"),
         selectSinglePosChsUI(choices=chs[!is.na(ms)]))
@@ -105,7 +105,7 @@ observeEvent(input$debarcodeComp, {
     disable(id="debarcodeComp")
     showNotification(h4(strong("Assigning preliminary IDs...")), 
         duration=NULL, closeButton=FALSE, id="msg", type="message")
-    ms <- as.numeric(CATALYST:::get_ms_from_chs(input$singlePosChs))
+    ms <- as.numeric(CATALYST:::.get_ms_from_chs(input$singlePosChs))
     vals$dbFrame1Comp <- CATALYST::assignPrelim(x=ffControls(), y=ms)
     removeNotification(id="msg")
     # estCutoffs()
@@ -269,7 +269,7 @@ input_sm <- eventReactive(input$input_sm, {
         return()
     }
     sm <- read.csv(input$input_sm$datapath, row.names=1)
-    sm <- tryCatch(CATALYST:::check_sm(sm, vals$isotope_list), error=function(e) e)
+    sm <- tryCatch(CATALYST:::.check_sm(sm, vals$isotope_list), error=function(e) e)
     if (inherits(sm, "error")) {
         showNotification(type="error", closeButton=FALSE,
             h4(strong("Input spillover matrix seems to be invalid.")))
@@ -296,7 +296,7 @@ output$plotSpillmat <- renderPlotly({
     req(vals$sm)
     x <- input$upload_or_est_sm
     ms <- switch (x,
-        upload_sm = CATALYST:::get_ms_from_chs(colnames(vals$sm)),
+        upload_sm = CATALYST:::.get_ms_from_chs(colnames(vals$sm)),
         est_sm = rownames(bc_key(dbFrameComp())))
     pdf(NULL)
     CATALYST::plotSpillmat(bc_ms=ms, SM=vals$sm, isotope_list=vals$isotope_list)
@@ -401,9 +401,9 @@ observe({
     req(selected)
     chs <- flowCore::colnames(fsComped()[[selected]])
     # default to currently selected masses 
-    ms <- CATALYST:::get_ms_from_chs(chs)
+    ms <- CATALYST:::.get_ms_from_chs(chs)
     currentMs <- sapply(c(ch1(), ch2()), 
-        function(i) CATALYST:::get_ms_from_chs(i))
+        function(i) CATALYST:::.get_ms_from_chs(i))
     inds <- match(currentMs, ms)
     # if non-existent, plot first 2 mass channels
     if (any(is.na(inds))) 
@@ -488,12 +488,12 @@ esC <- reactive({
 output$compScatter1 <- renderPlot({
     req(es0(), ch1(), ch2(), cfComp())
     exprs <- es0()[[selectedSmplComp()]]
-    CATALYST:::plotScatter(exprs, ch1(), ch2(), cfComp())
+    CATALYST:::.plotScatter(exprs, ch1(), ch2(), cfComp())
 })
 output$compScatter2 <- renderPlot({
     req(esC(), ch1(), ch2(), cfComp())
     exprs <- esC()[[selectedSmplComp()]]
-    CATALYST:::plotScatter(exprs, ch1(), ch2(), cfComp())
+    CATALYST:::.plotScatter(exprs, ch1(), ch2(), cfComp())
 })
 output$text_info1 <- renderText({
     req(fsComp(), selectedSmplComp(), 

@@ -115,35 +115,43 @@ setValidity(Class="dbFrame",
 #' @name daFrame-class
 #' @title Differential analysis frame class
 #' 
-#' @description Represents the data returned by and used throughout differential analysis.
+#' @description Represents the data returned by 
+#'   and used throughout differential analysis.
 #' 
 #' \describe{
 #' \item{\code{assays}}{a list of length 1 containing the measurement data.}
-#' \item{\code{rowData}}{a \code{\link{DataFrame}} containing the row metadata.}
-#' \item{\code{colData}}{a \code{\link{DataFrame}} containing the column metadata.}
-#' \item{\code{metadata}}{a named list containing: \itemize{
+#' \item{\code{rowData}}{
+#'   a \code{\link[S4Vectors]{DataFrame}} containing the row metadata.}
+#' \item{\code{colData}}{
+#'   a \code{\link[S4Vectors]{DataFrame}} containing the column metadata.}
+#' \item{\code{metadata}}{
+#'   a named list containing: \itemize{
 #'   \item{\code{experimental_design}: the original metadata table.}
 #'   \item{\code{n_cells}: number of events (cells) measured per sample.}
 #'   \item{\code{cofactor}: numeric cofactor used for arcsinh-transformation.}
-#'   \item{\code{cluster_codes}:
-#'     cluster codes for the initial \pkg{FlowSOM} clustering (\code{"som100"}), 
-#'     the \pkg{ConsensusClusterPlus} metaclustering (\code{"metaX"}), and all
-#'     manual mergings done with \code{\link{mergeClusters}}.}
+#'   \item{\code{cluster_codes}: 
+#'   cluster codes for the initial \pkg{FlowSOM} clustering (\code{"som100"}), 
+#'   the \pkg{ConsensusClusterPlus} metaclustering (\code{"metaX"}), and all 
+#'   manual mergings done with \code{\link{mergeClusters}}.}
 #'   \item{\code{delta_area}: the Delta Area plot 
-#'     (see \pkg{ConsensusClusterPlus} for details).}
+#'   (see \pkg{ConsensusClusterPlus} for details).}
 #'   \item{\code{experimental_design}: the original metadata table}}}}
 #'       
 #' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
-#' @importFrom SummarizedExperiment SummarizedExperiment
+#' @importFrom SingleCellExperiment SingleCellExperiment
 #' @importFrom methods new
 #' 
 #' @export
 
-setClass(Class="daFrame", package="CATALYST", contains="SummarizedExperiment")
+setClass(
+    Class="daFrame", 
+    package="CATALYST", 
+    contains="SingleCellExperiment")
 
 # validity check
-setValidity(Class="daFrame", 
+setValidity(
+    Class="daFrame", 
     method=function(object) {
         x <- deparse(substitute(object))
         # ----------------------------------------------------------------------
@@ -157,7 +165,7 @@ setValidity(Class="daFrame",
                 paste(dQuote(valid_classes), collapse=", "), "."))
         # ----------------------------------------------------------------------
         # check metadata(x)$n_cells
-        if (nrow(object) != sum(metadata(object)$n_cells))
-            return(message("nrow(", x, ") != sum(metadata(", x, ")$n_cells)"))
+        ei <- metadata(object)$experiment_info
+        stopifnot(nrow(object) == sum(ei$n_cells))
     }
 )

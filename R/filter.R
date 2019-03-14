@@ -28,7 +28,7 @@
 #' # keep only a subset of clusters
 #' filter(daf, cluster_id %in% c(7, 8, 18), k = "meta20")
 #' 
-#' @importFrom dplyr mutate_all select
+#' @importFrom dplyr filter mutate_all select
 #' @importFrom S4Vectors metadata
 #' @importFrom SummarizedExperiment colData rowData assays SummarizedExperiment
 # ------------------------------------------------------------------------------
@@ -44,8 +44,8 @@ setMethod(f="filter",
             check.names=FALSE, stringsAsFactors=FALSE)
 
         # get cluster IDs for specified clustering
-        k <- check_validity_of_k(x, k)
-        rd$cluster_id <- get_cluster_ids(x, k)
+        k <- .check_validity_of_k(x, k)
+        rd$cluster_id <- cluster_ids(x, k)
         
         # filter rows & columns
         rdf <- try(filter(rd, ...), silent=TRUE)
@@ -93,9 +93,10 @@ setMethod(f="filter",
     }
 )
 
+#' @rdname filter
 setMethod(f="filter", 
     signature=signature(x="daFrame", k = "missing"), 
     definition=function(x, ..., k = NULL) {
-        filter(x, ..., k = names(cluster_codes(daf))[1])
+        filter(x, ..., k = names(cluster_codes(x))[1])
     }
 )

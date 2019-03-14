@@ -68,7 +68,7 @@ setMethod(f="plotMedExprs",
             med_exprs <- melt(med_exprs, id.vars=c("sample_id"),
                 variable.name="antigen", value.name="med_expr")
         } else {
-            check_validity_of_k(x, k)
+            .check_validity_of_k(x, k)
             cluster_ids <- factor(cluster_codes(x)[, k][cluster_ids(x)])
             # compute medians across samples & clusters
             med_exprs <- data.frame(exprs(x)[, state_markers(x)], 

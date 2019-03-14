@@ -53,12 +53,12 @@ setMethod(f="plotSpillmat",
         name_ext=NULL, annotate=TRUE, plotly=TRUE, 
         isotope_list=CATALYST::isotope_list) {
     
-        SM <- check_sm(SM, isotope_list)
+        SM <- .check_sm(SM, isotope_list)
         nms <- colnames(SM)
         ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
         bc_cols <- which(ms %in% bc_ms)
         bc_range <- min(bc_cols) : max(bc_cols)
-        SM <- make_symetric(SM)[bc_range, bc_range]
+        SM <- .make_symetric(SM)[bc_range, bc_range]
         n <- length(bc_range)
         axis_labs <- nms[bc_range]
         ex <- !axis_labs %in% nms[bc_cols]

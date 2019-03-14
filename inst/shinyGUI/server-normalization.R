@@ -69,7 +69,7 @@ baseline <- reactive({
             transformation=FALSE,
             truncate_max_range=FALSE)
         chs <- flowCore::colnames(ref_ff)
-        beadCols <- CATALYST:::get_bead_cols(chs, beads())
+        beadCols <- CATALYST:::.get_bead_cols(chs, beads())
         colMeans(flowCore::exprs(ref_ff)[, beadCols])
     } else {
         x <- input$box_normToCurrent
@@ -123,7 +123,7 @@ chs <- reactive({
 })
 beadCols <- reactive({
     req(beads())
-    CATALYST:::get_bead_cols(chs(), beads())
+    CATALYST:::.get_bead_cols(chs(), beads())
 })
 dnaCol <- reactive({
     req(chs())
@@ -222,7 +222,7 @@ observe({
         local({
             j <- i
             plotId <- paste0("beadScatter", j)
-            output[[plotId]] <- renderPlot(CATALYST:::plotScatter(
+            output[[plotId]] <- renderPlot(CATALYST:::.plotScatter(
                 es=es, x=beadCols()[j], y=dnaCol(), cf=5))
         })
 })
@@ -372,7 +372,7 @@ smoothedBeads <- reactive({
     
     p1 <- CATALYST:::plotSmoothed(smoothed, "Smoothed beads")
     p2 <- CATALYST:::plotSmoothed(smoothedNormed, "Smoothed normalized beads")
-    CATALYST:::arrangeSmoothed(p1, p2, shiny=TRUE)
+    CATALYST:::.arrangeSmoothed(p1, p2, shiny=TRUE)
 })
 
 output$plot_smoothedBeads <- renderPlot(grid.arrange(smoothedBeads()))
@@ -415,8 +415,8 @@ output$beadsVsBeads <- renderPlot({
     req(mhlDists(), selectedSmplMhl())
     x <- selectedSmplMhl()
     es <- asinh(exprs(ffsNorm()[[x]])[, beadCols()]/5)
-    axes <- setNames(CATALYST:::get_axes(es, 5), c("tcks", "labs"))
-    CATALYST:::plotBeadsVsBeads(
+    axes <- setNames(CATALYST:::.get_axes(es, 5), c("tcks", "labs"))
+    CATALYST:::.plotBeadsVsBeads(
         es, mhlDists()[[x]], vals$mhlCutoffs[x], axes$tcks, axes$labs)
 })
 

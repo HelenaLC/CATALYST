@@ -49,8 +49,8 @@ boundaries. Hierarchical clustering is performed on the unscaled data.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
-re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-plotExprHeatmap(re[, 1:5], draw_freqs=TRUE)
+daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+plotExprHeatmap(daf[, 1:5], color_by="condition", draw_freqs=TRUE)
 
 }
 \references{

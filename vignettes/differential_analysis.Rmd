@@ -208,27 +208,47 @@ plotAbundances(daf, k = "meta12", by = "sample_id", group = "condition")
 plotAbundances(daf, k = "merging1", by = "cluster_id", group = "condition")
 ```
 
-# Dimensionality reduction with `tSNE`
+# Dimensionality reduction with `runDR`
 
-Dimensionality reduction through t-SNE may be run via `tSNE`. Here, the subset of markers to use is specified with `cols_to_use`, and the number of cells to dowsample to per sample is given by `n`. Again, the random seed may be set via `seed` for reproducibility. 
+The set of dimension reduction (DR) methods available from the `r Biocpkg("scater")` can be applied using `runDR`. To make results reproducible, the random seed should be set via `set.seed` *prior* to running `runDR`. The subset of markers to use is specified via `cols_to_use`, and the cells to use with argument `rows_to_use`. When `rows_to_use` is a single numeric value N, `runDR` will draw a random subset of N cells per sample. 
+`CATALYST` allows DRs to use different sets of cells. In the example below, we can run a PCA on the full dataset, but more time-consuming methods, e.g., t-SNE or UMAP, on only a subset of cells.
 
 ```{r}
-daf <- tSNE(daf, cols_to_use = lineage_markers, 
-    n = 200, verbose = FALSE, seed = 42)
+# run PCA on all cells
+set.seed(1)
+daf <- runDR(daf, "PCA")
+
+# run UMAP on 200 cells per sample
+set.seed(2)
+daf <- runDR(daf, "UMAP", rows_to_use = 200)
 ```
 
-## `plotSNE`: t-SNE visualization
+As in a regular `r Biocpkg("SingleCellExperiment")`, DRs available within the `daFrame` can be viewed via `reducedDimNames` and accessed with `reducedDim(s)`.
+```{r}
+# view & access DRs
+reducedDimNames(daf)
+reducedDims(daf)
+head(reducedDim(daf, "PCA"))
 
-`plotSNE` is a flexbile wrapper to plot the t-SNE colored by clustering or marker expression. Furthermore, the data may be split by condition, sample ID, or any other factor available in the `daFrame`'s `rowData`. 
+# all cells
+nrow(reducedDim(daf, "PCA")) == nrow(daf) 
+
+# 200 per sample
+nrow(reducedDim(daf, "UMAP")) == 200 * nlevels(sample_ids(daf))
+```
+
+## `plotDR`: Visualizing reduced dimensions
+
+`plotDR` is a flexbile wrapper to plot reduced dimensions stored within the `reducedDims` slot of a `daFrame`. The coloring of cell projections is specified with argument `color_by`, and may correspond to a marker, clustering, or any factor available in the `daFrame`'s `rowData`. In order to facilitate comparing reduced dimensions across experimental groups or samples, embeddings can be split via `facet`.
 
 ```{r fig.width=7, fig.height=3}
-# color by pS6 expression and split by condition
-plotSNE(daf, color_by = "pS6", facet = "condition")
+# color by marker expression & split by condition
+plotDR(daf, "UMAP", color_by = "pS6", facet = "condition")
 ```
 
 ```{r fig.width=8, fig.height=4}
 # color by 8 metaclusters & split by sample ID
-plotSNE(daf, color_by = "meta8", facet = "sample_id")
+plotDR(daf, "UMAP", color_by = "meta8", facet = "sample_id")
 ```
 
 # Differental testing with `r Biocpkg("diffcyt")`
@@ -244,9 +264,9 @@ contrast <- createContrast(c(0, 1))
 # - differential abundance (DA) of clusters
 # - differential states (DS) within clusters
 res_DA <- diffcyt(daf, contrast = contrast, formula = formula, 
-    analysis_type = "DA", method_DA = "diffcyt-DA-GLMM", clustering_to_use = "meta20")
+    analysis_type = "DA", method_DA = "diffcyt-DA-GLMM", clustering_to_use = "meta10")
 res_DS <- diffcyt(daf, contrast = contrast, formula = formula, 
-    analysis_type = "DS", method_DS = "diffcyt-DS-LMM", clustering_to_use = "meta20")
+    analysis_type = "DS", method_DS = "diffcyt-DS-LMM", clustering_to_use = "meta10")
 ```
 
 ## `plotDiffHeatmap`: Heatmap of differential testing results
@@ -266,8 +286,8 @@ For differential state (DS) tests, `plotDiffHeatmap` will display
 Clusters (DA) and cluster-marker combinations (DS), respectively, will be marked as *significant* if their adjusted p-value falls below the threshold value specified with `th` (default 0.1), and will be ordered by significance if `order = TRUE` (the default). The number of top findings to display can be specified with `top_n` (default 20). When `normalize = TRUE`, the right-hand side heatmap will display Z-score normalized values. For DA, cluster frequencies will be arcsine-square-root scaled prior to normalization.
 
 ```{r fig.width=10, fig.height=6}
-plotDiffHeatmap(daf, res_DA, all = TRUE, th = 0.05, normalize = TRUE)
-plotDiffHeatmap(daf, res_DS, top_n = 20, normalize = TRUE)
+plotDiffHeatmap(daf, res_DA, all = TRUE, th = 0.05)
+plotDiffHeatmap(daf, res_DS, top_n = 20)
 ```
 
 # Session Information

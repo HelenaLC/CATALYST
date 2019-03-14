@@ -63,8 +63,7 @@ setMethod(f="extractClusters",
         
         # get cluster IDs
         if (verbose) message("Extracting cluster IDs...")
-        k <- check_validity_of_k(x, k)
-        cluster_ids <- cluster_codes(x)[cluster_ids(x), k]
+        cluster_ids <- cluster_ids(x, k)
         if (is.null(clusters)) {
             clusters <- levels(cluster_ids)
         } else {

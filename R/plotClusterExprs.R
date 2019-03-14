@@ -31,7 +31,7 @@
 #' plotClusterExprs(re)
 #' 
 #' @import ggplot2
-#' @importFrom dplyr %>% group_by_
+#' @importFrom dplyr %>% group_by_ summarise_at
 #' @importFrom ggridges geom_density_ridges theme_ridges
 #' @importFrom reshape2 melt
 #' @importFrom S4Vectors metadata
@@ -49,7 +49,7 @@ setMethod(f="plotClusterExprs",
         stopifnot("cluster_id" %in% colnames(rowData(x)))
         
         # check validity of argument 'k'
-        k <- check_validity_of_k(x, k)
+        k <- .check_validity_of_k(x, k)
         
         # check validity of argument 'markers'
         if (is.null(markers)) {

@@ -41,8 +41,8 @@
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
-#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' plotExprHeatmap(re[, 1:5], draw_freqs=TRUE)
+#' daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' plotExprHeatmap(daf[, 1:5], color_by="condition", draw_freqs=TRUE)
 #' 
 #' @import ComplexHeatmap SummarizedExperiment
 #' @importFrom dplyr funs group_by_ summarize_all
@@ -71,7 +71,7 @@ setMethod(f="plotExprHeatmap",
             group_by_(~sample_id) %>% summarize_all(funs(median))
         med_exprs <- data.frame(med_exprs, row.names=1)
         if (scale) 
-            med_exprs <- scale_exprs(med_exprs)
+            med_exprs <- .scale_exprs(med_exprs)
         
         d <- stats::dist(med_exprs, method=clustering_distance)
         row_clustering <- stats::hclust(d, method=clustering_linkage)
@@ -79,7 +79,7 @@ setMethod(f="plotExprHeatmap",
         # barplots of event counts
         freq_bars <- freq_anno <- NULL
         if (draw_freqs) {
-            counts <- as.numeric(metadata(x)$n_cells)
+            counts <- as.numeric(n_cells(x))
             freqs <- round(counts/sum(counts)*100, 2)
             freq_bars <- rowAnnotation(width=unit(2, "cm"), 
                 "n_cells"=row_anno_barplot(x=counts, border=FALSE, axis=TRUE,

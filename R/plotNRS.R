@@ -63,7 +63,7 @@ setMethod(f="plotNRS",
         
         # calculate NRS
         scores <- t(vapply(md$sample_id, function(i) 
-            nrs(exprs(x)[sample_ids(x) == i, markers]),
+            .nrs(exprs(x)[sample_ids(x) == i, markers]),
             numeric(length(markers))))
         mean_scores <- colMeans(scores, na.rm=TRUE)
         
