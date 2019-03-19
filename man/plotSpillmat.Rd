@@ -12,7 +12,7 @@ plotSpillmat(bc_ms, SM, ...)
 
 \S4method{plotSpillmat}{numeric,matrix}(bc_ms, SM, out_path = NULL,
   name_ext = NULL, annotate = TRUE, plotly = TRUE,
-  isotope_list = CATALYST::isotope_list)
+  isotope_list = NULL)
 
 \S4method{plotSpillmat}{ANY,data.frame}(bc_ms, SM, out_path = NULL,
   name_ext = NULL, annotate = TRUE, plotly = TRUE)
