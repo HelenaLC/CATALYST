@@ -51,8 +51,10 @@ setMethod(f="plotSpillmat",
     signature=signature(bc_ms="numeric", SM="matrix"),
     definition=function(bc_ms, SM, out_path=NULL, 
         name_ext=NULL, annotate=TRUE, plotly=TRUE, 
-        isotope_list=CATALYST::isotope_list) {
+        isotope_list=NULL) {
     
+        if (is.null(isotope_list))
+            isotope_list <- CATALYST::isotope_list
         SM <- .check_sm(SM, isotope_list)
         nms <- colnames(SM)
         ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
@@ -115,10 +117,10 @@ setMethod(f="plotSpillmat",
 #' @rdname plotSpillmat
 setMethod(f="plotSpillmat",
     signature=signature(bc_ms="ANY", SM="data.frame"),
-    definition=function(bc_ms, SM, 
-        out_path=NULL, name_ext=NULL, annotate=TRUE, plotly=TRUE) {
-        plotSpillmat(bc_ms, as.matrix(SM), out_path=NULL, 
-            name_ext=NULL, annotate=TRUE, plotly=TRUE)
+    definition=function(bc_ms, SM, out_path=NULL, name_ext=NULL, 
+        annotate=TRUE, plotly=TRUE, isotope_list=NULL) {
+        plotSpillmat(bc_ms, as.matrix(SM), out_path=NULL, name_ext=NULL, 
+            annotate=TRUE, plotly=TRUE, isotope_list=NULL)
     }
 )
 
@@ -126,9 +128,9 @@ setMethod(f="plotSpillmat",
 #' @rdname plotSpillmat
 setMethod(f="plotSpillmat",
     signature=signature(bc_ms="character", SM="ANY"),
-    definition=function(bc_ms, SM, 
-        out_path=NULL, name_ext=NULL, annotate=TRUE, plotly=TRUE) {
-        plotSpillmat(as.numeric(bc_ms), SM, out_path=NULL, 
-            name_ext=NULL, annotate=TRUE, plotly=TRUE)
+    definition=function(bc_ms, SM, out_path=NULL, name_ext=NULL, 
+        annotate=TRUE, plotly=TRUE, isotope_list=NULL) {
+        plotSpillmat(as.numeric(bc_ms), SM, out_path=NULL, name_ext=NULL, 
+            annotate=TRUE, plotly=TRUE, isotope_list=NULL)
     }
 )
