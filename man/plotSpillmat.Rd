@@ -15,10 +15,12 @@ plotSpillmat(bc_ms, SM, ...)
   isotope_list = NULL)
 
 \S4method{plotSpillmat}{ANY,data.frame}(bc_ms, SM, out_path = NULL,
-  name_ext = NULL, annotate = TRUE, plotly = TRUE)
+  name_ext = NULL, annotate = TRUE, plotly = TRUE,
+  isotope_list = NULL)
 
 \S4method{plotSpillmat}{character,ANY}(bc_ms, SM, out_path = NULL,
-  name_ext = NULL, annotate = TRUE, plotly = TRUE)
+  name_ext = NULL, annotate = TRUE, plotly = TRUE,
+  isotope_list = NULL)
 }
 \arguments{
 \item{bc_ms}{a vector of numeric masses corresponding to barcode channels.}

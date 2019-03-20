@@ -66,9 +66,9 @@ Represents the data returned by
 \describe{
 \item{\code{assays}}{a list of length 1 containing the measurement data.}
 \item{\code{rowData}}{
-  a \code{\link[S4Vectors]{DataFrame}} containing the row metadata.}
+  a \code{\link[S4Vectors]{DataFrame-class}} containing the row metadata.}
 \item{\code{colData}}{
-  a \code{\link[S4Vectors]{DataFrame}} containing the column metadata.}
+  a \code{\link[S4Vectors]{DataFrame-class}} containing the column metadata.}
 \item{\code{metadata}}{
   a named list containing: \itemize{
   \item{\code{experimental_design}: the original metadata table.}
