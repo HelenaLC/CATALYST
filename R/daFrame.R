@@ -33,7 +33,7 @@
 #' daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' @importFrom methods new
-#' @importFrom dplyr %>% mutate_at
+#' @importFrom dplyr %>% mutate_at rename
 #' @importFrom flowCore colnames exprs exprs<- flowSet 
 #'   fsApply identifier isFCSfile keyword read.flowSet
 #' @importFrom SingleCellExperiment SingleCellExperiment
@@ -91,8 +91,10 @@ setMethod("daFrame",
         })
         
         # assure correctness of formats
-        md <- data.frame(md)
-        md <- md %>% mutate_at(c(md_cols$id, md_cols$factors), factor)
+        k <- c(md_cols$id, md_cols$factors)
+        md <- data.frame(md)[, k] %>% 
+            mutate_all(factor) %>% 
+            dplyr::rename("sample_id" = md_cols$id)
         
         # replace problematic characters
         antigens <- panel[[panel_cols$antigen]]
@@ -129,8 +131,7 @@ setMethod("daFrame",
         }
         
         # construct row & column data
-        k <- c(md_cols$file, "n_cells")
-        k <- setdiff(names(md), k)
+        k <- setdiff(names(md), "n_cells")
         row_data <- lapply(md[k], function(u) {
             v <- as.character(rep(u, md$n_cells))
             factor(v, levels = levels(u))
