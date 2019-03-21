@@ -19,12 +19,12 @@
 #'   or character vector of channel names. Specified which column to keep 
 #'   from the input data. Defaults to the channels listed in the input panel.
 #' @param cofactor numeric cofactor to use for arcsinh-transformation.
-#' @param panel_cols a named list specifying the column names of \code{md}
-#'   that contain the FCS file names, sample IDs, and factors of interest
-#'   (batch, condition, treatment etc.).
-#' @param md_cols a names list specifying the column names of \code{panel}
+#' @param panel_cols a names list specifying the column names of \code{panel}
 #'   that contain the channel names, targeted protein markers, and (optionally) 
 #'   marker classes. 
+#' @param md_cols a named list specifying the column names of \code{md}
+#'   that contain the FCS file names, sample IDs, and factors of interest
+#'   (batch, condition, treatment etc.).
 #'   
 #' @return an object of class \code{daFrame}.
 #' 

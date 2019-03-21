@@ -48,13 +48,13 @@ from the input data. Defaults to the channels listed in the input panel.}
 
 \item{cofactor}{numeric cofactor to use for arcsinh-transformation.}
 
-\item{panel_cols}{a named list specifying the column names of \code{md}
-that contain the FCS file names, sample IDs, and factors of interest
-(batch, condition, treatment etc.).}
-
-\item{md_cols}{a names list specifying the column names of \code{panel}
+\item{panel_cols}{a names list specifying the column names of \code{panel}
 that contain the channel names, targeted protein markers, and (optionally) 
 marker classes.}
+
+\item{md_cols}{a named list specifying the column names of \code{md}
+that contain the FCS file names, sample IDs, and factors of interest
+(batch, condition, treatment etc.).}
 }
 \value{
 an object of class \code{daFrame}.
