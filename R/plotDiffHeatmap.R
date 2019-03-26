@@ -154,11 +154,9 @@ setMethod(f = "plotDiffHeatmap",
         df <- data.frame(factors[m, ], row.names = NULL)
         lvls <- lapply(seq_len(ncol(df)), function(i) levels(df[[i]]))
         nlvls <- vapply(lvls, length, numeric(1))
-        cols <- hue_pal()(sum(nlvls))
-        names(cols) <- unlist(lvls)
-        cols <- split(cols, rep.int(seq_len(ncol(df)), nlvls))
-        names(cols) <- names(df)
-        col_anno <- columnAnnotation(df, col = cols, gp = gpar(col = "white"))
+        cols <- setNames(hue_pal()(sum(nlvls)), unlist(lvls))
+        cols <- setNames(split(cols, rep.int(seq_len(ncol(df)), nlvls)), names(df))
+        col_anno <- columnAnnotation(df = df, col = cols, gp = gpar(col = "white"))
         
         # 2nd heatmap:
         if (analysis_type == "DA") {

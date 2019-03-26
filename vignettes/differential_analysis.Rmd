@@ -258,7 +258,10 @@ Please refer to the `r Biocpkg("diffcyt")` [vignette](https://bioconductor.org/p
 
 ```{r message=FALSE, warning=FALSE, fig.show='hide'}
 # create design & constrast matrix
-formula <- createFormula(PBMC_md, cols_fixed = 3, cols_random = 4)
+formula <- createFormula(
+    experiment_info = PBMC_md, 
+    cols_fixed = "condition", 
+    cols_random = "patient_id")
 contrast <- createContrast(c(0, 1))
 # test for
 # - differential abundance (DA) of clusters

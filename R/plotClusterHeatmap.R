@@ -166,8 +166,10 @@ setMethod(f="plotClusterHeatmap",
             # median cell-type marker expressions across clusters
             if (scale) {
                 es0 <- .scale_exprs(exprs(x)[inds, , drop=FALSE])
-                hm1_es <- data.frame(es0, cluster_ids=cluster_ids[inds]) %>% 
-                    group_by_(~cluster_ids) %>% summarize_all(fun)
+                hm1_es <- data.frame(es0, 
+                    cluster_id=cluster_ids[inds]) %>%
+                    group_by_(~cluster_id) %>% 
+                    summarize_all(fun)
                 hm2_es <- es0
             } else {
                 if (!many) {
@@ -176,24 +178,26 @@ setMethod(f="plotClusterHeatmap",
                 } else {
                     hm2_es <- exprs(x)[inds, , drop=FALSE]
                     hm1_es <- data.frame(hm2_es, 
-                        cluster_ids=cluster_ids[inds]) %>% 
-                        group_by_(~cluster_ids) %>% summarize_all(fun)
+                        cluster_id=cluster_ids[inds]) %>% 
+                        group_by_(~cluster_id) %>% 
+                        summarize_all(fun)
                 }
             }
             
             # add clusters if any missing
-            missing <- levels(cluster_ids)[
-                !levels(cluster_ids) %in% hm1_es$cluster_ids]
+            missing <- setdiff(levels(cluster_ids), hm1_es[[1]])
             if (length(missing) > 0) {
                 na_matrix <- matrix(NA, 
                     nrow=length(missing), ncol=ncol(hm1_es)-1,
                     dimnames=list(NULL, colnames(hm1_es)[-1]))
-                na_df <- data.frame(cluster_ids=missing, na_matrix)
-                hm1_es <- rbind(hm1_es, na_df) %>% arrange(cluster_ids)
+                na_df <- data.frame(cluster_id=missing, na_matrix)
+                hm1_es <- rbind(hm1_es, na_df) %>% arrange(cluster_id)
             }
             
-            hm1 <- Heatmap(matrix=hm1_es[, type_markers(x)], col=hm_cols, 
-                name="expression", column_names_gp=gpar(fontsize=8),
+            hm1 <- Heatmap(
+                matrix=as.matrix(hm1_es[, type_markers(x)]), 
+                col=hm_cols, name="expression", 
+                column_names_gp=gpar(fontsize=8),
                 rect_gp=gpar(col='white'), na_col="lightgrey", 
                 cluster_rows=row_clustering, cluster_columns=FALSE,
                 show_row_dend=draw_dend, column_title=names(groups)[i][many])
@@ -237,9 +241,9 @@ setMethod(f="plotClusterHeatmap",
                         cluster_rows=row_clustering, cluster_columns=FALSE)
                 } else if (hm2 == "state_markers") {
                     # median cell state marker expressions across clusters
-                    p <- p + Heatmap(show_heatmap_legend=FALSE, 
-                        matrix=hm1_es[, state_markers(x)], col=hm_cols, 
-                        na_col="lightgrey", rect_gp=gpar(col='white'), 
+                    p <- p + Heatmap(col=hm_cols, na_col="lightgrey", 
+                        matrix=as.matrix(hm1_es[, state_markers(x)]), 
+                        rect_gp=gpar(col='white'), show_heatmap_legend=FALSE, 
                         cluster_rows=row_clustering, cluster_columns=FALSE,
                         column_names_gp=gpar(fontsize=8))
                 } else {

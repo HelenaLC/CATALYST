@@ -110,8 +110,11 @@ setMethod(f="plotExprHeatmap",
         if (!is.null(color_by)) {
             md <- metadata(x)$experiment_info
             m <- match(rownames(med_exprs), md$sample_id)
-            row_anno <- data.frame(md[m, color_by], row.names=md$sample_id[m])
-            names(row_anno) <- color_by
+            row_anno <- data.frame(
+                md[m, color_by], 
+                row.names=md$sample_id[m]) %>% 
+                as.matrix
+            colnames(row_anno) <- color_by
             row_anno <- Heatmap(matrix=row_anno, name=color_by,
                 col=scales::hue_pal()(nlevels(md[, color_by])),
                 cluster_rows=row_clustering, show_row_names=FALSE, 
