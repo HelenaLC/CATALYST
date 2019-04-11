@@ -140,9 +140,6 @@ setMethod("runDR",
                 use_dr <- as(list(use_dr), "SimpleList")
                 names(use_dr) <- use_dimred
                 reducedDims(y) <- use_dr
-            } else if (dr == "PCA") {
-                warning("'use_dimred' is not an argument to",
-                    "  'scater::runPCA' and will be ignored.")
             }
         }
         

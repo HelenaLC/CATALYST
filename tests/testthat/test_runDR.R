@@ -37,10 +37,10 @@ test_that("throw warning when 'use_dimred' doesn't exist", {
     expect_silent(runDR(y, "TSNE", i, use_dimred = "PCA"))
 })
 
-test_that("throw warning when 'use_dimred' is supplied to PCA", {
+test_that("throw error when 'use_dimred' is supplied to PCA", {
     i <- sample(nrow(x), 10)
     y <- runDR(x, "MDS", i)
-    expect_warning(runDR(y, "PCA", i, use_dimred = "MDS"))
+    expect_error(runDR(y, "PCA", i, use_dimred = "MDS"))
 })
 
 test_that("multiple DRs w/ different #rows work", {
