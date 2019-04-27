@@ -9,7 +9,7 @@
 plotMedExprs(x, ...)
 
 \S4method{plotMedExprs}{daFrame}(x, k = "meta20", facet = c("antigen",
-  "cluster_id"), group_by = "condition")
+  "cluster_id"), group_by = "condition", shape_by = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -23,7 +23,10 @@ If \code{facet = "antigen"}, this argument will be ignored.}
 the latter requires having run \code{\link{cluster}} first.}
 
 \item{group_by}{character string. Has to appear as a column name of \code{rowData(x)}. 
-Specifies sample grouping.}
+Specifies a factor to group samples by.}
+
+\item{shape_by}{character string. Has to appear as a column name of \code{rowData(x)}. 
+Specifies a factor to shape by.}
 }
 \value{
 a \code{ggplot} object.

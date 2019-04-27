@@ -13,19 +13,19 @@ plotDiffHeatmap(x, y, ...)
 
 \S4method{plotDiffHeatmap}{matrix,SummarizedExperiment}(x, y, top_n = 20,
   all = FALSE, order = TRUE, th = 0.1, hm1 = TRUE,
-  normalize = TRUE, row_anno = TRUE, ...)
+  normalize = TRUE, row_anno = TRUE, col_anno = TRUE, ...)
 
 \S4method{plotDiffHeatmap}{daFrame,SummarizedExperiment}(x, y,
   top_n = 20, all = FALSE, order = TRUE, th = 0.1, hm1 = TRUE,
-  normalize = TRUE, row_anno = TRUE, ...)
+  normalize = TRUE, row_anno = TRUE, col_anno = TRUE, ...)
 
 \S4method{plotDiffHeatmap}{SummarizedExperiment,SummarizedExperiment}(x, y,
   top_n = 20, all = FALSE, order = TRUE, th = 0.1, hm1 = TRUE,
-  normalize = TRUE, row_anno = TRUE, ...)
+  normalize = TRUE, row_anno = TRUE, col_anno = TRUE, ...)
 
 \S4method{plotDiffHeatmap}{ANY,list}(x, y, top_n = 20, all = FALSE,
   order = TRUE, th = 0.1, hm1 = TRUE, normalize = TRUE,
-  row_anno = TRUE, ...)
+  row_anno = TRUE, col_anno = TRUE, ...)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}} or \code{SummarizedExperiment}.}
@@ -59,6 +59,9 @@ prior to normalization.}
 \item{row_anno}{logical. Should a row annotation indicating whether cluster (DA) 
 or cluster-marker combinations (DS) are significant, 
 as well as adjusted p-values be included?}
+
+\item{col_anno}{logical. Should column annotations for each factor 
+in \code{metadata(x)} be included?}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.
