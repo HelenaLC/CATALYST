@@ -7,10 +7,11 @@
 #'
 #' @param x
 #'   a \code{\link{daFrame}}.
-#' @param anno 
+#' @param bin_anno 
 #'   logical. Specifies whether to display values insinde each bin.
-#' @param color_by 
-#'   character string. Specifies the row annotation.
+#' @param row_anno 
+#'   logical. Should row annotations for each factor 
+#'   in \code{metadata(x)} be included?
 #' @param palette 
 #'   character vector of colors to interpolate. 
 #' @param scale 
@@ -42,10 +43,10 @@
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' plotExprHeatmap(daf[, 1:5], color_by="condition", draw_freqs=TRUE)
+#' plotExprHeatmap(daf[, 1:5], draw_freqs=TRUE)
 #' 
 #' @import ComplexHeatmap SummarizedExperiment
-#' @importFrom dplyr funs group_by_ summarize_all
+#' @importFrom dplyr funs group_by_ summarize_all select select_if
 #' @importFrom grDevices colorRampPalette
 #' @importFrom magrittr %>%
 #' @importFrom RColorBrewer brewer.pal
@@ -56,15 +57,9 @@
 
 setMethod(f="plotExprHeatmap", 
     signature=signature(x="daFrame"), 
-    definition=function(x, anno=TRUE, color_by=NULL,
+    definition=function(x, bin_anno=TRUE, row_anno=TRUE,
         palette=brewer.pal(n=8, name="YlGnBu"), scale=TRUE, draw_freqs=FALSE,  
         clustering_distance="euclidean", clustering_linkage="average") {
-
-        # validity check
-        valid_opts <- colnames(rowData(x))
-        if (!is.null(color_by) && !color_by %in% valid_opts)
-            stop("Invalid argument 'color_by'.\nShould be one of ", 
-                paste(dQuote(valid_opts), collapse=", "), " or NULL.")
         
         # compute medians across samples
         med_exprs <- data.frame(exprs(x), sample_id=sample_ids(x)) %>%
@@ -99,7 +94,7 @@ setMethod(f="plotExprHeatmap",
                 column_names_gp=gpar(fontsize=8), 
                 row_names_gp=gpar(fontsize=8)) 
         }
-        if (anno) {
+        if (bin_anno) {
             hm <- hm(cell_fun=function(j, i, x, y, ...)
                 grid.text(gp=gpar(fontsize=8),
                     sprintf("%.2f", med_exprs[i, j]), x, y))
@@ -107,18 +102,12 @@ setMethod(f="plotExprHeatmap",
             hm <- hm(cell_fun=function(...) NULL)
         }
         
-        if (!is.null(color_by)) {
+        if (row_anno) {
             md <- metadata(x)$experiment_info
             m <- match(rownames(med_exprs), md$sample_id)
-            row_anno <- data.frame(
-                md[m, color_by], 
-                row.names=md$sample_id[m]) %>% 
-                as.matrix
-            colnames(row_anno) <- color_by
-            row_anno <- Heatmap(matrix=row_anno, name=color_by,
-                col=scales::hue_pal()(nlevels(md[, color_by])),
-                cluster_rows=row_clustering, show_row_names=FALSE, 
-                rect_gp=gpar(col="white"), width=unit(.5, "cm"))
+            df <- select(md[m, ], -"sample_id")
+            df <- select_if(df, is.factor)
+            row_anno <- .anno_factors(df, "row")
             row_anno + hm + freq_bars + freq_anno
         } else {
             hm + freq_bars + freq_anno
