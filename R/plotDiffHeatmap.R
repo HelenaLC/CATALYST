@@ -37,6 +37,9 @@
 #'   logical. Should a row annotation indicating whether cluster (DA) 
 #'   or cluster-marker combinations (DS) are significant, 
 #'   as well as adjusted p-values be included?
+#' @param col_anno
+#'   logical. Should column annotations for each factor 
+#'   in \code{metadata(x)} be included?
 #' 
 #' @details 
 #' For DA tests, \code{plotDiffHeatmap} will display
@@ -104,7 +107,7 @@ setMethod(f = "plotDiffHeatmap",
     definition = function(x, y, 
         top_n = 20, all = FALSE, order = TRUE,
         th = 0.1, hm1 = TRUE, normalize = TRUE, 
-        row_anno = TRUE, ...) {
+        row_anno = TRUE, col_anno = TRUE, ...) {
         
         # validity checks
         stopifnot(length(top_n) == 1, is.numeric(top_n))
@@ -134,7 +137,7 @@ setMethod(f = "plotDiffHeatmap",
         # 1st heatmap: median type-marker expression by cluster
         if (hm1) {
             type_markers <- colnames(x)[marker_classes == "type"]
-            meds <- .calc_meds(x[, type_markers], "c", cluster_ids, NULL, top)
+            meds <- .calc_meds(x[, type_markers], top, "c", cluster_ids)
             qs <- quantile(meds, probs = c(.01, .5, .99), na.rm = TRUE)
             hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
             hm1 <- .diff_hm(
@@ -142,21 +145,21 @@ setMethod(f = "plotDiffHeatmap",
                 col = hm_cols, 
                 name = "expression",
                 cluster_rows = !order,
-                xlab = "type_markers", 
-                row_title = "cluster_id", 
+                xlab = "type_markers",
+                row_title = "cluster_id"[!is.null(hm1)],
                 row_names_side = "left")
         } else {
             hm1 <- NULL
         }
         
         # column annotation: factors
-        m <- match(levels(sample_ids), sample_ids)
-        df <- data.frame(factors[m, ], row.names = NULL)
-        lvls <- lapply(seq_len(ncol(df)), function(i) levels(df[[i]]))
-        nlvls <- vapply(lvls, length, numeric(1))
-        cols <- setNames(hue_pal()(sum(nlvls)), unlist(lvls))
-        cols <- setNames(split(cols, rep.int(seq_len(ncol(df)), nlvls)), names(df))
-        col_anno <- columnAnnotation(df = df, col = cols, gp = gpar(col = "white"))
+        if (col_anno) {
+            m <- match(levels(sample_ids), sample_ids)
+            df <- data.frame(factors[m, ], row.names = NULL)
+            col_anno <- .anno_factors(df, "column")
+        } else {
+            col_anno <- NULL
+        }
         
         # 2nd heatmap:
         if (analysis_type == "DA") {
@@ -181,16 +184,20 @@ setMethod(f = "plotDiffHeatmap",
                 name = paste0("normalized\n"[normalize], "frequency"),
                 show_row_names = is.null(hm1), row_names_side = "left",
                 heatmap_legend_param = list(at = at, labels = labels),
-                xlab = "sample_id", top_annotation = col_anno)
+                top_annotation = col_anno,
+                xlab = "sample_id", 
+                row_title = "cluster_id")
         } else {
             # median state-marker expression by sample
-            meds <- .calc_meds(x, "cs", cluster_ids, sample_ids, top)
+            meds <- .calc_meds(x, top, "cs", cluster_ids, sample_ids, is.null(hm1))
             if (normalize) meds <- .z_normalize(meds) 
+            labs_side <- 
             hm2 <- .diff_hm(matrix = meds, cluster_rows=!order,
                 name = paste0("normalized\n"[normalize], "expression"),
                 col = c("skyblue", "cornflowerblue", "royalblue", 
                     "black", "orange3", "orange", "gold"),
-                xlab = "sample_id", top_annotation = col_anno)
+                xlab = "sample_id", top_annotation = col_anno,
+                row_names_side = c("right", "left")[as.numeric(is.null(hm1)) + 1])
         }
         
         # row annotation: significant = (adj. p-values <= th)
@@ -215,9 +222,9 @@ setMethod(f = "plotDiffHeatmap",
         main <- switch(analysis_type, 
             DA = "top DA clusters", 
             DS = "top DS cluster-marker combinations")
-        suppressWarnings(
-            draw(hm1 + hm2 + row_anno, column_title = main,
-                column_title_gp = gpar(fontface = "bold", fontsize = 12)))
+        suppressWarnings(draw(hm1 + hm2 + row_anno, 
+            column_title = main, auto_adjust = FALSE,
+            column_title_gp = gpar(fontface = "bold", fontsize = 12)))
     }
 )
 
@@ -228,8 +235,10 @@ setMethod(f = "plotDiffHeatmap",
 #' @importFrom S4Vectors metadata
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="daFrame", y="SummarizedExperiment"),
-    definition=function(x, y, top_n = 20, all = FALSE, order = TRUE,
-        th = 0.1, hm1 = TRUE, normalize = TRUE, row_anno = TRUE, ...) {
+    definition=function(x, y, 
+        top_n = 20, all = FALSE, order = TRUE,
+        th = 0.1, hm1 = TRUE, normalize = TRUE, 
+        row_anno = TRUE, col_anno = TRUE, ...) {
         
         # get cluster IDs
         k <- metadata(y)$clustering_name
@@ -237,7 +246,7 @@ setMethod(f="plotDiffHeatmap",
         cluster_ids <- cluster_ids(x, k)
 
         plotDiffHeatmap(exprs(x), y,
-            top_n, all, order, th, hm1, normalize, row_anno,
+            top_n, all, order, th, hm1, normalize, row_anno, col_anno,
             sample_ids=sample_ids(x), 
             cluster_ids=cluster_ids,
             marker_classes=colData(x)$marker_class,
@@ -252,11 +261,13 @@ setMethod(f="plotDiffHeatmap",
 #' @importFrom SummarizedExperiment assay colData rowData
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="SummarizedExperiment", y="SummarizedExperiment"),
-    definition=function(x, y, top_n = 20, all = FALSE, order = TRUE,
-        th = 0.1, hm1 = TRUE, normalize = TRUE, row_anno = TRUE, ...) {
+    definition=function(x, y, 
+        top_n = 20, all = FALSE, order = TRUE,
+        th = 0.1, hm1 = TRUE, normalize = TRUE, 
+        row_anno = TRUE, col_anno = TRUE, ...) {
         
         plotDiffHeatmap(assay(x), y, 
-            top_n, all, order, th, hm1, normalize, row_anno,
+            top_n, all, order, th, hm1, normalize, row_anno, col_anno,
             sample_ids=rowData(x)$sample_id,
             cluster_ids=rowData(x)$cluster_id,
             marker_classes=colData(x)$marker_class,
@@ -269,12 +280,14 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="ANY", y="list"), 
-    definition=function(x, y, top_n = 20, all = FALSE, order = TRUE,
-        th = 0.1, hm1 = TRUE, normalize = TRUE, row_anno = TRUE, ...) {
+    definition=function(x, y, 
+        top_n = 20, all = FALSE, order = TRUE,
+        th = 0.1, hm1 = TRUE, normalize = TRUE, 
+        row_anno = TRUE, col_anno = TRUE, ...) {
         
         if (all(c("res", "d_counts", "d_medians") %in% names(y))) {
             plotDiffHeatmap(x, y$res, 
-                top_n, all, order, th, hm1, normalize, row_anno)
+                top_n, all, order, th, hm1, normalize, row_anno, col_anno)
         } else {
             stop(deparse(substitute(y)), " does not seem to be ", 
                 "a valid differential test result.\n",
