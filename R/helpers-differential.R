@@ -49,14 +49,32 @@
 }
 
 # ==============================================================================
-# wrapper for ComplexHeatmap row annotations
-# (called by plotClusterHeatmap)
+# wrapper for ComplexHeatmap annotations
 # ------------------------------------------------------------------------------
 .row_anno <- function(anno, cols, name, clustering, dend) {
     Heatmap(matrix=anno, col=cols, name=name, 
         rect_gp=gpar(col="white"), width=unit(.4, "cm"),
         cluster_rows=clustering, cluster_columns=FALSE,
         show_row_dend=dend, row_dend_reorder=FALSE)
+}
+
+#' @importFrom ComplexHeatmap columnAnnotation rowAnnotation
+#' @importFrom grid gpar
+#' @importFrom methods is
+#' @importFrom scales hue_pal
+.anno_factors <- function(df, type = c("row", "column")) {
+    # check that all data.frame columns are factors
+    stopifnot(is(df, "data.frame"))
+    stopifnot(all(vapply(as.list(df), is.factor, logical(1))))
+    # for ea. factor, extract levels & nb. of levels
+    lvls <- lapply(as.list(df), levels)
+    nlvls <- vapply(lvls, length, numeric(1))
+    cols <- hue_pal()(sum(nlvls))
+    names(cols) <- unlist(lvls)
+    cols <- split(cols, rep.int(seq_len(ncol(df)), nlvls))
+    names(cols) <- names(df)
+    HeatmapAnnotation(which = match.arg(type),
+        df = df, col = cols, gp = gpar(col = "white"))
 }
 
 # ==============================================================================
@@ -148,7 +166,8 @@
 #' @importFrom data.table data.table
 #' @importFrom matrixStats colMedians
 #' @importFrom purrr map_depth
-.calc_meds <- function(x, by, cluster_ids, sample_ids = NULL, top) {
+.calc_meds <- function(x, top, by, cluster_ids, 
+    sample_ids = NULL, label_clusters = TRUE) {
     by <- switch(by, c = "cluster_id", cs = c("cluster_id", "sample_id"))
     dt <- data.table(
         i = seq_len(nrow(x)), 
@@ -170,8 +189,12 @@
             m <- top$marker_id[i]
             vapply(cells[[k]], function(i) median(x[i, m]), numeric(1))
         }, numeric(nlevels(sample_ids))))
-        rownames(meds) <- paste0(top$marker_id, 
-            sprintf("(%s)", top$cluster_id))
+        if (label_clusters) {
+            rownames(meds) <- paste0(top$marker_id, 
+                sprintf("(%s)", top$cluster_id))
+        } else {
+            rownames(meds) <- top$marker_id
+        }
         return(meds)
     }
 }

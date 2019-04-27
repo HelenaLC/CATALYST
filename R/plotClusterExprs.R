@@ -68,15 +68,16 @@ setMethod(f="plotClusterExprs",
         }
         
         # calculate median markers expressions
-        cluster_ids <- cluster_codes(x)[cluster_ids(x), k]
+        cluster_ids <- cluster_ids(x, k)
         dat <- data.frame(exprs(x)[, markers], rowData(x))
         dat$cluster_id <- cluster_ids
         meds <- dat %>% group_by_("cluster_id") %>% 
             summarise_at(markers, funs(median))
         
-        # get cluster frequencies
-        freqs <- table(cluster_ids) / nrow(x)
-        freqs <- round(freqs * 100, 2)
+        # hierarchical clustering
+        d <- dist(meds[, markers], method="euclidean")
+        h <- hclust(d, method="average")
+        o <- h$order
         
         # constrcut data.frame & reference for plotting
         dat <- melt(dat, id.vars=names(rowData(x)), id.var="cluster_id",
@@ -87,10 +88,9 @@ setMethod(f="plotClusterExprs",
         ref$ref <- "yes"
         df <- rbind(dat, ref)
         
-        # hierarchical clustering
-        d <- dist(meds, method="euclidean")
-        h <- hclust(d, method="average")
-        o <- h$order
+        # compute cluster frequencies
+        freqs <- table(cluster_ids) / nrow(x)
+        freqs <- round(freqs * 100, 2)
         
         # reorder clusters
         df$cluster_id <- factor(df$cluster_id, 
