@@ -15,7 +15,10 @@
 #'   the latter requires having run \code{\link{cluster}} first.
 #' @param group_by 
 #'   character string. Has to appear as a column name of \code{rowData(x)}. 
-#'   Specifies sample grouping.
+#'   Specifies a factor to group samples by.
+#' @param shape_by
+#'   character string. Has to appear as a column name of \code{rowData(x)}. 
+#'   Specifies a factor to shape by.
 #' 
 #' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
@@ -47,14 +50,37 @@
 setMethod(f="plotMedExprs", 
     signature=signature(x="daFrame"), 
     definition=function(x, k="meta20", 
-        facet=c("antigen", "cluster_id"), group_by="condition") {
+        facet=c("antigen", "cluster_id"), 
+        group_by="condition",
+        shape_by=NULL) {
 
         facet <- match.arg(facet)
+        stopifnot(is.character(group_by), group_by %in% colnames(rowData(x)))
+        
+        md <- metadata(x)$experiment_info
+        stopifnot(is.null(shape_by) 
+            | shape_by %in% colnames(rowData(x)) 
+            & is.factor(md[, shape_by]))
+        if (!is.null(shape_by)) {
+            n <- nlevels(md[, shape_by])
+            shapes <- c(16, 17, 15, 3, 7, 8) # default shapes
+            if (n > 6) {
+                if (n > 18) {
+                    message(paste("At most 17 shapes are currently supported", 
+                        "but", n, "are required. Setting 'shape_by' to NULL."))
+                    shape_by <- NULL
+                } else {
+                    new <- setdiff(c(seq_len(16) - 1, 18), shapes)
+                    shapes <- c(shapes, sample(new, n - 6))
+                }
+            }
+        }
         
         style <- list(ylab("median expression"),
             guides(color=guide_legend(override.aes=list(alpha=1))),
-            geom_point(alpha=.75, 
+            geom_point(alpha=.75, aes_string(shape=shape_by),
                 position=position_jitter(width=.25, height=0)),
+            scale_shape_manual(values = shapes),
             geom_boxplot(alpha=.5, width=.75, fill=NA, outlier.color=NA),
             theme_bw(), theme(
                 axis.text=element_text(color="black"),
@@ -79,10 +105,8 @@ setMethod(f="plotMedExprs",
                 variable.name="antigen", value.name="med_expr")
         }
         # add metadata information
-        md <- metadata(x)$experiment_info
         m <- match(med_exprs$sample_id, md$sample_id)
-        med_exprs <- data.frame(med_exprs, 
-            md[m, setdiff(names(md), names(med_exprs))])
+        med_exprs <- data.frame(med_exprs, md[m, ])
         
         if (facet == "antigen") {
             ggplot(med_exprs, 
