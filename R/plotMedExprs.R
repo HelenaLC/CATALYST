@@ -74,6 +74,8 @@ setMethod(f="plotMedExprs",
                     shapes <- c(shapes, sample(new, n - 6))
                 }
             }
+        } else {
+            shapes <- NULL
         }
         
         style <- list(ylab("median expression"),
