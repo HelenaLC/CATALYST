@@ -125,10 +125,10 @@ plotMDS(daf, color_by = "condition")
 
 ## `plotExprHeatmap`: Heatmap of (scaled) median marker expressions
 
-`plotExprHeatmap` will show a heatmap on median marker intensities with hierarchically clustered columns (samples) and rows (markers). This plot should give an idea of which markers will drive sample clustering, and how similiar samples are in their expression profile.
+`plotExprHeatmap` will show a heatmap on median marker intensities with hierarchically clustered rows (samples) and columns (markers). This plot should give an idea of which markers will drive sample clustering, and how similiar samples are in their expression profile. We specify `bin_anno = TRUE` to display expression values inside each bin, and `row_anno = TRUE` to include row annotations for each factor in `metadata(daf)`. 
 
 ```{r fig.width=10, fig.height=6}
-plotExprHeatmap(daf, color_by = "condition")
+plotExprHeatmap(daf, bin_anno = TRUE, row_anno = TRUE)
 ```
 
 # Clustering
@@ -163,6 +163,34 @@ The delta area represents the amount of extra cluster stability gained when clus
 ```{r fig.width=5, fig.height=3}
 # access & render delta area plot
 metadata(daf)$delta_area
+```
+
+## `plotMedExprs`: Median marker-expressions by cluster
+
+A combined boxplot and jitter of median marker intensitied can be generated via `plotMedExprs`. In order to compare medians for each cluster, and potentially identify changes across conditions early on, we specify `facet = "cluster_id"`.
+
+```{r fig.width = 12, fig.height = 6}
+p <- plotMedExprs(daf, k = "meta8", facet = "cluster_id", 
+  group_by = "condition", shape_by = "patient_id")
+p$facet$params$ncol <- 4
+p
+```
+
+Alternatively, we can facet the above plot by `antigen` in order to compare marker expressions calculated over all cells across conditions:
+
+```{r fig.width = 12, fig.height = 8}
+p <- plotMedExprs(daf, facet = "antigen", 
+  group_by = "condition", shape_by = "patient_id")
+p$facet$params$ncol <- 6
+p
+```
+
+## `plotClusterExprs`: Marker-densities by cluster
+
+Distributions of marker intensities (arcsinh-transformed) across cell populations of interest can be plotted with `plotClusterExprs`. We specify `markers = "type"` (equivalent to `type_markers(daf)`), to include type-markers only. Here, blue densities are calculated over all cells and serve as a reference.
+
+```{r message = FALSE, fig.width = 12, fig.height = 8}
+plotClusterExprs(daf, k = "meta8", markers = "type")
 ```
 
 ## `mergeClusters`: Manual cluster merging
