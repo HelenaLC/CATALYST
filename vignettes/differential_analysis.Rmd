@@ -24,7 +24,7 @@ output:
 
 ---
 
-<span style="color:firebrick">**Most of the pipeline and visualizations presented herein were adapted from @Nowicka17's *"CyTOF workflow: differential discovery in high-throughput high-dimensional cytometry datasets"*. For the complete workflow, go [here](10.12688/f1000research.11622.2).**</span>
+<span style="color:firebrick">**Most of the pipeline and visualizations presented herein were adapted from @Nowicka17's *"CyTOF workflow: differential discovery in high-throughput high-dimensional cytometry datasets"*. For the complete workflow, go [here](https://doi.org/10.12688/f1000research.11622.2).**</span>
 
 ```{r warning=FALSE}
 # load required packages
