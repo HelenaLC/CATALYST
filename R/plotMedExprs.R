@@ -71,7 +71,7 @@ setMethod(f="plotMedExprs",
                     shape_by <- NULL
                 } else {
                     new <- setdiff(c(seq_len(16) - 1, 18), shapes)
-                    shapes <- c(shapes, sample(new, n - 6))
+                    shapes <- c(shapes, new[seq_len(n - 6)])
                 }
             }
         } else {
@@ -113,7 +113,6 @@ setMethod(f="plotMedExprs",
         if (facet == "antigen") {
             ggplot(med_exprs, 
                 aes_string(x=group_by, y="med_expr", col=group_by)) +
-                stat_summary(fun.y="mean", geom="point", size=2.5, shape=21) +
                 facet_wrap(facets="antigen", scales="free_y") + style + theme(
                 axis.text.x=element_blank(), axis.ticks.x=element_blank())
         } else {
