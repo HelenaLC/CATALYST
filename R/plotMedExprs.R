@@ -80,10 +80,10 @@ setMethod(f="plotMedExprs",
         
         style <- list(ylab("median expression"),
             guides(color=guide_legend(override.aes=list(alpha=1))),
-            geom_point(alpha=.75, aes_string(shape=shape_by),
-                position=position_jitter(width=.25, height=0)),
-            scale_shape_manual(values = shapes),
+            geom_point(aes_string(shape=shape_by),
+                alpha=.75, position=position_jitter(.25, 0)),
             geom_boxplot(alpha=.5, width=.75, fill=NA, outlier.color=NA),
+            scale_shape_manual(values = shapes),
             theme_bw(), theme(
                 axis.text=element_text(color="black"),
                 panel.grid.minor=element_blank(),
