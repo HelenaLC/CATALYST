@@ -35,7 +35,7 @@
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' # plot median expressions
-#' plotMedExprs(re)
+#' plotMedExprs(re, shape_by = "patient_id")
 #' 
 #' # run clustering
 #' re <- cluster(re)
@@ -101,7 +101,7 @@ setMethod(f="plotMedExprs",
 
         style <- list(ylab("median expression"),
             guides(color=guide_legend(override.aes=list(alpha=1))),
-            geom_point(alpha=.75, aes_string(fill=group_by,shape=shape_by),
+            geom_point(alpha=.75, aes_string(fill=group_by, shape=shape_by),
                 position=position_jitterdodge(jitter.width=.25, jitter.height=0)),
             scale_shape_manual(values = shapes),
             scale_fill_manual(values = rep(NA, length(levels(med_exprs[,group_by])))),
