@@ -14,14 +14,13 @@
 #' @param by 
 #'   a character string specifying whether to plot 
 #'   frequencies by samples or clusters.
-#' @param group 
+#' @param group_by 
 #'   a character string. Should corresponds to a column name of 
 #'   \code{rowData(x)} other than "sample_id" and "cluster_id". 
 #'   The default NULL will use the first factor available.
-#' @param shape
+#' @param shape_by
 #'   a character string. Should correspond to a column name of
-#'   \code{rowData(x)} other than "sample_id" and "cluster_id". 
-#'   The default NULL will use the first factor available.
+#'   \code{rowData(x)} other than "sample_id" and "cluster_id".
 #' @return a \code{ggplot} object.
 #' 
 #' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
@@ -49,9 +48,7 @@
 setMethod(f="plotAbundances", 
     signature=signature(x="daFrame"), 
     definition=function(x, k="meta20", 
-        by=c("sample_id", "cluster_id"), group=NULL, shape=NULL) {
-    
-        md <- metadata(x)$experiment_info
+        by=c("sample_id", "cluster_id"), group_by=NULL, shape_by=NULL) {
         
         # validity checks
         by <- match.arg(by)
@@ -60,17 +57,32 @@ setMethod(f="plotAbundances",
         if (length(valid) == 0)
             stop("No factors to group by. Metadata should contain\n", 
                 "at least one column other than 'file' and 'id'.")
-        if (is.null(group) && length(valid) > 0) {
-            group <- valid[1]
-        } else if (!is.character(group) | !group %in% valid) {
-            stop("Argument 'group = ", dQuote(group), "' invalid.\n",
+        if (is.null(group_by) && length(valid) > 0) {
+            group_by <- valid[1]
+        } else if (!is.character(group_by) | !group_by %in% valid) {
+            stop("Argument 'group_by = ", dQuote(group_by), "' invalid.\n",
                 "Should be one of: ", paste(dQuote(valid), collapse=", "))
         }
-        if (is.null(shape) && length(valid) > 1) {
-            shape <- valid[2]
-        } else if (!is.character(shape) | !shape %in% valid) {
-            stop("Argument 'shape = ", dQuote(shape), "' invalid.\n",
-                "Should be one of: ", paste(dQuote(valid), collapse=", "))
+        
+        md <- metadata(x)$experiment_info
+        if (!is.null(shape_by)) {
+            if (!is.character(shape_by) | !shape_by %in% valid)
+                stop("Argument 'shape_by = ", dQuote(shape_by), "' invalid.\n",
+                    "Should be one of: ", paste(dQuote(valid), collapse=", "))
+            n <- nlevels(md[, shape_by])
+            shapes <- c(16, 17, 15, 3, 7, 8) # default shapes
+            if (n > 6) {
+                if (n > 18) {
+                    message(paste("At most 17 shapes are currently supported", 
+                        "but", n, "are required. Setting 'shape_by' to NULL."))
+                    shape_by <- NULL
+                } else {
+                    new <- setdiff(c(seq_len(16) - 1, 18), shapes)
+                    shapes <- c(shapes, new[seq_len(n - 6)])
+                }
+            }
+        } else {
+            shapes <- NULL
         }
         
         # get cluster IDs & abundances
@@ -96,8 +108,8 @@ setMethod(f="plotAbundances",
                 axis.text=element_text(color="black"),
                 axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
         
-        p <- switch(by,
-            sample_id = p + facet_wrap(group, scales="free_x") +
+        switch(by,
+            sample_id = p + facet_wrap(group_by, scales="free_x") +
                 geom_bar(aes_string(x="sample_id", fill="factor(cluster_id)"), 
                     position="fill", stat="identity") +
                 scale_fill_manual("cluster_id", values=.cluster_cols) +
@@ -105,17 +117,11 @@ setMethod(f="plotAbundances",
                 theme(panel.border=element_blank()),
             cluster_id = p + facet_wrap("cluster_id", scales="free_y", ncol=4) +
                 guides(fill=FALSE) + geom_boxplot(aes_string(
-                    x=group, color=group, fill=group),
+                    x=group_by, color=group_by, fill=group_by),
                     position=position_dodge(), alpha=.25, outlier.color=NA) + 
                 geom_point(position=position_jitter(width=.25),
-                    aes_string(x=group, y="freq", color=group, shape=shape)) +
+                    aes_string(x=group_by, y="freq", color=group_by, shape=shape_by)) +
+                scale_shape_manual(values = shapes) +
                 theme(panel.grid.major=element_line(color="grey", size=.25)))
-        if (!is.null(shape)) {
-            shapes <- c(0,7,15, 1,13,19, 2,17, 5,9,18, 3,4,8, 10,13)
-            if (nlevels(md[, shape]) > 6)
-                shapes <- shapes[seq_len(nlevels(md[, shape]))]
-            p <- p + scale_shape_manual(values=shapes)
-        }
-        return(p)
     }
 )
