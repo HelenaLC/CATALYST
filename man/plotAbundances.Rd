@@ -9,7 +9,7 @@
 plotAbundances(x, ...)
 
 \S4method{plotAbundances}{daFrame}(x, k = "meta20", by = c("sample_id",
-  "cluster_id"), group = NULL, shape = NULL)
+  "cluster_id"), group_by = NULL, shape_by = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -21,13 +21,12 @@ plotAbundances(x, ...)
 \item{by}{a character string specifying whether to plot 
 frequencies by samples or clusters.}
 
-\item{group}{a character string. Should corresponds to a column name of 
+\item{group_by}{a character string. Should corresponds to a column name of 
 \code{rowData(x)} other than "sample_id" and "cluster_id". 
 The default NULL will use the first factor available.}
 
-\item{shape}{a character string. Should correspond to a column name of
-\code{rowData(x)} other than "sample_id" and "cluster_id". 
-The default NULL will use the first factor available.}
+\item{shape_by}{a character string. Should correspond to a column name of
+\code{rowData(x)} other than "sample_id" and "cluster_id".}
 }
 \value{
 a \code{ggplot} object.

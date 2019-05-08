@@ -40,7 +40,7 @@ data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
 # plot median expressions
-plotMedExprs(re)
+plotMedExprs(re, shape_by = "patient_id")
 
 # run clustering
 re <- cluster(re)
