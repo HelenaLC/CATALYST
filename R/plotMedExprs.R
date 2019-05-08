@@ -35,7 +35,7 @@
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' # plot median expressions
-#' plotMedExprs(re)
+#' plotMedExprs(re, shape_by = "patient_id")
 #' 
 #' # run clustering
 #' re <- cluster(re)
@@ -78,18 +78,6 @@ setMethod(f="plotMedExprs",
             shapes <- NULL
         }
         
-        style <- list(ylab("median expression"),
-            guides(color=guide_legend(override.aes=list(alpha=1))),
-            geom_point(aes_string(shape=shape_by),
-                alpha=.75, position=position_jitter(.25, 0)),
-            geom_boxplot(alpha=.5, width=.75, fill=NA, outlier.color=NA),
-            scale_shape_manual(values = shapes),
-            theme_bw(), theme(
-                axis.text=element_text(color="black"),
-                panel.grid.minor=element_blank(),
-                panel.grid.major=element_line(color="lightgrey", size=.25),
-                strip.background=element_rect(fill="grey90", color=NA)))
-        
         if (facet == "antigen") {
             med_exprs <- data.frame(exprs(x), sample_id=sample_ids(x)) %>% 
                 group_by_(~sample_id) %>% summarize_all(funs(median))
@@ -109,7 +97,20 @@ setMethod(f="plotMedExprs",
         # add metadata information
         m <- match(med_exprs$sample_id, md$sample_id)
         med_exprs <- data.frame(med_exprs, md[m, ])
-        
+
+        style <- list(ylab("median expression"),
+            guides(color=guide_legend(override.aes=list(alpha=1))),
+            geom_point(alpha=.75, aes_string(fill=group_by, shape=shape_by),
+                position=position_jitterdodge(jitter.width=.25, jitter.height=0)),
+            scale_shape_manual(values = shapes),
+            scale_fill_manual(values = rep(NA, length(levels(med_exprs[,group_by])))),
+            geom_boxplot(alpha=.5, width=.75, fill=NA, outlier.color=NA),
+            theme_bw(), theme(
+                axis.text=element_text(color="black"),
+                panel.grid.minor=element_blank(),
+                panel.grid.major=element_line(color="lightgrey", size=.25),
+                strip.background=element_rect(fill="grey90", color=NA)))
+
         if (facet == "antigen") {
             ggplot(med_exprs, 
                 aes_string(x=group_by, y="med_expr", col=group_by)) +
@@ -123,4 +124,3 @@ setMethod(f="plotMedExprs",
         }
     }
 )
-        
