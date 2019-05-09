@@ -43,6 +43,7 @@
 #' # plot median expressions across clusters
 #' plotMedExprs(re, facet="cluster_id", k="meta8")
 #' 
+#' @import ggplot2
 #' @importFrom dplyr group_by_ summarize_all
 #' @importFrom reshape2 melt
 # ------------------------------------------------------------------------------
