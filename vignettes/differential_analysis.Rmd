@@ -232,8 +232,9 @@ Relative population abundances for any clustering of interest can be plotted wit
 If `by = "sample_id"`, the function displays each sample's cell type composition, and the size of a given stripe reflects the proportion of the corresponding cell type the given sample. Argument `group` then specifies the facetting. If `by = "cluster_id"`, argument `group` then specifies the grouping and color coding. 
 
 ```{r fig.width=6, fig.height=4}
-plotAbundances(daf, k = "meta12", by = "sample_id", group = "condition")
-plotAbundances(daf, k = "merging1", by = "cluster_id", group = "condition")
+plotAbundances(daf, k = "meta12", by = "sample_id", group_by = "condition")
+plotAbundances(daf, k = "merging1", by = "cluster_id", 
+  group_by = "condition", shape_by = "patient_id")
 ```
 
 # Dimensionality reduction with `runDR`
