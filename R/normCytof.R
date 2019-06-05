@@ -145,7 +145,7 @@ setMethod(f="normCytof",
     # & linearly interpolate slopes at non-bead events
     bead_slopes <- rowSums(t(t(smoothed_beads)*baseline))/
         rowSums(smoothed_beads^2)
-    slopes <- approx(bead_ts, bead_slopes, es[, time_col])$y
+    slopes <- approx(bead_ts, bead_slopes, es[, time_col], rule = 2)$y
     
     # normalize raw bead intensities via multiplication with slopes
     normed_es <- cbind(

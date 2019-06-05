@@ -36,7 +36,7 @@
     receiver[receiver < 0] <- 0
     spiller [spiller  < 0] <- 0
     sij <- receiver / spiller
-    sij[is.infinite(sij)] <- 0
+    sij[is.infinite(sij) | is.na(sij)] <- 0
     median(sij)
 }
 
