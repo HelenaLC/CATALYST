@@ -119,6 +119,7 @@ setMethod(f="concatFCS",
             message("Descriptions don't match across frames.",
                 " Keeping the 1st flowFrame's descriptions.")
         ds <- ds[, 1]
+        if (file_num) ds <- c(ds, NA)
         df <- data.frame(list(
             name=colnames(es),
             desc=ds,
