@@ -44,12 +44,12 @@ setMethod(f="filter",
             check.names=FALSE, stringsAsFactors=FALSE)
 
         # get cluster IDs for specified clustering
-        k <- .check_validity_of_k(x, k)
+        k <- .check_validity_of_k(x, k)   
         rd$cluster_id <- cluster_ids(x, k)
         
         # filter rows & columns
-        rdf <- try(filter(rd, ...), silent=TRUE)
-        cdf <- try(filter(cd, ...), silent=TRUE)
+        rdf <- try(dplyr::filter(rd, ...), silent=TRUE)
+        cdf <- try(dplyr::filter(cd, ...), silent=TRUE)
         if (inherits(rdf, "try-error")) rdf <- rd
         if (inherits(cdf, "try-error")) cdf <- cd
         ri <- rdf$i; rdf <- select(rdf, -"i")
