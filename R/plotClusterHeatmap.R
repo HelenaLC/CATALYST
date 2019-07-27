@@ -112,7 +112,7 @@ setMethod(f="plotClusterHeatmap",
         n_clusters <- nlevels(cluster_ids)
         
         # medians marker exprs. across clusters
-        med_exprs <- data.frame(exprs(x), cluster_ids) %>%
+        med_exprs <- data.frame(exprs(x), cluster_ids, check.names = FALSE) %>%
             group_by_(~cluster_ids) %>% summarize_all(fun)
         
         # hierarchical clustering on cell-type markers
@@ -167,7 +167,8 @@ setMethod(f="plotClusterHeatmap",
             if (scale) {
                 es0 <- .scale_exprs(exprs(x)[inds, , drop=FALSE])
                 hm1_es <- data.frame(es0, 
-                    cluster_id=cluster_ids[inds]) %>%
+                    cluster_id = cluster_ids[inds],
+                    check.names = FALSE) %>%
                     group_by_(~cluster_id) %>% 
                     summarize_all(fun)
                 hm2_es <- es0
@@ -178,7 +179,8 @@ setMethod(f="plotClusterHeatmap",
                 } else {
                     hm2_es <- exprs(x)[inds, , drop=FALSE]
                     hm1_es <- data.frame(hm2_es, 
-                        cluster_id=cluster_ids[inds]) %>% 
+                        cluster_id = cluster_ids[inds],
+                        check.names = FALSE) %>% 
                         group_by_(~cluster_id) %>% 
                         summarize_all(fun)
                 }
@@ -190,7 +192,8 @@ setMethod(f="plotClusterHeatmap",
                 na_matrix <- matrix(NA, 
                     nrow=length(missing), ncol=ncol(hm1_es)-1,
                     dimnames=list(NULL, colnames(hm1_es)[-1]))
-                na_df <- data.frame(cluster_id=missing, na_matrix)
+                na_df <- data.frame(cluster_id = missing, 
+                    na_matrix, check.names = FALSE)
                 hm1_es <- rbind(hm1_es, na_df) %>% arrange(cluster_id)
             }
             
@@ -249,8 +252,9 @@ setMethod(f="plotClusterHeatmap",
                 } else {
                     # median marker expression across samples & clusters
                     meds <- data.frame(hm2_es, 
-                        sample_id=sample_ids(x)[inds], 
-                        cluster_id=cluster_ids[inds]) %>%
+                        sample_id = sample_ids(x)[inds], 
+                        cluster_id = cluster_ids[inds],
+                        check.names = FALSE) %>%
                         group_by_(~sample_id, ~cluster_id) %>% 
                         summarise_all(fun)
                     for (ch in hm2) {
