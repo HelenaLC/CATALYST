@@ -8,7 +8,8 @@
 \usage{
 outFrames(x, ...)
 
-\S4method{outFrames}{dbFrame}(x, return = "flowSet", which = "assigned")
+\S4method{outFrames}{dbFrame}(x, return = "flowSet",
+  which = "assigned")
 }
 \arguments{
 \item{x}{a \code{\link{dbFrame}}.}
@@ -44,5 +45,5 @@ outFrames(x = re, return = "list", which = c("B1", "D4"))
 
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

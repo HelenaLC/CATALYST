@@ -24,7 +24,7 @@
 #' less than 50 event assignments will be skipped; it is strongly recoomended
 #' to remove such populations or reconsider their separation cutoffs.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references
 #' Zunder, E.R. et al. (2015).
@@ -62,7 +62,7 @@ setMethod(f="plotEvents",
                 "corresponding to valid barcode IDs; ",
                 "using default value \"all\".")
         } else if (!"all" %in% which) {
-            which <- check_validity_which(
+            which <- .check_validity_which(
                 which, rownames(bc_key(x)), "events")
         }
         if (!is.numeric(n_events) || n_events == 0 || length(n_events) > 1) {
@@ -78,7 +78,7 @@ setMethod(f="plotEvents",
         ids <- sort(unique(bc_ids(x)))
         if ("all" %in% which) 
             which <- ids
-        bc_labs <- get_bc_labs(x)
+        bc_labs <- .get_bc_labs(x)
         if ("0" %in% ids) 
             bc_labs <- c("Unassigned", bc_labs)
         
@@ -111,7 +111,7 @@ setMethod(f="plotEvents",
             }
             title <- bquote(bold(.(bc_labs[match(id, c("0", rownames(
                 bc_key(x))))]))*scriptstyle(" ("*.(N)*" events)"))
-            p[[length(p) + 1]] <- plot_events(x, inds, n, cols, title)
+            p[[length(p) + 1]] <- .plot_events(x, inds, n, cols, title)
         }
         
         # throw warning about populations with less than 50 event assignments

@@ -3,7 +3,7 @@
 #       - stop if not a single ID is valid
 #       - warning if some ID(s) is/are not valid and remove it/them
 # ------------------------------------------------------------------------------
-check_validity_which <- function(which, ids, fct) {
+.check_validity_which <- function(which, ids, fct) {
     
     msg_events <- c(
         " Valid values for 'which' are IDs that occur as row names in the\n",
@@ -59,7 +59,7 @@ check_validity_which <- function(which, ids, fct) {
 #       - a character string that matches with a 'label' specifying
 #         a merging done with 'mergeClusters'
 # ------------------------------------------------------------------------------
-check_validity_of_k <- function(x, k) {
+.check_validity_of_k <- function(x, k) {
     available_clusterings <- colnames(S4Vectors::metadata(x)$cluster_codes)
     is_valid_clustering <- as.character(k) %in% available_clusterings
     if (!is.null(k) && !is_valid_clustering) {
@@ -83,17 +83,17 @@ check_validity_of_k <- function(x, k) {
 #        - numeric vector of indices
 #        - character vector of column names
 # ------------------------------------------------------------------------------
-check_validity_cols <- function(cols_to_use, col_nms) {
+.check_validity_cols <- function(cols_to_use, col_nms) {
     n_cols <- length(col_nms)
     
     check1 <- is.logical(cols_to_use) & length(cols_to_use) == n_cols
     check2 <- all(cols_to_use %in% col_nms)
-    check3 <- FALSE
+    check3 <- TRUE
     if (is.integer(cols_to_use))
         check3 <- min(cols_to_use >= 1) && max(cols_to_use <= ncol)
 
     if (!any(check1, check2, check3))
-        stop("Invalid argument 'cols_to_use'.\nShould be either", 
-            " a logial vector, a numeric vector of indices, or",
+        stop("Invalid argument 'cols_to_use'. Should be either", 
+            " a logial vector,\n  a numeric vector of indices, or",
             " a character vector of column names.")
 }

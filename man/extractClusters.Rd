@@ -3,13 +3,13 @@
 \docType{methods}
 \name{extractClusters}
 \alias{extractClusters}
-\alias{extractClusters,daFrame-method}
+\alias{extractClusters,daFrame,character-method}
 \title{Extract clusters from a \code{daFrame}}
 \usage{
 extractClusters(x, k, ...)
 
-\S4method{extractClusters}{daFrame}(x, k, clusters = NULL, as = c("flowSet",
-  "fcs"), out_dir = ".", verbose = TRUE)
+\S4method{extractClusters}{daFrame,character}(x, k, clusters = NULL,
+  as = c("flowSet", "fcs"), out_dir = ".", verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
@@ -48,16 +48,14 @@ data(PBMC_fs, PBMC_panel, PBMC_md, merging_table)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
 # run clustering
-lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-re <- cluster(re, cols_to_use=lineage)
+re <- cluster(re)
 
 # merge clusters
-re <- mergeClusters(re, merging_table, "merging_1")
-extractClusters(re, k = "merging_1")
+re <- mergeClusters(re, k="meta20", table=merging_table, id="merging_1")
+extractClusters(re, k="merging_1")
 
 }
 \author{
-Mark D Robinson,
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Mark D Robinson and
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

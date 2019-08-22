@@ -3,18 +3,21 @@
 \docType{methods}
 \name{mergeClusters}
 \alias{mergeClusters}
-\alias{mergeClusters,daFrame-method}
+\alias{mergeClusters,daFrame,character,data.frame,character-method}
 \title{Manual cluster merging}
 \usage{
-mergeClusters(x, table, id)
+mergeClusters(x, k, table, id)
 
-\S4method{mergeClusters}{daFrame}(x, table, id)
+\S4method{mergeClusters}{daFrame,character,data.frame,character}(x, k,
+  table, id)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
-\item{table}{the merging table; a \code{data.frame} with columns 
-\code{'old_cluster'}, \code{'new_cluster'} and \code{'label'}.}
+\item{k}{a character string specifying the clustering to merge.}
+
+\item{table}{a merging table with 2 columns containing the cluster IDs to merge 
+in the 1st, and the cluster IDs to newly assign in the 2nd column.}
 
 \item{id}{character string. Used as a label for the merging.}
 
@@ -41,12 +44,10 @@ data(PBMC_fs, PBMC_panel, PBMC_md, merging_table)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
 # run clustering
-lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-re <- cluster(re, cols_to_use=lineage)
+re <- cluster(re)
 
 # merge clusters
-re <- mergeClusters(re, merging_table, "merging")
+re <- mergeClusters(re, k="meta20", table=merging_table, id="merging")
 plotClusterHeatmap(re, k="merging", hm2="pS6")
 }
 \references{
@@ -56,5 +57,5 @@ high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

@@ -14,12 +14,14 @@ compCytof(x, y, ...)
 \S4method{compCytof}{flowFrame,matrix}(x, y, out_path = NULL,
   method = "flow", isotope_list = CATALYST::isotope_list)
 
-\S4method{compCytof}{flowSet,ANY}(x, y, out_path = NULL, method = "flow")
+\S4method{compCytof}{flowSet,ANY}(x, y, out_path = NULL,
+  method = "flow")
 
 \S4method{compCytof}{character,matrix}(x, y, out_path = NULL,
   method = "flow")
 
-\S4method{compCytof}{ANY,data.frame}(x, y, out_path = NULL, method = "flow")
+\S4method{compCytof}{ANY,data.frame}(x, y, out_path = NULL,
+  method = "flow")
 }
 \arguments{
 \item{x}{a \code{\link{flowFrame}} OR a character string specifying the location of 
@@ -81,6 +83,6 @@ compCytof(x = ss_exp, y = spillMat)
 
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
 }

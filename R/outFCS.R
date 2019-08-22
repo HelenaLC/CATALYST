@@ -37,7 +37,8 @@
 #' re <- applyCutoffs(x = re)
 #' outFCS(x = re, y = sample_ff)
 #'
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+#' 
 #' @import ggplot2 grid gridExtra
 #' @importFrom flowCore flowFrame write.FCS
 #' @importFrom utils read.csv

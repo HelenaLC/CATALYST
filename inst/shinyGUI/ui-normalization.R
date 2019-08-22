@@ -270,4 +270,4 @@ mhlCutoffNormUI <- function(samples, maxDist) {
             title="Apply",
             placement="right", 
             trigger="hover")
-)}  
+    )}  

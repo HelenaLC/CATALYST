@@ -8,22 +8,25 @@
 \usage{
 plotAbundances(x, ...)
 
-\S4method{plotAbundances}{daFrame}(x, k = 20, by = c("sample_id",
-  "cluster_id"), group = NULL)
+\S4method{plotAbundances}{daFrame}(x, k = "meta20", by = c("sample_id",
+  "cluster_id"), group_by = NULL, shape_by = NULL)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{k}{specifies which clustering to use.}
+\item{k}{character string. Specifies which clustering to use.}
 
 \item{by}{a character string specifying whether to plot 
 frequencies by samples or clusters.}
 
-\item{group}{a character string. Should corresponds to a column name of 
+\item{group_by}{a character string. Should corresponds to a column name of 
 \code{rowData(x)} other than "sample_id" and "cluster_id". 
 The default NULL will use the first factor available.}
+
+\item{shape_by}{a character string. Should correspond to a column name of
+\code{rowData(x)} other than "sample_id" and "cluster_id".}
 }
 \value{
 a \code{ggplot} object.
@@ -35,12 +38,10 @@ Plots the relative population abundances of the specified clustering.
 data(PBMC_fs, PBMC_panel, PBMC_md)
 re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 # run clustering
-lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-    "CD123", "CD14", "IgM", "HLA-DR", "CD7")
-re <- cluster(re, cols_to_use=lineage)
+re <- cluster(re)
 # plot relative population abundances 
-plotAbundances(re, k=12)                 # ...by sample 
-plotAbundances(re, k=8, by="cluster_id") # ...by cluster
+plotAbundances(re, k="meta12")                 # ...by sample 
+plotAbundances(re, k="meta8", by="cluster_id") # ...by cluster
 
 }
 \references{
@@ -50,5 +51,5 @@ high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

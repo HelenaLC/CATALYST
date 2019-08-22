@@ -26,10 +26,10 @@ assignPrelim(x, y, ...)
 \arguments{
 \item{x}{a \code{\link{flowFrame}} or character of an FCS file name.}
 
-\item{y}{the debarcoding scheme. A binary matrix with sample names as row names and 
-numeric masses as column names OR a vector of numeric masses corresponding
-to barcode channels. When the latter is supplied, \code{assignPrelim} will
-create a scheme of the appropriate format internally.}
+\item{y}{the debarcoding scheme. A binary matrix with sample names as row
+names and numeric masses as column names OR a vector of numeric masses 
+corresponding to barcode channels. When the latter is supplied, 
+`assignPrelim` will create a scheme of the appropriate format internally.}
 
 \item{...}{optional arguments.}
 
@@ -58,5 +58,5 @@ and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

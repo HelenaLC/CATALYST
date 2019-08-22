@@ -11,6 +11,13 @@
 #'   character string. If specified, an FCS file of the concatenated data 
 #'   will be written to this location. 
 #'   If NULL (default), a \code{flowFrame} will be returned.
+#' @param fn
+#'   a character string to use as the output file name. Defaults to 
+#'   the file name of the first input FCS file or \code{flowFrame},
+#'   respectively. 
+#' @param fn_sep
+#'   a character string to use to separate the output file name's prefix
+#'   from the appendage.
 #' @param by_time
 #'  logical. Specifies whether files should be ordered by time of acquisition.
 #' @param file_num
@@ -23,7 +30,7 @@
 #' a \code{flowFrame} containing measurement intensities 
 #' of all input data or a character of the FCS file name.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @examples
 #' data(raw_data)
@@ -37,16 +44,20 @@
 
 setMethod(f="concatFCS",
     signature=signature(x="flowSet"),
-    definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE, 
-        pars=NULL, desc=NULL) {
-        
-        ### check validity of pars and desc
+    definition=function(x, out_path=NULL, fn=NULL, fn_sep="_", 
+        by_time=TRUE, file_num=FALSE, pars=NULL, desc=NULL) {
+
+        # check validity of 'out_path', 'fn', and 'fn_sep'
+        stopifnot(is.null(out_path) || (
+            is.character(out_path) & dir.exists(out_path)))
+        stopifnot(is.null(fn) || is.character(fn))
+        stopifnot(is.character(fn_sep))
         
         n <- length(x)
         if (by_time) {
             # order by time
             bts <- keyword(x, "$BTIM")
-            if (any(sapply(bts, is.null))) {
+            if (any(vapply(bts, is.null, logical(1)))) {
                 message("Not all samples contain information on their",
                     " acquisition time.\nIgnoring argument 'by_time';",
                     " samples will be kept in their original order.")
@@ -58,7 +69,7 @@ setMethod(f="concatFCS",
         nPars <- ncol(x[[1]])
         nEvents <- as.numeric(keyword(x, "$TOT"))
         
-        es <- concat_fs(x, nEvents)
+        es <- .concat_fs(x, nEvents)
         
         # get descriptions
         d <- description(x[[1]])
@@ -70,8 +81,9 @@ setMethod(f="concatFCS",
 
         # alter some slots
         d$`$TOT` <- sum(nEvents)
-        d$`GUID` <- gsub("(_)*([[:digit:]]*)(.fcs)$", 
-            "_concat.fcs", d$ORIGINALGUID, ignore.case=TRUE)
+        if (is.null(fn))
+            fn <- gsub("(_)*([[:digit:]]*)(.fcs)$", "", d$ORIGINALGUID, TRUE)
+        d$`GUID` <- paste(fn, "concat.fcs", sep=fn_sep)
         d <- d[!names(d) %in% c("$FIL", "FILENAME", "ORIGINALGUID")]
         d$`FILE LIST` <- paste(paste0(seq_len(n), 
             "-", keyword(x, "ORIGINALGUID")), collapse=",")
@@ -100,15 +112,20 @@ setMethod(f="concatFCS",
         d[paste0("flowCore_$P", seq_len(nPars), "Rmax")] <- paste(maxs-1)
         
         # get parameters
-        PnS <- paste0("$P", seq_len(nPars), "S")
-        descr <- unlist(d[PnS])
-        inds <- PnS %in% names(descr)
-        newD <- rep(NA, nPars)
-        newD[inds] <- descr
-        newD <- as.list(setNames(newD, PnS))
+        # check if descriptions are unique across frames
+        ds <- vapply(fsApply(x, parameters), 
+            "[[", i = 2, character(ncol(x[[1]])))
+        if (!any(apply(ds, 1, function(ds) length(unique(ds)) == 1)))
+            message("Descriptions don't match across frames.",
+                " Keeping the 1st flowFrame's descriptions.")
+        ds <- ds[, 1]
+        if (file_num) {
+            ds <- c(ds, NA)
+            names(ds)[length(ds)] <- NA
+        }
         df <- data.frame(list(
             name=colnames(es),
-            desc=PnS,
+            desc=ds,
             range=maxs,
             minRange=mins,
             maxRange=maxs-1))
@@ -128,7 +145,9 @@ setMethod(f="concatFCS",
 #' @rdname concatFCS
 setMethod(f="concatFCS",
     signature=signature(x="character"),
-    definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE) {
+    definition=function(x, 
+        out_path=NULL, fn=NULL, fn_sep="_", 
+        by_time=TRUE, file_num=FALSE) {
         if (length(x) == 1) {
             fcs <- list.files(x, ".fcs", full.names=TRUE, ignore.case=TRUE)
         } else {
@@ -145,7 +164,7 @@ setMethod(f="concatFCS",
         }
         ffs <- lapply(fcs, flowCore::read.FCS, 
             transformation=FALSE, truncate_max_range=FALSE)
-        concatFCS(ffs, out_path, by_time, file_num)
+        concatFCS(ffs, out_path, fn, fn_sep, by_time, file_num)
     })
 
 # ------------------------------------------------------------------------------
@@ -153,11 +172,13 @@ setMethod(f="concatFCS",
 #' @rdname concatFCS
 setMethod(f="concatFCS",
     signature=signature(x="list"),
-    definition=function(x, out_path=NULL, by_time=TRUE, file_num=FALSE) {
+    definition=function(x, 
+        out_path=NULL, fn=NULL, fn_sep="_", 
+        by_time=TRUE, file_num=FALSE) {
         # check that list elements are flowFrames
-        if (any(sapply(x, class) != "flowFrame")) 
+        if (!any(vapply(x, is, class2 = "flowFrame", logical(1)))) 
             stop("Invalid input; all list elements should be flowFrames.")
         if (length(x) == 1) 
             stop("Only a single flowFrame has been provided.")
-        concatFCS(as(x, "flowSet"), out_path, by_time, file_num)
+        concatFCS(as(x, "flowSet"), out_path, fn, fn_sep, by_time, file_num)
     })

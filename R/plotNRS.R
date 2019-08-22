@@ -6,11 +6,15 @@
 #'
 #' @param x 
 #'   a \code{\link{daFrame}}.
+#' @param markers
+#'   character string specifying which markers to include. Defaults to NULL 
+#'   (= all markers). Alternatively, if the \code{colData(x)$marker_class} 
+#'   column is specified, can be one of "type", "state", or "none".
 #' @param color_by 
 #'   character string. Has to appeara as a column name of \code{rowData(x)}.
 #'   Specifies the color coding.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
@@ -27,11 +31,12 @@
 #' 
 #' @import ggplot2
 #' @importFrom reshape2 melt
+#' @importFrom S4Vectors metadata
 # ------------------------------------------------------------------------------
 
 setMethod(f="plotNRS", 
     signature=signature(x="daFrame"), 
-    definition=function(x, color_by="condition") {
+    definition=function(x, markers=NULL, color_by="condition") {
         
         # validity check
         md <- metadata(x)$experiment_info
@@ -40,16 +45,31 @@ setMethod(f="plotNRS",
             stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
                 "Should be one of: ", paste(dQuote(valid), collapse=", "))
 
+        # check validity of argument 'markers'
+        if (is.null(markers)) {
+            markers <- colnames(x)
+        } else if (length(markers) == 1 &&
+                markers %in% levels(colData(x)$marker_class)) {
+            idx <- colData(x)$marker_class == markers
+            if (!any(idx))
+                stop(sprintf("No markers matched marker class '%s'.", markers))
+            markers <- colnames(x)[idx]
+        } else {
+            # replace problematic characters
+            markers <- gsub("-", "_", markers)
+            markers <- gsub(":", ".", markers)
+            stopifnot(all(markers %in% colnames(x)))
+        }
+        
         # calculate NRS
-        scores <- t(sapply(md$sample_id, function(i) 
-            nrs(exprs(x)[sample_ids(x) == i, ])))
-        rownames(scores) <- md$sample_id
+        scores <- t(vapply(md$sample_id, function(i) 
+            .nrs(exprs(x)[sample_ids(x) == i, markers]),
+            numeric(length(markers))))
         mean_scores <- colMeans(scores, na.rm=TRUE)
         
         # plot NRS in decreasing order
         o <- names(sort(mean_scores, decreasing=TRUE))
-        m <- match(rownames(scores), md$sample_id)
-        scores <- data.frame(scores[, o], md[m, ])
+        scores <- data.frame(scores[, o], md)
         df <- melt(scores, id.var=names(md), 
             variable.name="antigen", value.name="NRS") 
         df$antigen <- factor(df$antigen, levels=o)

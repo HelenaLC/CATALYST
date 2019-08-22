@@ -96,4 +96,3 @@ test_that("computeSpillmat() works.", {
     expect_equal(spillMat, sm, info='Test if spillover matrix can be reconstructed
                  from simulated single cells with 20% noise.')
 })
-    

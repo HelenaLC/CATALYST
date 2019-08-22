@@ -173,6 +173,17 @@ setGeneric("compCytof",
 # Generics to access slots in a daFrame
 # ------------------------------------------------------------------------------
 
+#' @rdname daFrame-class
+#' @param ... optional arguments.
+#' @export
+setGeneric("daFrame", 
+    function(x, panel, md, ...) standardGeneric("daFrame"))
+
+#' @rdname daFrame-methods
+#' @export
+setGeneric("ei", 
+    function(x) standardGeneric("ei"))
+
 #' @rdname daFrame-methods
 #' @export
 setGeneric("n_cells", 
@@ -204,13 +215,19 @@ setGeneric("cluster_codes",
     function(x) standardGeneric("cluster_codes"))
 
 #' @rdname daFrame-methods
+#' @param ... optional arguments.
 #' @export
 setGeneric("cluster_ids",  
-    function(x) standardGeneric("cluster_ids"))
+    function(x, ...) standardGeneric("cluster_ids"))
 
 # ==============================================================================
 # Generics for differential analysis
 # ------------------------------------------------------------------------------
+
+#' @rdname filter
+#' @export
+setGeneric("filter", 
+    function(x, ..., k) standardGeneric("filter"))
 
 #' @rdname guessPanel
 #' @param ... optional arguments.
@@ -229,6 +246,12 @@ setGeneric("plotCounts",
 #' @export
 setGeneric("plotExprs", 
     function(x, ...) standardGeneric("plotExprs"))
+
+#' @rdname plotClusterExprs
+#' @param ... optional arguments.
+#' @export
+setGeneric("plotClusterExprs", 
+    function(x, ...) standardGeneric("plotClusterExprs"))
 
 #' @rdname plotMDS
 #' @param ... optional arguments.
@@ -252,7 +275,7 @@ setGeneric("cluster",
 #' @param ... optional arguments.
 #' @export
 setGeneric("mergeClusters", 
-    function(x, table, id) standardGeneric("mergeClusters"))
+    function(x, k, table, id) standardGeneric("mergeClusters"))
 
 #' @rdname plotAbundances
 #' @param ... optional arguments.
@@ -284,17 +307,16 @@ setGeneric("plotCodes",
 setGeneric("plotNRS", 
     function(x, ...) standardGeneric("plotNRS"))
 
-#' @rdname tSNE
-#' @param ... optional arguments.
+#' @rdname runDR
 #' @export
-setGeneric("tSNE", 
-    function(x, ...) standardGeneric("tSNE"))
+setGeneric("runDR", 
+    function(x, ...) standardGeneric("runDR"))
 
-#' @rdname plotSNE
+#' @rdname plotDR
 #' @param ... optional arguments.
 #' @export
-setGeneric("plotSNE", 
-    function(x, ...) standardGeneric("plotSNE"))
+setGeneric("plotDR", 
+    function(x, ...) standardGeneric("plotDR"))
 
 #' @rdname plotDiffHeatmap
 #' @param ... optional arguments.

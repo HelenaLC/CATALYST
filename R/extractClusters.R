@@ -28,8 +28,8 @@
 #'   logical.
 #'   Should information on progress be reported?
 #' 
-#' @author Mark D Robinson,
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Mark D Robinson and
+#' Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @return a \code{flowSet} or character vector of the output file names.
 #' 
@@ -38,19 +38,17 @@
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' # run clustering
-#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-#'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-#' re <- cluster(re, cols_to_use=lineage)
+#' re <- cluster(re)
 #' 
 #' # merge clusters
-#' re <- mergeClusters(re, merging_table, "merging_1")
-#' extractClusters(re, k = "merging_1")
+#' re <- mergeClusters(re, k="meta20", table=merging_table, id="merging_1")
+#' extractClusters(re, k="merging_1")
 #' 
 #' @importFrom flowCore identifier<- description<- write.FCS
 # ------------------------------------------------------------------------------
 
 setMethod(f="extractClusters", 
-    signature=signature(x="daFrame"), 
+    signature=signature(x="daFrame", k="character"), 
     definition=function(x, k, clusters=NULL, 
         as=c("flowSet", "fcs"), out_dir=".", verbose=TRUE) {
         
@@ -65,8 +63,7 @@ setMethod(f="extractClusters",
         
         # get cluster IDs
         if (verbose) message("Extracting cluster IDs...")
-        k <- check_validity_of_k(x, k)
-        cluster_ids <- cluster_codes(x)[cluster_ids(x), k]
+        cluster_ids <- cluster_ids(x, k)
         if (is.null(clusters)) {
             clusters <- levels(cluster_ids)
         } else {
@@ -89,13 +86,15 @@ setMethod(f="extractClusters",
                 ff <- new("flowFrame", exprs=es[u, , drop=FALSE])
                 identifier(ff) <- v
                 description(ff)$note <- paste0(nrow(ff), "/", n, " cells")
-                if (verbose) message("Writing ", nrow(ff), " cells to flowFrame ", dQuote(v), "...")
+                if (verbose) message("Writing ", nrow(ff), 
+                    " cells to flowFrame ", dQuote(v), "...")
                 return(ff)
             },
             fcs = function(u, v) {
                 ff <- new("flowFrame", exprs=es[u, , drop=FALSE])
                 fn <- file.path(out_dir, paste0(v, ".fcs"))
-                if (verbose) message("Writing ", nrow(ff), " cells to ", dQuote(fn), "...")
+                if (verbose) message("Writing ", nrow(ff), 
+                    " cells to ", dQuote(fn), "...")
                 suppressWarnings(write.FCS(ff, fn))
             }
         )

@@ -3,7 +3,7 @@ title: "Preprocessing with CATALYST"
 date: "`r BiocStyle::doc_date()`"
 author:
 - name: Helena L Crowell
-  email: crowellh@student.ethz.ch
+  email: helena.crowell@uzh.ch
 - name: Vito RT Zanotelli
 - name: Stéphane Chevrier
 - name: Bernd Bodenmiller

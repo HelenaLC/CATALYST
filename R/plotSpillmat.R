@@ -22,7 +22,7 @@
 #'   Names should be metals; list elements numeric vectors of their isotopes.
 #'   See \code{\link{isotope_list}} for the list of isotopes used by default.
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @return Plots estimated spill percentages as a heat map. 
 #' Colours are ramped to the highest spillover value present
@@ -43,6 +43,7 @@
 #' @import ggplot2 grid gridExtra
 #' @importFrom grDevices colorRampPalette
 #' @importFrom htmltools save_html
+#' @importFrom methods is
 #' @importFrom plotly ggplotly
 # ------------------------------------------------------------------------------
 
@@ -50,14 +51,16 @@ setMethod(f="plotSpillmat",
     signature=signature(bc_ms="numeric", SM="matrix"),
     definition=function(bc_ms, SM, out_path=NULL, 
         name_ext=NULL, annotate=TRUE, plotly=TRUE, 
-        isotope_list=CATALYST::isotope_list) {
+        isotope_list=NULL) {
     
-        SM <- check_sm(SM, isotope_list)
+        if (is.null(isotope_list))
+            isotope_list <- CATALYST::isotope_list
+        SM <- .check_sm(SM, isotope_list)
         nms <- colnames(SM)
         ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
         bc_cols <- which(ms %in% bc_ms)
         bc_range <- min(bc_cols) : max(bc_cols)
-        SM <- make_symetric(SM)[bc_range, bc_range]
+        SM <- .make_symetric(SM)[bc_range, bc_range]
         n <- length(bc_range)
         axis_labs <- nms[bc_range]
         ex <- !axis_labs %in% nms[bc_cols]
@@ -97,7 +100,7 @@ setMethod(f="plotSpillmat",
                 layout(margin=list(l=72, b=58)) 
         
         if (!is.null(out_path)) {
-            if (class(p)[1] == "plotly") {
+            if (is(p, "plotly")) {
                 htmltools::save_html(p, 
                     file.path(out_path, paste0("SpillMat", name_ext, ".html")))
             } else {
@@ -114,10 +117,10 @@ setMethod(f="plotSpillmat",
 #' @rdname plotSpillmat
 setMethod(f="plotSpillmat",
     signature=signature(bc_ms="ANY", SM="data.frame"),
-    definition=function(bc_ms, SM, 
-        out_path=NULL, name_ext=NULL, annotate=TRUE, plotly=TRUE) {
-        plotSpillmat(bc_ms, as.matrix(SM), out_path=NULL, 
-            name_ext=NULL, annotate=TRUE, plotly=TRUE)
+    definition=function(bc_ms, SM, out_path=NULL, name_ext=NULL, 
+        annotate=TRUE, plotly=TRUE, isotope_list=NULL) {
+        plotSpillmat(bc_ms, as.matrix(SM), out_path=NULL, name_ext=NULL, 
+            annotate=TRUE, plotly=TRUE, isotope_list=NULL)
     }
 )
 
@@ -125,9 +128,9 @@ setMethod(f="plotSpillmat",
 #' @rdname plotSpillmat
 setMethod(f="plotSpillmat",
     signature=signature(bc_ms="character", SM="ANY"),
-    definition=function(bc_ms, SM, 
-        out_path=NULL, name_ext=NULL, annotate=TRUE, plotly=TRUE) {
-        plotSpillmat(as.numeric(bc_ms), SM, out_path=NULL, 
-            name_ext=NULL, annotate=TRUE, plotly=TRUE)
+    definition=function(bc_ms, SM, out_path=NULL, name_ext=NULL, 
+        annotate=TRUE, plotly=TRUE, isotope_list=NULL) {
+        plotSpillmat(as.numeric(bc_ms), SM, out_path=NULL, name_ext=NULL, 
+            annotate=TRUE, plotly=TRUE, isotope_list=NULL)
     }
 )

@@ -44,15 +44,15 @@ barcode populations computed from normalized barcode intensities.}
 
 \item{\code{mhl_dists}}{mahalanobis distances.}
 
-\item{\code{sep_cutoffs}}{numeric vector of distance separation cutoffs between positive and negative 
-barcode populations above which events will be unassigned.}
+\item{\code{sep_cutoffs}}{numeric vector of distance separation cutoffs between positive 
+and negative barcode populations above which events will be unassigned.}
 
 \item{\code{mhl_cutoff}}{non-negative and non-zero numeric value specifying the 
 Mahalanobis distance below which events will be unassigned.}
 
 \item{\code{counts}}{matrix of dimension (# barcodes)x(101) where each row contains the number 
-of events within a barcode for which positive and negative populations 
-are separated by a distance between in [0,0.01), ..., [0.99,1], respectively.}
+of events within a barcode for which positive & negative populations are 
+separated by a distance between in [0,0.01), ..., [0.99,1], respectively.}
 
 \item{\code{yields}}{a matrix of dimension (# barcodes)x(101) where each row contains the 
 percentage of events within a barcode that will be obtained after applying
@@ -60,5 +60,5 @@ a separation cutoff of 0, 0.01, ..., 1, respectively.}
 }}
 
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

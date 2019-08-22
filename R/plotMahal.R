@@ -18,7 +18,7 @@
 #' @return Plots all inter-barcode interactions for the population specified
 #' by argument \code{which}. Events are colored by their Mahalanobis distance. 
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -50,7 +50,7 @@ setMethod(f="plotMahal",
         if (length(inds) > 5e3) 
             inds <- sample(inds, 5e3)
         nms <- colnames(exprs(x))
-        ms <- as.numeric(get_ms_from_chs(nms))
+        ms <- as.numeric(.get_ms_from_chs(nms))
         bc_cols <- ms %in% colnames(bc_key(x))
         es <- asinh(exprs(x)[inds, bc_cols] / cofactor)
         
@@ -103,7 +103,7 @@ setMethod(f="plotMahal",
                             paste(bc_key(x)[which,], collapse="")))
                 if (first) {
                     # get color bar
-                    lgd <- get_legend(ps[[p]] + 
+                    lgd <- .get_legend(ps[[p]] + 
                             guides(colour=guide_colourbar(
                                 title.position="top", title.hjust=.5)) + 
                             theme(legend.direction="horizontal",

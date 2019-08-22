@@ -8,19 +8,20 @@
 \usage{
 plotExprHeatmap(x, ...)
 
-\S4method{plotExprHeatmap}{daFrame}(x, anno = TRUE, color_by = NULL,
-  palette = brewer.pal(n = 8, name = "YlGnBu"), scale = TRUE,
-  draw_freqs = FALSE, clustering_distance = "euclidean",
-  clustering_linkage = "average")
+\S4method{plotExprHeatmap}{daFrame}(x, bin_anno = TRUE,
+  row_anno = TRUE, palette = brewer.pal(n = 8, name = "YlGnBu"),
+  scale = TRUE, draw_freqs = FALSE,
+  clustering_distance = "euclidean", clustering_linkage = "average")
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{anno}{logical. Specifies whether to display values insinde each bin.}
+\item{bin_anno}{logical. Specifies whether to display values insinde each bin.}
 
-\item{color_by}{character string. Specifies the row annotation.}
+\item{row_anno}{logical. Should row annotations for each factor 
+in \code{metadata(x)} be included?}
 
 \item{palette}{character vector of colors to interpolate.}
 
@@ -49,8 +50,8 @@ boundaries. Hierarchical clustering is performed on the unscaled data.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
-re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-plotExprHeatmap(re[, 1:5], draw_freqs=TRUE)
+daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+plotExprHeatmap(daf[, 1:5], draw_freqs=TRUE)
 
 }
 \references{
@@ -60,5 +61,5 @@ high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

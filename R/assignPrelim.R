@@ -3,17 +3,13 @@
 #' 
 #' @description Assigns a preliminary barcode ID to each event.
 #'
-#' @param x 
-#'   a \code{\link{flowFrame}} or character of an FCS file name.
-#' @param y
-#'   the debarcoding scheme. A binary matrix with sample names as row names and 
-#'   numeric masses as column names OR a vector of numeric masses corresponding
-#'   to barcode channels. When the latter is supplied, \code{assignPrelim} will
-#'   create a scheme of the appropriate format internally.
-#' @param cofactor 
-#'   numeric. Cofactor used for asinh transformation.
-#' @param verbose
-#'   logical. Should extra information on progress be reported?
+#' @param x a \code{\link{flowFrame}} or character of an FCS file name.
+#' @param y the debarcoding scheme. A binary matrix with sample names as row
+#'   names and numeric masses as column names OR a vector of numeric masses 
+#'   corresponding to barcode channels. When the latter is supplied, 
+#'   `assignPrelim` will create a scheme of the appropriate format internally.
+#' @param cofactor numeric. Cofactor used for asinh transformation.
+#' @param verbose logical. Should extra information on progress be reported?
 #'
 #' @return 
 #' Returns a \code{\link{dbFrame}} containing measurement intensities,
@@ -21,7 +17,7 @@
 #' between positive and negative barcode populations, and barcode intensities
 #' normalized by population. 
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -64,7 +60,7 @@ setMethod(f="assignPrelim",
         # COMPUTE DEBARCODING
         # assign barcode ID to ea. event 
         if (verbose) message("Debarcoding data...")
-        bc_ids <- get_ids(bcs, y, ids, verbose)
+        bc_ids <- .get_ids(bcs, y, ids, verbose)
         inds <- match(bc_ids, ids)
         
         # NORMALIZE BY POPULATION
@@ -84,7 +80,7 @@ setMethod(f="assignPrelim",
         
         # get deltas from normalized intensities 
         if (verbose) message("Computing deltas...")
-        deltas <- get_deltas(normed_bcs, y, verbose)
+        deltas <- .get_deltas(normed_bcs, y, verbose)
         
         seps <- seq(0, 1, .01)
         n_seps <- length(seps)

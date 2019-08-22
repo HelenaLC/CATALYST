@@ -45,8 +45,8 @@ shinyServer(function(input, output, session) {
         check2 <- length(names(l)) != length(l)
         check3 <- any(sapply(l, length) == 0)
         check4 <- !all(sapply(l, is.numeric))
-        check5 <- any(!equals(sapply(l, length), 
-            sapply(l, function(x) length(unique(x)))))
+        check5 <- any(sapply(l, length) != 
+            sapply(l, function(x) length(unique(x))))
         if (any(c(check1, check2, check3, check4, check5))) {
             showNotification(duration=NULL,
                 "Specified custom isotope list is invalid.

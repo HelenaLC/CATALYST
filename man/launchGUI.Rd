@@ -21,5 +21,5 @@ online, please visit \emph{http://imlspenticton.uzh.ch:3838/CATALYSTLite}.
 
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

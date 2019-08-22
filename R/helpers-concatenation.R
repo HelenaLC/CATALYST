@@ -2,7 +2,7 @@
 # concatenation expression matrices of a flowSet
 # ------------------------------------------------------------------------------
 
-concat_fs <- function(fs, ns) {
+.concat_fs <- function(fs, ns) {
     es <- fsApply(fs, exprs)
     timeCol <- grep("time", colnames(fs), ignore.case=TRUE)
     start <- c(1, cumsum(ns)+1)

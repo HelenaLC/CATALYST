@@ -8,15 +8,17 @@
 \usage{
 cluster(x, ...)
 
-\S4method{cluster}{daFrame}(x, cols_to_use, xdim = 10, ydim = 10,
-  maxK = 20, verbose = TRUE, seed = 1)
+\S4method{cluster}{daFrame}(x, cols_to_use = NULL, xdim = 10,
+  ydim = 10, maxK = 20, verbose = TRUE, seed = 1)
 }
 \arguments{
 \item{x}{a \code{\link{daFrame}}.}
 
 \item{...}{optional arguments.}
 
-\item{cols_to_use}{a character vector. Specifies which antigens to use for clustering.}
+\item{cols_to_use}{a character vector. Specifies which antigens to use for clustering.
+The default (NULL) uses \code{type_markers(x)}. Must be provided if 
+\code{colData(x)$marker_class} has not been specified.}
 
 \item{xdim, ydim}{numeric. Specify the grid size of the self-orginizing map. 
 The default 10x10 grid will yield 100 clusters.}
@@ -74,12 +76,10 @@ a considerable increase in stability (pleateau onset).
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
-re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 
-# specify antigens to use for clustering
-lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-    "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-(re <- cluster(re, cols_to_use=lineage))
+# run clustering
+(daf <- cluster(daf))
 
 }
 \references{
@@ -89,5 +89,5 @@ high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

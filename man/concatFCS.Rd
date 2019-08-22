@@ -10,14 +10,15 @@
 \usage{
 concatFCS(x, ...)
 
-\S4method{concatFCS}{flowSet}(x, out_path = NULL, by_time = TRUE,
-  file_num = FALSE, pars = NULL, desc = NULL)
+\S4method{concatFCS}{flowSet}(x, out_path = NULL, fn = NULL,
+  fn_sep = "_", by_time = TRUE, file_num = FALSE, pars = NULL,
+  desc = NULL)
 
-\S4method{concatFCS}{character}(x, out_path = NULL, by_time = TRUE,
-  file_num = FALSE)
+\S4method{concatFCS}{character}(x, out_path = NULL, fn = NULL,
+  fn_sep = "_", by_time = TRUE, file_num = FALSE)
 
-\S4method{concatFCS}{list}(x, out_path = NULL, by_time = TRUE,
-  file_num = FALSE)
+\S4method{concatFCS}{list}(x, out_path = NULL, fn = NULL,
+  fn_sep = "_", by_time = TRUE, file_num = FALSE)
 }
 \arguments{
 \item{x}{can be either a \code{flowSet}, a list of \code{flowFrame}s, 
@@ -29,6 +30,13 @@ or a vector of FCS file names.}
 \item{out_path}{character string. If specified, an FCS file of the concatenated data 
 will be written to this location. 
 If NULL (default), a \code{flowFrame} will be returned.}
+
+\item{fn}{a character string to use as the output file name. Defaults to 
+the file name of the first input FCS file or \code{flowFrame},
+respectively.}
+
+\item{fn_sep}{a character string to use to separate the output file name's prefix
+from the appendage.}
 
 \item{by_time}{logical. Specifies whether files should be ordered by time of acquisition.}
 
@@ -50,5 +58,5 @@ concatFCS(raw_data)
 
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

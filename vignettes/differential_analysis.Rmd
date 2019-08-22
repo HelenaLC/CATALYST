@@ -7,7 +7,7 @@ author:
   - &IMLS Institute for Molecular Life Sciences, University of Zurich, Switzerland
   - &SIB SIB Swiss Institute of Bioinformatics, University of Zurich, Switzerland
   - Department of Biosystems Science and Engineering ETH, ETH Zurich, Switzerland
-  email: crowellh@student.ethz.ch
+  email: helena.crowell@uzh.ch
 - name: Mark D Robinson
   affiliation:
   - *IMLS
@@ -24,12 +24,14 @@ output:
 
 ---
 
-<span style="color:firebrick">**Most of the pipeline and visualizations presented herein were adapted from @Nowicka17's *"CyTOF workflow: differential discovery in high-throughput high-dimensional cytometry datasets"*. For the complete workflow, go [here](10.12688/f1000research.11622.2).**</span>
+<span style="color:firebrick">**Most of the pipeline and visualizations presented herein were adapted from @Nowicka17's *"CyTOF workflow: differential discovery in high-throughput high-dimensional cytometry datasets"*. For the complete workflow, go [here](https://doi.org/10.12688/f1000research.11622.2).**</span>
 
 ```{r warning=FALSE}
 # load required packages
 suppressPackageStartupMessages({
     library(CATALYST)
+    library(flowCore)
+    library(diffcyt)
     library(SummarizedExperiment)
 })
 ```
@@ -40,7 +42,7 @@ suppressPackageStartupMessages({
 a `flowSet` holding PBMCs samples from 4 patients, each containing between 500 and 1000 cells. For each sample, the expression of 10 cell surface and 14 signaling markers was measured before (REF) and upon BCR/FcR-XL stimulation (BCRXL) with B cell receptor/Fc receptor crosslinking for 30', resulting in a total of 8 samples.  
 This data set represents a subset of data originating from @Bodenmiller12 that was also used in the [citrus](https://github.com/nolanlab/citrus) paper [@Bruggner14].
 - `PBMC_panel`:  
-a data.frame containing each marker's column name in the FCS file (`fcs_colname` column), and its targeted protein marker (`antigen` column).
+a data.frame containing each marker's column name in the FCS file (`fcs_colname` column), its targeted protein marker (`antigen` column), and the `marker_class` ("type" or "state"). 
 - `PBMC_md`:  
 a data.frame where rows correspond to samples, and columns specify each sample's `file_name`, `sample_id`, `condition`, and `patient_id`.
 
@@ -62,7 +64,6 @@ download.file(paste0(url, "/", fcs_zip), destfile = fcs_zip, mode = "wb")
 unzip(fcs_zip)
 
 # read in FCS files as flowSet
-library(flowCore)
 fcs_files <- list.files(pattern = ".fcs$")
 fs <- read.flowSet(fcs_files, transformation = FALSE, truncate_max_range = FALSE)
 ```
@@ -79,7 +80,7 @@ Optionally, `cols_to_use` will specify which columns (channels) to keep from the
 
 ```{r}
 # construct daFrame
-(daF <- daFrame(PBMC_fs, PBMC_panel, PBMC_md))
+(daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md))
 ```
 
 We provide flexibility in the way the panel and metadata table can be set up. Specifically, column names are allowed to differ from the example above, and multiple factors (patient ID, conditions, batch etc.) can be specified. Arguments `panel_cols` and `md_cols` should then be used to specify which columns hold the required information. An example is given below:
@@ -87,7 +88,7 @@ We provide flexibility in the way the panel and metadata table can be set up. Sp
 ```{r eval=FALSE}
 # alter panel column names
 panel2 <- PBMC_panel
-colnames(panel2) <- c("channel_name", "marker")
+colnames(panel2)[1:2] <- c("channel_name", "marker")
 
 # alter metadata column names & add 2nd condition
 md2 <- PBMC_md
@@ -110,8 +111,8 @@ Note that, independent of the input panel and metadata tables, the constructor w
 The number of cells measured per sample may be plotted with `plotCounts`, or directly accessed via `n_cells()`. This plot should be used as a guide together with other readouts to identify samples where not enough cells were assayed.
 
 ```{r fig.width=6, fig.height=3.5}
-n_cells(daF)
-plotCounts(daF, color_by = "condition")
+n_cells(daf)
+plotCounts(daf, color_by = "condition")
 ```
 
 ## `plotMDS`: Multi-dimensional scaling plot
@@ -119,28 +120,28 @@ plotCounts(daF, color_by = "condition")
 A multi-dimensional scaling (MDS) plot on median expresion values may be rendered with `plotMDS`. Such a plot will give a sense of similarities between samples in an unsupervised way and of key difference in expression before conducting any formal testing. In our example, we can see a clear separation between reference (REF) and stimulation condition (BCRXL).
 
 ```{r fig.width=5, fig.height=4.5}
-plotMDS(daF, color_by = "condition")
+plotMDS(daf, color_by = "condition")
 ```
 
 ## `plotExprHeatmap`: Heatmap of (scaled) median marker expressions
 
-`plotExprHeatmap` will show a heatmap on median marker intensities with hierarchically clustered columns (samples) and rows (markers). This plot should give an idea of which markers will drive sample clustering, and how similiar samples are in their expression profile.
+`plotExprHeatmap` will show a heatmap on median marker intensities with hierarchically clustered rows (samples) and columns (markers). This plot should give an idea of which markers will drive sample clustering, and how similiar samples are in their expression profile. We specify `bin_anno = TRUE` to display expression values inside each bin, and `row_anno = TRUE` to include row annotations for each factor in `metadata(daf)`. 
 
 ```{r fig.width=10, fig.height=6}
-plotExprHeatmap(daF, color_by = "condition")
+plotExprHeatmap(daf, bin_anno = TRUE, row_anno = TRUE)
 ```
 
 # Clustering
 
 ## `cluster`: *FlowSOM* clustering & *ConsensusClusterPlus* metaclustering
 
-`r Biocpkg("CATALYST")` provides a simple wrapper to perform high resolution `FlowSOM` clustering and lower resolution `ConsensusClusterPlus` metaclustering. By default, the data will be initially clustered into `xdim = 10` x `ydim = 10` = 100 groups. Secondly, the function will metacluster populations into 2 through `maxK` (default 20) clusters. To make analyses reproducible, the random seed may be set via `seed`. 
+`r Biocpkg("CATALYST")` provides a simple wrapper to perform high resolution `FlowSOM` clustering and lower resolution `ConsensusClusterPlus` metaclustering. By default, the data will be initially clustered into `xdim = 10` x `ydim = 10` = 100 groups. Secondly, the function will metacluster populations into 2 through `maxK` (default 20) clusters. To make analyses reproducible, the random seed may be set via `seed`. By default, if the `colData()$marker_class` column is specified, the set of markers with marker class "type" will be used for clustering. Alternatively, the markers that should be used for clustering can be specified with argument `cols_to_use`.
 
 ```{r}
 # specify markers to use for clustering
 lineage_markers <- c("CD3", "CD45", "CD4", "CD20", 
     "CD33", "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-daF <- cluster(daF, cols_to_use = lineage_markers, 
+daf <- cluster(daf, cols_to_use = lineage_markers, 
     xdim = 10, ydim = 10, maxK = 20, verbose = FALSE, seed = 1)       
 ```
 
@@ -161,7 +162,35 @@ The delta area represents the amount of extra cluster stability gained when clus
 
 ```{r fig.width=5, fig.height=3}
 # access & render delta area plot
-metadata(daF)$delta_area
+metadata(daf)$delta_area
+```
+
+## `plotMedExprs`: Median marker-expressions by cluster
+
+A combined boxplot and jitter of median marker intensitied can be generated via `plotMedExprs`. In order to compare medians for each cluster, and potentially identify changes across conditions early on, we specify `facet = "cluster_id"`.
+
+```{r fig.width = 12, fig.height = 6}
+p <- plotMedExprs(daf, k = "meta8", facet = "cluster_id", 
+  group_by = "condition", shape_by = "patient_id")
+p$facet$params$ncol <- 4
+p
+```
+
+Alternatively, we can facet the above plot by `antigen` in order to compare marker expressions calculated over all cells across conditions:
+
+```{r fig.width = 12, fig.height = 8}
+p <- plotMedExprs(daf, facet = "antigen", 
+  group_by = "condition", shape_by = "patient_id")
+p$facet$params$ncol <- 6
+p
+```
+
+## `plotClusterExprs`: Marker-densities by cluster
+
+Distributions of marker intensities (arcsinh-transformed) across cell populations of interest can be plotted with `plotClusterExprs`. We specify `markers = "type"` (equivalent to `type_markers(daf)`), to include type-markers only. Here, blue densities are calculated over all cells and serve as a reference.
+
+```{r message = FALSE, fig.width = 12, fig.height = 8}
+plotClusterExprs(daf, k = "meta8", markers = "type")
 ```
 
 ## `mergeClusters`: Manual cluster merging
@@ -171,8 +200,8 @@ Provided with a 2 column data.frame containing `old_cluster` and `new_cluster` I
 ```{r}
 data(merging_table)
 head(merging_table)
-daF <- mergeClusters(daF, table = merging_table, id = "merging1")
-head(cluster_codes(daF))
+daf <- mergeClusters(daf, k = "meta20", table = merging_table, id = "merging1")
+head(cluster_codes(daf))
 ```
 
 ## `plotClusterHeatmap`: Heatmap of (meta)clustering results
@@ -188,12 +217,12 @@ While it is only used here for visualization, this additional transformation of 
 
 ```{r fig.width=8, fig.height=6}
 # median pS6 expression by sample as 2nd heatmap
-plotClusterHeatmap(daF, hm2 = "pS6", k=12, m = 6)
+plotClusterHeatmap(daf, hm2 = "pS6", k = "meta12", m = "meta6")
 ```
 
 ```{r fig.width=10, fig.height=6}
 # population frequencies by sample as 2nd heatmap
-plotClusterHeatmap(daF, hm2 = "abundances", 
+plotClusterHeatmap(daf, hm2 = "abundances", 
     draw_freqs = TRUE, cluster_anno = FALSE)
 ```
 
@@ -203,31 +232,52 @@ Relative population abundances for any clustering of interest can be plotted wit
 If `by = "sample_id"`, the function displays each sample's cell type composition, and the size of a given stripe reflects the proportion of the corresponding cell type the given sample. Argument `group` then specifies the facetting. If `by = "cluster_id"`, argument `group` then specifies the grouping and color coding. 
 
 ```{r fig.width=6, fig.height=4}
-plotAbundances(daF, k = 12, by = "sample_id", group = "condition")
-plotAbundances(daF, k = "merging1", by = "cluster_id", group = "condition")
+plotAbundances(daf, k = "meta12", by = "sample_id", group_by = "condition")
+plotAbundances(daf, k = "merging1", by = "cluster_id", 
+  group_by = "condition", shape_by = "patient_id")
 ```
 
-# Dimensionality reduction with `tSNE`
+# Dimensionality reduction with `runDR`
 
-Dimensionality reduction through t-SNE may be run via `tSNE`. Here, the subset of markers to use is specified with `cols_to_use`, and the number of cells to dowsample to per sample is given by `n`. Again, the random seed may be set via `seed` for reproducibility. 
+The set of dimension reduction (DR) methods available from the `r Biocpkg("scater")` can be applied using `runDR`. To make results reproducible, the random seed should be set via `set.seed` *prior* to running `runDR`. The subset of markers to use is specified via `cols_to_use`, and the cells to use with argument `rows_to_use`. When `rows_to_use` is a single numeric value N, `runDR` will draw a random subset of N cells per sample. 
+`CATALYST` allows DRs to use different sets of cells. In the example below, we can run a PCA on the full dataset, but more time-consuming methods, e.g., t-SNE or UMAP, on only a subset of cells.
 
 ```{r}
-daF <- tSNE(daF, cols_to_use = lineage_markers, 
-    n = 200, verbose = FALSE, seed = 42)
+# run PCA on all cells
+set.seed(1)
+daf <- runDR(daf, "PCA")
+
+# run UMAP on 200 cells per sample
+set.seed(2)
+daf <- runDR(daf, "UMAP", rows_to_use = 200)
 ```
 
-## `plotSNE`: t-SNE visualization
+As in a regular `r Biocpkg("SingleCellExperiment")`, DRs available within the `daFrame` can be viewed via `reducedDimNames` and accessed with `reducedDim(s)`.
+```{r}
+# view & access DRs
+reducedDimNames(daf)
+reducedDims(daf)
+head(reducedDim(daf, "PCA"))
 
-`plotSNE` is a flexbile wrapper to plot the t-SNE colored by clustering or marker expression. Furthermore, the data may be split by condition, sample ID, or any other factor available in the `daFrame`'s `rowData`. 
+# all cells
+nrow(reducedDim(daf, "PCA")) == nrow(daf) 
+
+# 200 per sample
+nrow(reducedDim(daf, "UMAP")) == 200 * nlevels(sample_ids(daf))
+```
+
+## `plotDR`: Visualizing reduced dimensions
+
+`plotDR` is a flexbile wrapper to plot reduced dimensions stored within the `reducedDims` slot of a `daFrame`. The coloring of cell projections is specified with argument `color_by`, and may correspond to a marker, clustering, or any factor available in the `daFrame`'s `rowData`. In order to facilitate comparing reduced dimensions across experimental groups or samples, embeddings can be split via `facet`.
 
 ```{r fig.width=7, fig.height=3}
-# color by pS6 expression and split by condition
-plotSNE(daF, color_by = "pS6", facet = "condition")
+# color by marker expression & split by condition
+plotDR(daf, "UMAP", color_by = "pS6", facet = "condition")
 ```
 
 ```{r fig.width=8, fig.height=4}
 # color by 8 metaclusters & split by sample ID
-plotSNE(daF, color_by = 8, facet = "sample_id")
+plotDR(daf, "UMAP", color_by = "meta8", facet = "sample_id")
 ```
 
 # Differental testing with `r Biocpkg("diffcyt")`
@@ -236,17 +286,19 @@ plotSNE(daF, color_by = 8, facet = "sample_id")
 Please refer to the `r Biocpkg("diffcyt")` [vignette](https://bioconductor.org/packages/3.7/bioc/vignettes/diffcyt/inst/doc/diffcyt_workflow.html) and R documentation (`??diffcyt`) for more detailed information.
 
 ```{r message=FALSE, warning=FALSE, fig.show='hide'}
-library(diffcyt)
 # create design & constrast matrix
-design <- createDesignMatrix(PBMC_md, cols_design=3)
+formula <- createFormula(
+    experiment_info = PBMC_md, 
+    cols_fixed = "condition", 
+    cols_random = "patient_id")
 contrast <- createContrast(c(0, 1))
 # test for
 # - differential abundance (DA) of clusters
 # - differential states (DS) within clusters
-res_DA <- diffcyt(daF, design = design, contrast = contrast, 
-    analysis_type = "DA", method_DA = "diffcyt-DA-edgeR")
-res_DS <- diffcyt(daF, design = design, contrast = contrast, 
-    analysis_type = "DS", method_DS = "diffcyt-DS-limma", plot = FALSE)
+res_DA <- diffcyt(daf, contrast = contrast, formula = formula, 
+    analysis_type = "DA", method_DA = "diffcyt-DA-GLMM", clustering_to_use = "meta10")
+res_DS <- diffcyt(daf, contrast = contrast, formula = formula, 
+    analysis_type = "DS", method_DS = "diffcyt-DS-LMM", clustering_to_use = "meta10")
 ```
 
 ## `plotDiffHeatmap`: Heatmap of differential testing results
@@ -256,18 +308,18 @@ Differential testing results returned by `r Biocpkg("diffcyt")` can be displayed
 For differential abundance (DA) tests, `plotDiffHeatmap` will display
 
 - median (arcsinh-transformed) cell-type marker expressions (across all samples), and
-- cluster abundances by samples
+- relative cluster abundances by samples
 
 For differential state (DS) tests, `plotDiffHeatmap` will display
 
 - median (arcsinh-transformed) cell-type marker expressions (across all samples)
 - median (arcsinh-transformed) cell-state marker expressions by sample
 
-Clusters (DA) and cluster-marker combinations (DS), respectively, will be marked as *significant* if their adjusted p-value falls below the threshold value specified with `th` (default 0.1), and will be ordered by significance if `order = TRUE` (the default). The number of top findings to display can be specified with `top_n` (default 20).
+Clusters (DA) and cluster-marker combinations (DS), respectively, will be marked as *significant* if their adjusted p-value falls below the threshold value specified with `th` (default 0.1), and will be ordered by significance if `order = TRUE` (the default). The number of top findings to display can be specified with `top_n` (default 20). When `normalize = TRUE`, the right-hand side heatmap will display Z-score normalized values. For DA, cluster frequencies will be arcsine-square-root scaled prior to normalization.
 
 ```{r fig.width=10, fig.height=6}
-plotDiffHeatmap(daF, res_DA, th = 1e-3, top_n = 25)
-plotDiffHeatmap(daF, res_DS, top_n = 10)
+plotDiffHeatmap(daf, res_DA, all = TRUE, th = 0.05)
+plotDiffHeatmap(daf, res_DS, top_n = 20)
 ```
 
 # Session Information

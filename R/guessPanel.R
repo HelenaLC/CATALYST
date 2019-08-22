@@ -20,8 +20,8 @@
 #' \item{\code{use_channel}: logical. If TRUE, the channel 
 #' is expected to contain a marker and will be kept.}}
 #' 
-#' @author Mark D Robinson, 
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Mark D Robinson, and
+#' Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @examples
 #' # examplary data with Time, DNA, BC channels, etc.
@@ -43,10 +43,10 @@ setMethod(f="guessPanel",
         # make some guesses of how to parse / what columns to use
         if ( any(grepl("_", param_df$desc)) ) {
             ss <- strsplit(param_df$desc,"_")
-            param_df$desc.1 <- sapply(ss, .subset, 1)
-            param_df$antigen <- sapply(ss, .subset, 2)
+            param_df$desc.1 <- vapply(ss, .subset, i = 1, character(1))
+            param_df$antigen <- vapply(ss, .subset, i = 2, character(1))
             param_df$use_channel <- !is.na(param_df$antigen)
-            dont_use <- sapply(c("^BC", "dead", "DNA"), grep, param_df$antigen)
+            dont_use <- lapply(c("^BC", "dead", "DNA"), grep, param_df$antigen)
             param_df$use_channel[unlist(dont_use)] <- 0
         } else {
             param_df$antigen <- param_df$desc

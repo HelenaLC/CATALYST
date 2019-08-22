@@ -26,6 +26,20 @@
 #' @param th 
 #'   numeric. Threshold on adjusted p-values below which clusters (DA) 
 #'   or cluster-marker combinations (DS) should be considered significant.
+#' @param hm1 
+#'   logical. Specifies whether the left-hand side heatmap should be plotted.
+#' @param normalize
+#'   logical. Specifies whether Z-score normalized values should be plotted 
+#'   in the right-hand side heatmap. If \code{y} contains DA analysis results, 
+#'   relative population abundances will be arcsine-square-root scaled 
+#'   prior to normalization.
+#' @param row_anno
+#'   logical. Should a row annotation indicating whether cluster (DA) 
+#'   or cluster-marker combinations (DS) are significant, 
+#'   as well as adjusted p-values be included?
+#' @param col_anno
+#'   logical. Should column annotations for each factor 
+#'   in \code{metadata(x)} be included?
 #' 
 #' @details 
 #' For DA tests, \code{plotDiffHeatmap} will display
@@ -49,7 +63,7 @@
 #' @return a \code{\link{HeatmapList-class}} object.
 #' 
 #' @author Lukas M Weber and 
-#' Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @examples
 #' # construct daFrame
@@ -57,9 +71,7 @@
 #' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' # run clustering
-#' lineage <- c("CD3", "CD45", "CD4", "CD20", "CD33", 
-#'     "CD123", "CD14", "IgM", "HLA_DR", "CD7")
-#' re <- cluster(re, cols_to_use=lineage)
+#' re <- cluster(re)
 #' 
 #' ## differential analysis
 #' library(diffcyt)
@@ -72,9 +84,11 @@
 #' # - differential abundance (DA) of clusters
 #' # - differential states (DS) within clusters
 #' da <- diffcyt(re, design = design, contrast = contrast, 
-#'     analysis_type = "DA", method_DA = "diffcyt-DA-edgeR")
+#'     analysis_type = "DA", method_DA = "diffcyt-DA-edgeR",
+#'     clustering_to_use = "meta20")
 #' ds <- diffcyt(re, design = design, contrast = contrast, 
-#'     analysis_type = "DS", method_DS = "diffcyt-DS-limma")
+#'     analysis_type = "DS", method_DS = "diffcyt-DS-limma",
+#'     clustering_to_use = "meta20")
 #'     
 #' # display test results for
 #' # - top DA clusters
@@ -84,129 +98,181 @@
 #' 
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
-#' @importFrom dplyr group_by_ count summarise_all summarise_at 
-#' @importFrom magrittr %>%
+#' @importFrom scales hue_pal
 #' @importFrom stats quantile
-#' @importFrom tidyr complete
-#' @importFrom reshape2 acast
 # ------------------------------------------------------------------------------
 
-setMethod(f="plotDiffHeatmap", 
-    signature=signature(x="matrix", y="SummarizedExperiment"), 
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+setMethod(f = "plotDiffHeatmap",
+    signature = signature(x = "matrix", y = "SummarizedExperiment"),
+    definition = function(x, y, 
+        top_n = 20, all = FALSE, order = TRUE,
+        th = 0.1, hm1 = TRUE, normalize = TRUE, 
+        row_anno = TRUE, col_anno = TRUE, ...) {
+        
+        # validity checks
+        stopifnot(length(top_n) == 1, is.numeric(top_n))
+        stopifnot(length(all) == 1, is.logical(all))
+        stopifnot(length(order) == 1, is.logical(order))
+        stopifnot(length(th) == 1, is.numeric(th))
+        stopifnot(length(hm1) == 1, is.logical(hm1))
+        stopifnot(length(normalize) == 1, is.logical(normalize))
+        stopifnot(length(row_anno) == 1, is.logical(row_anno))
+        
         z <- list(...)
         sample_ids <- z$sample_ids
         cluster_ids <- z$cluster_ids
         marker_classes <- z$marker_classes
+        factors <- z$factors
         
-        # get differential analysis type
         y <- rowData(y)
-        type <- get_dt_type(y)
+        analysis_type <- .get_dt_type(y)
         
-        # compute medians by samples & clusters
-        df <- data.frame(x, sample_id=sample_ids, cluster_id=cluster_ids)
-        meds_by_sample <- data.frame(df %>% group_by_(~sample_id) %>% 
-                summarise_at(colnames(x), median), row.names=1)
-        meds_by_cluster <- data.frame(df %>% group_by_(~cluster_id) %>% 
-                summarise_at(colnames(x), median), row.names=1)
-
-        # color scale: 1%, 50%, 99% percentiles
-        qs <- quantile(meds_by_cluster[, marker_classes != "none"], c(.01, .5, .99), TRUE)
-        hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
-        
-        # get clusters or cluster-marker combinations to plot
+        # get clusters/cluster-marker combinations to plot
         if (order)
-            y <- y[order(y$p_adj), , drop=FALSE]
+            y <- y[order(y$p_adj), , drop = FALSE]
         if (all | top_n > nrow(y)) 
             top_n <- nrow(y)
         top <- y[seq_len(top_n), ]
-        meds_by_cluster <- meds_by_cluster[top$cluster_id, , drop=FALSE]
-        meds_by_cluster <- as.matrix(meds_by_cluster)
-        rownames(meds_by_cluster) <- top$cluster_id
         
-        # 1st heatmap:
-        # median type-marker expressions by cluster
-        hm1 <- diff_hm(matrix=meds_by_cluster[, marker_classes == "type"], 
-            col=hm_cols, name="expression", xlab="type_markers", 
-            row_title="cluster_id", row_names_side="left")
+        # 1st heatmap: median type-marker expression by cluster
+        if (hm1) {
+            type_markers <- colnames(x)[marker_classes == "type"]
+            meds <- .calc_meds(x[, type_markers], top, "c", cluster_ids)
+            qs <- quantile(meds, probs = c(.01, .5, .99), na.rm = TRUE)
+            hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
+            hm1 <- .diff_hm(
+                matrix = meds, 
+                col = hm_cols, 
+                name = "expression",
+                cluster_rows = !order,
+                xlab = "type_markers",
+                row_title = "cluster_id"[!is.null(hm1)],
+                row_names_side = "left")
+        } else {
+            hm1 <- NULL
+        }
+        
+        # column annotation: factors
+        if (col_anno) {
+            m <- match(levels(sample_ids), sample_ids)
+            df <- data.frame(factors[m, ], row.names = NULL)
+            col_anno <- .anno_factors(df, "column")
+        } else {
+            col_anno <- NULL
+        }
         
         # 2nd heatmap:
-        if (type == "DA") {
-            # cluster sizes by sample
-            n_cells <- df %>% count(cluster_id, sample_id) %>% complete(sample_id)
-            n_cells <- reshape2::acast(n_cells, cluster_id~sample_id, value.var="n", fill=0)
-            n_cells <- n_cells[top$cluster_id, , drop=FALSE]
-            
-            hm2 <- diff_hm(matrix=n_cells, name="n_cells",
-                col=colorRamp2(range(n_cells), c("navy", "yellow")),
-                xlab="sample_id", show_row_names=FALSE)
-        } else if (type == "DS") { 
+        if (analysis_type == "DA") {
+            # relative cluster abundances by sample
+            frqs <- prop.table(table(cluster_ids, sample_ids), 2)
+            frqs <- frqs[top$cluster_id, ]
+            frqs <- as.matrix(unclass(frqs))
+            if (normalize) {
+                frqs <- .z_normalize(asin(sqrt(frqs)))
+                at <- seq(-2.5, 2.5, 0.5)
+                labels <- at
+                labels[-seq(2, length(at), 2)] <- ""
+            } else {
+                min <- floor(min(frqs)/0.1)*0.1
+                max <- ceiling(max(frqs)/0.1)*0.1
+                at <- seq(min, max, 0.1)
+                labels <- at
+            }
+            hm2 <- .diff_hm(matrix = frqs, cluster_rows = !order, 
+                col = c("skyblue", "cornflowerblue", "royalblue", 
+                    "black", "orange3", "orange", "gold"),
+                name = paste0("normalized\n"[normalize], "frequency"),
+                show_row_names = is.null(hm1), row_names_side = "left",
+                heatmap_legend_param = list(at = at, labels = labels),
+                top_annotation = col_anno,
+                xlab = "sample_id", 
+                row_title = "cluster_id")
+        } else {
             # median state-marker expression by sample
-            meds <- df %>% 
-                group_by_(~cluster_id, ~sample_id) %>% 
-                summarise_all(funs(median))
-            meds <- lapply(colnames(x), function(marker) 
-                acast(meds, cluster_id~sample_id, value.var=marker, fill=0))
-            meds <- setNames(meds, colnames(x))
-            meds <- mapply(function(marker, ids) marker[ids, , drop = FALSE], 
-                meds[top$marker], top$cluster_id, SIMPLIFY=FALSE)
-            meds <- do.call(rbind, meds)
-            rownames(meds) <- paste0(top$marker, sprintf("(%s)", top$cluster_id))
-
-            hm2 <- diff_hm(matrix=meds, name="expression\nby sample",
-                col=colorRamp2(range(meds, na.rm=TRUE), c("navy", "yellow")),
-                xlab="sample_id")
+            meds <- .calc_meds(x, top, "cs", cluster_ids, sample_ids, is.null(hm1))
+            if (normalize) meds <- .z_normalize(meds) 
+            labs_side <- 
+            hm2 <- .diff_hm(matrix = meds, cluster_rows=!order,
+                name = paste0("normalized\n"[normalize], "expression"),
+                col = c("skyblue", "cornflowerblue", "royalblue", 
+                    "black", "orange3", "orange", "gold"),
+                xlab = "sample_id", top_annotation = col_anno,
+                row_names_side = c("right", "left")[as.numeric(is.null(hm1)) + 1])
         }
-
-        # row annotation: significant = (adj. p-values <= th)
-        s <- top[, "p_adj"] <= th
-        s[is.na(s)] <- FALSE
-        df_s <- data.frame(cluster_id=top$cluster_id, s=as.numeric(s)) 
-        if (type == "DS") df_s$marker <- top$marker
-        row_anno_df <- data.frame("significant"=factor(df_s$s, 
-            levels=c(0,1), labels=c("no","yes")), check.names=FALSE)
         
-        row_anno <- rowAnnotation(df=row_anno_df, 
-            gp=gpar(col="white"), width=unit(.4, "cm"),
-            col=list("significant"=c("no"="gray90", "yes"="limegreen")))
+        # row annotation: significant = (adj. p-values <= th)
+        if (row_anno) {
+            s <- top$p_adj <= th
+            s[is.na(s)] <- FALSE
+            s <- as.matrix(c("no", "yes")[as.numeric(s)+1])
+            rownames(s) <- format(top$p_adj, digits = 2)
+            row_anno <- Heatmap(
+                matrix = s, 
+                name = "significant",
+                col = c(no = "lightgrey", yes = "limegreen"),
+                width = unit(5, "mm"),
+                rect_gp = gpar(col = "white"),
+                show_row_names = TRUE,
+                row_names_side = "right")
+        } else {
+            row_anno <- NULL
+        }
         
         # combine panels
-        main <- switch(type, 
+        main <- switch(analysis_type, 
             DA = "top DA clusters", 
             DS = "top DS cluster-marker combinations")
-        draw(hm1 + hm2 + row_anno, column_title=main,
-            column_title_gp=gpar(fontface="bold", fontsize=12))
+        suppressWarnings(draw(hm1 + hm2 + row_anno, 
+            column_title = main, auto_adjust = FALSE,
+            column_title_gp = gpar(fontface = "bold", fontsize = 12)))
     }
 )
 
 # ------------------------------------------------------------------------------
 #' @rdname plotDiffHeatmap
+#' @importFrom dplyr %>% select
+#' @importFrom SummarizedExperiment assay colData rowData
+#' @importFrom S4Vectors metadata
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="daFrame", y="SummarizedExperiment"),
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, 
+        top_n = 20, all = FALSE, order = TRUE,
+        th = 0.1, hm1 = TRUE, normalize = TRUE, 
+        row_anno = TRUE, col_anno = TRUE, ...) {
         
         # get cluster IDs
-        k <- nlevels(rowData(y)$cluster_id)
-        k <- check_validity_of_k(x, k)
-        cluster_ids <- cluster_codes(x)[, k][cluster_ids(x)]
-        
-        plotDiffHeatmap(exprs(x), y, top_n, all, order, th, 
+        k <- metadata(y)$clustering_name
+        k <- .check_validity_of_k(x, k)
+        cluster_ids <- cluster_ids(x, k)
+
+        plotDiffHeatmap(exprs(x), y,
+            top_n, all, order, th, hm1, normalize, row_anno, col_anno,
             sample_ids=sample_ids(x), 
             cluster_ids=cluster_ids,
-            marker_classes=colData(x)$marker_class)
+            marker_classes=colData(x)$marker_class,
+            factors=rowData(x) %>% data.frame %>% 
+                select(-c("sample_id", "cluster_id")))
     }
 )
 
 # ------------------------------------------------------------------------------
 #' @rdname plotDiffHeatmap
+#' @importFrom dplyr %>% select
+#' @importFrom SummarizedExperiment assay colData rowData
 setMethod(f="plotDiffHeatmap",
     signature=signature(x="SummarizedExperiment", y="SummarizedExperiment"),
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, 
+        top_n = 20, all = FALSE, order = TRUE,
+        th = 0.1, hm1 = TRUE, normalize = TRUE, 
+        row_anno = TRUE, col_anno = TRUE, ...) {
         
-        plotDiffHeatmap(assay(x), y, top_n, all, order, th, 
+        plotDiffHeatmap(assay(x), y, 
+            top_n, all, order, th, hm1, normalize, row_anno, col_anno,
             sample_ids=rowData(x)$sample_id,
             cluster_ids=rowData(x)$cluster_id,
-            marker_classes=colData(x)$marker_class)
+            marker_classes=colData(x)$marker_class,
+            factors=rowData(x) %>% data.frame %>% 
+                select(-c("sample_id", "cluster_id")))
     }
 )
 
@@ -214,10 +280,14 @@ setMethod(f="plotDiffHeatmap",
 #' @rdname plotDiffHeatmap
 setMethod(f="plotDiffHeatmap", 
     signature=signature(x="ANY", y="list"), 
-    definition=function(x, y, top_n=20, all=FALSE, order=TRUE, th=0.1, ...) {
+    definition=function(x, y, 
+        top_n = 20, all = FALSE, order = TRUE,
+        th = 0.1, hm1 = TRUE, normalize = TRUE, 
+        row_anno = TRUE, col_anno = TRUE, ...) {
         
         if (all(c("res", "d_counts", "d_medians") %in% names(y))) {
-            plotDiffHeatmap(x, y$res, top_n, all, order, th)
+            plotDiffHeatmap(x, y$res, 
+                top_n, all, order, th, hm1, normalize, row_anno, col_anno)
         } else {
             stop(deparse(substitute(y)), " does not seem to be ", 
                 "a valid differential test result.\n",

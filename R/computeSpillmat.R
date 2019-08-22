@@ -48,7 +48,7 @@
 #' and, on the basis of their additive nature, spillover values are computed 
 #' independently for each interacting pair of channels. 
 #' 
-#' @author Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 
 #' @references 
 #' Coursey, J.S., Schwab, D.J., Tsai, J.J., Dragoset, R.A. (2015).
@@ -112,12 +112,12 @@ setMethod(f="computeSpillmat",
         if (interactions == "default") {
             # for each channel, get spillover candidate channels
             # (+/-1M, -16M and channels measuring isotopes)
-            spill_cols <- get_spill_cols(ms, mets)
+            spill_cols <- .get_spill_cols(ms, mets)
             ex <- spill_cols
         } else if (interactions == "all") {
             # consider all channels
             spill_cols <- lapply(ms, function(x) which(ms != x & !is.na(ms)))
-            ex <- get_spill_cols(ms, mets)
+            ex <- .get_spill_cols(ms, mets)
         }
         
         # compute and return compensation matrix
@@ -136,7 +136,7 @@ setMethod(f="computeSpillmat",
                 # for which interaction is calculated 
                 neg_j <- es[neg[bc_ids(x)[neg] != ms[j] & 
                         !(bc_ids(x)[neg] %in%  ms[ex[[j]]])], j]
-                sij <- get_sij(pos_i, neg_i, pos_j, neg_j, method, trim)
+                sij <- .get_sij(pos_i, neg_i, pos_j, neg_j, method, trim)
                 SM[i, j] <- sij
             } 
         }

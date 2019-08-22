@@ -12,18 +12,9 @@
 \alias{counts}
 \alias{yields}
 \alias{exprs,dbFrame-method}
-\alias{dbFrame-methods}
 \alias{bc_key}
-\alias{bc_ids}
-\alias{deltas}
-\alias{normed_bcs}
-\alias{mhl_dists}
-\alias{sep_cutoffs}
 \alias{sep_cutoffs<-}
-\alias{mhl_cutoff}
 \alias{mhl_cutoff<-}
-\alias{counts}
-\alias{yields}
 \alias{bc_key,dbFrame-method}
 \alias{bc_ids,dbFrame-method}
 \alias{deltas,dbFrame-method}
@@ -131,5 +122,5 @@ unassigned <- bc_ids(re) == 0
 head(exprs(sample_ff[unassigned, ]))
 }
 \author{
-Helena Lucia Crowell \email{crowellh@student.ethz.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }
