@@ -173,159 +173,52 @@ setGeneric("compCytof",
 # Generics to access slots in a daFrame
 # ------------------------------------------------------------------------------
 
-#' @rdname daFrame-class
-#' @param ... optional arguments.
-#' @export
-setGeneric("daFrame", 
-    function(x, panel, md, ...) standardGeneric("daFrame"))
-
-#' @rdname daFrame-methods
+#' @rdname SCE-utils
 #' @export
 setGeneric("ei", 
     function(x) standardGeneric("ei"))
 
-#' @rdname daFrame-methods
+#' @rdname SCE-utils
 #' @export
 setGeneric("n_cells", 
     function(x) standardGeneric("n_cells"))
 
-#' @rdname daFrame-methods
+#' @rdname SCE-utils
 #' @export
 setGeneric("marker_classes", 
     function(x) standardGeneric("marker_classes"))
 
-#' @rdname daFrame-methods
+#' @rdname SCE-utils
 #' @export
 setGeneric("type_markers", 
     function(x) standardGeneric("type_markers"))
 
-#' @rdname daFrame-methods
+#' @rdname SCE-utils
 #' @export
 setGeneric("state_markers",      
     function(x) standardGeneric("state_markers"))
 
-#' @rdname daFrame-methods
+#' @rdname SCE-utils
 #' @export
 setGeneric("sample_ids", 
     function(x) standardGeneric("sample_ids"))
 
-#' @rdname daFrame-methods
+#' @rdname SCE-utils
+#' @export
+setGeneric("cluster_ids",  
+    function(x, k) standardGeneric("cluster_ids"))
+
+#' @rdname SCE-utils
 #' @export
 setGeneric("cluster_codes",  
     function(x) standardGeneric("cluster_codes"))
 
-#' @rdname daFrame-methods
-#' @param ... optional arguments.
-#' @export
-setGeneric("cluster_ids",  
-    function(x, ...) standardGeneric("cluster_ids"))
-
 # ==============================================================================
 # Generics for differential analysis
 # ------------------------------------------------------------------------------
-
-#' @rdname filter
-#' @export
-setGeneric("filter", 
-    function(x, ..., k) standardGeneric("filter"))
 
 #' @rdname guessPanel
 #' @param ... optional arguments.
 #' @export
 setGeneric("guessPanel", 
     function(x, ...) standardGeneric("guessPanel"))
-
-#' @rdname plotCounts
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotCounts", 
-    function(x, ...) standardGeneric("plotCounts"))
-
-#' @rdname plotExprs
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotExprs", 
-    function(x, ...) standardGeneric("plotExprs"))
-
-#' @rdname plotClusterExprs
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotClusterExprs", 
-    function(x, ...) standardGeneric("plotClusterExprs"))
-
-#' @rdname plotMDS
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotMDS", 
-    function(x, ...) standardGeneric("plotMDS"))
-
-#' @rdname plotExprHeatmap
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotExprHeatmap", 
-    function(x, ...) standardGeneric("plotExprHeatmap"))
-
-#' @rdname cluster
-#' @param ... optional arguments.
-#' @export
-setGeneric("cluster", 
-    function(x, ...) standardGeneric("cluster"))
-
-#' @rdname mergeClusters
-#' @param ... optional arguments.
-#' @export
-setGeneric("mergeClusters", 
-    function(x, k, table, id) standardGeneric("mergeClusters"))
-
-#' @rdname plotAbundances
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotAbundances", 
-    function(x, ...) standardGeneric("plotAbundances"))
-
-#' @rdname plotClusterHeatmap
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotClusterHeatmap", 
-    function(x, ...) standardGeneric("plotClusterHeatmap"))
-
-#' @rdname plotMedExprs
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotMedExprs", 
-    function(x, ...) standardGeneric("plotMedExprs"))
-
-#' @rdname plotCodes
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotCodes", 
-    function(x, ...) standardGeneric("plotCodes"))
-
-#' @rdname plotNRS
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotNRS", 
-    function(x, ...) standardGeneric("plotNRS"))
-
-#' @rdname runDR
-#' @export
-setGeneric("runDR", 
-    function(x, ...) standardGeneric("runDR"))
-
-#' @rdname plotDR
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotDR", 
-    function(x, ...) standardGeneric("plotDR"))
-
-#' @rdname plotDiffHeatmap
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotDiffHeatmap", 
-    function(x, y, ...) standardGeneric("plotDiffHeatmap"))
-
-#' @rdname extractClusters
-#' @param ... optional arguments.
-#' @export
-setGeneric("extractClusters", 
-    function(x, k, ...) standardGeneric("extractClusters"))

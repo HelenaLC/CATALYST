@@ -59,20 +59,25 @@
 #       - a character string that matches with a 'label' specifying
 #         a merging done with 'mergeClusters'
 # ------------------------------------------------------------------------------
+#' @importFrom S4Vectors metadata
 .check_validity_of_k <- function(x, k) {
-    available_clusterings <- colnames(S4Vectors::metadata(x)$cluster_codes)
-    is_valid_clustering <- as.character(k) %in% available_clusterings
-    if (!is.null(k) && !is_valid_clustering) {
-        if (is.numeric(k)) {
-            txt <- k 
-        } else {
-            txt <- dQuote(k)
+    if (is.null(k)) {
+        k <- names(cluster_codes(x))[1]
+    } else {
+        avail <- colnames(metadata(x)$cluster_codes)
+        valid <- as.character(k) %in% avail
+        if (!is.null(k) & !valid) {
+            if (is.numeric(k)) {
+                txt <- k 
+            } else {
+                txt <- dQuote(k)
+            }
+            ks <- suppressWarnings(as.numeric(colnames(cluster_codes(x))))
+            ks <- ks[!is.na(ks)]
+            stop("Clustering 'k = ", txt, "' doesnt't exist. ", 
+                "Should be one of\n  ", paste(c(ks, dQuote(setdiff(
+                    avail, ks))), collapse=", "))
         }
-        ks <- suppressWarnings(as.numeric(colnames(cluster_codes(x))))
-        ks <- ks[!is.na(ks)]
-        stop("Clustering 'k = ", txt, "' doesnt't exist. ", 
-            "Should be one of\n  ", paste(c(ks, dQuote(setdiff(
-                available_clusterings, ks))), collapse=", "))
     }
     return(as.character(k))
 }
@@ -96,4 +101,13 @@
         stop("Invalid argument 'cols_to_use'. Should be either", 
             " a logial vector,\n  a numeric vector of indices, or",
             " a character vector of column names.")
+}
+
+.check_sce <- function(x, clustered=FALSE) {
+    stopifnot(is(x, "SingleCellExperiment"),
+        "sample_id" %in% names(colData(x)),
+        "experiment_info" %in% names(metadata(x)),
+        setdiff(names(ei(x)), "n_cells") %in% names(colData(x)))
+    if (clustered) stopifnot(!is.null(x$cluster_id),
+        c("SOM_codes", "cluster_codes", "delta_area") %in% names(metadata(x)))
 }

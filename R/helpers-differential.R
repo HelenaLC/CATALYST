@@ -10,42 +10,32 @@
     "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
 # ==============================================================================
-# wrapper to flip the dimensions of a daFrame
-# such that rows = columns and columns = rows
-# ------------------------------------------------------------------------------
-#' @importFrom SingleCellExperiment SingleCellExperiment
-#' @importFrom SummarizedExperiment assays colData rowData
-#' @importFrom S4Vectors metadata
-.rotate_daf <- function(x) {
-    y <- SingleCellExperiment(
-        assays = lapply(assays(x), t),
-        rowData = colData(x),
-        colData = rowData(x),
-        metadata = metadata(x))
-    y@reducedDims <- x@reducedDims
-    return(y)
-}
-
-# ==============================================================================
 # scale expression to values b/w 0 and 1 using 
 # low (1%) and high (99%) quantiles as boundaries
 # ------------------------------------------------------------------------------
-.scale_exprs <- function(x) {
-    qs <- matrixStats::colQuantiles(as.matrix(x), probs=c(.01, .99))
-    x_scaled <- t((t(x) - qs[, 1]) / (qs[, 2] - qs[, 1]))
-    x_scaled[x_scaled < 0] <- 0
-    x_scaled[x_scaled > 1] <- 1
-    return(x_scaled)
+#' @importFrom matrixStats rowQuantiles
+#' @importFrom methods is
+.scale_exprs <- function(x, margin = 1) {
+    if (!is(x, "matrix")) x <- as.matrix(x)
+    qs <- c(rowQuantiles, colQuantiles)[[margin]]
+    qs <- qs(x, probs = c(.01, .99))
+    x <- switch(margin,
+        "1" = (x - qs[, 1]) / (qs[, 2] - qs[, 1]),
+        "2" = t((t(x) - qs[, 1]) / (qs[, 2] - qs[, 1])))
+    x[x < 0] <- 0
+    x[x > 1] <- 1
+    return(x)
 }
 
 # ==============================================================================
 # calculate non-redundancy score (NRS) for ea. sample
 # ------------------------------------------------------------------------------
-.nrs <- function(x, n=3) {
-    pc <- prcomp(x, center=TRUE, scale.=FALSE)
-    scores <- rowSums(outer(rep(1, ncol(x)),
-        pc$sdev[seq_len(n)]^2) * abs(pc$rotation[, seq_len(n)]))
-    return(scores)
+#' @importFrom Matrix rowSums
+#' @importFrom stats prcomp
+.nrs <- function(u, n=3) {
+    pc <- prcomp(t(u), center=TRUE, scale.=FALSE)
+    rowSums(abs(pc$rotation[, seq_len(n)]) 
+        *outer(rep(1, nrow(u)), pc$sdev[seq_len(n)]^2))
 }
 
 # ==============================================================================
@@ -157,45 +147,6 @@
             "a valid differential test result.\n",
             "Should be a 'SummarizedExperiment' as returned by ", 
             "'diffcyt::testDA_*()' or 'diffcyt::testDS_*()'.")
-    }
-}
-
-# ==============================================================================
-# wrapper to calculate expr. medians by cluster & cluster-sample
-# ------------------------------------------------------------------------------
-#' @importFrom data.table data.table
-#' @importFrom matrixStats colMedians
-#' @importFrom purrr map_depth
-.calc_meds <- function(x, top, by, cluster_ids, 
-    sample_ids = NULL, label_clusters = TRUE) {
-    by <- switch(by, c = "cluster_id", cs = c("cluster_id", "sample_id"))
-    dt <- data.table(
-        i = seq_len(nrow(x)), 
-        cluster_id = cluster_ids)
-    if (!is.null(sample_ids)) 
-        dt$sample_id <- sample_ids
-    dt_split <- split(dt, by = by, flatten = FALSE, sorted = TRUE)
-    cells <- map_depth(dt_split, length(by), "i")
-    top <- data.frame(top) %>% 
-        mutate_if(is.factor, as.character)
-    if (length(by) == 1) {
-        meds <- t(vapply(cells, function(i) 
-            colMedians(x[i, ]), numeric(ncol(x))))
-        colnames(meds) <- colnames(x)
-        meds[as.character(top$cluster_id), ]
-    } else {
-        meds <- t(vapply(seq_len(nrow(top)), function(i) {
-            k <- top$cluster_id[i]
-            m <- top$marker_id[i]
-            vapply(cells[[k]], function(i) median(x[i, m]), numeric(1))
-        }, numeric(nlevels(sample_ids))))
-        if (label_clusters) {
-            rownames(meds) <- paste0(top$marker_id, 
-                sprintf("(%s)", top$cluster_id))
-        } else {
-            rownames(meds) <- top$marker_id
-        }
-        return(meds)
     }
 }
 

@@ -1,95 +1,89 @@
 #' @rdname plotDR
-#' @title Plot dim. reduction from a \code{daFrame}
+#' @title Plot reduced dimensions
 #' 
-#' @description Plot cell-level reduced dimensions
-#'   stored within a \code{daFrame} object.
+#' @description Dimension reduction plot colored 
+#' by expression, cluster, sample or group ID.
+#'
+#' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param dr character string specifying which dimension reduction to use. 
+#'   Should be one of \code{reducedDimNames(x)}; default to the 1st available.
+#' @param color_by character string corresponding to a
+#'   \code{colData(x)} column. Specifies the color coding.
 #' 
-#' @param x a \code{\link{daFrame}}.
-#' @param dr character string specifying the dimensionaly reduction method.
-#' @param color_by character string specifying a clustering,
-#'   marker, or \code{rowData} column name to color by.
-#' @param facet a character string specifying 
-#'   a \code{rowData} column to facet by.
+#' @author Helena Lucia Crowell
 #' 
-#' @examples
-#' data(PBMC_fs, PBMC_panel, PBMC_md)
-#' daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' 
-#' daf <- runDR(daf, "PCA")
-#' plotDR(daf, "PCA", color_by = "condition")
-#' 
-#' daf <- cluster(daf)
-#' plotDR(daf, "PCA", color_by = "meta5")
+#' @references 
+#' Nowicka M, Krieg C, Weber LM et al. 
+#' CyTOF workflow: Differential discovery in 
+#' high-throughput high-dimensional cytometry datasets.
+#' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @return a \code{ggplot} object.
-#'   
-#' @author Helena L. Crowell \email{helena.crowell@uzh.ch}
-#'  
+#' 
+#' @examples
+#' # construct SCE & run clustering
+#' data(PBMC_fs, PBMC_panel, PBMC_md)
+#' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
+#' sce <- cluster(sce)
+#' 
+#' library(scater)
+#' sce <- runUMAP(sce)
+#' 
+#' # color by pS6 expression, split by group
+#' plotDR(sce, color_by = "pS6") +
+#'   facet_wrap("condition")
+#' 
+#' # color by 8 metaclusters, split by sample
+#' plotDR(sce, color_by = "meta8") + 
+#'   facet_wrap("sample_id", ncol = 4)
+#' 
 #' @import ggplot2
 #' @importFrom grDevices colorRampPalette
-#' @importFrom SingleCellExperiment int_elementMetadata reducedDimNames
-#' @importFrom SummarizedExperiment rowData
+#' @importFrom scales hue_pal
+#' @importFrom SingleCellExperiment reducedDim reducedDimNames
+#' @importFrom SummarizedExperiment assay colData
+#' @export
 
-setMethod("plotDR",
-    signature=signature(x = "daFrame"),
-    definition=function(x, 
-        dr=c("TSNE", "PCA", "MDS", "UMAP", "DiffusionMap"), 
-        color_by = "meta20", facet = NULL) {
-        
-        dr <- match.arg(dr)
-        stopifnot(dr %in% reducedDimNames(x))
-        
-        # check validity of 'color_by' argument
-        if(!color_by %in% c(colnames(x), 
-            names(cluster_codes(x)), names(rowData(x))))
-            stop("Argument 'color_by' invalid. Should correspond\n", 
-                "to either a marker, clustering, or rowData column.")
-
-        # check validity of 'facet' argument
-        if (!is.null(facet) && !facet %in% names(rowData(x)))
-            stop("'facet' should be either NULL, or one of\n",
-                paste(dQuote(names(rowData(x))), collapse=", "))
-        
-        # get reduced dimensions & cell indices used for computation
-        idx <- int_elementMetadata(x)
-        idx <- idx[[sprintf("idx.%s", dr)]]
-        x <- x[idx, ]
-        dr <- reducedDim(x, dr)
-        df <- data.frame(dr, exprs(x), rowData(x), check.names = FALSE)
-        
-        p <- ggplot(df, aes_string(x=colnames(dr)[1], y=colnames(dr)[2])) +
-            theme_void() + theme(aspect.ratio=1,
-                panel.grid.minor=element_blank(),
-                panel.grid.major=element_line(color="grey", size=.2),
-                axis.text=element_text(color="black"),
-                axis.title=element_text(color="black", face="bold"),
-                axis.title.y=element_text(angle=90))
-        
-        if (color_by %in% colnames(x)) {
-            p <- p +
-                geom_point(size=.8, aes_string(color=color_by)) +
-                scale_color_viridis_c()
-        } else if (color_by %in% names(cluster_codes(x))) {
-            # get cluster IDs
-            df$cluster_id  <- cluster_ids(x, color_by)
-            # expand palette if more than 30 clusters
-            nk <- nlevels(df$cluster_id )
-            if (nk > 30) {
-                cols <- colorRampPalette(.cluster_cols)(nk)
-            } else {
-                cols <- .cluster_cols[seq_len(nk)]
-            }
-            names(cols) <- levels(cluster_ids)
-            if (nk > 10) n_col <- 2 else n_col <- 1
-            p <- p + 
-                geom_point(data=df, size=.8, aes_string(color="cluster_id")) +
-                guides(color=guide_legend(override.aes=list(size=3),
-                    ncol=n_col)) + scale_color_manual(values=cols)
-        } else (
-            p <- p + 
-                geom_point(data=df, size=.8, aes_string(color=color_by)) +
-                guides(color=guide_legend(override.aes=list(size=3)))
-        )
-        if (is.null(facet)) p else p + facet_wrap(facet, ncol=4)
+plotDR <- function(x, dr = NULL, color_by = "condition") {
+    
+    # check validity of input arguments
+    kids <- names(cluster_codes(x))
+    u <- c(rownames(x), colnames(colData(x)), kids)
+    stopifnot(is.character(color_by), length(color_by) == 1, color_by %in% u)
+    .check_sce(x, color_by %in% kids)
+    stopifnot(length(reducedDimNames(x)) != 0)
+    if (is.null(dr)) dr <- reducedDimNames(x)[1]
+    stopifnot(is.character(dr), length(dr) == 1, dr %in% reducedDimNames(x))
+    
+    # construct data.frame
+    xy <- reducedDim(x, dr)
+    df <- data.frame(colData(x), xy)
+    if (color_by %in% rownames(x))
+        df[[color_by]] <- assay(x, "exprs")[color_by, ]
+    if (color_by %in% kids)
+        df[[color_by]] <- cluster_ids(x, color_by)
+    
+    if (is(df[[color_by]], "numeric")) {
+        col <- scale_color_viridis_c()
+    } else {
+        if (color_by %in% kids) {
+            col <- .cluster_cols
+            if (n <- nlevels(df[[color_by]]) > length(col))
+                col <- colorRampPalette(col)(n)
+        } else {
+            col <- hue_pal()(nlevels(df[[color_by]]))
+        }
+        col <- list(
+            scale_color_manual(values = col),
+            theme(legend.key.size = unit(2, "mm")),
+            guides(color = guide_legend(
+                override.aes = list(alpha = 1, size = 2))))
     }
-)
+    
+    ggplot(df, aes_string(x = "X1", y = "X2", col = color_by)) +
+        geom_point(size = 0.4, alpha = 0.8) + col + 
+        labs(x = paste(dr, "dim. 1"), y = paste(dr, "dim. 2")) +
+        theme_minimal() + theme(aspect.ratio = 1,
+            panel.grid.minor = element_blank(),
+            axis.text = element_text(color = "black"))
+}

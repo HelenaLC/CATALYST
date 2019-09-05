@@ -4,13 +4,11 @@
 #' @description 
 #' Multi-dimensional scaling (MDS) plot on median marker expressions.
 #'
-#' @param x 
-#'   a \code{\link{daFrame}}.
-#' @param color_by 
-#'   character string that appears as a column name of \code{rowData(x)}.
-#'   Specifies the color coding.
+#' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param color_by character string corresponding to a
+#'   \code{colData(x)} column. Specifies the color coding.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
@@ -22,46 +20,48 @@
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
-#' re <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
-#' plotMDS(re)
+#' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
+#' plotMDS(sce)
 #' 
-#' @import ggplot2 ggrepel SummarizedExperiment
-#' @importFrom dplyr group_by_ summarize_all
+#' @import ggplot2
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom limma plotMDS
-#' @importFrom magrittr %>%
-# ------------------------------------------------------------------------------
+#' @importFrom matrixStats rowMedians
+#' @importFrom methods is
+#' @importFrom S4Vectors metadata
+#' @importFrom SummarizedExperiment assay colData
+#' @export
 
-setMethod(f="plotMDS", 
-    signature=signature(x="daFrame"), 
-    definition=function(x, color_by="condition") {
-        valid <- colnames(rowData(x))
-        if (!color_by %in% valid)
-            stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
-                "Should be one of: ", paste(dQuote(valid), collapse=", "))
-        
-        # compute medians across samples
-        meds <- data.frame(sample_id=sample_ids(x), exprs(x)) %>% 
-            group_by_(~sample_id) %>% summarize_all(funs(median))
-        meds <- t(data.frame(meds, row.names=1))
-        
-        # get MDS coordinates
-        mds <- plotMDS(meds, plot=FALSE)
-        df <- data.frame(MDS1=mds$x, MDS2=mds$y)
-        
-        # add metadata information
-        md <- metadata(x)$experiment_info
-        m <- match(rownames(df), md$sample_id)
-        df <- data.frame(df, md[m, ])
-        
-        ggplot(df, aes_string(x="MDS1", y="MDS2", col=color_by)) + 
-            geom_label_repel(aes_string(label="sample_id"), 
-                show.legend=FALSE) + geom_point(alpha=.8, size=1.2) + 
-            guides(col=guide_legend(overide.aes=list(alpha=1, size=3))) +
-            theme_void() + theme(aspect.ratio=1,
-                panel.grid.minor=element_blank(),
-                panel.grid.major=element_line(color='lightgrey', size=.25), 
-                axis.title=element_text(face='bold'),
-                axis.text=element_text())
-    }
-)
+plotMDS <- function(x, color_by="condition") {
+    .check_sce(x)
+    stopifnot(is.character(color_by), length(color_by) == 1, 
+        color_by %in% names(colData(x)))
+    
+    # compute medians across samples
+    cs_by_s <- split(seq_len(ncol(x)), x$sample_id)
+    es <- as.matrix(assay(x, "exprs"))
+    ms <- vapply(cs_by_s, function(cs)
+        rowMedians(es[, cs, drop = FALSE]),
+        numeric(nrow(x)))
+    rownames(ms) <- rownames(x)
+    
+    # get MDS coordinates
+    mds <- limma::plotMDS(ms, plot=FALSE)
+    df <- data.frame(MDS1=mds$x, MDS2=mds$y)
+    
+    # add metadata information
+    md <- metadata(x)$experiment_info
+    m <- match(rownames(df), md$sample_id)
+    df <- data.frame(df, md[m, ])
+    
+    ggplot(df, aes_string(x="MDS1", y="MDS2", col=color_by)) + 
+        geom_label_repel(aes_string(label="sample_id"), 
+            show.legend=FALSE) + geom_point(alpha=.8, size=1.2) + 
+        guides(col=guide_legend(overide.aes=list(alpha=1, size=3))) +
+        theme_void() + theme(aspect.ratio=1,
+            panel.grid.minor=element_blank(),
+            panel.grid.major=element_line(color='lightgrey', size=.25), 
+            axis.title=element_text(face='bold'),
+            axis.title.y=element_text(angle=90),
+            axis.text=element_text())
+}

@@ -9,12 +9,11 @@
 #' labelled as '\code{type}' markers, and the remainder of antigens as 
 #' '\code{state}' markers.
 #'
-#' @param x 
-#'   a \code{\link{daFrame}}.
-#' @param cols_to_use 
-#'   a character vector. Specifies which antigens to use for clustering.
-#'   The default (NULL) uses \code{type_markers(x)}. Must be provided if 
-#'   \code{colData(x)$marker_class} has not been specified.
+#' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param features a character vector. 
+#'   Specifies which antigens to use for clustering. The default (NULL) 
+#'   uses \code{type_markers(x)}. Must be provided if 
+#'   \code{rowData(x)$marker_class} has not been specified.
 #' @param xdim,ydim 
 #'   numeric. Specify the grid size of the self-orginizing map. 
 #'   The default 10x10 grid will yield 100 clusters. 
@@ -22,10 +21,8 @@
 #'   numeric. Specifies the maximum number of clusters to evaluate
 #'   in the metaclustering. For \code{maxK = 20}, for example, 
 #'   metaclustering will be performed for 2 through 20 clusters.
-#' @param verbose
-#'   logical. Should information on progress be reported?
-#' @param seed
-#'   numeric. Sets random seed in \code{ConsensusClusterPlus()}.
+#' @param verbose logical. Should information on progress be reported?
+#' @param seed numeric. Sets random seed in \code{ConsensusClusterPlus()}.
 #' 
 #' @return 
 #' The function will add information to the following slots 
@@ -62,7 +59,7 @@
 #' the data should thus corresponds to the value of k where there is no longer 
 #' a considerable increase in stability (pleateau onset).
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
@@ -71,11 +68,12 @@
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
+#' # construct SCE
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
-#' daf <- daFrame(PBMC_fs, PBMC_panel, PBMC_md)
+#' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' # run clustering
-#' (daf <- cluster(daf))
+#' (sce <- cluster(sce))
 #' 
 #' @import ConsensusClusterPlus ggplot2
 #' @importFrom dplyr %>% mutate_all
@@ -84,67 +82,64 @@
 #' @importFrom graphics hist
 #' @importFrom magrittr set_colnames
 #' @importFrom matrixStats colQuantiles
+#' @importFrom purrr map
 #' @importFrom reshape2 melt
-#' @importFrom SummarizedExperiment rowData rowData<-
+#' @importFrom SummarizedExperiment assay rowData rowData<-
 #' @importFrom S4Vectors DataFrame
-# ------------------------------------------------------------------------------
+#' @export
 
-setMethod(f="cluster",
-    signature=signature(x="daFrame"),
-    definition=function(x, cols_to_use=NULL, 
-        xdim=10, ydim=10, maxK=20, verbose=TRUE, seed=1) {
-        
-        # validity checks
-        stopifnot(is.logical(verbose), length(verbose) == 1,
-            vapply(list(xdim, ydim, maxK, seed), function(arg) 
-                is.numeric(arg) && length(arg) == 1, logical(1)))
-        
-        if (is.null(cols_to_use)) {
-            stopifnot("marker_class" %in% colnames(colData(x)))
-            cols_to_use <- colnames(x)[colData(x)$marker_class == "type"]
-        } else {
-            # replace problematic characters
-            cols_to_use <- gsub("-", "_", cols_to_use)
-            cols_to_use <- gsub(":", ".", cols_to_use)
-            stopifnot(all(cols_to_use %in% colnames(x)))
-            # assign marker classes
-            colData(x)$marker_class <- factor(c("state", "type")[
-                as.numeric(colnames(x) %in% cols_to_use)+1],
-                levels=levels(marker_classes(x)))
-        }
-
-        # flowSOM clustering
-        if (verbose)
-            message("o running FlowSOM clustering...")
-        fsom <- ReadInput(flowFrame(exprs(x)))
-        set.seed(seed)
-        som <- BuildSOM(fsom, colsToUse=cols_to_use, 
-            silent=TRUE, xdim=xdim, ydim=ydim)
-        
-        # metaclustering
-        if (verbose)
-            message("o running ConsensusClusterPlus metaclustering...")
-        pdf(NULL)
-        mc <- suppressMessages(ConsensusClusterPlus(t(som$map$codes), 
-            maxK=maxK, reps=100, distance="euclidean", seed=seed, plot=NULL))
-        dev.off()
-        
-        # get cluster codes
-        k <- xdim * ydim
-        mcs <- seq_len(maxK)[-1]
-        
-        codes <- vapply(mc[-1], "[[", i = "consensusClass", numeric(k)) %>% 
-            data.frame() %>% mutate_all(factor)
-        cluster_codes <- data.frame(factor(seq_len(k)), codes) %>% 
-            set_colnames(c(sprintf("som%s", k), sprintf("meta%s", mcs)))
-        
-        y <- as(x, "SingleCellExperiment")
-        rowData(y)$cluster_id <- factor(som$map$mapping[, 1])
-        x <- as(y, "daFrame")
-        
-        metadata(x)$SOM_codes <- som$map$codes
-        metadata(x)$cluster_codes <- cluster_codes
-        metadata(x)$delta_area <- .plot_delta_area(mc)
-        return(x)
+cluster <- function(x, features = NULL,
+    xdim=10, ydim=10, maxK=20, verbose=TRUE, seed=1) {
+    
+    # validity checks
+    stopifnot(is(x, "SingleCellExperiment"))
+    stopifnot(is.logical(verbose), length(verbose) == 1,
+        vapply(list(xdim, ydim, maxK, seed), function(arg) 
+            is.numeric(arg) && length(arg) == 1, logical(1)))
+    
+    if (is.null(features)) {
+        stopifnot("marker_class" %in% colnames(rowData(x)))
+        features <- type_markers(x)
+        if (length(features) < 2)
+            stop("<=2 antigens have been assigned",
+                " to class ", dQuote("type"), ".")
+    } else {
+        # replace problematic characters
+        features <- gsub("-", "_", features)
+        features <- gsub(":", ".", features)
+        stopifnot(features %in% rownames(x))
+        # assign marker classes
+        rowData(x)$marker_class <- factor(c("state", "type")[
+            as.numeric(rownames(x) %in% features)+1],
+            levels=c("type", "state", "none"))
     }
-)
+    
+    # flowSOM clustering
+    if (verbose)
+        message("o running FlowSOM clustering...")
+    fsom <- ReadInput(flowFrame(t(assay(x, "exprs"))))
+    som <- BuildSOM(fsom, colsToUse=features, 
+        silent=TRUE, xdim=xdim, ydim=ydim)
+    
+    # metaclustering
+    if (verbose)
+        message("o running ConsensusClusterPlus metaclustering...")
+    pdf(NULL)
+    mc <- suppressMessages(ConsensusClusterPlus(t(som$map$codes), 
+        maxK=maxK, reps=100, distance="euclidean", seed=seed, plot=NULL))
+    dev.off()
+    
+    # get cluster codes
+    k <- xdim * ydim
+    mcs <- seq_len(maxK)[-1]
+    
+    codes <- data.frame(seq_len(k), map(mc[-1], "consensusClass"))
+    codes <- mutate_all(codes, function(u) factor(u, levels = sort(unique(u))))
+    colnames(codes) <- c(sprintf("som%s", k), sprintf("meta%s", mcs))
+    
+    x$cluster_id <- factor(som$map$mapping[, 1])
+    metadata(x)$cluster_codes <- codes
+    metadata(x)$SOM_codes <- som$map$codes
+    metadata(x)$delta_area <- .plot_delta_area(mc)
+    return(x)
+}

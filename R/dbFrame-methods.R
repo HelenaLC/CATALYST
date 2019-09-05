@@ -52,6 +52,8 @@
 #' head(exprs(sample_ff[unassigned, ]))
 # ------------------------------------------------------------------------------
 
+#' @importFrom Biobase exprs
+#' @export
 setMethod(f="exprs",
     signature="dbFrame",
     definition=function(object) return(object@exprs))
