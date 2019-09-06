@@ -123,7 +123,7 @@ plotDiffHeatmap <- function(x, y,
         is.logical(normalize), length(normalize) == 1,
         is.logical(row_anno), length(row_anno) == 1)
     
-    k <- metadata(y$res)$clustering_name
+    stopifnot(!is.null(k <- metadata(y$res)$clustering_name))
     k <- .check_validity_of_k(x, k)
     x$cluster_id <- cluster_ids(x, k)
     factors <- select(

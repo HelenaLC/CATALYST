@@ -48,23 +48,21 @@ plotAbundances <- function(x, k="meta20",
     
     # validity checks
     by <- match.arg(by)
-    .check_sce(x, clustered = TRUE)
+    .check_sce(x, TRUE)
     k <- .check_validity_of_k(x, k)
+    .check_cd_factor(x, group_by)
+    .check_cd_factor(x, shape_by)
     
     valid <- setdiff(colnames(colData(x)), c("sample_id", "cluster_id"))
     if (length(valid) == 0)
         stop("No factors to group by. Metadata should contain", 
             " at least one column other than 'file' and 'id'.")
-    
-    foo <- lapply(list(group_by, shape_by), function(by) if (!is.null(by)) 
-        stopifnot(is.character(by), length(by) == 1, by %in% valid)) 
     if (is.null(group_by)) group_by <- valid[1]
     
-    md <- ei(x)
+    shapes <- NULL
     if (!is.null(shape_by)) {
-        n <- nlevels(md[, shape_by])
         shapes <- c(16, 17, 15, 3, 7, 8) # default shapes
-        if (n > 6) {
+        if ((n <- nlevels(x[[shape_by]])) > 6) {
             if (n > 18) {
                 message(paste("At most 17 shapes are currently supported", 
                     "but", n, "are required. Setting 'shape_by' to NULL."))
@@ -74,21 +72,15 @@ plotAbundances <- function(x, k="meta20",
                 shapes <- c(shapes, new[seq_len(n - 6)])
             }
         }
-    } else {
-        shapes <- NULL
     }
     
-    # get cluster IDs & abundances
-    cluster_ids <- cluster_ids(x, k)
-    counts <- table(cluster_ids, sample_ids(x))
-    
     # get frequencies by cluster & sample
-    fq <- prop.table(counts, 2) * 100
-    df <- melt(fq, value.name="freq",
-        varnames=c("cluster_id", "sample_id"))
+    fq <- prop.table(table(cluster_ids(x, k), sample_ids(x)), 2) * 100
+    df <- melt(fq, value.name="freq", varnames=c("cluster_id", "sample_id"))
     # add metadata
-    m <- match(df$sample_id, md$sample_id)
-    df <- data.frame(df, md[m, setdiff(names(md), names(df))])
+    m <- match(df$sample_id, ei(x)$sample_id)
+    cols <- setdiff(names(ei(x)), names(df))
+    df <- data.frame(df, ei(x)[m, cols])
     
     p <- ggplot(df, aes_string(y="freq")) +
         labs(x=NULL, y="Proportion [%]") + theme_bw() + theme(
