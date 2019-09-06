@@ -320,12 +320,12 @@ For differential state (DS) tests, `plotDiffHeatmap` will display
 
 Clusters (DA) and cluster-marker combinations (DS), respectively, will be marked as *significant* if their adjusted p-value falls below the threshold value specified with `th` (default 0.1), and will be ordered by significance if `order = TRUE` (the default). The number of top findings to display can be specified with `top_n` (default 20). When `normalize = TRUE`, the right-hand side heatmap will display Z-score normalized values. For DA, cluster frequencies will be arcsine-square-root scaled prior to normalization.
 
-```{r fig.width=10, fig.height=6}
+```{r fig.width=10, fig.height=5}
 plotDiffHeatmap(sce, res_DA, all = TRUE, th = 0.05)
 ```
 
-```{r fig.width=6, fig.height=5}
-plotDiffHeatmap(sce, res_DS, hm = FALSE, top_n = 10)
+```{r fig.width=6, fig.height=6}
+plotDiffHeatmap(sce, res_DS, hm1 = FALSE, top_n = 20)
 ```
 
 # Session Information

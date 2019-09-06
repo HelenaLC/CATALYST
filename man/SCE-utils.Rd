@@ -116,7 +116,8 @@ new_ids <- cluster_codes(sce)$`meta12`[m]
 data.frame(old_ids, new_ids)
 
 # plot relative change in area under CDF curve vs. k
-SingleCellExperiment::metadata(sce)$delta_area
+library(SingleCellExperiment)
+metadata(sce)$delta_area
 }
 \author{
 Helena L Crowell
