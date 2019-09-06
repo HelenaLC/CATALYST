@@ -34,15 +34,14 @@ in the following code snippets, \code{x} is a \code{daFrame} object.
   take the merging ID as a valid input argument.}}
 }
 \examples{
+# construct SCE & run clustering
 data(PBMC_fs, PBMC_panel, PBMC_md, merging_table)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-
-# run clustering
 sce <- cluster(sce)
 
 # merge clusters
-re <- mergeClusters(re, k="meta20", table=merging_table, id="merging")
-plotClusterHeatmap(re, k="merging", hm2="pS6")
+sce <- mergeClusters(sce, k="meta20", table=merging_table, id="merging")
+plotClusterHeatmap(sce, k="merging", hm2="pS6")
 
 }
 \references{

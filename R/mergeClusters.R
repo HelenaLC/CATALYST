@@ -31,15 +31,14 @@
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 #' 
 #' @examples
+#' # construct SCE & run clustering
 #' data(PBMC_fs, PBMC_panel, PBMC_md, merging_table)
 #' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-#' 
-#' # run clustering
 #' sce <- cluster(sce)
 #' 
 #' # merge clusters
-#' re <- mergeClusters(re, k="meta20", table=merging_table, id="merging")
-#' plotClusterHeatmap(re, k="merging", hm2="pS6")
+#' sce <- mergeClusters(sce, k="meta20", table=merging_table, id="merging")
+#' plotClusterHeatmap(sce, k="merging", hm2="pS6")
 #' 
 #' @importFrom methods is
 #' @importFrom SingleCellExperiment colData

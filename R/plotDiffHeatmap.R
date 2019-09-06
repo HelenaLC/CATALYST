@@ -131,33 +131,22 @@ plotDiffHeatmap <- function(x, y,
         -c("sample_id", "cluster_id"))
     
     y <- rowData(y$res)
-    analysis_type <- .get_dt_type(y)
+    type <- .get_dt_type(y)
     
     # get clusters/cluster-marker combinations to plot
-    if (order)
-        y <- y[order(y$p_adj), , drop = FALSE]
-    if (all | top_n > nrow(y)) 
-        top_n <- nrow(y)
+    if (order) y <- y[order(y$p_adj), , drop = FALSE]
+    if (all | top_n > nrow(y)) top_n <- nrow(y)
     top <- as.data.frame(y[seq_len(top_n), ])
     top <- mutate_if(top, is.factor, as.character)
     
     # 1st heatmap: median type-marker expression by cluster
     if (hm1) {
-        cs_by_k <- split(seq_len(ncol(x)), x$cluster_id)
-        ng <- length(gs <- type_markers(x))
-        ms_by_k <- t(vapply(cs_by_k, function(cs)
-            rowMedians(es[gs, cs, drop = FALSE]),
-            numeric(ng)))[top$cluster_id, ]
-        colnames(ms_by_k) <- gs
+        ms_by_k <- t(.agg(x[type_markers(x)], "cluster_id"))[top$cluster_id, ]
         qs <- quantile(ms_by_k, probs = c(.01, .5, .99), na.rm = TRUE)
         hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
-        hm1 <- .diff_hm(
-            matrix = ms_by_k, 
-            col = hm_cols, 
-            name = "expression",
-            cluster_rows = !order,
-            xlab = "type_markers",
-            row_title = "cluster_id"[!is.null(hm1)],
+        hm1 <- .diff_hm(ms_by_k, hm_cols, "expression",
+            cluster_rows = !order, xlab = "type_markers",
+            row_title = "cluster_id"[!is.null(hm1)], 
             row_names_side = "left")
     } else {
         hm1 <- NULL
@@ -173,7 +162,7 @@ plotDiffHeatmap <- function(x, y,
     }
     
     # 2nd heatmap:
-    if (analysis_type == "DA") {
+    if (type == "DA") {
         # relative cluster abundances by sample
         cnts <- table(x$cluster_id, x$sample_id)
         frqs <- prop.table(cnts, 2)
@@ -246,7 +235,7 @@ plotDiffHeatmap <- function(x, y,
     }
     
     # combine panels
-    main <- switch(analysis_type, 
+    main <- switch(type, 
         DA = "top DA clusters", 
         DS = "top DS cluster-marker combinations")
     suppressWarnings(draw(hm1 + hm2 + row_anno, 
