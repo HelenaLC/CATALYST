@@ -32,21 +32,20 @@
 #' plotClusterExprs(sce)
 #' 
 #' @import ggplot2
-#' @importFrom dplyr %>% group_by_ summarise_at
 #' @importFrom ggridges geom_density_ridges theme_ridges
 #' @importFrom reshape2 melt
 #' @importFrom S4Vectors metadata
 #' @importFrom stats dist hclust
-#' @importFrom SummarizedExperiment assay colData rowData
+#' @importFrom SummarizedExperiment assay colData
 #' @export
 
 plotClusterExprs <- function(x, k="meta20", features=NULL) {
     
-    stopifnot(is(x, "SingleCellExperiment"))
+    # check validity of input arguments
+    .check_sce(x, TRUE)
     k <- .check_validity_of_k(x, k)
-    nms <- c("SOM_codes", "cluster_codes", "delta_area")
-    stopifnot(!is.null(x$cluster_id), nms %in% names(metadata(x)))
-   
+    x$cluster_id <- cluster_ids(x, k)
+  
     if (is.null(features)) {
         features <- rownames(x)
     } else if (length(features) == 1) {
@@ -60,36 +59,32 @@ plotClusterExprs <- function(x, k="meta20", features=NULL) {
         features <- gsub(":", ".", features)
         stopifnot(features %in% rownames(x))
     }
+
+    # order clusters according to hierarchical 
+    # clustering on median feature expressions 
+    ms <- t(.agg(x[features, ], "cluster_id", "median"))
+    d <- dist(ms, method="euclidean")
+    o <- hclust(d, method="average")$order
     
-    # calculate median features expressions
-    es <- assay(x, "exprs")[features, , drop = FALSE]
-    dat <- data.frame(t(es), colData(x))
-    dat$cluster_id <- kids <- cluster_ids(x, k)
-    meds <- dat %>% group_by_("cluster_id") %>% 
-        summarise_at(features, funs(median))
-    
-    # hierarchical clustering
-    d <- dist(meds[, features], method="euclidean")
-    h <- hclust(d, method="average")
-    o <- h$order
-    
-    # constrcut data.frame & reference for plotting
-    dat <- melt(dat, id.vars=names(colData(x)),
+    # construct data.frame & reference for plotting
+    es <- assay(x[features, ], "exprs")
+    cd <- data.frame(t(es), colData(x))
+    df <- melt(cd, id.vars=names(colData(x)),
         variable.name="antigen", value.name="expression")
-    dat$ref <- "no"
-    ref <- dat
+    df$ref <- "no"
+    ref <- df
     ref$cluster_id <- "ref"
     ref$ref <- "yes"
-    df <- rbind(dat, ref)
+    df <- rbind(df, ref)
     
     # compute cluster frequencies
-    fq <- tabulate(kids) / ncol(x)
+    fq <- tabulate(x$cluster_id) / ncol(x)
     fq <- round(fq * 100, 2)
-    names(fq) <- levels(kids)
+    names(fq) <- levels(x$cluster_id)
     
     # reorder clusters
     df$cluster_id <- factor(df$cluster_id, 
-        levels=rev(c("ref", levels(kids)[o])),
+        levels=rev(c("ref", levels(x$cluster_id)[o])),
         labels=rev(c("ref", paste0(names(fq), " (", fq, "%)")[o])))
     
     ggplot(df, 

@@ -116,7 +116,6 @@
 # as returned by 'diffcyt::testDA_*()' & 'diffcyt::testDS_*()'
 # ------------------------------------------------------------------------------
 .get_dt_type <- function(x) {
-    
     # check correctness of column names
     da_edgeR <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
     da_GLMM <- c("cluster_id", "p_val", "p_adj")
@@ -165,7 +164,7 @@
 }
 
 # ==============================================================================
-# wrapper for  Z-score normalization
+# wrapper for Z-score normalization
 # ------------------------------------------------------------------------------
 .z_normalize <- function(es, th=2.5) {
     es_n <- apply(es, 1, function(x) {
@@ -177,4 +176,61 @@
         return(x)
     })
     return(t(es_n))
+}
+
+# ==============================================================================
+# split cell indices by cell metadata factor(s)
+#   - x:   a SCE with rows = cells, columns = features
+#   - by:  colData columns specifying factor(s) to aggregate by
+# ------------------------------------------------------------------------------
+#' @importFrom data.table data.table
+#' @importFrom SummarizedExperiment colData
+#' @importFrom purrr map_depth
+.split_cells <- function(x, by) {
+    stopifnot(is.character(by), by %in% colnames(colData(x)))
+    cd <- data.frame(colData(x))
+    dt <- data.table(cd, i = seq_len(ncol(x)))
+    dt_split <- split(dt, by = by, sorted = TRUE, flatten = FALSE)
+    map_depth(dt_split, length(by), "i")
+}
+
+# ==============================================================================
+# aggregation of single-cell to pseudobulk data; 
+# e.g., median expression by cluster- or cluster-sample
+#   - x:   a SCE with rows = cells, columns = features
+#   - by:  colData columns specifying factor(s) to aggregate by
+#   - fun: aggregation function specifying the
+#          summary statistic, e.g., sum, mean, median
+# ------------------------------------------------------------------------------
+#' @importFrom dplyr bind_rows
+#' @importFrom Matrix rowMeans rowSums
+#' @importFrom matrixStats rowMedians
+#' @importFrom purrr map_depth
+.agg <- function(x, by, fun = c("median", "mean", "sum")) {
+    fun <- switch(match.arg(fun), 
+        median = rowMedians, mean = rowMeans, sum = rowSums)
+    cs <- .split_cells(x, by)
+    pb <- map_depth(cs, -1, function(i) {
+        if (length(i) == 0) return(numeric(nrow(x)))
+        fun(assay(x, "exprs")[, i, drop = FALSE])
+    })
+    map_depth(pb, -2, function(u) as.matrix(data.frame(
+        u, row.names = rownames(x), check.names = FALSE)))
+}
+
+# ==============================================================================
+# generate a toy dataset SCE for unit-testing
+# ------------------------------------------------------------------------------
+#' @importFrom SingleCellExperiment SingleCellExperiment
+.toySCE <- function() {
+    gs <- paste0("g", seq_len(ngs <- 100))
+    cs <- paste0("c", seq_len(ncs <- 2e3))
+    y <- sample(100, ngs * ncs, replace = TRUE)
+    y <- matrix(y, ngs, ncs, TRUE, list(gs, cs))
+    cd <- data.frame(mapply(function(i, n) 
+        sample(paste0(i, seq_len(n)), ncs, TRUE),
+        i = c("k", "s", "g"), n = c(5, 4, 3)))
+    cd$s <- factor(paste(cd$s, cd$g, sep = "."))
+    colnames(cd) <- paste(c("cluster", "sample", "group"), "id", sep = "_")
+    SingleCellExperiment(assay = list(exprs = y), colData = cd)
 }

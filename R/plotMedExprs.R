@@ -40,8 +40,7 @@
 #' plotMedExprs(sce, facet = "cluster_id", k = "meta8")
 #' 
 #' @import ggplot2
-#' @importFrom dplyr group_by_ summarize_all
-#' @importFrom matrixStats rowMedians
+#' @importFrom dplyr bind_rows
 #' @importFrom methods is
 #' @importFrom reshape2 melt
 #' @importFrom SummarizedExperiment assay
@@ -52,18 +51,13 @@ plotMedExprs <- function(x, k="meta20",
     group_by="condition", shape_by=NULL) {
     
     .check_sce(x)
+    .check_cd_factor(x, group_by)
+    .check_cd_factor(x, shape_by)
     facet <- match.arg(facet)
-    stopifnot(is.character(group_by), 
-        group_by %in% colnames(colData(x)),
-        is.factor(x[[group_by]]))
 
     if (!is.null(shape_by)) {
-        stopifnot(is.character(shape_by),
-            shape_by %in% colnames(colData(x)), 
-            is.factor(ei(x)[, shape_by]))
         shapes <- c(16, 17, 15, 3, 7, 8) # default shapes
-        n <- nlevels(ei(x)[, shape_by])
-        if (n > 6) {
+        if ((n <- nlevels(x[[shape_by]])) > 6) {
             if (n > 18) {
                 message("At most 17 shapes are currently supported but ",
                     n, " are required. Setting 'shape_by' to NULL.")
@@ -78,23 +72,14 @@ plotMedExprs <- function(x, k="meta20",
     }
     
     if (facet == "antigen") {
-        cs_by_s <- split(seq_len(ncol(x)), sample_ids(x))
-        ms <- vapply(cs_by_s, function(cs) 
-            rowMedians(assay(x, "exprs")[, cs, drop = FALSE]), 
-            numeric(nrow(x)))
-        ms <- data.frame(antigen = rownames(x), ms, check.names = FALSE)
-        ms <- melt(ms, id.vars="antigen", variable.name="sample_id")
-        
+        ms <- .agg(x, by = "sample_id")
+        ms <- melt(ms, varnames = c("antigen", "sample_id"))
     } else {
-        .check_validity_of_k(x, k)
-        es <- assay(x, "exprs")[state_markers(x), ]
-        ms <- data.frame(t(es), 
-            sample_id=sample_ids(x), 
-            cluster_id=cluster_ids(x, k)) %>% 
-            group_by_(~sample_id, ~cluster_id) %>% 
-            summarize_all(funs(median))
-        ms <- melt(ms, variable.name="antigen",
-            id.vars=c("sample_id", "cluster_id"))
+        k <- .check_validity_of_k(x, k)
+        x$cluster_id <- cluster_ids(x, k)
+        ms <- .agg(x[state_markers(x), ], by = c("cluster_id", "sample_id"))
+        ms <- lapply(ms, melt, varnames = c("antigen", "sample_id"))
+        ms <- bind_rows(ms, .id = "cluster_id")
     }
     # add metadata information
     m <- match(ms$sample_id, ei(x)$sample_id)

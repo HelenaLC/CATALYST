@@ -37,10 +37,8 @@
 #' plotExprHeatmap(sce, draw_freqs=TRUE)
 #' 
 #' @import ComplexHeatmap SummarizedExperiment
-#' @importFrom dplyr funs group_by_ summarize_all select select_if
+#' @importFrom dplyr select select_if
 #' @importFrom grDevices colorRampPalette
-#' @importFrom magrittr %>%
-#' @importFrom matrixStats rowMedians
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom S4Vectors metadata
 #' @importFrom scales hue_pal
@@ -55,13 +53,7 @@ plotExprHeatmap <- function(x, bin_anno=TRUE, row_anno=TRUE,
     .check_sce(x)
     
     # compute medians across samples
-    cs_by_s <- split(seq_len(ncol(x)), x$sample_id)
-    es <- as.matrix(assay(x, "exprs"))
-    ms <- t(vapply(cs_by_s, function(cs)
-        rowMedians(es[, cs, drop = FALSE]),
-        numeric(nrow(x))))
-    colnames(ms) <- rownames(x)
-    
+    ms <- t(.agg(x, "sample_id"))
     d <- dist(ms, method=clustering_distance)
     row_clustering <- hclust(d, method=clustering_linkage)
     if (scale) ms <- .scale_exprs(ms, 2)

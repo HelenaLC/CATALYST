@@ -32,7 +32,6 @@
 #' 
 #' @import ggplot2
 #' @importFrom cowplot get_legend plot_grid
-#' @importFrom dplyr funs group_by summarize_all
 #' @importFrom grDevices png
 #' @importFrom gridExtra arrangeGrob grid.arrange
 #' @importFrom Rtsne Rtsne

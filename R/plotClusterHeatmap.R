@@ -74,13 +74,8 @@
 #' plotClusterHeatmap(sce, hm2="abundances", scale=FALSE, draw_freqs=TRUE)
 #' 
 #' @import ComplexHeatmap
-#' @importFrom dplyr arrange group_by_ summarise_all
 #' @importFrom grDevices colorRampPalette
-#' @importFrom magrittr %>%
-#' @importFrom Matrix rowMeans
-#' @importFrom matrixStats rowMedians
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom reshape2 acast
 #' @importFrom S4Vectors metadata
 #' @importFrom stats dist hclust
 #' @importFrom SummarizedExperiment assay
@@ -92,24 +87,17 @@ plotClusterHeatmap <- function(x, hm2=NULL,
     draw_dend=TRUE, draw_freqs=FALSE, 
     palette=rev(brewer.pal(11, "RdYlBu"))) {
     
-    if (!is.null(hm2)) 
-        stopifnot(hm2 %in% c("abundances", "state_markers", rownames(x)))
+    # check validity of input arguments
+    .check_sce(x)
     fun <- match.arg(fun)
-    rowFun <- switch(fun, median = rowMedians, mean = rowMeans)
-    
-    # check validity of arguments 'k' and 'm'
     k <- .check_validity_of_k(x, k)
-    m <- .check_validity_of_k(x, m)
-    
-    x$cluster_id <- cluster_ids(x, k)
-    nk <- nlevels(x$cluster_id)
-    
+    .check_cd_factor(x, split_by)
+    u <- c("abundances", "state_markers", rownames(x))
+    if (!is.null(hm2)) stopifnot(hm2 %in% u)
+
     # medians marker exprs. across clusters
-    cs_by_k <- split(seq_len(ncol(x)), x$cluster_id)
-    ms_by_k <- t(vapply(cs_by_k, function(cs)
-        rowFun(assay(x, "exprs")[, cs, drop = FALSE]),
-        numeric(nrow(x))))
-    colnames(ms_by_k) <- rownames(x)
+    x$cluster_id <- cluster_ids(x, k)
+    ms_by_k <- t(.agg(x, "cluster_id", fun))
     
     # hierarchical clustering on cell-type markers
     d <- dist(ms_by_k[, type_markers(x)])
@@ -118,7 +106,7 @@ plotClusterHeatmap <- function(x, hm2=NULL,
     # clustering row annotation 
     if (cluster_anno) {
         anno <- levels(x$cluster_id)
-        if (nk > 30) {
+        if ((nk <- nlevels(x$cluster_id)) > 30) {
             cols <- colorRampPalette(.cluster_cols)(nk)
         } else {
             cols <- .cluster_cols[seq_len(nk)]
@@ -128,7 +116,8 @@ plotClusterHeatmap <- function(x, hm2=NULL,
             "cluster_id", row_clustering, draw_dend)
     }
     # merging row annotation
-    if (length(m) != 0) {
+    if (!is.null(m)) {
+        .check_validity_of_k(x, m)
         idx <- match(seq_len(nk), cluster_codes(x)[, k])
         anno <- factor(cluster_codes(x)[, m][idx])
         if (nlevels(anno) > 30) {
@@ -141,35 +130,26 @@ plotClusterHeatmap <- function(x, hm2=NULL,
             "merging_id", row_clustering, draw_dend)
     }
     
-    # subsetting
-    if (is.null(split_by)) {
-        many <- FALSE
-        groups <- list(seq_len(ncol(x)))
-    } else {
-        many <- TRUE
-        stopifnot(is.character(split_by), split_by %in% colnames(colData(x)))
-        groups <- split(seq_len(ncol(x)), colData(x)[[split_by]])
-    }
+    # split cell indices by colData factor
+    many <- !is.null(split_by)
+    cs <- seq_len(ncol(x))
+    if (many) groups <- split(cs, x[[split_by]]) else groups <- list(cs)   
     
+    # optionally scale expression matrix
+    if (scale) assay(x, "exprs")  <- 
+        .scale_exprs(assay(x, "exprs") , 1)
     hm_cols <- colorRampPalette(palette)(100)
+    
     hms <- lapply(seq_along(groups), function(i) {
-        inds <- groups[[i]]
-        cs_by_k <- split(inds, x$cluster_id[inds])
+        idx <- groups[[i]]
+        cs_by_k <- split(idx, x$cluster_id[idx])
         # left-hand side heatmap:
         # median cell-type marker expressions across clusters
-        es <- assay(x, "exprs")
-        if (scale) 
-            es <- .scale_exprs(es, 1)
         if (!many) {
             hm1_es <- ms_by_k
         } else {
-            hm1_es <- t(vapply(cs_by_k, function(cs)
-                rowFun(es[, cs, drop = FALSE]),
-                numeric(nrow(x))))
-            colnames(hm1_es) <- rownames(x)
+            hm1_es <- t(.agg(x[, idx], "cluster_id", fun))
         }
-        hm2_es <- t(es[, inds, drop = FALSE])
-        
         hm1 <- Heatmap(
             matrix=hm1_es[, type_markers(x)], 
             col=hm_cols, name="expression", 
@@ -181,7 +161,7 @@ plotClusterHeatmap <- function(x, hm2=NULL,
         # cluster frequencies
         freq_bars <- freq_anno <- NULL
         if (draw_freqs) {
-            fq <- round(tabulate(x$cluster_id[inds]) / length(inds) * 100, 2)
+            fq <- round(tabulate(x$cluster_id[idx]) / length(idx) * 100, 2)
             freq_bars <- rowAnnotation(
                 "Frequency [%]"=row_anno_barplot(
                     x=fq, axis=TRUE, border=FALSE, bar_with=.8, 
@@ -204,7 +184,7 @@ plotClusterHeatmap <- function(x, hm2=NULL,
         if (!is.null(hm2)) {
             if (hm2 == "abundances") {
                 # cluster frequencies across samples
-                cs <- table(x$cluster_id[inds], x$sample_id[inds])
+                cs <- table(x$cluster_id[idx], x$sample_id[idx])
                 fq <- as.matrix(unclass(prop.table(cs, 2)))
                 fq <- fq[, !is.na(colSums(fq)), drop = FALSE]
                 p <- p + Heatmap(matrix=fq, name="frequency", 
@@ -219,22 +199,16 @@ plotClusterHeatmap <- function(x, hm2=NULL,
                     cluster_rows=row_clustering, cluster_columns=FALSE,
                     column_names_gp=gpar(fontsize=8))
             } else {
-                # median marker expression across samples & clusters
-                ms_by_ks <- data.frame(hm2_es, 
-                    sample_id = x$sample_id[inds], 
-                    cluster_id = x$cluster_id[inds],
-                    check.names = FALSE) %>%
-                    group_by_(~sample_id, ~cluster_id) %>% 
-                    summarise_all(fun)
                 for (ch in hm2) {
-                    ch_meds <- acast(
-                        ms_by_ks[, c("sample_id", "cluster_id", ch)], 
-                        formula=cluster_id~sample_id, value.var=ch)
-                    p <- p + Heatmap(matrix=ch_meds, col=hm_cols, 
-                        na_col="lightgrey", rect_gp=gpar(col='white'),
-                        show_heatmap_legend=FALSE, show_row_names=FALSE,
-                        cluster_rows=row_clustering, cluster_columns=FALSE,
-                        column_title=ch, column_names_gp=gpar(fontsize=8))
+                # median marker expression across samples & clusters
+                ms <- .agg(x[ch, idx], c("cluster_id", "sample_id"), fun)
+                ms <- do.call("rbind", ms)
+                rownames(ms) <- levels(x$cluster_id)
+                p <- p + Heatmap(matrix=ms, col=hm_cols, 
+                    na_col="lightgrey", rect_gp=gpar(col='white'),
+                    show_heatmap_legend=FALSE, show_row_names=FALSE,
+                    cluster_rows=row_clustering, cluster_columns=FALSE,
+                    column_title=ch, column_names_gp=gpar(fontsize=8))
                 }
             }
         }

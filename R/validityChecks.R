@@ -103,11 +103,34 @@
             " a character vector of column names.")
 }
 
-.check_sce <- function(x, clustered=FALSE) {
+# ==============================================================================
+# check correct format of SCE for differential analysis
+#   - x:  a 'SingleCellExperiment' constructed with 'prepData()'
+#   - y:  logical; should 'cluster()' have been run?
+# ------------------------------------------------------------------------------
+#' @importFrom methods is
+#' @importFrom S4Vectors metadata
+#' @importFrom SummarizedExperiment colData
+.check_sce <- function(x, y = FALSE) {
     stopifnot(is(x, "SingleCellExperiment"),
         "sample_id" %in% names(colData(x)),
         "experiment_info" %in% names(metadata(x)),
         setdiff(names(ei(x)), "n_cells") %in% names(colData(x)))
-    if (clustered) stopifnot(!is.null(x$cluster_id),
+    if (y) stopifnot(!is.null(x$cluster_id),
         c("SOM_codes", "cluster_codes", "delta_area") %in% names(metadata(x)))
+}
+
+# ==============================================================================
+# check whether input character string correspond to a colData factor
+#   - x:  a 'SingleCellExperiment'
+#   - y:  a character string specifying a colData 
+#           factor column, e.g., to color or shape by
+# ------------------------------------------------------------------------------
+#' @importFrom methods is
+#' @importFrom S4Vectors metadata
+#' @importFrom SummarizedExperiment colData
+.check_cd_factor <- function(x, y) {
+    if (!is.null(y)) 
+        stopifnot(is.character(y), length(y) == 1, 
+            y %in% colnames(colData(x)), !is.numeric(x[[y]]))
 }
