@@ -29,7 +29,7 @@ sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- cluster(sce)
 
 library(scater)
-sce <- runUMAP(sce)
+sce <- runUMAP(sce, exprs_values = "exprs")
 
 # color by pS6 expression, split by group
 plotDR(sce, color_by = "pS6") +

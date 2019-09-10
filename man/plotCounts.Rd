@@ -9,8 +9,8 @@ plotCounts(x, color_by = "condition", anno = TRUE)
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{color_by}{character string. Must appear as a column name of \code{rowData(x)}. 
-Specifies the color coding.}
+\item{color_by}{character string specifying 
+a \code{colData(x)} column to color by.}
 
 \item{anno}{logical. Whether to annotate cell numbers as text above bars.}
 }
@@ -33,5 +33,5 @@ high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+Helena Lucia Crowell
 }
