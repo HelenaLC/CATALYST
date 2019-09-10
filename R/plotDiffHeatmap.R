@@ -190,9 +190,7 @@ plotDiffHeatmap <- function(x, y,
             row_title = "cluster_id")
     } else {
         # median state-marker expression by sample
-        dt <- data.table(i=seq_len(ncol(x)), k=x$cluster_id, s=x$sample_id)
-        dt_by_ks <- split(dt, by=c("k", "s"), sorted=TRUE, flatten=FALSE)
-        cs_by_ks <- map_depth(dt_by_ks, 2, "i")
+        cs_by_ks <- .split_cells(x, c("cluster_id", "sample_id"))
         ms_by_ks <- t(mapply(function(k, g)
             vapply(cs_by_ks[[k]], function(cs)
                 median(es[g, cs, drop=FALSE]),
@@ -207,7 +205,6 @@ plotDiffHeatmap <- function(x, y,
         }
         if (normalize) 
             ms_by_ks <- .z_normalize(ms_by_ks) 
-        labs_side <- 
             hm2 <- .diff_hm(matrix=ms_by_ks, cluster_rows=!order,
                 name=paste0("normalized\n"[normalize], "expression"),
                 col=c("skyblue", "cornflowerblue", "royalblue", 
@@ -223,13 +220,10 @@ plotDiffHeatmap <- function(x, y,
         s <- as.matrix(c("no", "yes")[as.numeric(s)+1])
         rownames(s) <- format(top$p_adj, digits = 2)
         row_anno <- Heatmap(
-            matrix = s, 
-            name = "significant",
-            col = c(no = "lightgrey", yes = "limegreen"),
-            width = unit(5, "mm"),
-            rect_gp = gpar(col = "white"),
-            show_row_names = TRUE,
-            row_names_side = "right")
+            matrix = s, name = "significant",
+            col = c(no="lightgrey", yes="limegreen"), 
+            width = unit(5, "mm"), rect_gp = gpar(col = "white"),
+            show_row_names = TRUE, row_names_side = "right")
     } else {
         row_anno <- NULL
     }

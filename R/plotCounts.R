@@ -4,12 +4,11 @@
 #' @description Barplot of the number of cells measured for each sample.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
-#' @param color_by 
-#'   character string. Must appear as a column name of \code{rowData(x)}. 
-#'   Specifies the color coding.
+#' @param color_by character string specifying 
+#'   a \code{colData(x)} column to color by.
 #' @param anno logical. Whether to annotate cell numbers as text above bars.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+#' @author Helena Lucia Crowell
 #' 
 #' @references 
 #' Nowicka M, Krieg C, Weber LM et al. 
@@ -27,15 +26,11 @@
 #' @import ggplot2
 #' @importFrom methods is
 #' @export
-# ------------------------------------------------------------------------------
 
 plotCounts <- function(x, color_by="condition", anno=TRUE) {
-    
-    stopifnot(is(x, "SingleCellExperiment"))
-    valid <- names(ei(x))
-    if (!color_by %in% valid)
-        stop("Argument 'color_by = ", dQuote(color_by), "' invalid.\n",
-            "Should be one of: ", paste(dQuote(valid), collapse=", "))
+    .check_sce(x)
+    .check_cd_factor(x, color_by)
+    stopifnot(is.logical(anno), length(anno) == 1)
 
     p <- ggplot(ei(x), aes_string(x="sample_id", y="n_cells",
         fill=color_by)) + geom_bar(stat="identity", width=.75) +

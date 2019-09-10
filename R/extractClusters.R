@@ -98,6 +98,6 @@ extractClusters <- function(x, k, clusters=NULL,
         }
     )
     cs_by_k <- split(seq_len(ncol(es)), cluster_ids(x, k))
-    ffs <- mapply(fct, cs_by_k, names(cs_by_k)) 
+    ffs <- mapply(fct, cs_by_k, names(cs_by_k))[clusters]
     if (as == "flowSet") as(ffs, "flowSet") else if (as == "fcs") ffs
 }
