@@ -87,8 +87,9 @@ setMethod(f="normCytof",
     ms <- .get_ms_from_chs(chs)
     
     # find time, length, DNA and bead channels
-    time_col <- grep("time",        chs, ignore.case=TRUE)
-    lgth_col <- grep("length",      chs, ignore.case=TRUE)
+    t_col <- grep("time", chs, ignore.case=TRUE)
+    l_col <- grep("length", chs, ignore.case=TRUE)
+    n_col <- grep("filenum", chs, ignore.case = TRUE)
     dna_cols <- grep("Ir191|Ir193", chs, ignore.case=TRUE)
     bead_cols <- .get_bead_cols(chs, y)
     bead_chs <- chs[bead_cols]
@@ -115,7 +116,7 @@ setMethod(f="normCytof",
     n_bead_events <- sum(bead_inds)
 
     bead_es <- es[bead_inds, bead_chs]
-    bead_ts <- es[bead_inds, time_col]
+    bead_ts <- es[bead_inds, t_col]
     
     # get baseline (global mean) 
     if (verbose) message("Computing normalization factors...")
@@ -133,7 +134,7 @@ setMethod(f="normCytof",
         chs_ref <- flowCore::colnames(norm_to)
         bead_cols_ref <- .get_bead_cols(chs_ref, y)
         bead_chs_ref <- chs_ref[bead_cols_ref]
-        time_col_ref <- grep("time", chs_ref, ignore.case=TRUE)
+        t_col_ref <- grep("time", chs_ref, ignore.case=TRUE)
         es_ref <- flowCore::exprs(norm_to)
         baseline <- colMeans(es_ref[, bead_chs_ref])
     }
@@ -145,12 +146,12 @@ setMethod(f="normCytof",
     # & linearly interpolate slopes at non-bead events
     bead_slopes <- rowSums(t(t(smoothed_beads)*baseline))/
         rowSums(smoothed_beads^2)
-    slopes <- approx(bead_ts, bead_slopes, es[, time_col], rule = 2)$y
+    slopes <- approx(bead_ts, bead_slopes, es[, t_col], rule = 2)$y
     
     # normalize raw bead intensities via multiplication with slopes
     normed_es <- cbind(
-        es[,  c(time_col, lgth_col)], 
-        es[, -c(time_col, lgth_col)]*slopes)
+        es[,  c(t_col, l_col, n_col)], 
+        es[, -c(t_col, l_col, n_col)]*slopes)
     
     # smooth normalized beads
     bead_es_normed <- normed_es[bead_inds, bead_cols]
@@ -160,7 +161,7 @@ setMethod(f="normCytof",
     smoothed_beads <- data.frame(bead_ts, smoothed_beads)
     smoothed_normed_beads <- data.frame(bead_ts, smoothed_normed_beads)
     colnames(smoothed_beads)[1] <- 
-        colnames(smoothed_normed_beads)[1] <- chs[time_col]
+        colnames(smoothed_normed_beads)[1] <- chs[t_col]
     
     if (plot)
         .outPlots(x, es_t, bead_inds, remove, bead_cols, dna_cols,
