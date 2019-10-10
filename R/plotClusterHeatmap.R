@@ -95,18 +95,16 @@ plotClusterHeatmap <- function(x, hm2=NULL,
     u <- c("abundances", "state_markers", rownames(x))
     if (!is.null(hm2)) stopifnot(hm2 %in% u)
 
-    # medians marker exprs. across clusters
-    x$cluster_id <- cluster_ids(x, k)
+    # hierarchical clustering on cell-type marker medians by cluster
+    nk <- nlevels(x$cluster_id <- cluster_ids(x, k))
     ms_by_k <- t(.agg(x, "cluster_id", fun))
-    
-    # hierarchical clustering on cell-type markers
     d <- dist(ms_by_k[, type_markers(x)])
     row_clustering <- hclust(d, method="average")
     
-    # clustering row annotation 
+    # clustering row annotation
     if (cluster_anno) {
         anno <- levels(x$cluster_id)
-        if ((nk <- nlevels(x$cluster_id)) > 30) {
+        if (nk > 30) {
             cols <- colorRampPalette(.cluster_cols)(nk)
         } else {
             cols <- .cluster_cols[seq_len(nk)]
@@ -146,7 +144,11 @@ plotClusterHeatmap <- function(x, hm2=NULL,
         # left-hand side heatmap:
         # median cell-type marker expressions across clusters
         if (!many) {
-            hm1_es <- ms_by_k
+            if (scale) {
+                hm1_es <- t(.agg(x, "cluster_id", fun))
+            } else {
+                hm1_es <- ms_by_k
+            }
         } else {
             hm1_es <- t(.agg(x[, idx], "cluster_id", fun))
         }
