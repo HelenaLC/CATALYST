@@ -58,14 +58,15 @@ plotNRS <- function(x, features=NULL, color_by="condition") {
     }
     
     # calculate NRS
-    md <- metadata(x)$experiment_info
     cs_by_s <- split(seq_len(ncol(x)), x$sample_id)
     scores <- t(vapply(cs_by_s, function(cs)
         .nrs(assay(x, "exprs")[features, cs, drop = FALSE]),
         numeric(length(features))))
     
     # plot NRS in decreasing order
-    df <- melt(data.frame(scores, md), id.var=names(md), 
+    md <- metadata(x)$experiment_info
+    m <- match(levels(x$sample_id), md$sample_id)
+    df <- melt(data.frame(scores, md[m, ]), id.var=names(md), 
         variable.name="antigen", value.name="NRS") 
     mean_scores <- colMeans(scores, na.rm=TRUE)
     o <- names(sort(mean_scores, decreasing=TRUE))
