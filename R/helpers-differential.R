@@ -33,7 +33,7 @@
 .scale_exprs <- function(x) {
     qs <- matrixStats::colQuantiles(as.matrix(x), probs=c(.01, .99))
     x_scaled <- t((t(x) - qs[, 1]) / (qs[, 2] - qs[, 1]))
-    x_scaled[x_scaled < 0] <- 0
+    x_scaled[x_scaled < 0 | is.na(x_scaled)] <- 0
     x_scaled[x_scaled > 1] <- 1
     return(x_scaled)
 }
