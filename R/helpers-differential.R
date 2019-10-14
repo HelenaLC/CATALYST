@@ -22,7 +22,7 @@
     x <- switch(margin,
         "1" = (x - qs[, 1]) / (qs[, 2] - qs[, 1]),
         "2" = t((t(x) - qs[, 1]) / (qs[, 2] - qs[, 1])))
-    x[x < 0] <- 0
+    x[x < 0 | is.na(x)] <- 0
     x[x > 1] <- 1
     return(x)
 }
