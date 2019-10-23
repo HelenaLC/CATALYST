@@ -20,14 +20,14 @@ Either a character string specifying a subset of features,
 or NULL for all features. When \code{rowData(x)$marker_class} 
 is specified, can be one of "type", "state", or "none".}
 
+\item{assay}{character string specifying 
+which assay of \code{x} conatins expression values.}
+
 \item{...}{optional arguments for dimension reduction; passed to 
 \code{\link[scater]{runUMAP}}, \code{\link[scater]{runTSNE}}, 
 \code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}} and
 \code{\link[scater]{runDiffusionMap}}, respecttively.
 See \code{?"scater-red-dim-args"} for details.}
-
-\item{exprs_values}{character string specifying 
-which assay of \code{x} conatins expression values.}
 }
 \value{
 a \code{ggplot} object.

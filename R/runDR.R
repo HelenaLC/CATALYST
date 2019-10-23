@@ -13,7 +13,7 @@
 #'   Either a character string specifying a subset of features,
 #'   or NULL for all features. When \code{rowData(x)$marker_class} 
 #'   is specified, can be one of "type", "state", or "none".
-#' @param exprs_values character string specifying 
+#' @param assay character string specifying 
 #'   which assay of \code{x} conatins expression values.
 #' @param ... optional arguments for dimension reduction; passed to 
 #'   \code{\link[scater]{runUMAP}}, \code{\link[scater]{runTSNE}}, 
