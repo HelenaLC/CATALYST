@@ -4,8 +4,13 @@
 \alias{plotAbundances}
 \title{Population frequencies across samples & clusters}
 \usage{
-plotAbundances(x, k = "meta20", by = c("sample_id", "cluster_id"),
-  group_by = NULL, shape_by = NULL)
+plotAbundances(
+  x,
+  k = "meta20",
+  by = c("sample_id", "cluster_id"),
+  group_by = NULL,
+  shape_by = NULL
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}

@@ -4,9 +4,18 @@
 \alias{plotDiffHeatmap}
 \title{Plot differential heatmap}
 \usage{
-plotDiffHeatmap(x, y, top_n = 20, all = FALSE, order = TRUE,
-  th = 0.1, hm1 = TRUE, normalize = TRUE, row_anno = TRUE,
-  col_anno = TRUE)
+plotDiffHeatmap(
+  x,
+  y,
+  top_n = 20,
+  all = FALSE,
+  order = TRUE,
+  th = 0.1,
+  hm1 = TRUE,
+  normalize = TRUE,
+  row_anno = TRUE,
+  col_anno = TRUE
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}

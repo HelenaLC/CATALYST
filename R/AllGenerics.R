@@ -90,12 +90,6 @@ setGeneric("yields<-",
 # Generics for debarcoding
 # ------------------------------------------------------------------------------
 
-#' @rdname assignPrelim
-#' @param ... optional arguments.
-#' @export
-setGeneric("assignPrelim", 
-    function(x, y, ...) standardGeneric("assignPrelim"))
-
 #' @rdname estCutoffs
 #' @param ... optional arguments.
 #' @export
@@ -123,12 +117,6 @@ setGeneric("outFCS",
 # ==============================================================================
 # Generics for plotting
 # ------------------------------------------------------------------------------
-
-#' @rdname plotYields
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotYields", 
-    function(x, ...) standardGeneric("plotYields"))
 
 #' @rdname plotEvents
 #' @param ... optional arguments.

@@ -4,10 +4,16 @@
 \alias{plotExprHeatmap}
 \title{Plot expression heatmap}
 \usage{
-plotExprHeatmap(x, bin_anno = TRUE, row_anno = TRUE,
-  palette = brewer.pal(n = 8, name = "YlGnBu"), scale = TRUE,
-  draw_freqs = FALSE, clustering_distance = "euclidean",
-  clustering_linkage = "average")
+plotExprHeatmap(
+  x,
+  bin_anno = TRUE,
+  row_anno = TRUE,
+  palette = brewer.pal(n = 8, name = "YlGnBu"),
+  scale = TRUE,
+  draw_freqs = FALSE,
+  clustering_distance = "euclidean",
+  clustering_linkage = "average"
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}

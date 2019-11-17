@@ -7,11 +7,11 @@
     cutoff <- 0 # used to prevent large neg. values from appearing
     # to have sufficient separation from values near zero
     
-    N <- nrow(bcs)
+    N <- ncol(bcs)
     # order barcode intensities within ea. event
     if (verbose) message(" o ordering")
-    bc_orders <- t(apply(bcs, 1, order, decreasing=TRUE))
-    
+    bc_orders <- apply(bcs, 2, order, decreasing = TRUE)
+
     # DOUBLET-FILTERING
     # look at k highest and (n-k)-lowest barcode channels
     if (length(unique(rowSums(bc_key))) == 1) { 
@@ -20,22 +20,21 @@
         n_pos_bcs <- sum(bc_key[1, ])    
         
         # get lowest pos. and highest neg. barcode for ea. event
-        lowest_pos  <- bcs[cbind(seq_len(N), bc_orders[, n_pos_bcs])]
-        highest_neg <- bcs[cbind(seq_len(N), bc_orders[, n_pos_bcs+1])]
+        lowest_pos  <- bcs[cbind(bc_orders[n_pos_bcs, ],   seq_len(N))]
+        highest_neg <- bcs[cbind(bc_orders[n_pos_bcs+1, ], seq_len(N))]
         
         if (verbose) message(" o classifying events")
         # assign binary barcode to ea. event
-        codes <- apply(bcs, 2, function(x) as.numeric(x >= lowest_pos))
+        codes <- apply(bcs, 1, function(x) as.numeric(x >= lowest_pos))
         
         # assign barcode ID to ea. event
         lookup <- rowSums(2 ^ col(bc_key) * bc_key)
         preids <- rowSums(2 ^ col(codes)  * codes)
         bc_ids <- ids[match(preids, lookup)]
-        bc_ids[is.na(bc_ids)] <- 0
         
         # exclude events whose pos. barcodes are still very low 
         # (using bcs, not normalized bcs)
-        ex <- bcs[cbind(seq_len(N), bc_orders[, n_pos_bcs])] < cutoff
+        ex <- bcs[cbind(bc_orders[n_pos_bcs, ], seq_len(N))] < cutoff
         bc_ids[is.na(bc_ids) | ex] <- 0
         
         # NON-CONSTANT NUMBER OF 1'S
@@ -45,17 +44,17 @@
         
         # find largest barcode separation within ea. event 
         # to assign pos. and neg. barcode values
-        diffs <- vapply(seq_len(N), function(x) 
-            abs(diff(bcs[x, bc_orders[x, ]])), 
+        diffs <- vapply(seq_len(N), function(i) 
+            abs(diff(bcs[bc_orders[, i], i])), 
             numeric(ncol(bc_key)-1))
         largest_seps <- apply(diffs, 2, which.max)
-        pos <- lapply(seq_len(N), function(x) 
-            bc_orders[x, seq_len(largest_seps[x])])
+        pos <- lapply(seq_len(N), function(i) 
+            bc_orders[seq_len(largest_seps[i]), i])
         
         if (verbose) message(" o classifying events")
         # assign binary barcode to ea. event
-        codes <- t(vapply(seq_len(N), function(x) 
-            as.numeric(seq_len(ncol(bc_key)) %in% pos[[x]]),
+        codes <- t(vapply(seq_len(N), function(i) 
+            as.numeric(seq_len(ncol(bc_key)) %in% pos[[i]]),
             numeric(ncol(bc_key))))
         
         # assign barcode ID to ea. event
@@ -65,7 +64,7 @@
         
         # exclude events whose pos. barcodes are still very low 
         # (using bcs, not normalized bcs)
-        pos_bcs <- lapply(seq_len(N), function(x) bcs[x, pos[[x]]])
+        pos_bcs <- lapply(seq_len(N), function(i) bcs[pos[[i]], i])
         ex <- lapply(pos_bcs, function(x) any(x < cutoff))
         bc_ids[is.na(bc_ids) | unlist(ex)] <- 0
     }
@@ -78,9 +77,9 @@
 # ------------------------------------------------------------------------------
 .get_deltas <- function(data, bc_key, verbose) {
     
-    N <- nrow(data)
+    N <- ncol(data)
     # order barcode intensities within ea. event
-    bc_orders <- t(apply(data, 1, order, decreasing=TRUE))
+    bc_orders <- apply(data, 2, order, decreasing = TRUE)
     
     # DOUBLET-FILTERING
     # look at k highest and (n-k)-lowest barcode channels
@@ -90,8 +89,8 @@
         n_pos_bcs <- sum(bc_key[1, ])    
         
         # get lowest pos. and highest neg. barcode for ea. event
-        lowest_pos  <- data[cbind(seq_len(N), bc_orders[, n_pos_bcs])]
-        highest_neg <- data[cbind(seq_len(N), bc_orders[, n_pos_bcs+1])]
+        lowest_pos  <- data[cbind(bc_orders[n_pos_bcs, ],   seq_len(N))]
+        highest_neg <- data[cbind(bc_orders[n_pos_bcs+1, ], seq_len(N))]
         
         # compute separation b/w pos. and neg. barcodes for ea. event
         deltas <- lowest_pos - highest_neg
@@ -100,15 +99,14 @@
         # difference b/w the kth and (k–1)th highest 
         # normalized barcode intensities
     } else {
-        
         # find largest barcode separation within ea. event 
         # to assign pos. and neg. barcode values
-        diffs <- vapply(seq_len(N), function(x) 
-            abs(diff(data[x, bc_orders[x, ]])),
+        diffs <- vapply(seq_len(N), function(i) 
+            abs(diff(data[bc_orders[, i], i])),
             numeric(ncol(bc_key) - 1))
         largest_seps <- apply(diffs, 2, which.max)
-        deltas <- vapply(seq_len(N), function(x) 
-            diffs[largest_seps[x], x],
+        deltas <- vapply(seq_len(N), function(i) 
+            diffs[largest_seps[i], i],
             numeric(1))
     }
     deltas

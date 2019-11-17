@@ -4,8 +4,13 @@
 \alias{plotMedExprs}
 \title{Plot median expressions}
 \usage{
-plotMedExprs(x, k = "meta20", facet = c("antigen", "cluster_id"),
-  group_by = "condition", shape_by = NULL)
+plotMedExprs(
+  x,
+  k = "meta20",
+  facet = c("antigen", "cluster_id"),
+  group_by = "condition",
+  shape_by = NULL
+)
 }
 \arguments{
 \item{x}{a \code{\link{SingleCellExperiment}{SingleCellExperiment}}.}

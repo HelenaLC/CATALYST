@@ -4,8 +4,15 @@
 \alias{cluster}
 \title{FlowSOM clustering & ConsensusClusterPlus metaclustering}
 \usage{
-cluster(x, features = NULL, xdim = 10, ydim = 10, maxK = 20,
-  verbose = TRUE, seed = 1)
+cluster(
+  x,
+  features = NULL,
+  xdim = 10,
+  ydim = 10,
+  maxK = 20,
+  verbose = TRUE,
+  seed = 1
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
