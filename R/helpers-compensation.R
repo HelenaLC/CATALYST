@@ -19,12 +19,13 @@
 # ==============================================================================
 # compute channel i to j spill
 # ------------------------------------------------------------------------------
+#' @importFrom stats mean median
 .get_sij <- function(pos_i, neg_i, pos_j, neg_j, method, trim) {
     if (length(neg_i) == 0) neg_i <- 0
     if (length(neg_j) == 0) neg_j <- 0
     if (method == "default") {
-        bg_j <- mean(neg_j, trim=.1)
-        bg_i <- mean(neg_i, trim=.1)
+        bg_j <- mean(neg_j, trim = 0.1)
+        bg_i <- mean(neg_i, trim = 0.1)
         receiver <- pos_j - bg_j
         spiller  <- pos_i - bg_i
     } else if (method == "classic") {
@@ -71,18 +72,17 @@
     if (any(sii != 1))
         stop("\nThe supplied spillover matrix is invalid ",
             "as its diagonal contains entries != 1.\n")
-    test <- all(rownames(sm) %in% colnames(sm))
-    if (!test)
+    if (!all(rownames(sm) %in% colnames(sm)))
         stop("\nThe supplied spillover matrix seems to be invalid.\n",
             "All spill channels must appear as receiving channels:\n",
             "'all(rownames(sm) %in% colnames(sm))' should return TRUE.")
     isos <-  paste0(gsub("[0-9]", "", names(unlist(l))), as.numeric(unlist(l)))
-    test <- vapply(dimnames(sm), function(chs) {
+    valid <- vapply(dimnames(sm), function(chs) {
         ms <- .get_ms_from_chs(chs)
         mets <- .get_mets_from_chs(chs)
         all(paste0(mets, ms) %in% isos) 
     }, logical(1))
-    if (any(!test)) 
+    if (any(!valid)) 
         stop("\nThe supplied spillover matrix seems to be invalid.\n",
             "All isotopes should appear in `", deparse(substitute(l)), "`.")
     sm[, colSums(sm) != 0]
@@ -91,12 +91,11 @@
 # ==============================================================================
 # Helper functions to get mass and metal from a channel name
 # ------------------------------------------------------------------------------
-.get_ms_from_chs <- function(chs) {
-    gsub("[[:punct:][:alpha:]]", "", chs)
-}
-.get_mets_from_chs <- function(chs) { 
+.get_ms_from_chs <- function(chs)
+    as.numeric(gsub("[[:punct:][:alpha:]]", "", chs))
+
+.get_mets_from_chs <- function(chs)
     gsub("([[:punct:]]*)([[:digit:]]*)(Di)*", "", chs)
-}
 
 # ==============================================================================
 # This function compares a list of spillover channels to
@@ -105,14 +104,12 @@
 # expected spillover among the new channels.
 # ------------------------------------------------------------------------------
 .warn_new_intearctions <- function(chs_new, sm) {
-    chs_emitting  <- rownames(sm)
-    chs_receiving <- colnames(sm)
-    chs <- list(chs_new, chs_emitting, chs_receiving)
-    chs <- stats::setNames(chs, c("new", "emitting", "receiving"))
+    chs <- c(list(chs_new), dimnames(sm))
+    names(chs) <- c("new", "emitting", "receiving")
     
-    # get the metals and masses from the names
-    mets <- lapply(chs, .get_mets_from_chs)
+    # get masses & metals from channel names
     ms <- lapply(chs, .get_ms_from_chs)
+    mets <- lapply(chs, .get_mets_from_chs)
     
     # get the potential mass channels a channel could cause spillover in
     spill_cols <- .get_spill_cols(ms$new, mets$new)
@@ -134,19 +131,15 @@
             # in the spillover matrix provided
             mass_new_rec <- cur_spillms[!cur_spillms %in% ms$receiving]
         }
-        
         if (length(mass_new_rec) > 0) {
             if (first) {
-                message("WARNING: ",
-                    "Compensation is likely to be inaccurate.\n",
-                    "         ",
+                message("Compensation is likely to be inaccurate.\n",
                     "Spill values for the following interactions\n",
-                    "         ",
                     "have not been estimated:")
                 first <- FALSE
             }
-            message(chs$new[i], " -> ", paste(
-                chs$new[ms$new %in% mass_new_rec], collapse=", "))
+            message(chs$new[i], " -> ", 
+                paste(chs$new[ms$new %in% mass_new_rec], collapse=", "))
         }
     }
 }

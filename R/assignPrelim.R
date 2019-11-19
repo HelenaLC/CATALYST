@@ -3,11 +3,11 @@
 #' @description Assigns a preliminary barcode ID to each event.
 #' 
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
-#' @param y the debarcoding scheme. A binary matrix with sample names as row
+#' @param bc_key the debarcoding scheme. A binary matrix with sample names as row
 #'   names and numeric masses as column names OR a vector of numeric masses 
 #'   corresponding to barcode channels. When the latter is supplied, 
 #'   `assignPrelim` will create a scheme of the appropriate format internally.
-#' @param cofactor numeric. Cofactor used for asinh transformation.
+#' @param cf numeric. Cofactor used for asinh transformation.
 #' @param verbose logical. Should extra information on progress be reported?
 #' 
 #' @return a \code{SingleCellExperiment} structured as follows: 
@@ -36,6 +36,7 @@
 #' @examples
 #' data(sample_ff, sample_key)
 #' es <- as.matrix(exprs(sample_ff))
+#' library(SingleCellExperiment)
 #' sce <- SingleCellExperiment(
 #'     assays = list(counts = t(es)),
 #'     rowData = pData(parameters(sample_ff)))
@@ -52,26 +53,30 @@
 #' @importFrom matrixStats rowMaxs
 #' @importFrom methods is
 #' @importFrom stats quantile
+#' @importFrom SingleCellExperiment altExp<-
 #' @importFrom SummarizedExperiment assay assayNames
 #' @export
 
-assignPrelim <- function(x, y, cofactor=10, verbose=TRUE) {
+assignPrelim <- function(x, bc_key, cf = 10, verbose = TRUE) {
     # check validity of input agruments
-    stopifnot(is(x, "SingleCellExperiment"), "counts" %in% assayNames(x),
-        is.numeric(unlist(y)), all(unlist(y) %in% c(0, 1)),
-        is.numeric(cofactor), length(cofactor) == 1, cofactor > 0,
+    stopifnot(
+        is(x, "SingleCellExperiment"), 
+        "counts" %in% assayNames(x),
+        is.numeric(unlist(bc_key)), 
+        is.vector(bc_key) | all(unlist(bc_key) %in% c(0, 1)),
+        is.numeric(cf), length(cf) == 1, cf > 0,
         is.logical(verbose), length(verbose) == 1)
     
-    if (is.vector(y)) {
-        n <- length(y)
-        y <- matrix(diag(n), ncol = n, dimnames = list(y, y))
-        y <- data.frame(y, check.names=FALSE)
+    if (is.vector(bc_key)) {
+        n <- length(bc_key)
+        bc_key <- matrix(diag(n), ncol = n, dimnames = list(bc_key, bc_key))
+        bc_key <- data.frame(bc_key, check.names=FALSE)
     }
     
     # extract masses & check validity of debarcoding scheme
-    n_bcs <- nrow(y)
-    ids <- rownames(y)
-    bc_ms <- as.numeric(colnames(y))
+    n_bcs <- nrow(bc_key)
+    ids <- rownames(bc_key)
+    bc_ms <- as.numeric(colnames(bc_key))
     ms <- .get_ms_from_chs(rownames(x))
     if (any(!bc_ms %in% ms))
         stop("Couldn't match masses extracted from", 
@@ -79,61 +84,39 @@ assignPrelim <- function(x, y, cofactor=10, verbose=TRUE) {
     
     # get columns corresponding to barcode channels
     bc_cols <- vapply(bc_ms, function(u) which(ms == u), numeric(1))
-    if (length(bc_cols) != ncol(y))
+    if (length(bc_cols) != ncol(bc_key))
         stop("Not all barcode channels found.")
     
     # subset & transform barcode channels
-    x <- x[bc_cols, ]
-    es <- assay(x, "exprs") <- asinh(assay(x, "counts") / cofactor)
+    assay(x, "exprs") <- asinh(assay(x, "counts") / cf)
+    bc_es <- assay((y <-  x[bc_cols, ]), "exprs")
      
     # assign barcode ID to each cell
     if (verbose) message("Debarcoding data...")
-    bc_ids <- .get_ids(es, y, ids, verbose)
+    bc_ids <- .get_ids(bc_es, bc_key, ids, verbose)
     
     # rescale transformed barcodes for each population 
     # using preliminary assignments
     if (verbose) message("Normalizing...")
     normed_bcs <- matrix(0, 
-        nrow=nrow(es), ncol=ncol(x), 
-        dimnames=list(rownames(es), NULL))
+        nrow=nrow(bc_es), ncol=ncol(x), 
+        dimnames=list(rownames(bc_es), NULL))
     pos <- lapply(ids, `==`, bc_ids)
     for (i in seq_along(ids))
         if (any(pos[[i]])) {
-            pos_bcs <- es[y[i, ] == 1, pos[[i]]]
+            pos_bcs <- bc_es[bc_key[i, ] == 1, pos[[i]]]
             q95 <- quantile(pos_bcs, 0.95)
-            normed_bcs[, pos[[i]]] <- es[, pos[[i]]]/q95
+            normed_bcs[, pos[[i]]] <- bc_es[, pos[[i]]]/q95
         }
-    assay(x, "scaled") <- normed_bcs
     
     # get deltas from normalized intensities 
     if (verbose) message("Computing deltas...")
-    deltas <- .get_deltas(normed_bcs, y, verbose)
+    deltas <- .get_deltas(normed_bcs, bc_key, verbose)
     
-    # compute well-wise yield for each separation cutoff
-    if (verbose) message("Computing counts and yields...")
-    n_seps <- length(seps <- seq(0, 1, 0.01))
-    yields <- counts <- matrix(0, nrow = n_bcs, ncol = n_seps)
-    for (i in seq_along(ids)) {
-        #pos <- which(inds == i)
-        for (j in seq_along(seps)) {
-            k <- deltas[pos[[i]]] >= seps[j]
-            yields[i, j] <- sum(k)
-            counts[i, j] <- sum(k & deltas[pos[[i]]] < seps[j + 1])
-            if (j == n_seps)
-                counts[i, j] <- sum(k)
-        }
-    }
-    
-    # normalize yields
-    norm_val <- rowMaxs(yields)
-    norm_val[norm_val == 0] <- 1
-    yields <- yields / norm_val
-    
-    rownames(counts) <- rownames(yields) <- ids
-    colnames(counts) <- colnames(yields) <- seps
-    
-    x$bc_id <- bc_ids
-    x$delta <- deltas
-    metadata(x)$bc_key <- y
+    assay(y, "scaled") <- normed_bcs
+    y$bc_id <- bc_ids
+    y$delta <- deltas
+    metadata(y)$bc_key <- bc_key
+    altExp(x, "barcodes") <- y
     return(x)
 }

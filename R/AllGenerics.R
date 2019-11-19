@@ -90,18 +90,6 @@ setGeneric("yields<-",
 # Generics for debarcoding
 # ------------------------------------------------------------------------------
 
-#' @rdname estCutoffs
-#' @param ... optional arguments.
-#' @export
-setGeneric("estCutoffs",   
-    function(x, ...) standardGeneric("estCutoffs"))
-
-#' @rdname applyCutoffs
-#' @param ... optional arguments.
-#' @export
-setGeneric("applyCutoffs", 
-    function(x, ...) standardGeneric("applyCutoffs"))
-
 #' @rdname outFrames
 #' @param ... optional arguments.
 #' @export

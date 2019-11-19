@@ -1,12 +1,9 @@
 #' @rdname estCutoffs
 #' @title Estimation of distance separation cutoffs
-#' 
-#' @description 
-#' For each sample, estimates a cutoff parameter for the 
-#' distance between positive and negative barcode populations.
+#' @description For each sample, estimates a cutoff parameter for 
+#' the distance between positive and negative barcode populations.
 #'
-#' @param x       
-#'   a \code{\link{dbFrame}}.
+#' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' 
 #' @details 
 #' For the estimation of cutoff parameters, we considered yields
@@ -35,65 +32,87 @@
 #' \deqn{c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}}{
 #' c = (1 - w) x c(log-logistic) + w x c(linear)}
 #' 
-#' @return
-#' Will update the \code{sep_cutoffs} slot of the input \code{\link{dbFrame}} 
-#' and return the latter.
+#' @return the input \code{SingleCellExperiment} \code{x} is returned
+#' with an additional \code{int_metadata} slot \code{sep_cutoffs}
+#' stored in \code{altExp(x, altExp)}. If \code{altExp} is NULL, 
+#' \code{sep_cutoffs} are stored in the \code{int_metadata} of \code{x}.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+#' @author Helena L. Crowell
 #'
-#' @references 
-#' Finney, D.J. (1971). Probit Analsis. 
+#' @references Finney, D.J. (1971). Probit Analsis. 
 #' \emph{Journal of Pharmaceutical Sciences} \bold{60}, 1432. 
 #' 
 #' @examples
-#' data(sample_ff, sample_key)
-#' # assign preliminary IDs
-#' re <- assignPrelim(x = sample_ff, y = sample_key)
-#' # estimate separation cutoffs
-#' re <- estCutoffs(x = re)
-#' # view exemplary estimate
-#' plotYields(re, "A1")
+#' library(SingleCellExperiment)
 #' 
-#' @importFrom stats lm coef D
+#' # construct SCE
+#' data(sample_ff, sample_key)
+#' es <- as.matrix(exprs(sample_ff))
+#' sce <- SingleCellExperiment(
+#'     assays = list(counts = t(es)),
+#'     rowData = pData(parameters(sample_ff)))
+#'     
+#' # assign preliminary barcode IDs
+#' # & estimate separation cutoffs
+#' sce <- assignPrelim(x = sce, bc_key = sample_key)
+#' sce <- estCutoffs(sce)
+#' 
+#' # access separation cutoff estimates
+#' bcs <- altExp(sce, "barcodes")
+#' int_metadata(bcs)$sep_cutoffs
+#' 
 #' @importFrom drc drm LL.3
-# ------------------------------------------------------------------------------
+#' @importFrom Matrix colMeans
+#' @importFrom methods is
+#' @importFrom stats coef D predict
+#' @importFrom S4Vectors metadata
+#' @importFrom SingleCellExperiment int_metadata<- altExp altExp<- altExpNames
+#' @export
 
-setMethod(f="estCutoffs", 
-    signature=signature(x="dbFrame"), 
-    definition=function(x) {
-        
-        sep_cutoffs <- seq(0, 1, .01)
-        n_bcs <- nrow(bc_key(x))
-        ests <- numeric(n_bcs)
-        
-        # three-parameter log-logistic function & 1st derivative
-        llf <- quote(d/(1+exp(b*(log(sep_cutoffs)-log(e)))))
-        deriv <-  stats::D(llf, "sep_cutoffs")
-        
-        for (i in seq_len(n_bcs)) {
-            df <- data.frame(x=sep_cutoffs, y=as.vector(yields(x)[i, ]))
-            fit <- tryCatch(
-                drc::drm(y~x, data=df, fct=drc::LL.3()), 
-                error=function(e) e)
-            if (inherits(fit, "error")) 
-                next
-            b <- fit$coefficients[1]
-            d <- fit$coefficients[2]
-            e <- fit$coefficients[3]
-            linear_fit <- lm(yields(x)[i, ] ~ sep_cutoffs + 1)
-            intercept <- coef(linear_fit)[1]
-            slope <- coef(linear_fit)[2]
-            rss_linear <- sum((yields(x)[i,] - predict(linear_fit)) ^ 2)
-            rss_llf <- sum((yields(x)[i,] - eval(llf)) ^ 2) 
-            w <- rss_llf / (rss_llf + rss_linear)
-            est_linear <- round(-intercept/(2*slope), 2)
-            est_llf <- sep_cutoffs[abs(c(0, eval(deriv)[-1])) / 
-                    eval(llf) > 1e-2][1]
-            ests[i] <- (1 - w) * est_llf + w * est_linear
-        }
-        ests <- round(ests, 2)
-        names(ests) <- rownames(bc_key(x))
-        sep_cutoffs(x) <- ests
-        x
-    })
-            
+estCutoffs <- function(x, altExp = "barcodes") {
+    stopifnot(is(x, "SingleCellExperiment"),
+        is.null(altExp) || is.character(altExp) && 
+            length(altExp) == 1 && altExp %in% altExpNames(x))
+    
+    if (!is.null(altExp)) y <- altExp(x, altExp) else y <- x
+    
+    stopifnot(!is.null(metadata(y)$bc_key),
+        !is.null(y$bc_id), !is.null(y$delta))
+    
+    n_bcs <- length(ids <- rownames(bc_key <- metadata(y)$bc_key))
+    n_seps <- length(names(seps) <- seps <- seq(0, 1, 0.01))
+    
+    # split cell by barcode ID
+    cs <- split(seq_len(ncol(y)), y$bc_id)
+    
+    # compute yields upon applying separation cutoffs
+    ys <- vapply(seps, function(u) y$delta >= u, numeric(ncol(y)))
+    ys <- vapply(ids, function(id) colMeans(ys[cs[[id]], ]), numeric(n_seps))
+    
+    # three-parameter log-logistic function & 1st derivative
+    dll <- D(ll <- quote(d/(1+exp(b*(log(seps)-log(e))))), "seps")
+    
+    ests <- vapply(ids, function(id) {
+        df <- data.frame(x = seps, y = ys[, id])
+        fit <- tryCatch(
+            drm(y~x, data = df, fct = LL.3()),
+            error = function(e) e)
+        if (inherits(fit, "error")) 
+            return(NA)
+        b <- fit$coefficients[1]
+        d <- fit$coefficients[2]
+        e <- fit$coefficients[3]
+        lm_fit <- lm(ys[, id] ~ seps + 1)
+        rss_lm <- sum((ys[, id] - predict(lm_fit)) ^ 2)
+        rss_ll <- sum((ys[, id] - eval(ll)) ^ 2)
+        est_lm <- - coef(lm_fit)[1] / (2 * coef(lm_fit)[2])
+        est_ll <- seps[abs(c(0, eval(dll)[-1])) / eval(ll) > 1e-2][1]
+        w <- rss_ll / (rss_ll + rss_lm)
+        w * est_lm + (1 - w) * est_ll
+    }, numeric(1))
+    
+    # store estimates in metadata & return SCE
+    int_metadata(y)$sep_cutoffs <- ests
+    if (!is.null(altExp)) altExp(x, altExp) <- y else x <- y
+    return(x)
+}

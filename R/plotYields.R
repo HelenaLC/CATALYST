@@ -29,10 +29,10 @@
 #' re <- estCutoffs(x = re)
 #' 
 #' # all barcodes summary plot
-#' plotYields(x = re, which = 0)
+#' plotYields(x = sce, which = 0, plotly = TRUE)
 #' 
 #' # plot for specific sample
-#' plotYields(x = re, which = "C1")
+#' plotYields(x = sce, which = "C1")
 #' 
 #' @author Helena L. Crowell
 #'
@@ -42,23 +42,23 @@
 #' and single-cell deconvolution algorithm.
 #' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
-#' @importFrom ggplot2
+#' @import ggplot2
 #' @importFrom htmltools save_html
 #' @importFrom methods is
 #' @importFrom matrixStats rowMaxs
 #' @importFrom plotly config ggplotly hide_legend
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom reshape2 melt
-#' @importFrom SummarizedExperiment metadata
+#' @importFrom scales scientific
+#' @importFrom S4Vectors metadata
 #' @export
 
 plotYields <- function(x, which = 0, 
     out_path = NULL, name_ext = NULL, plotly = FALSE) {
     stopifnot(is(x, "SingleCellExperiment"))
     
-    bc_key <- metadata(x)$bc_key
-    ids <- rownames(bc_key)
-    n_bcs <- nrow(bc_key)
+    n_bcs <- length(ids <- rownames(bc_key <- metadata(x)$bc_key))
+    names(which) <- which <- .check_validity_which(which, ids, "yields")
     
     # compute yields & cell counts
     n_seps <- length(names(seps) <- seps <- seq(0, 1, 0.01))
@@ -72,10 +72,10 @@ plotYields <- function(x, which = 0,
     cs <- split(seq_len(ncol(x)), x$bc_id)
     yields <- vapply(ids, function(id)
         colMeans(yields[cs[[id]], ]),
-        numeric(length(seps)))
+        numeric(n_seps))
     counts <- vapply(ids, function(id)
         colSums(counts[cs[[id]], ]),
-        numeric(length(seps)))
+        numeric(n_seps))
 
     thm <- function(max) {
         list(theme_classic(), theme(
@@ -128,11 +128,12 @@ plotYields <- function(x, which = 0,
     })
     
     if (plotly)
-        ps <- lapply(which, function(id)
+        ps <- lapply(which, function(id) {
             p <- switch(as.character(id), 
-                "0" = hide_legend(ggplotly(ps[[i]], tooltip = "text")),
-                ggplotly(ps[[i]], tooltip = c("cutoff", "yield", "count")))
-            config(p, displayModeBar = FALSE))
+                "0" = hide_legend(ggplotly(ps[[id]], tooltip = "text")),
+                ggplotly(ps[[id]], tooltip = c("cutoff", "yield", "count")))
+            config(p, displayModeBar = FALSE)
+        })
     
     if (!is.null(out_path)) {
         fn <- paste0("yield_plot", name_ext, ".html")

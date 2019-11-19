@@ -1,10 +1,8 @@
 #' @rdname applyCutoffs
 #' @title Single-cell debarcoding (2)
-#' 
 #' @description Applies separation and mahalanobies distance cutoffs.
 #'
-#' @param x 
-#'   a \code{\link{dbFrame}}.
+#' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param mhl_cutoff 
 #'   mahalanobis distance threshold above which events should be unassigned. 
 #'   This argument will be ignored if the \code{mhl_cutoff} slot of the input 
@@ -16,11 +14,12 @@
 #'   unassigned. If \code{NULL} (default), \code{applyCutoffs} will try to 
 #'   access the \code{sep_cutoffs} slot of the input \code{dbFrame}.
 #'
-#' @return 
-#' Will update the \code{bc_ids} and, if not already specified, 
-#' \code{sep_cutoffs} & \code{mhl_cutoff} slots of \code{x}.
+#' @return the input \code{SingleCellExperiment} \code{x} is returned with 
+#' updated \code{colData} columns \code{"bc_id"} and \code{"mhl_dist"}, 
+#' and an additional \code{int_metadata} slot \code{"mhl_cutoff"} 
+#' containing the applied mahalanobies distance cutoff.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+#' @author Helena L. Crowell
 #' 
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -29,74 +28,92 @@
 #' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
 #' @examples
-#' data(sample_ff, sample_key)
-#' re <- assignPrelim(x = sample_ff, y = sample_key)
+#' library(SingleCellExperiment)
 #' 
-#' # use global separation cutoff
-#' applyCutoffs(x = re, sep_cutoffs = 0.4)
+#' # construct SCE
+#' data(sample_ff, sample_key)
+#' es <- as.matrix(exprs(sample_ff))
+#' sce <- SingleCellExperiment(
+#'     assays = list(counts = t(es)),
+#'     rowData = pData(parameters(sample_ff)))
+#'     
+#' # assign preliminary barcode IDs
+#' sce <- assignPrelim(x = sce, bc_key = sample_key)
 #' 
 #' # estimate population-specific cutoffs
-#' re <- estCutoffs(x = re)
-#' applyCutoffs(x = re)
+#' sce2 <- estCutoffs(x = sce)
+#' sce <- applyCutoffs(x = sce2, sep_cutoffs = 0.6)
+#' plotEvents(sce, "A1", out_path = "~/Desktop", n = 1e3)
 #'
+#' @importFrom Matrix rowMeans solve
+#' @importFrom methods is
 #' @importFrom stats cov mahalanobis
-# ------------------------------------------------------------------------------
+#' @importFrom SingleCellExperiment int_metadata int_metadata<-
+#' @importFrom SummarizedExperiment assay assayNames
+#' @export
 
-setMethod(f="applyCutoffs", 
-    signature=signature(x="dbFrame"),
-    definition=function(x, mhl_cutoff=30, sep_cutoffs=NULL) {
-        
-        # if specified, access 'mhl_cutoff' and 'sep_cutoffs' slots
-        if (length(mhl_cutoff(x)) != 0) {
-            mhl_cutoff <- mhl_cutoff(x)
+applyCutoffs <- function(x, 
+    altExp = "barcodes", assay = "exprs", 
+    mhl_cutoff = 30, sep_cutoffs = NULL) {
+    stopifnot(
+        is(x, "SingleCellExperiment"),
+        is.character(assay), length(assay) == 1,
+        is.null(altExp) || is.character(altExp) && 
+            length(altExp) == 1 && altExp %in% altExpNames(x),
+        is.numeric(mhl_cutoff), length(mhl_cutoff) == 1)
+    
+    if (is.null(altExp)) y <- x else y <- altExp(x, altExp)
+    stopifnot(assay %in% assayNames(y),
+        !is.null(y$bc_id), !is.null(y$delta),
+        is.null(sep_cutoffs) | int_metadata(y)$sep_cutoffs)
+    
+    bc_key <- metadata(y)$bc_key
+    ms <- .get_ms_from_chs(rownames(y))
+    bc_cols <- match(colnames(bc_key), ms)
+    n_ids <- length(names(ids) <- ids <- rownames(bc_key))
+    
+    if (!is.null(sep_cutoffs)) {
+        seps <- sep_cutoffs
+        if (length(seps) == 1) {
+            seps <- rep(seps, n_ids)
+            names(seps) <- ids
         } else {
-            # check validity of input 'mhl_cutoff'
-            if (!is.numeric(mhl_cutoff) | length(mhl_cutoff) != 1)
-                stop("'mhl_cutoff' must be a single ",
-                    "non-negative and non-zero numeric.")
-        }
-        if (!is.null(sep_cutoffs)) {
-            sep_cutoffs(x) <- sep_cutoffs
-        } else {
-            if (length(sep_cutoffs(x)) == 0) 
-                stop("'sep_cutoffs' need to be supplied.\n Please run",
-                    " 'estCutoffs()' first, or specify cutoffs manually.")
-        }
-        
-        # find which columns correspond to barcode masses
-        # and extract barcode columns
-        ms <- gsub("[[:alpha:][:punct:]]", "", colnames(exprs(x)))
-        bc_cols <- which(ms %in% colnames(bc_key(x)))
-        n_bcs <- length(bc_cols)
-        bcs <- exprs(x)[, bc_cols]
-        
-        ids <- unique(bc_ids(x))
-        ids <- ids[ids != 0]
-        
-        # compute mahalanobis distances given current separation cutoff
-        mhl_dists <- numeric(nrow(exprs(x)))
-        for (i in ids) {
-            inds <- which(bc_ids(x) == i)
-            ex <- inds[deltas(x)[inds] < 
-                    sep_cutoffs(x)[rownames(bc_key(x)) == i]]
-            inds <- inds[!(inds %in% ex)]
-            bc_ids(x)[ex] <- 0
-            sub  <- bcs[inds, ]
-            test <- (length(sub) != n_bcs) && (nrow(sub) > n_bcs)
-            if (test) {
-                covMat <- stats::cov(sub)
-                # check if covariance matrix is invertible
-                test <- tryCatch(
-                    solve(covMat) %*% covMat, 
-                    error=function(e) e)
-                if (!inherits(test, "error"))
-                    mhl_dists[inds] <- stats::mahalanobis(
-                        x=sub, center=colMeans(sub), cov=covMat)
+            stopifnot(length(seps) == n_ids)
+            if (is.null(names(seps))) {
+                names(seps) <- ids
+            } else {
+                stopifnot(!all(names(seps) %in% ids))
             }
         }
-        bc_ids(x)[mhl_dists > mhl_cutoff] <- 0
-        mhl_dists(x)  <- mhl_dists
-        mhl_cutoff(x) <- mhl_cutoff
-        x
+    } else {
+        seps <- int_metadata(y)$sep_cutoffs
+        seps[is.na(seps)] <- 1
     }
-)
+    
+    # compute mahalanobis distances given current separation cutoff
+    cs <- split(seq_len(ncol(y)), y$bc_id)
+    ns <- vapply(cs, length, numeric(1))
+    ex_sep <- lapply(ids, function(id) y$delta[cs[[id]]] < seps[id])
+    mhl_dists <- lapply(ids, function(id) {
+        if (ns[id] == 0) next
+        z <- assay(y, assay)[, cs[[id]][!ex_sep[[id]]]]
+        if (length(z) != n_bcs & ncol(z) > n_bcs) {
+            # compute covarianve matrix
+            cov_mat <- cov(t(z))
+            # check that it's invertible
+            test <- tryCatch(
+                solve(cov_mat) %*% cov_mat, 
+                error = function(e) e)
+            if (!inherits(test, "error")) {
+                mahalanobis(t(z), rowMeans(z), cov_mat)
+            }
+        } 
+    })
+    ex_sep <- unlist(ex_sep)
+    ex_mhl <- unlist(mhl_dists) > mhl_cutoff
+    y$mhl_dist <- unlist(mhl_dists)
+    y$bc_id[ex_sep] <- y$bc_id[!ex_sep][ex_mhl] <- 0
+    int_metadata(y)$mhl_cutoff <- mhl_cutoff
+    if (!is.null(altExp)) altExp(x, altExp) <- y else x <- y
+    return(x)
+}
