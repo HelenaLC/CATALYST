@@ -85,7 +85,7 @@ runDR <- function(x,
     
     # run dimension reduction
     fun <- get(paste0("run", dr))
-    y <- fun(x[, cs], subset_row = features, exprs_values = assay, ...)
+    y <- fun(x[, cs], feature_set = features, exprs_values = assay, ...)
     
     # return SCE when no cell subsetting has been done
     if (is.null(cells)) return(y)
