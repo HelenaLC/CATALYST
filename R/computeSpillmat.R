@@ -73,7 +73,7 @@
 #'
 #' @importFrom methods is
 #' @importFrom S4Vectors metadata
-#' @importFrom SummarizedExperiment assay assayNames altExp altExpNames
+#' @importFrom SummarizedExperiment assay assayNames
 #' @export
 
 computeSpillmat <- function(x, altExp = "barcodes", assay = "exprs", 

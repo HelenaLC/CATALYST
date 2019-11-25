@@ -68,7 +68,6 @@
 #' library(SingleCellExperiment)
 #' metadata(sce)$delta_area
 
-#' @rdname SCE-utils
 #' @importFrom S4Vectors metadata
 setMethod("ei", "SingleCellExperiment",
     function(x) {

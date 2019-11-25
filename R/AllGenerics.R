@@ -1,20 +1,4 @@
 # ==============================================================================
-# Generics for normalization
-# ------------------------------------------------------------------------------
-
-#' @rdname concatFCS
-#' @param ... optional arguments.
-#' @export
-setGeneric("concatFCS", 
-    function(x, ...) standardGeneric("concatFCS"))
-
-#' @rdname normCytof
-#' @param ... optional arguments.
-#' @export
-setGeneric("normCytof", 
-    function(x, y, ...) standardGeneric("normCytof"))
-
-# ==============================================================================
 # Generics to access slots in a dbFrame
 # ------------------------------------------------------------------------------
 
@@ -105,13 +89,6 @@ setGeneric("outFCS",
 # ==============================================================================
 # Generics for plotting
 # ------------------------------------------------------------------------------
-
-#' @rdname plotEvents
-#' @param ... optional arguments.
-#' @export
-setGeneric("plotEvents", 
-    function(x, ...) standardGeneric("plotEvents"))
-
 #' @rdname plotMahal
 #' @param ... optional arguments.
 #' @export
@@ -121,12 +98,6 @@ setGeneric("plotMahal",
 # ==============================================================================
 # Generics for compensation
 # ------------------------------------------------------------------------------
-#' @rdname computeSpillmat
-#' @param ... optional arguments.
-#' @export
-setGeneric("computeSpillmat", 
-    function(x, ...) standardGeneric("computeSpillmat"))
-
 #' @rdname plotSpillmat
 #' @param ... optional arguments.
 #' @export
@@ -138,12 +109,6 @@ setGeneric("plotSpillmat",
 #' @export
 setGeneric("adaptSpillmat", 
     function(input_sm, out_chs, ...) standardGeneric("adaptSpillmat"))
-
-#' @rdname compCytof
-#' @param ... optional arguments.
-#' @export
-setGeneric("compCytof", 
-    function(x, y, ...) standardGeneric("compCytof"))
 
 # ==============================================================================
 # Generics to access slots in a daFrame

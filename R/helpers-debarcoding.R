@@ -26,7 +26,7 @@
         if (verbose) message(" o classifying events")
         # assign binary barcode to ea. event
         codes <- apply(bcs, 1, function(x) as.numeric(x >= lowest_pos))
-        
+
         # assign barcode ID to ea. event
         lookup <- rowSums(2 ^ col(bc_key) * bc_key)
         preids <- rowSums(2 ^ col(codes)  * codes)

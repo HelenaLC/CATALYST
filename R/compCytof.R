@@ -64,66 +64,78 @@
 #' @importFrom stats setNames
 # ------------------------------------------------------------------------------
 
-setMethod(f="compCytof",
-    signature=signature(x="flowFrame", y="matrix"),
-    definition=function(x, y, out_path=NULL, method="flow", 
-        isotope_list=CATALYST::isotope_list) {
-        sm <- adaptSpillmat(y, flowCore::colnames(x), isotope_list)
-        if (method == "flow") { 
-            ff_comped <- flowCore::compensate(x, sm)
-        } else if (method == "nnls") {
-            es_comped <- t(apply(flowCore::exprs(x), 1, 
-                function(row) nnls(t(sm), row)$x))
-            ff_comped <- x
-            colnames(es_comped) <- colnames(flowCore::exprs(x))
-            rownames(es_comped) <- rownames(flowCore::exprs(x))
-            flowCore::exprs(ff_comped) <- es_comped
-        } else {
-            stop("'method' should be one of \"flow\" or \"nnls\".")
-        }
-        
-        if (!is.null(out_path)) {
-            fileNm <- gsub("[[:alpha:]]*/", "", description(x)$FILENAME)
-            outNm <- file.path(out_path, paste0(gsub(".fcs", 
-                "_comped.fcs", fileNm, ignore.case=TRUE)))
-            suppressWarnings(flowCore::write.FCS(ff_comped, outNm))
-        } else {
-            ff_comped
-        }
-    })
-
-# ------------------------------------------------------------------------------
-#' @rdname compCytof
-setMethod(f="compCytof",
-    signature=signature(x="flowSet", y="ANY"),
-    definition=function(x, y, out_path=NULL, method="flow") {
-        fsApply(x, compCytof, y, out_path, method)
-    })
-
-# ------------------------------------------------------------------------------
-#' @rdname compCytof
-setMethod(f="compCytof",
-    signature=signature(x="character", y="matrix"),
-    definition=function(x, y, out_path=NULL, method="flow") {
-        if (!file.exists(x))
-            stop("x is neither a flowFrame nor a valid file/folder path.")
-        fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
-        if (length(fcs) == 0)
-            stop("No FCS files found in specified location.")
-        ffs <- lapply(fcs, flowCore::read.FCS)
-        
-        if (is.null(out_path)) {
-            lapply(ffs, function(i) compCytof(i, y, out_path, method))
-        } else {
-            for (i in seq_along(ffs))
-                compCytof(ffs[[i]], y, out_path, method)
-        }
-    })
-
-# ------------------------------------------------------------------------------
-#' @rdname compCytof
-setMethod(f="compCytof",
-    signature=signature(x="ANY", y="data.frame"),
-    definition=function(x, y, out_path=NULL, method="flow") {
-        compCytof(x, as.matrix(y), out_path, method)
-    })
+#' @importFrom methods is
+#' @importFrom nnls nnls
+compCytof <- function(x, y, method = c("nnls", "flow"), 
+    assay = "exprs",
+    isotope_list = CATALYST::isotope_list) {
+    stopifnot(is(x, "SingleCellExperiment"))
+    if (!is.matrix(y)) y <- as.matrix(y)
+    suppressMessages(sm <- t(adaptSpillmat(y, rownames(x), isotope_list)))
+    assay(x, "comped") <- apply(assay(x, assay), 2, function(u) nnls(sm, u)$x)
+    return(x)
+}
+#' 
+#' setMethod(f="compCytof",
+#'     signature=signature(x="flowFrame", y="matrix"),
+#'     definition=function(x, y, out_path=NULL, method="flow", 
+#'         isotope_list=CATALYST::isotope_list) {
+#'         sm <- adaptSpillmat(y, flowCore::colnames(x), isotope_list)
+#'         if (method == "flow") { 
+#'             ff_comped <- flowCore::compensate(x, sm)
+#'         } else if (method == "nnls") {
+#'             es_comped <- t(apply(flowCore::exprs(x), 1, 
+#'                 function(row) nnls(t(sm), row)$x))
+#'             ff_comped <- x
+#'             colnames(es_comped) <- colnames(flowCore::exprs(x))
+#'             rownames(es_comped) <- rownames(flowCore::exprs(x))
+#'             flowCore::exprs(ff_comped) <- es_comped
+#'         } else {
+#'             stop("'method' should be one of \"flow\" or \"nnls\".")
+#'         }
+#'         
+#'         if (!is.null(out_path)) {
+#'             fileNm <- gsub("[[:alpha:]]*/", "", description(x)$FILENAME)
+#'             outNm <- file.path(out_path, paste0(gsub(".fcs", 
+#'                 "_comped.fcs", fileNm, ignore.case=TRUE)))
+#'             suppressWarnings(flowCore::write.FCS(ff_comped, outNm))
+#'         } else {
+#'             ff_comped
+#'         }
+#'     })
+#' 
+#' # ------------------------------------------------------------------------------
+#' #' @rdname compCytof
+#' setMethod(f="compCytof",
+#'     signature=signature(x="flowSet", y="ANY"),
+#'     definition=function(x, y, out_path=NULL, method="flow") {
+#'         fsApply(x, compCytof, y, out_path, method)
+#'     })
+#' 
+#' # ------------------------------------------------------------------------------
+#' #' @rdname compCytof
+#' setMethod(f="compCytof",
+#'     signature=signature(x="character", y="matrix"),
+#'     definition=function(x, y, out_path=NULL, method="flow") {
+#'         if (!file.exists(x))
+#'             stop("x is neither a flowFrame nor a valid file/folder path.")
+#'         fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
+#'         if (length(fcs) == 0)
+#'             stop("No FCS files found in specified location.")
+#'         ffs <- lapply(fcs, flowCore::read.FCS)
+#'         
+#'         if (is.null(out_path)) {
+#'             lapply(ffs, function(i) compCytof(i, y, out_path, method))
+#'         } else {
+#'             for (i in seq_along(ffs))
+#'                 compCytof(ffs[[i]], y, out_path, method)
+#'         }
+#'     })
+#' 
+#' # ------------------------------------------------------------------------------
+#' #' @rdname compCytof
+#' setMethod(f="compCytof",
+#'     signature=signature(x="ANY", y="data.frame"),
+#'     definition=function(x, y, out_path=NULL, method="flow") {
+#'         compCytof(x, as.matrix(y), out_path, method)
+#'     })

@@ -19,7 +19,7 @@
 # ==============================================================================
 # compute channel i to j spill
 # ------------------------------------------------------------------------------
-#' @importFrom stats mean median
+#' @importFrom stats median
 .get_sij <- function(pos_i, neg_i, pos_j, neg_j, method, trim) {
     if (length(neg_i) == 0) neg_i <- 0
     if (length(neg_j) == 0) neg_j <- 0
@@ -95,7 +95,7 @@
     as.numeric(gsub("[[:punct:][:alpha:]]", "", chs))
 
 .get_mets_from_chs <- function(chs)
-    gsub("([[:punct:]]*)([[:digit:]]*)(Di)*", "", chs)
+    gsub("([[:punct:]]*)([[:digit:]]*)((Di)|(Dd))*", "", chs)
 
 # ==============================================================================
 # This function compares a list of spillover channels to

@@ -23,20 +23,10 @@
 # get beads and remove bead-bead doublets
 # ------------------------------------------------------------------------------
 .get_bead_inds <- function(x, y) {
-    re <- assignPrelim(x, y, verbose=FALSE)
-    re <- estCutoffs(re)
-    re <- applyCutoffs(re)
-    bc_ids(re) == "is_bead"
-}
-
-.update_bead_inds <- function(data, bead_inds, bead_cols, trim) {
-    bead_es <- data[bead_inds, bead_cols]
-    meds <- matrixStats::colMedians(bead_es)
-    mads <- matrixStats::colMads(   bead_es) * trim
-    ex <- matrixStats::colAnys(
-        abs(t(bead_es) - meds) > mads)
-    bead_inds[which(bead_inds)[ex]] <- FALSE
-    bead_inds
+    x <- assignPrelim(x, y, verbose = FALSE)
+    x <- estCutoffs(x)
+    x <- applyCutoffs(x)
+    x$bc_id == "is_bead"
 }
 
 # ==============================================================================
@@ -105,37 +95,32 @@
 # ==============================================================================
 # bead vs. dna scatter
 # ------------------------------------------------------------------------------
-.plotScatter <- function(es, x, y, cf) {
-    # transform and get channel names
-    df <- data.frame(asinh(es[, c(x, y)]/cf))
-    chs <- colnames(df)
-    
-    # get axis limits and labels
-    temp <- .get_axes(df, cf)
-    tcks <- temp[[1]]
-    labs <- temp[[2]]
-    
-    ggplot(df, aes_string(x=chs[1], y=chs[2])) + 
-        geom_point(size=.25) + 
-        geom_vline(xintercept=0, col="red2", size=.5) +
-        geom_hline(yintercept=0, col="red2", size=.5) +
-        geom_rug(sides="tr", col="darkblue", alpha=.25, size=.025) +
-        coord_cartesian(xlim=tcks, ylim=tcks, expand=.1) +
-        scale_x_continuous(breaks=tcks, labels=labs) +
-        scale_y_continuous(breaks=tcks, labels=labs) +
-        theme_classic() + theme(
-            aspect.ratio=1,
-            plot.margin=unit(c(0, 0, .5, .5), "cm"),
-            axis.ticks=element_line(size=.5),
-            axis.title=element_text(size=14, face="bold"),
-            axis.text.x=element_text(
-                size=12, color="black", angle=30, hjust=1, vjust=1),
-            axis.text.y=element_text(size=12, color="black", angle=30))
+#' @import ggplot2
+#' @importFrom reshape2 melt
+#' @importFrom SummarizedExperiment colData
+.plot_bead_scatter <- function(x, chs) {
+    dna <- chs$dna[1]
+    df <- data.frame(
+        i = seq_len(ncol(x)), colData(x),
+        t(assay(x, "exprs")[c(chs$beads, dna), ]))
+    df <- melt(df, id.vars = c("i", names(colData(x)), dna))
+    if(ncol(x) > 1e4) df <- df[df$i %in% sample(ncol(x), 1e4), ]
+    ggplot(df, aes_string(x = "value", y = dna, col = "is_bead")) +
+        facet_wrap("variable", ncol = length(chs$beads)) + 
+        geom_rect(data = df[df$is_bead, ], aes_string(
+            xmin = "min(value)", xmax = "max(value)",
+            ymin = "min(get(dna))", ymax = "max(get(dna))"),
+            fill = NA, size = 0.1, show.legend = FALSE) +
+        geom_point(pch = 16, size = 0.5, alpha = 0.5, show.legend = FALSE) + 
+        scale_color_manual(NULL, values = c("black", "red")) +
+        coord_equal() + theme_bw() + theme(
+            panel.grid = element_blank(),
+            axis.title.x = element_blank(),
+            axis.text = element_text(color = "black"),
+            panel.spacing = unit(0, "mm"),
+            strip.background = element_rect(fill = "white"))
 }
 
-# ==============================================================================
-# bead scatters with marginal histograms ontop
-# ------------------------------------------------------------------------------
 .plotBeads <- function(es_t, bead_inds, bead_cols, dna_cols, hist, xlab, gate) {
     
     es <- sinh(es_t)*5
@@ -273,6 +258,28 @@
 # ==============================================================================
 # plot bead intensitites smoothed by conversion to local medians
 # ------------------------------------------------------------------------------
+.plot_smooth_beads <- function(b, a, t) {
+    l <- lapply(list(before = b, after = a), function(u) data.frame(t(u), t))
+    df <- bind_rows(l, .id = "id")
+    bl <- summarise_if(group_by(df, id), is.numeric, mean)
+    df <- melt(df, id.vars = c("t", "id"))
+    bl <- melt(bl, id.vars = c("t", "id"))
+    df$id <- bl$id <- factor(names(l), labels = names(l))
+    ggplot(df, aes_string("t", "value", col = "variable")) +
+        facet_wrap("id", ncol = 1) +
+        geom_line(size = 1) + 
+        geom_hline(data = bl, lty = 2,
+            aes_string(yintercept = "value", col = "variable")) +
+        guides(color = guide_legend(override.aes = list(size = 2))) +
+        scale_color_manual(NULL, values = brewer.pal(9, "Set1")) +
+        labs(x = "time (s)", y = "smoothed intensity") +
+        theme_bw() + theme(
+            legend.key.height = unit(0, "mm"),
+            panel.grid.minor = element_blank(),
+            axis.text = element_text(color = "black"))
+}
+
+
 plotSmoothed <- function(df, main) {
     n <- length(chs <- colnames(df))
     baseline <- apply(df[, -1], 2, mean)

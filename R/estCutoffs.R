@@ -47,10 +47,8 @@
 #' 
 #' # construct SCE
 #' data(sample_ff, sample_key)
-#' es <- as.matrix(exprs(sample_ff))
-#' sce <- SingleCellExperiment(
-#'     assays = list(counts = t(es)),
-#'     rowData = pData(parameters(sample_ff)))
+#' sce <- fcs2sce(sample_ff)
+#' sce <- transform(sce)
 #'     
 #' # assign preliminary barcode IDs
 #' # & estimate separation cutoffs
@@ -58,35 +56,31 @@
 #' sce <- estCutoffs(sce)
 #' 
 #' # access separation cutoff estimates
-#' bcs <- altExp(sce, "barcodes")
-#' int_metadata(bcs)$sep_cutoffs
+#' metadata(sce)$sep_cutoffs
+#' 
+#' # view yield plots including current cutoff
+#' plotYields(sce, which = "A1")
 #' 
 #' @importFrom drc drm LL.3
 #' @importFrom Matrix colMeans
 #' @importFrom methods is
 #' @importFrom stats coef D predict
-#' @importFrom S4Vectors metadata
-#' @importFrom SingleCellExperiment int_metadata<- altExp altExp<- altExpNames
+#' @importFrom S4Vectors metadata metadata<-
 #' @export
 
-estCutoffs <- function(x, altExp = "barcodes") {
+estCutoffs <- function(x) {
     stopifnot(is(x, "SingleCellExperiment"),
-        is.null(altExp) || is.character(altExp) && 
-            length(altExp) == 1 && altExp %in% altExpNames(x))
+        !is.null(metadata(x)$bc_key),
+        !is.null(x$bc_id), !is.null(x$delta))
     
-    if (!is.null(altExp)) y <- altExp(x, altExp) else y <- x
-    
-    stopifnot(!is.null(metadata(y)$bc_key),
-        !is.null(y$bc_id), !is.null(y$delta))
-    
-    n_bcs <- length(ids <- rownames(bc_key <- metadata(y)$bc_key))
+    ids <- rownames(bc_key <- metadata(x)$bc_key)
     n_seps <- length(names(seps) <- seps <- seq(0, 1, 0.01))
     
     # split cell by barcode ID
-    cs <- split(seq_len(ncol(y)), y$bc_id)
+    cs <- split(seq_len(ncol(x)), x$bc_id)
     
     # compute yields upon applying separation cutoffs
-    ys <- vapply(seps, function(u) y$delta >= u, numeric(ncol(y)))
+    ys <- vapply(seps, function(u) x$delta >= u, numeric(ncol(x)))
     ys <- vapply(ids, function(id) colMeans(ys[cs[[id]], ]), numeric(n_seps))
     
     # three-parameter log-logistic function & 1st derivative
@@ -112,7 +106,6 @@ estCutoffs <- function(x, altExp = "barcodes") {
     }, numeric(1))
     
     # store estimates in metadata & return SCE
-    int_metadata(y)$sep_cutoffs <- ests
-    if (!is.null(altExp)) altExp(x, altExp) <- y else x <- y
+    metadata(x)$sep_cutoffs <- ests
     return(x)
 }

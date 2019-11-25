@@ -43,6 +43,7 @@
 #' \emph{Nature Protocols} \bold{10}, 316-333. 
 #' 
 #' @import ggplot2
+#' @importFrom grDevices pdf dev.off
 #' @importFrom htmltools save_html
 #' @importFrom methods is
 #' @importFrom matrixStats rowMaxs
@@ -55,7 +56,9 @@
 
 plotYields <- function(x, which = 0, 
     out_path = NULL, name_ext = NULL, plotly = FALSE) {
-    stopifnot(is(x, "SingleCellExperiment"))
+    stopifnot(is(x, "SingleCellExperiment"),
+        !is.null(x$bc_id), !is.null(x$delta),
+        !is.null(metadata(x)$bc_key))
     
     n_bcs <- length(ids <- rownames(bc_key <- metadata(x)$bc_key))
     names(which) <- which <- .check_validity_which(which, ids, "yields")
@@ -77,8 +80,8 @@ plotYields <- function(x, which = 0,
         colSums(counts[cs[[id]], ]),
         numeric(n_seps))
 
-    thm <- function(max) {
-        list(theme_classic(), theme(
+    thm <- function(max, ...) {
+        list(theme_classic(), theme(...,
             panel.grid.major = element_line(),
             axis.text = element_text(color = "black"),
             legend.key.height = unit(2, "mm")),
@@ -86,7 +89,8 @@ plotYields <- function(x, which = 0,
             scale_x_continuous(
                 name = "Barcode separation", 
                 limits = c(-0.025, 1.025),
-                breaks = seq(0, 1, 0.1)),
+                breaks = seq(0, 1, 0.1),
+                expand = c(0, 0)),
             scale_y_continuous(
                 name = "Yield upon debarcoding", 
                 limits = c(0, max), 
@@ -95,6 +99,7 @@ plotYields <- function(x, which = 0,
                 sec.axis = sec_axis(~.*1, "Cell count", labels = scientific)))
     }
     
+    cuts <- metadata(x)$sep_cutoffs
     labs <- apply(bc_key, 1, paste, collapse = "")
     labs <- paste(ids, labs, sep = ": ")
     names(labs) <- ids
@@ -116,14 +121,24 @@ plotYields <- function(x, which = 0,
                     fill = "lightgrey", col = "white") +
                 geom_line(data = l, aes_string("cutoff", "yield", col = "bc_id")) + 
                 scale_color_manual(NULL, values = pal, labels = labs) +
-                thm(max)
+                thm(max, legend.position = "none")
         } else {
             df <- data.frame(cutoff = seps, count = counts[, id]) 
             df$yield <- yields[, id] * (max <- max(df$count))
-            ggplot(df, aes_string("cutoff")) +
-                geom_bar(aes_string(y = "count"), stat = "identity") + 
-                geom_line(aes_string(y = "yield")) + 
+            p <- ggplot(df, aes_string("cutoff")) +
+                geom_bar(aes_string(y = "count"), stat = "identity", 
+                    size = 0.2, col = "white", fill = "darkgrey") + 
+                geom_line(aes_string(y = "yield"), col = "red") + 
                 ggtitle(labs[id]) + thm(max) 
+            if (!is.null(cuts[id])) {
+                cut <- round(cuts[id], 2)
+                y <- format(yields[as.character(cut), id] * 100, digits = 4)
+                p <- p + geom_label(
+                    label = paste0("cutoff: ", cut, "; yield: ", y, "%"),
+                    x = cuts[id] + 0.01, y = max, hjust = 0, col = "blue") +
+                    geom_vline(xintercept = cuts[id], col = "blue")
+            }
+            p
         }
     })
     
@@ -136,8 +151,15 @@ plotYields <- function(x, which = 0,
         })
     
     if (!is.null(out_path)) {
-        fn <- paste0("yield_plot", name_ext, ".html")
-        save_html(ps, file.path(out_path, fn))
+        ext <- ifelse(plotly, ".html", ".pdf")
+        fn <- paste0("yield_plot", name_ext, ext)
+        fn <- file.path(out_path, fn)
+        if (plotly) {
+            save_html(ps, fn)
+        } else {
+            pdf(fn, width = 7, height = 3.5)
+            lapply(ps, print); dev.off()
+        }
     } else {
         ps
     }

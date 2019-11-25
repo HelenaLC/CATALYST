@@ -1,38 +1,73 @@
+#' @rdname fcs2sce
+#' @title `SingleCellExperiment` from FCS file(s)
+#' 
+#' @description Concatenates input FCS files to a `SingleCellExperiment`.
+#' 
+#' @param x character vector of FCS file names.
+#' @param by_time logical. Should files be ordered by acquisition time?
+#' @param file_no logical. Should a file number parameter be added?
+#' 
+#' @author Helena L. Crowell
+#' 
 #' @importFrom Biobase pData
-#' @importFrom flowCore isFCSfile read.flowSet fsApply exprs parameters description
+#' @importFrom flowCore isFCSfile read.flowSet fsApply exprs parameters description keyword
+#' @importFrom matrixStats colMaxs
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @export
 
-fcs2sce <- function(x) {
-    x <- c(
-        "~/Dropbox/spillover new/bead based compensation/bead replicates/160616_beads.fcs",
-        "~/Dropbox/spillover new/bead based compensation/bead replicates/160805_beads.fcs")
-    stopifnot(isFCSfile(x))
-    x <- read.flowSet(x)
-    y <- fsApply(x, exprs)
-    ps <- fsApply(x, parameters)
-    ds <- fsApply(x, description)
+fcs2sce <- function(x, by_time = TRUE, file_no = FALSE) {
+    stopifnot(
+        is(x, "flowFrame") || is(x, "flowSet") 
+            || is(x, "character") && isFCSfile(x),
+        is.logical(by_time), length(by_time) == 1,
+        is.logical(file_no), length(file_no) == 1)
     
-    x <- c("~/Dropbox/spillover new/bead based compensation/bead replicates/160616_beads.fcs")
-    x <- read.FCS(x)
-    es <- exprs(x)
-    chs <- colnames(es)
-    ms <- .get_ms_from_chs(chs)
-    mets <- .get_mets_from_chs(chs)
+    if (is(x, "character")) {
+        fns <- x
+        fs <- read.flowSet(x, 
+            transformation = FALSE, 
+            truncate_max_range = FALSE)
+    } else {
+        if (is(x, "flowFrame"))
+            x <- flowSet(x)
+        fns <- fsApply(x, identifier)
+        fs <- x
+    }
     
-    cd <- NULL
-    rd <- data.frame(pData(parameters(x)), row.names = NULL)
-    md <- description(x)
-    es <- t(es)
-    rownames(es) <- colnames(es) <- NULL
-    sce <- SingleCellExperiment(
-        assays = list(counts = es),
-        rowData = rd, metadata = md)
+    if (by_time) {
+        ts <- keyword(fs, "$BTIM")
+        if(any(vapply(ts, is.null, logical(1)))) {
+            message("Not all samples contain information on their",
+                " acquisition time; ignoring argument 'by_time'.",
+                " Samples will be kept in their original order.")
+        } else {
+            fs <- fs[order(ts)]
+        }
+    }
     
-    sub <- sce[, sample(ncol(sce), 4e3)]
-    assay(sub, "logcounts") <- asinh(assay(sub)/5)
-    sub <- runUMAP(sub)
-    sub <- runTSNE(sub)
-    plotUMAP(sub)
-    plotTSNE(sub)
+    y <- fsApply(fs, exprs)
+    ns <- fsApply(fs, nrow)
+    ps <- fsApply(fs, parameters)
+    ds <- fsApply(fs, description)
+    
+    if (file_no) y[, "FileNo"] <- rep.int(seq_along(fs), ns)
+    
+    t <- grep("time", colnames(fs), ignore.case = TRUE)
+    t0 <- c(1, cumsum(ns) + 1)
+    tx <- t0[-1] - 1
+    for (i in seq_along(fs)[-1]) {
+        idx <- seq(t0[i], tx[i])
+        y[idx, t] <- y[idx, t] + y[tx[i - 1], t]
+    }
+    
+    # construct 'SingleCellExperiment'
+    cd <- data.frame(file_name = rep.int(basename(fns), ns))
+    rd <- data.frame(pData(ps[[1]]), row.names = 1)
+    rd$maxRange <- ceiling(colMaxs(fsApply(fs, function(u) colMaxs(exprs(u)))))
+    rd$range <- rd$maxRange + 1
+    
+    SingleCellExperiment(
+        assays = list(counts = t(y)), 
+        colData = cd, rowData = rd, 
+        metadata = list(description = ds))
 }

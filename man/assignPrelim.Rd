@@ -4,7 +4,7 @@
 \alias{assignPrelim}
 \title{Single-cell debarcoding (1)}
 \usage{
-assignPrelim(x, bc_key, cf = 10, verbose = TRUE)
+assignPrelim(x, bc_key, assay = "exprs", verbose = TRUE)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -14,7 +14,7 @@ names and numeric masses as column names OR a vector of numeric masses
 corresponding to barcode channels. When the latter is supplied, 
 `assignPrelim` will create a scheme of the appropriate format internally.}
 
-\item{cf}{numeric. Cofactor used for asinh transformation.}
+\item{assay}{character string specifying which assay to use.}
 
 \item{verbose}{logical. Should extra information on progress be reported?}
 }
@@ -47,12 +47,9 @@ Assigns a preliminary barcode ID to each event.
 }
 \examples{
 data(sample_ff, sample_key)
-es <- as.matrix(exprs(sample_ff))
-library(SingleCellExperiment)
-sce <- SingleCellExperiment(
-    assays = list(counts = t(es)),
-    rowData = pData(parameters(sample_ff)))
-sce <- assignPrelim(x = sce, y = sample_key)
+sce <- fcs2sce(sample_ff)
+assay(sce, "exprs") <- asinh(assay(sce, "counts") / 10)
+sce <- assignPrelim(x = sce, bc_key = sample_key)
 
 }
 \references{

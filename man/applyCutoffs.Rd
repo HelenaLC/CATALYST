@@ -4,7 +4,7 @@
 \alias{applyCutoffs}
 \title{Single-cell debarcoding (2)}
 \usage{
-applyCutoffs(x, mhl_cutoff = 30, sep_cutoffs = NULL, assay = "exprs")
+applyCutoffs(x, assay = "exprs", mhl_cutoff = 30, sep_cutoffs = NULL)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -29,15 +29,25 @@ containing the applied mahalanobies distance cutoff.
 Applies separation and mahalanobies distance cutoffs.
 }
 \examples{
+library(SingleCellExperiment)
+
+# construct SCE
 data(sample_ff, sample_key)
-re <- assignPrelim(x = sample_ff, y = sample_key)
+es <- as.matrix(exprs(sample_ff))
+sce <- SingleCellExperiment(
+    assays = list(counts = t(es)),
+    rowData = pData(parameters(sample_ff)))
+assay(sce, "exprs") <- asinh(assay(sce, "counts") / 10)
+    
+# assign preliminary barcode IDs
+# & estimate separation cutoffs
+sce <- assignPrelim(x = sce, bc_key = sample_key)
+sce <- estCutoffs(sce)
 
-# use global separation cutoff
-applyCutoffs(x = re, sep_cutoffs = 0.4)
-
-# estimate population-specific cutoffs
-re <- estCutoffs(x = re)
-applyCutoffs(x = re)
+# apply cutoffs
+sce <- estCutoffs(x = sce)
+sce <- applyCutoffs(x = sce, sep_cutoffs = 0)
+plotEvents(sce, "A1", out_path = "~/Desktop", n = 1e3)
 
 }
 \references{
