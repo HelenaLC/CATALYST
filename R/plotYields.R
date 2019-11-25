@@ -50,6 +50,7 @@
 #' plotYields(x = re, which = "C1")
 #' 
 #' @import ggplot2 grid gridExtra
+#' @importFrom grDevices pdf dev.off
 #' @importFrom stats predict smooth.spline
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom reshape2 melt
@@ -101,9 +102,15 @@ setMethod(f="plotYields",
                         config(displayModeBar=FALSE))
         }
         if (!is.null(out_path)) {
-            outNm <- file.path(out_path, 
-                paste0("yield_plot", name_ext, ".html"))
-            htmltools::save_html(html=ps, file=outNm)
+            ext <- ifelse(plotly, ".html", ".pdf")
+            fn <- paste0("yield_plot", name_ext, ext)
+            fn <- file.path(out_path, fn)
+            if (plotly) {
+                save_html(ps, fn)
+            } else {
+                pdf(fn, width = 7, height = 3.5)
+                lapply(ps, print); dev.off()
+            }
         } else {
             ps
         }
