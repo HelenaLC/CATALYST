@@ -4,8 +4,14 @@
 \alias{runDR}
 \title{Dimension reduction}
 \usage{
-runDR(x, dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"),
-  cells = NULL, features = NULL, assay = "exprs", ...)
+runDR(
+  x,
+  dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"),
+  cells = NULL,
+  features = NULL,
+  assay = "exprs",
+  ...
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}

@@ -4,10 +4,19 @@
 \alias{plotClusterHeatmap}
 \title{Plot cluster heatmap}
 \usage{
-plotClusterHeatmap(x, hm2 = NULL, k = "meta20", m = NULL,
-  fun = c("median", "mean"), cluster_anno = TRUE, split_by = NULL,
-  scale = TRUE, draw_dend = TRUE, draw_freqs = FALSE,
-  palette = rev(brewer.pal(11, "RdYlBu")))
+plotClusterHeatmap(
+  x,
+  hm2 = NULL,
+  k = "meta20",
+  m = NULL,
+  fun = c("median", "mean"),
+  cluster_anno = TRUE,
+  split_by = NULL,
+  scale = TRUE,
+  draw_dend = TRUE,
+  draw_freqs = FALSE,
+  palette = rev(brewer.pal(11, "RdYlBu"))
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}

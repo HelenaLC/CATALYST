@@ -4,10 +4,17 @@
 \alias{prepData}
 \title{Data preparation}
 \usage{
-prepData(x, panel, md, features = NULL, cofactor = 5,
+prepData(
+  x,
+  panel,
+  md,
+  features = NULL,
+  cofactor = 5,
   panel_cols = list(channel = "fcs_colname", antigen = "antigen", class =
-  "marker_class"), md_cols = list(file = "file_name", id = "sample_id",
-  factors = c("condition", "patient_id")))
+    "marker_class"),
+  md_cols = list(file = "file_name", id = "sample_id", factors = c("condition",
+    "patient_id"))
+)
 }
 \arguments{
 \item{x}{a \code{flowSet} holding all samples 

@@ -4,8 +4,14 @@
 \alias{extractClusters}
 \title{Extract clusters from a \code{daFrame}}
 \usage{
-extractClusters(x, k, clusters = NULL, as = c("flowSet", "fcs"),
-  out_dir = ".", verbose = TRUE)
+extractClusters(
+  x,
+  k,
+  clusters = NULL,
+  as = c("flowSet", "fcs"),
+  out_dir = ".",
+  verbose = TRUE
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
