@@ -10,10 +10,10 @@
 #' @param color_by character string corresponding to a
 #'   \code{colData(x)} column. Specifies the color coding.
 #' 
-#' @author Helena Lucia Crowell
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -79,7 +79,7 @@ plotDR <- function(x, dr = NULL, color_by = "condition") {
             guides(color = guide_legend(
                 override.aes = list(alpha = 1, size = 2))))
     }
-    
+    df <- df[!(is.na(df$X1) | is.na(df$X2)), ]
     ggplot(df, aes_string(x = "X1", y = "X2", col = color_by)) +
         geom_point(size = 0.4, alpha = 0.8) + col + 
         labs(x = paste(dr, "dim. 1"), y = paste(dr, "dim. 2")) +

@@ -37,7 +37,7 @@
 #' stored in \code{altExp(x, altExp)}. If \code{altExp} is NULL, 
 #' \code{sep_cutoffs} are stored in the \code{int_metadata} of \code{x}.
 #' 
-#' @author Helena L. Crowell
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #'
 #' @references Finney, D.J. (1971). Probit Analsis. 
 #' \emph{Journal of Pharmaceutical Sciences} \bold{60}, 1432. 
@@ -48,7 +48,6 @@
 #' # construct SCE
 #' data(sample_ff, sample_key)
 #' sce <- fcs2sce(sample_ff)
-#' sce <- transform(sce)
 #'     
 #' # assign preliminary barcode IDs
 #' # & estimate separation cutoffs
@@ -64,7 +63,7 @@
 #' @importFrom drc drm LL.3
 #' @importFrom Matrix colMeans
 #' @importFrom methods is
-#' @importFrom stats coef D predict
+#' @importFrom stats coef D lm predict
 #' @importFrom S4Vectors metadata metadata<-
 #' @export
 

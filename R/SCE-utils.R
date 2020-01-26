@@ -38,7 +38,7 @@
 #' @param k character string specifying the clustering to extract.
 #'   Valid values are \code{names(cluster_codes(x))}.
 #' 
-#' @author Helena L Crowell
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @examples
 #' # construct SCE & run clustering
@@ -77,6 +77,7 @@ setMethod("ei", "SingleCellExperiment",
 )
 
 #' @rdname SCE-utils
+#' @importFrom stats setNames
 setMethod("n_cells", "SingleCellExperiment",
     function(x) {
         stopifnot(c("n_cells", "sample_id") %in% names(ei(x)))

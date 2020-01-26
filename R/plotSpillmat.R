@@ -1,136 +1,111 @@
 #' @rdname plotSpillmat
-#' @title Spillover matrix heat map
-#' 
-#' @description Generates a heat map of the spillover matrix 
+#' @title Spillover matrix heatmap
+#'
+#' @description Generates a heatmap of the spillover matrix
 #' annotated with estimated spill percentages.
 #'
-#' @param bc_ms 
-#'   a vector of numeric masses corresponding to barcode channels.
-#' @param SM 
-#'   spillover matrix returned from \code{computeSpillmat}.
-#' @param out_path 
-#'   character string. If specified, outputs will be generated here.
-#' @param name_ext 
-#'   character string. If specified, will be appended to the plot's name. 
-#' @param annotate
-#'   logical. If TRUE (default), spill percentages are shown inside bins 
-#'   and rows are annotated with the total amount of spill received. 
-#' @param plotly
-#'   logical. Should an interactive plot be rendered?
-#' @param isotope_list
-#'   named list. Used to validate the input spillover matrix.
+#' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param sm spillover matrix to visualize. If NULL, \code{plotSpillmat} 
+#'   will try and access \code{metadata(x)$spillover_matrix}.
+#' @param out_path character string. If specified, outputs will be generated here.
+#' @param name_ext character string. If specified, will be appended to the plot's name. 
+#' @param anno logical. If TRUE (default), spill percentages are shown inside 
+#'   bins and rows are annotated with the total amount of spill received.
+#' @param plotly logical. Should an interactive plot be rendered?
+#' @param isotope_list named list. Used to validate the input spillover matrix.
 #'   Names should be metals; list elements numeric vectors of their isotopes.
 #'   See \code{\link{isotope_list}} for the list of isotopes used by default.
-#' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
-#' 
-#' @return Plots estimated spill percentages as a heat map. 
-#' Colours are ramped to the highest spillover value present
-#' 
-#' @examples
-#' # get single-stained control samples
-#' data(ss_exp)
-#' 
-#' # specify mass channels stained for
-#' bc_ms <- c(139, 141:156, 158:176)
-#' 
-#' re <- assignPrelim(x = ss_exp, y = bc_ms)
-#' re <- estCutoffs(x = re)
-#' re <- applyCutoffs(x = re)
-#' spillMat <- computeSpillmat(x = re)
-#' plotSpillmat(bc_ms = bc_ms, SM = spillMat)
 #'
-#' @import ggplot2 grid gridExtra
-#' @importFrom grDevices colorRampPalette
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
+#'
+#' @return a \code{ggplot2}-object showing estimated spill percentages 
+#'   as a heatmap with colors ramped to the highest spillover value present.
+#'
+#' @examples
+#' # get single-stained control samples & construct SCE
+#' data(ss_exp)
+#' sce <- fcs2sce(ss_exp)
+#' 
+#' # debarcode single-positive populations
+#' bc_ms <- c(139, 141:156, 158:176)
+#' sce <- assignPrelim(x = sce, bc_key = bc_ms, verbose = FALSE)
+#' sce <- applyCutoffs(estCutoffs(x = sce))
+#' 
+#' # estimate & visualize spillover matrix
+#' sce <- computeSpillmat(x = sce)
+#' plotSpillmat(sce)
+#'
+#' @import ggplot2 
 #' @importFrom htmltools save_html
 #' @importFrom methods is
-#' @importFrom plotly ggplotly
-# ------------------------------------------------------------------------------
+#' @importFrom plotly ggplotly layout
+#' @importFrom reshape2 melt
+#' @importFrom S4Vectors metadata
+#' @export
 
-setMethod(f="plotSpillmat",
-    signature=signature(bc_ms="numeric", SM="matrix"),
-    definition=function(bc_ms, SM, out_path=NULL, 
-        name_ext=NULL, annotate=TRUE, plotly=TRUE, 
-        isotope_list=NULL) {
+plotSpillmat <- function(x, 
+    sm = NULL, out_path = NULL, name_ext = NULL,
+    anno = TRUE, plotly = FALSE, isotope_list = NULL) {
+    # default to Fluidigm isotope list
+    if (is.null(isotope_list))
+        isotope_list <- CATALYST::isotope_list
     
-        if (is.null(isotope_list))
-            isotope_list <- CATALYST::isotope_list
-        SM <- .check_sm(SM, isotope_list)
-        nms <- colnames(SM)
-        ms <- as.numeric(regmatches(nms, gregexpr("[0-9]+", nms)))
-        bc_cols <- which(ms %in% bc_ms)
-        bc_range <- min(bc_cols) : max(bc_cols)
-        SM <- .make_symetric(SM)[bc_range, bc_range]
-        n <- length(bc_range)
-        axis_labs <- nms[bc_range]
-        ex <- !axis_labs %in% nms[bc_cols]
-        lab_cols <- rep("black", n)
-        lab_cols[ex] <- "grey"
-        
-        df <- reshape2::melt(100*SM)
-        colnames(df) <- c("Emitting", "Receiving", "spill")
-        df$Spillover <- paste0(sprintf("%2.3f", df$spill), "%")
-        max <- ceiling(max(100*SM[row(SM) != col(SM)])/.25)*.25
-        overallReceived <- paste0(sprintf("%2.2f", 
-            rowSums(t(matrix(df$spill, n)))-100, "%"))
-        overallReceived[ex] <- NA
-        
-        p <- ggplot(df, 
-            aes_string(x="Receiving", y="Emitting", group="Spillover")) + 
-            geom_tile(aes_string(fill="spill"), col="lightgrey") + 
-            scale_fill_gradientn(
-                colors=c("white", "lightcoral", "red2", "darkred"), 
-                limits=c(0, max), na.value="lightgrey", guide=FALSE) +
-            scale_x_discrete(limits=colnames(SM), expand=c(0,0)) +
-            scale_y_discrete(limits=rev(rownames(SM)), expand=c(0,0)) +
-            coord_fixed() + labs(x=NULL, y=NULL) + theme_bw() + theme(
-                panel.grid=element_blank(), panel.border=element_blank(),
-                axis.text.x=element_text(angle=45, vjust=1, hjust=1))
-        
-        if (annotate) {
-            spill_labs <- sprintf("%.1f", df$spill)
-            spill_labs[df$spill == 0 | df$spill == 100] <- ""
-            if (is.null(out_path)) size <- 3 else size <- 2
-            p <- p + geom_text(aes_string(label="spill_labs"), size=size)
-        }
-        
-        if (plotly)
-            p <- ggplotly(p, width=720, height=720,
-                tooltip=c("Emitting", "Receiving", "Spillover")) %>%
-                layout(margin=list(l=72, b=58)) 
-        
-        if (!is.null(out_path)) {
-            if (is(p, "plotly")) {
-                htmltools::save_html(p, 
-                    file.path(out_path, paste0("SpillMat", name_ext, ".html")))
-            } else {
-                ggsave(plot=p, width=7, height=7,
-                    file.path(out_path, paste0("SpillMat", name_ext, ".pdf")))
-            }
+    # check validity of input arguments
+    stopifnot(is(x, "SingleCellExperiment"),
+        !is.null(sm) || !is.null(sm <- metadata(x)$spillover_matrix))
+
+    # check validity of input spillover matrix
+    sm <- .check_sm(sm, isotope_list)
+    ms <- .get_ms_from_chs(chs <- colnames(sm))
+    bc_chs <- rownames(x)[rowData(x)$is_bc]
+    bc_idx <- which(bc_chs %in% colnames(sm))
+    bc_rng <- seq(min(bc_idx), max(bc_idx))
+    sm <- .make_symetric(sm)[bc_rng, bc_rng]
+    
+    df <- melt(sm * 100)
+    colnames(df) <- c("emitting", "receiving", "spill")
+    df$spillover <- paste0(sprintf("%2.3f", df$spill), "%")
+    max <- ceiling(max(100 * sm[row(sm) != col(sm)]) / 0.25) * 0.25
+    total <- paste0(sprintf("%2.2f", colSums(sm) * 100 - 100, "%"))
+    
+    labs <- chs[bc_rng]
+    ex <- !labs %in% chs[bc_idx]
+    lab_cols <- rep("black", nrow(sm))
+    lab_cols[ex] <- "grey"
+    total[ex] <- NA
+    
+    p <- ggplot(df, 
+        aes_string(x = "receiving", y = "emitting", group = "spillover")) +
+        geom_tile(aes_string(fill = "spill"), col = "lightgrey") +
+        scale_fill_gradientn( 
+            colors = c("white", "lightcoral", "red2", "darkred"),
+            guide = FALSE, limits = c(0, max), na.value = "lightgrey") +
+        scale_x_discrete(limits = colnames(sm), expand = c(0, 0)) +
+        scale_y_discrete(limits = rev(rownames(sm)), expand = c(0, 0)) +
+        coord_fixed() + theme_bw() + theme(axis.title = element_blank(),
+            axis.text.x = element_text(angle=45, vjust=1, hjust=1),
+            panel.border = element_blank(), panel.grid = element_blank())
+    if (anno) {
+        anno <- sprintf("%.1f", df$spill)
+        anno[df$spill == 0 | df$spill == 100] <- ""
+        p <- p + geom_text(aes_string(label = "anno"), 
+            size = ifelse(is.null(out_path), 2, 3))
+    }
+    
+    if (plotly)
+        p <- ggplotly(p, width = 720, height = 720,
+            tooltip = c("emitting", "receiving", "spillover"))
+    
+    if (is.null(out_path)) {
+        p 
+    } else {
+        ext <- ifelse(plotly, ".html", ".pdf")
+        fn <- paste0("spillover_matrix", name_ext, ext)
+        fn <- file.path(out_path, fn) 
+        if (is(p, "plotly")) {
+            save_html(p, fn)
         } else {
-            p
+            ggsave(fn, p, width = 7, height = 7)
         }
-    }
-)
-
-# ------------------------------------------------------------------------------
-#' @rdname plotSpillmat
-setMethod(f="plotSpillmat",
-    signature=signature(bc_ms="ANY", SM="data.frame"),
-    definition=function(bc_ms, SM, out_path=NULL, name_ext=NULL, 
-        annotate=TRUE, plotly=TRUE, isotope_list=NULL) {
-        plotSpillmat(bc_ms, as.matrix(SM), out_path=NULL, name_ext=NULL, 
-            annotate=TRUE, plotly=TRUE, isotope_list=NULL)
-    }
-)
-
-# ------------------------------------------------------------------------------
-#' @rdname plotSpillmat
-setMethod(f="plotSpillmat",
-    signature=signature(bc_ms="character", SM="ANY"),
-    definition=function(bc_ms, SM, out_path=NULL, name_ext=NULL, 
-        annotate=TRUE, plotly=TRUE, isotope_list=NULL) {
-        plotSpillmat(as.numeric(bc_ms), SM, out_path=NULL, name_ext=NULL, 
-            annotate=TRUE, plotly=TRUE, isotope_list=NULL)
-    }
-)
+    } 
+}

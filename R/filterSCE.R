@@ -11,7 +11,7 @@
 #'   populations from. Must be one of \code{names(cluster_codes(x))}.
 #'   Defaults to the 1st clustering available.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @return a \code{SingleCellExperiment}.
 #' 

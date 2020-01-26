@@ -15,7 +15,6 @@
     # DOUBLET-FILTERING
     # look at k highest and (n-k)-lowest barcode channels
     if (length(unique(rowSums(bc_key))) == 1) { 
-        
         # number of expected pos. barcode intensities
         n_pos_bcs <- sum(bc_key[1, ])    
         
@@ -33,7 +32,6 @@
         bc_ids <- ids[match(preids, lookup)]
         
         # exclude events whose pos. barcodes are still very low 
-        # (using bcs, not normalized bcs)
         ex <- bcs[cbind(bc_orders[n_pos_bcs, ], seq_len(N))] < cutoff
         bc_ids[is.na(bc_ids) | ex] <- 0
         
@@ -41,13 +39,13 @@
         # difference b/w the kth and (k–1)th highest 
         # normalized barcode intensities
     } else {
-        
         # find largest barcode separation within ea. event 
         # to assign pos. and neg. barcode values
         diffs <- vapply(seq_len(N), function(i) 
             abs(diff(bcs[bc_orders[, i], i])), 
             numeric(ncol(bc_key)-1))
-        largest_seps <- apply(diffs, 2, which.max)
+        largest_seps <- apply(diffs, 2, function(u)
+            order(u, decreasing = TRUE)[1])
         pos <- lapply(seq_len(N), function(i) 
             bc_orders[seq_len(largest_seps[i]), i])
         
@@ -75,25 +73,24 @@
 # compute barcode separation for ea. event
 # called by 'assignPrelim()'
 # ------------------------------------------------------------------------------
-.get_deltas <- function(data, bc_key, verbose) {
-    
-    N <- ncol(data)
+.get_deltas <- function(x, bc_key, verbose) {
     # order barcode intensities within ea. event
-    bc_orders <- apply(data, 2, order, decreasing = TRUE)
+    bc_orders <- apply(x, 2, order, na.last = TRUE, decreasing = TRUE)
     
     # DOUBLET-FILTERING
     # look at k highest and (n-k)-lowest barcode channels
+    n <- ncol(x)
     if (length(unique(rowSums(bc_key))) == 1) { 
         
         # number of expected pos. barcode intensities
         n_pos_bcs <- sum(bc_key[1, ])    
         
         # get lowest pos. and highest neg. barcode for ea. event
-        lowest_pos  <- data[cbind(bc_orders[n_pos_bcs, ],   seq_len(N))]
-        highest_neg <- data[cbind(bc_orders[n_pos_bcs+1, ], seq_len(N))]
+        lowest_pos  <- x[cbind(bc_orders[n_pos_bcs, ],   seq_len(n))]
+        highest_neg <- x[cbind(bc_orders[n_pos_bcs+1, ], seq_len(n))]
         
         # compute separation b/w pos. and neg. barcodes for ea. event
-        deltas <- lowest_pos - highest_neg
+        lowest_pos - highest_neg
         
         # NON-CONSTANT NUMBER OF 1'S
         # difference b/w the kth and (k–1)th highest 
@@ -101,126 +98,13 @@
     } else {
         # find largest barcode separation within ea. event 
         # to assign pos. and neg. barcode values
-        diffs <- vapply(seq_len(N), function(i) 
-            abs(diff(data[bc_orders[, i], i])),
+        diffs <- vapply(seq_len(n), function(i) 
+            abs(diff(x[bc_orders[, i], i])),
             numeric(ncol(bc_key) - 1))
-        largest_seps <- apply(diffs, 2, which.max)
-        deltas <- vapply(seq_len(N), function(i) 
+        largest_seps <- apply(diffs, 2, function(u)
+            order(u, decreasing = TRUE)[1])
+        vapply(seq_len(n), function(i) 
             diffs[largest_seps[i], i],
             numeric(1))
     }
-    deltas
 }
-
-# ==============================================================================
-# plot distribution of barcode separations & 
-# yields as a function of separation cutoffs
-# ------------------------------------------------------------------------------
-.plot_yields <- function(id, x, seps, n_bcs, bc_labs) {
-    if (id == 0) {
-        pal <- RColorBrewer::brewer.pal(11, "Spectral")
-        if (n_bcs > 11) {
-            cols <- colorRampPalette(pal)(n_bcs)
-        } else {
-            cols <- sample(pal, n_bcs)
-        }
-        counts <- colSums(counts(x))
-        max <- max(counts)
-        hist <- data.frame(seps, counts)
-        line <- reshape2::melt(data.frame(
-            seps, yields=t(yields(x))*max), id.var=seps)
-        line$Sample <- rep(bc_labs, each=length(seps))
-        
-        p <- suppressWarnings(ggplot() + 
-            geom_bar(data=hist, aes_string(x="seps", y="counts"), width=1/101, 
-                stat="identity", fill="lightgrey", col="white") +
-            geom_line(data=line, size=.5, aes_string(x="seps", y="value",
-                col="as.factor(variable)", text="Sample")) +
-            guides(colour=guide_legend(override.aes=list(size=1))) +
-            scale_colour_manual(values=cols, name=NULL, labels=bc_labs))
-    } else {
-        max <- max(counts(x)[id, ])
-        df <- data.frame(Cutoff=seps, 
-            Count=counts(x)[id, ], 
-            yield=yields(x)[id, ]*max,
-            fit=max*predict(smooth.spline(seps, yields(x)[id, ]), seps)$y)
-        df$Yield <- paste0(sprintf("%2.2f", round(100*df$yield/max, 2)), "%")
-        inds <- seq(1, nrow(df), 2)
-        
-        p <- ggplot(df) + 
-            geom_bar(aes_string(x="Cutoff", y="Count"), width=1/101, size=.3, 
-                stat="identity", fill="lavender", colour="darkslateblue") +
-            geom_point(data=data.frame(df[inds, ]),
-                aes_string(x="Cutoff", y="yield", group="Yield"), 
-                fill="mintcream", color="aquamarine4", 
-                pch=21, size=3, stroke=.75) + 
-            geom_line(data=data.frame(x=seps, y=df$fit), 
-                aes_string(x="x", y="y"), 
-                col="aquamarine3", size=.75) +
-            geom_vline(lty=3, size=.75, col="red2", 
-                aes_string(xintercept="sep_cutoffs(x)[id]")) 
-    }
-    p + scale_x_continuous(name="Barcode separation", 
-        breaks=seq(0, 1, .1), limits=c(-.025,1.025), expand=c(0,0)) +
-        scale_y_continuous(name="Yield upon debarcoding", 
-            breaks=seq(0, max, length=5), labels=paste0(seq(0, 100, 25), "%"),
-            limits=c(-.05*max, max+.05*max), expand=c(0,0), sec.axis=sec_axis(
-                trans=~.*1, name="Event count", labels=.scientific_10)) +
-        theme_classic() + theme(axis.text=element_text(color="black"),
-            panel.grid.major=element_line(color="grey", size=.25))
-}
-
-# ==============================================================================
-# helper for plotEvents()
-# ------------------------------------------------------------------------------
-.plot_events <- function(x, inds, n, cols, title) {
-    df <- reshape2::melt(data.frame(
-        x=seq_len(n), y=normed_bcs(x)[inds, ]), id.var="x")
-    y_max <- ceiling(4*max(df$value))/4
-    ggplot(df, aes_string(x="x", y="value", col="as.factor(variable)")) +
-        geom_point(stroke=.5, size=1+100/n, alpha=.75) +
-        scale_colour_manual(values=cols, labels=colnames(normed_bcs(x))) + 
-        guides(colour=guide_legend(title=NULL,
-            override.aes=list(alpha=1, size=2.5))) +
-        scale_x_continuous(limits=c(0, n+1), 
-            breaks=seq_len(n), expand=c(0, 0)) + 
-        scale_y_continuous(limits=c(-.125, y_max+.125), 
-            breaks=seq(0, y_max, .25), expand=c(0, 0)) +
-        labs(x=NULL, y="Normalized intensity") + 
-        ggtitle(title) + theme_classic() + theme(
-            axis.ticks.x=element_blank(),
-            axis.text.x=element_blank(),
-            axis.text.y=element_text(color="black"),
-            panel.grid.major.y=element_line(color="grey", size=.25),
-            panel.grid.minor=element_blank())
-}
-
-# ==============================================================================
-# get barcode labels: 
-# channel name if barcodes are single-positive, 
-# barcode ID and binary code otherwise 
-# ------------------------------------------------------------------------------
-.get_bc_labs <- function(x) {
-    if (sum(rowSums(bc_key(x)) == 1) == nrow(bc_key(x))) {
-        colnames(normed_bcs(x))
-    } else {
-        paste0(rownames(bc_key(x)), ": ", 
-            apply(bc_key(x), 1, function(i) paste(i, collapse="")))
-    }
-}
-
-# ==============================================================================
-# retrieve legend from ggplot
-# ------------------------------------------------------------------------------
-.get_legend <- function(p) {
-    tmp <- ggplot_gtable(ggplot_build(p)) 
-    lgd <- which(vapply(tmp$grobs, function(x) x$name, "") == "guide-box") 
-    return(tmp$grobs[[lgd]]) 
-}
-
-# ==============================================================================
-# scientific annotation
-# ------------------------------------------------------------------------------
-.scientific_10 <- function(x)
-    parse(text=gsub("e", " %*% 10^", format(x, scientific=TRUE)))
-    

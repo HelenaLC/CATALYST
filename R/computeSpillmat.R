@@ -5,6 +5,10 @@
 #' priorly identified single-positive populations.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param assay character string specifying which assay to use.
+#'   Note that this should correspond to count-like data,
+#'   as linearity assumptions underlying spillover estimation
+#'   won't hold for non-linearly transformed data.
 #' @param method
 #'   \code{"default"} or \code{"classic"}. Specifies the function
 #'   to be used for spillover estimation (see below for details).
@@ -46,7 +50,7 @@
 #' and, on the basis of their additive nature, spillover values are computed
 #' independently for each interacting pair of channels.
 #'
-#' @author Helena L. Crowell
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #'
 #' @references
 #' Coursey, J.S., Schwab, D.J., Tsai, J.J., Dragoset, R.A. (2015).
@@ -54,14 +58,10 @@
 #' (available at http://physics.nist.gov/Comp).
 #'
 #' @examples
-#' # get single-stained control samples
+#' # construct SCE from single-stained control samples
 #' data(ss_exp)
-#' es <- as.matrix(exprs(ss_exp))
-#' library(SingleCellExperiment)
-#' sce <- SingleCellExperiment(
-#'     assays = list(counts = t(es)),
-#'     rowData = pData(parameters(ss_exp)))
-
+#' sce <- fcs2sce(ss_exp, by_time = FALSE)
+#' 
 #' # specify mass channels stained for
 #' bc_ms <- c(139, 141:156, 158:176)
 #'
@@ -69,32 +69,34 @@
 #' sce <- assignPrelim(x = sce, bc_key = bc_ms)
 #' sce <- estCutoffs(x = sce)
 #' sce <- applyCutoffs(x = sce)
-#' head(computeSpillmat(x = re))
+#' 
+#' # estimate & extract spillover matrix 
+#' sce <- computeSpillmat(x = sce)
+#' 
+#' library(SingleCellExperiment)
+#' head(metadata(sce)$spillover_matrix)
 #'
 #' @importFrom methods is
-#' @importFrom S4Vectors metadata
+#' @importFrom S4Vectors metadata metadata<-
 #' @importFrom SummarizedExperiment assay assayNames
 #' @export
 
-computeSpillmat <- function(x, altExp = "barcodes", assay = "exprs", 
-    interactions = c("default", "all"), method = c("default", "classic"),
+computeSpillmat <- function(x, assay = "counts", 
+    interactions = c("default", "all"), 
+    method = c("default", "classic"),
     trim = 0.5, th = 10e-6) {
 
     interactions <- match.arg(interactions)
-    method <- match.arg(methods)
+    method <- match.arg(method)
 
     stopifnot(
         is(x, "SingleCellExperiment"),
-        is.null(altExp) || is.character(altExp) && 
-            length(altExp) == 1 && altExp %in% altExpNames(x),
-        is.character(assay), length(assay) == 1, 
-        is.null(altExp) && assay %in% assayNames(x) ||
-            !is.null(altExp) && assay %in% assayNames(altExp(x, altExp)),
+        is.character(assay), length(assay) == 1, assay %in% assayNames(x),
+        !is.null(metadata(x)$bc_key), !is.null(x$bc_id),
         is.numeric(trim), length(trim) == 1, !trim < 0, !trim > 0.5,
         is.numeric(th), length(th) == 1)
 
-    if (is.null(altExp)) y <- x else y <- altExp(x, altExp)
-    n_bcs <- nrow(bc_key <- metadata(y)$bc_key)
+    n_bcs <- nrow(bc_key <- metadata(x)$bc_key)
     if (sum(rowSums(bc_key) == 1) != n_bcs)
         stop("Cannot compute spillover matrix",
             " from non single-staining experiment.")
@@ -103,18 +105,17 @@ computeSpillmat <- function(x, altExp = "barcodes", assay = "exprs",
     ms <- .get_ms_from_chs(rownames(x))
     mets <- .get_mets_from_chs(rownames(x))
     
-    # get barcode IDs & barcodes masses
-    ids <- setdiff(unique(y$bc_id), 0)
-    bc_cols <- match(bc_ms <- colnames(bc_key), ms)
+    # get barcode IDs & barcode channels
+    ids <- setdiff(unique(x$bc_id), 0)
+    bc_chs <- match(bc_ms <- colnames(bc_key), ms)
 
     # for each channel, get spillover candidate channels
     # (by default, +/-1M, -16M and channels measuring isotopes)
     if (interactions == "default") {
-        spill_cols <- .get_spill_cols(ms, mets)
-        ex <- spill_cols
+        ex <- spill_chs <- .get_spill_chs(ms, mets)
     } else if (interactions == "all") {
-        spill_cols <- lapply(ms, function(u) setdiff(ms, c(u, NA)))
-        ex <- .get_spill_cols(ms, mets)
+        spill_chs <- lapply(ms, function(u) setdiff(ms, c(u, NA)))
+        ex <- .get_spill_chs(ms, mets)
     }
     
     # initialize spillover matrix
@@ -123,23 +124,27 @@ computeSpillmat <- function(x, altExp = "barcodes", assay = "exprs",
     dimnames(sm) <- list(chs, chs)
     
     # split cells by barcode population
-    cs <- split(seq_len(ncol(y)), y$bc_id)
-    z <- assay(x, assay)
+    cs <- split(seq_len(ncol(x)), x$bc_id)
+    y <- assay(x, assay)
     for (id in ids) {
         i <- match(id, ms)
         pos <- cs[[id]]
-        neg <- !y$bc_id %in% c(0, id, ms[ex[[i]]])
-        pos_i <- z[i, pos]
-        neg_i <- z[i, neg]
-        for (j in spill_cols[[i]]) {
-            pos_j <- z[j, pos]
+        # neg. pop. = unassigned, pop. itself,
+        # and events assigned to spill-affected pops.
+        neg <- !x$bc_id %in% c(0, id, ms[ex[[i]]])
+        pos_i <- y[i, pos]
+        neg_i <- y[i, neg]
+        for (j in spill_chs[[i]]) {
+            pos_j <- y[j, pos]
             # further exclude events assigned to population
-            # for which interaction is calculated
-            neg_j <- z[j, y$bc_id[neg] != ms[j] 
-                & !y$bc_id[neg] %in% ms[ex[[j]]]]
+            # for which interaction is calculated,
+            # or that are spill-affected by it
+            neg_j <- y[j, neg & !x$bc_id %in% c(ms[j], ms[ex[[j]]])]
             sm[i, j] <- .get_sij(pos_i, neg_i, pos_j, neg_j, method, trim)
         }
     }
     sm[sm < th] <- 0
-    sm[bc_cols, !is.na(ms)]
+    sm <- sm[bc_chs, !is.na(ms)]
+    metadata(x)$spillover_matrix <- sm
+    return(x)
 }

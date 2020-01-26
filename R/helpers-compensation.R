@@ -1,19 +1,17 @@
 # ==============================================================================
 # get spillover columns
 # ------------------------------------------------------------------------------
-.get_spill_cols <- function(ms, mets, l=CATALYST::isotope_list) {
+.get_spill_chs <- function(ms, mets, l=CATALYST::isotope_list) {
     ms <- as.numeric(ms)
-    spill_cols <- vector("list", length(ms))
-    for (i in seq_along(ms)) {
+    lapply(seq_along(ms), function(i) {
         p1 <- m1 <- ox <- iso <- NULL
         if ((ms[i] + 1)  %in% ms) p1 <- which(ms == (ms[i] + 1))
         if ((ms[i] - 1)  %in% ms) m1 <- which(ms == (ms[i] - 1)) 
         if ((ms[i] + 16) %in% ms) ox <- which(ms == (ms[i] + 16))
         iso <- l[[mets[i]]]
         iso <- which(ms %in% iso[iso != ms[i]])
-        spill_cols[[i]] <- unique(c(m1, p1, iso, ox))
-    }
-    spill_cols
+        unique(c(m1, p1, iso, ox))
+    })
 }
 
 # ==============================================================================
@@ -24,13 +22,13 @@
     if (length(neg_i) == 0) neg_i <- 0
     if (length(neg_j) == 0) neg_j <- 0
     if (method == "default") {
-        bg_j <- mean(neg_j, trim = 0.1)
         bg_i <- mean(neg_i, trim = 0.1)
-        receiver <- pos_j - bg_j
+        bg_j <- mean(neg_j, trim = 0.1)
         spiller  <- pos_i - bg_i
+        receiver <- pos_j - bg_j
     } else if (method == "classic") {
-        receiver <- mean(pos_j, trim) - mean(neg_j, trim)
         spiller  <- mean(pos_i, trim) - mean(neg_i, trim)
+        receiver <- mean(pos_j, trim) - mean(neg_j, trim)
     } else {
         stop("'method = ", method, "' is not a valid option.")
     }
@@ -67,8 +65,8 @@
         stop("\nThe supplied spillover matrix is invalid ",
             "as it contains entries greater than 1.\n",
             "Valid spill values are non-negative and mustn't exceed 1.")
-    cnames <- colnames(sm)[which(colnames(sm) %in% rownames(sm))]
-    sii <- sm[cbind(cnames, cnames)]
+    chs <- colnames(sm)[which(colnames(sm) %in% rownames(sm))]
+    sii <- sm[cbind(chs, chs)]
     if (any(sii != 1))
         stop("\nThe supplied spillover matrix is invalid ",
             "as its diagonal contains entries != 1.\n")
@@ -112,7 +110,7 @@
     mets <- lapply(chs, .get_mets_from_chs)
     
     # get the potential mass channels a channel could cause spillover in
-    spill_cols <- .get_spill_cols(ms$new, mets$new)
+    spill_cols <- .get_spill_chs(ms$new, mets$new)
     
     first <- TRUE
     for (i in order(ms$new)) {
@@ -138,8 +136,8 @@
                     "have not been estimated:")
                 first <- FALSE
             }
-            message(chs$new[i], " -> ", 
-                paste(chs$new[ms$new %in% mass_new_rec], collapse=", "))
+            message(chs$new[i], " -> ", paste(chs$new[
+                ms$new %in% mass_new_rec], collapse = ", "))
         }
     }
 }

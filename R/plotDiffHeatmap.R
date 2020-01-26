@@ -61,8 +61,8 @@
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
 #' 
-#' @author Lukas M Weber and 
-#' Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+#' @author Lukas M Weber & 
+#' Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @examples
 #' # construct SCE & run clustering

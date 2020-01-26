@@ -24,17 +24,21 @@
 #' it appropriately balances confidence in barcode assignment and cell yield.
 #' 
 #' @examples
+#' # construct SCE & apply arcsinh-transformation
 #' data(sample_ff, sample_key)
-#' re <- assignPrelim(x = sample_ff, y = sample_key)
-#' re <- estCutoffs(x = re)
+#' sce <- fcs2sce(x = sample_ff)
 #' 
-#' # all barcodes summary plot
-#' plotYields(x = sce, which = 0, plotly = TRUE)
+#' # deconvolute samples & estimate separation cutoffs
+#' sce <- assignPrelim(x = sce, bc_key = sample_key)
+#' sce <- estCutoffs(x = sce)
 #' 
 #' # plot for specific sample
 #' plotYields(x = sce, which = "C1")
 #' 
-#' @author Helena L. Crowell
+#' # all barcodes summary plot
+#' plotYields(x = sce, which = 0, plotly = TRUE)
+#' 
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #'
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -56,12 +60,18 @@
 
 plotYields <- function(x, which = 0, 
     out_path = NULL, name_ext = NULL, plotly = FALSE) {
+    # check validity of input arguments
     stopifnot(is(x, "SingleCellExperiment"),
         !is.null(x$bc_id), !is.null(x$delta),
-        !is.null(metadata(x)$bc_key))
-    
+        !is.null(metadata(x)$bc_key),
+        is.null(out_path) || (is.character(out_path) 
+            & length(out_path) == 1 & dir.exists(out_path)),
+        is.null(name_ext) || (is.character(name_ext) & length(name_ext) == 1),
+        is.logical(plotly), length(plotly) == 1)
     n_bcs <- length(ids <- rownames(bc_key <- metadata(x)$bc_key))
-    names(which) <- which <- .check_validity_which(which, ids, "yields")
+    which <- .check_validity_which(which, ids, "yields")
+    m <- match(c("0", rownames(bc_key)), which, nomatch = 0)
+    names(which) <- which <- which[m]
     
     # compute yields & cell counts
     n_seps <- length(names(seps) <- seps <- seq(0, 1, 0.01))
@@ -109,6 +119,8 @@ plotYields <- function(x, which = 0,
             h <- data.frame(count = rowSums(counts), cutoff = seps)
             l <- melt(yields * (max <- max(h$count)))
             names(l) <- c("cutoff", "bc_id", "yield")
+            if (is.numeric(l$bc_id))
+                l$bc_id <- factor(l$bc_id, levels = sort(unique(l$bc_id)))
             pal <- brewer.pal(11, "Spectral")
             if (n_bcs > 11) {
                 pal <- colorRampPalette(pal)(n_bcs)
@@ -142,13 +154,23 @@ plotYields <- function(x, which = 0,
         }
     })
     
-    if (plotly)
+    if (plotly) {
+        # remove geom_label as it has not
+        # been implemented in plotly yet
+        ps <- lapply(ps, function(p) {
+            geoms <- vapply(p$layers, function(u) 
+                class(u$geom)[1], character(1))
+            is_geom_label <- grep("label", geoms, ignore.case = TRUE)
+            p$layers[is_geom_label] <- NULL
+            return(p)
+        })
         ps <- lapply(which, function(id) {
             p <- switch(as.character(id), 
                 "0" = hide_legend(ggplotly(ps[[id]], tooltip = "text")),
                 ggplotly(ps[[id]], tooltip = c("cutoff", "yield", "count")))
             config(p, displayModeBar = FALSE)
         })
+    }
     
     if (!is.null(out_path)) {
         ext <- ifelse(plotly, ".html", ".pdf")
@@ -161,6 +183,6 @@ plotYields <- function(x, which = 0,
             lapply(ps, print); dev.off()
         }
     } else {
-        ps
+        if (length(ps) == 1) ps[[1]] else ps
     }
 }

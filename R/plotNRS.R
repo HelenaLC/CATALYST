@@ -13,10 +13,10 @@
 #'   character string. Has to appeara as a column name of \code{colData(x)}.
 #'   Specifies the color coding.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -32,17 +32,17 @@
 #' 
 #' @import ggplot2
 #' @importFrom Matrix colMeans
+#' @importFrom methods is
 #' @importFrom reshape2 melt
 #' @importFrom S4Vectors metadata
-#' @importFrom SummarizedExperiment assay
+#' @importFrom SummarizedExperiment assay colData
 #' @export
 # ------------------------------------------------------------------------------
 
 plotNRS <- function(x, features=NULL, color_by="condition") {
-    
-    stopifnot(is.character(color_by), 
-        color_by %in% colnames(colData(x)))
-    
+    # check validity of input arguments
+    stopifnot(is(x, "SingleCellExperiment"), 
+        is.character(color_by), length(color_by) == 1, !is.null(x[[color_by]]))
     if (is.null(features)) {
         features <- rownames(x)
     } else if (length(features) == 1) {
@@ -64,10 +64,10 @@ plotNRS <- function(x, features=NULL, color_by="condition") {
         numeric(length(features))))
     
     # plot NRS in decreasing order
-    md <- metadata(x)$experiment_info
-    m <- match(levels(x$sample_id), md$sample_id)
-    df <- melt(data.frame(scores, md[m, ]), id.var=names(md), 
-        variable.name="antigen", value.name="NRS") 
+    m <- match(levels(x$sample_id), x$sample_id)
+    df <- data.frame(scores, colData(x)[m, ], check.names = FALSE)
+    df <- melt(df, id.var = names(colData(x)),
+        variable.name = "antigen", value.name = "NRS")
     mean_scores <- colMeans(scores, na.rm=TRUE)
     o <- names(sort(mean_scores, decreasing=TRUE))
     df$antigen <- factor(df$antigen, levels=o)
@@ -81,6 +81,6 @@ plotNRS <- function(x, features=NULL, color_by="condition") {
         geom_boxplot(width=.8, fill=NA, outlier.color=NA) +
         theme_classic() + theme(
             panel.grid.major=element_line(color="lightgrey", size=.25),
-            axis.text=element_text(color="black"),
-            axis.text.x=element_text(angle=90, vjust=.5, hjust=1))
+            axis.text.x=element_text(angle=90, vjust=.5, hjust=1),
+            axis.text=element_text(color="black"))
 }

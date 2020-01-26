@@ -21,10 +21,10 @@
 #'   \code{\link[scater]{runDiffusionMap}}, respecttively.
 #'   See \code{?"scater-red-dim-args"} for details.
 #' 
-#' @author Helena Lucia Crowell
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -65,7 +65,7 @@ runDR <- function(x,
         } else {
             stopifnot(features %in% rownames(x))
         }
-        # use all features
+    } else {
         features <- rownames(x)
     }
     
@@ -86,7 +86,7 @@ runDR <- function(x,
     # run dimension reduction
     fun <- get(paste0("run", dr))
     y <- fun(x[, cs], subset_row = features, exprs_values = assay, ...)
-    
+
     # return SCE when no cell subsetting has been done
     if (is.null(cells)) return(y)
     

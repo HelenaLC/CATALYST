@@ -125,9 +125,9 @@
         "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
     ds_LMM <- c("cluster_id", "marker_id", "p_val", "p_adj")
     
-    res_nms <- setNames(
-        list(da_edgeR, da_GLMM, da_voom, ds_limma, ds_LMM),
-        c(rep("da", 3), rep("ds", 2)))
+    res_nms <- list(da_edgeR, da_GLMM, da_voom, ds_limma, ds_LMM)
+    names(res_nms) <- c(rep("da", 3), rep("ds", 2))
+    
     test <- vapply(res_nms, identical, y = names(x), logical(1))
     test <- vapply(test, isTRUE, logical(1))
     type <- names(test)[test]

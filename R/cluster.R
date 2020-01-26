@@ -59,10 +59,10 @@
 #' the data should thus corresponds to the value of k where there is no longer 
 #' a considerable increase in stability (pleateau onset).
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -82,10 +82,11 @@
 #' @importFrom graphics hist
 #' @importFrom magrittr set_colnames
 #' @importFrom matrixStats colQuantiles
+#' @importFrom methods is
 #' @importFrom purrr map
 #' @importFrom reshape2 melt
 #' @importFrom SummarizedExperiment assay rowData rowData<-
-#' @importFrom S4Vectors DataFrame
+#' @importFrom S4Vectors DataFrame metadata<-
 #' @export
 
 cluster <- function(x, features = NULL,
@@ -136,8 +137,11 @@ cluster <- function(x, features = NULL,
     codes <- data.frame(seq_len(k), map(mc[-1], "consensusClass"))
     codes <- mutate_all(codes, function(u) factor(u, levels = sort(unique(u))))
     colnames(codes) <- c(sprintf("som%s", k), sprintf("meta%s", mcs))
-    
     x$cluster_id <- factor(som$map$mapping[, 1])
+    
+    # assure metadata is list prior to assigning new elements
+    if (!is(metadata(x), "list"))
+        metadata(x) <- as.list(metadata(x))
     metadata(x)$cluster_codes <- codes
     metadata(x)$SOM_codes <- som$map$codes
     metadata(x)$delta_area <- .plot_delta_area(mc)

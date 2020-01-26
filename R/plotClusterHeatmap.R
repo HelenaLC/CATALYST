@@ -53,10 +53,10 @@
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -109,7 +109,7 @@ plotClusterHeatmap <- function(x, hm2=NULL,
         } else {
             cols <- .cluster_cols[seq_len(nk)]
         }
-        cols <- setNames(cols, anno)
+        names(cols) <- anno
         cluster_anno <- .row_anno(anno, cols, 
             "cluster_id", row_clustering, draw_dend)
     }
@@ -123,7 +123,7 @@ plotClusterHeatmap <- function(x, hm2=NULL,
         } else {
             cols <- .cluster_cols[seq_len(nlevels(anno))]
         }
-        cols <- setNames(cols, levels(anno))
+        names(cols) <- levels(anno)
         merging_anno <- .row_anno(anno, cols, 
             "merging_id", row_clustering, draw_dend)
     }
@@ -184,7 +184,7 @@ plotClusterHeatmap <- function(x, hm2=NULL,
         
         # right-hand side heatmap
         if (!is.null(hm2)) {
-            if (hm2 == "abundances") {
+            if (isTRUE(hm2 == "abundances")) {
                 # cluster frequencies across samples
                 cs <- table(x$cluster_id[idx], x$sample_id[idx])
                 fq <- as.matrix(unclass(prop.table(cs, 2)))
@@ -193,7 +193,7 @@ plotClusterHeatmap <- function(x, hm2=NULL,
                     na_col="lightgrey", rect_gp=gpar(col="white"), 
                     show_row_names=FALSE, column_names_gp=gpar(fontsize=8), 
                     cluster_rows=row_clustering, cluster_columns=FALSE)
-            } else if (hm2 == "state_markers") {
+            } else if (isTRUE(hm2 == "state_markers")) {
                 # median cell state marker expressions across clusters
                 p <- p + Heatmap(col=hm_cols, na_col="lightgrey", 
                     matrix=hm1_es[, state_markers(x)], 
@@ -216,7 +216,5 @@ plotClusterHeatmap <- function(x, hm2=NULL,
         }
         return(p)
     })
-    for (i in seq_along(hms)) 
-        draw(hms[[i]])
-    invisible(hms)
+    if (length(hms) == 1) hms[[1]] else hms
 }

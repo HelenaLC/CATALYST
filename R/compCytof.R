@@ -4,19 +4,20 @@
 #' @description Compensates a mass spectrometry based experiment using a
 #' provided spillover matrix & assuming a linear spillover in the experiment.
 #'
-#' @param x       
-#'   a \code{\link{flowFrame}} OR a character string specifying the location of 
+#' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}} 
+#'   OR a character string specifying the location of 
 #'   FCS files that should be compensates.
-#' @param y 
-#'   a spillover matrix.
-#' @param out_path
-#'   a character string. If specified, compensated FCS files will be generated 
-#'   in this location. If \code{x} is a character string, file names will be 
-#'   inherited from uncompensated FCS files and given extension "_comped".
-#' @param method
-#'   \code{"flow"} or \code{"nnls"}.
-#' @param isotope_list
-#'   named list. Used to validate the input spillover matrix.
+#' @param sm a spillover matrix.
+#' @param method \code{"flow"} or \code{"nnls"}.
+#' @param assay character string specifying which assay to use. Should 
+#'   correspond to count-like data, as linearity-assumptions underlying 
+#'   spillover estimation won't hold for non-linearly transformed data.
+#' @param transform logical specifying whether compensated data 
+#'   should be arcsinh-transformed in which case an additional
+#'   assay \code{"exprs_comped"} will be added to the output SCE.
+#' @param cofactor cofactor to use for optional arcsinh-transformation.
+#'   If NULL, \code{compCytof} will try and access \code{metadata(x)$cofactor}.
+#' @param isotope_list named list. Used to validate the input spillover matrix.
 #'   Names should be metals; list elements numeric vectors of their isotopes.
 #'   See \code{\link{isotope_list}} for the list of isotopes used by default.
 #' 
@@ -38,104 +39,55 @@
 #' @return 
 #' Compensates the input \code{\link{flowFrame}} or, 
 #' if \code{x} is a character string, all FCS files in the specified location. 
-#' If \code{out_path=NULL} (the default), returns a \code{\link{flowFrame}} 
-#' containing the compensated data. Otherwise, compensated data will be written 
-#' to the specified location as FCS 3.0 standard files. 
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
-#' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch} 
+#' & Vito RT Zanotelli
 #' 
 #' @examples
-#' # get single-stained control samples
+#' # deconvolute single-stained control samples
 #' data(ss_exp)
-#' 
-#' # specify mass channels stained for
+#' sce <- fcs2sce(ss_exp, by_time = FALSE)
 #' bc_ms <- c(139, 141:156, 158:176)
+#' sce <- assignPrelim(x = sce, bc_key = bc_ms)
+#' sce <- estCutoffs(x = sce)
+#' sce <- applyCutoffs(x = sce)
+#' sce <- computeSpillmat(x = sce)
+#' (sce <- compCytof(x = sce))
 #' 
-#' # debarcode
-#' re <- assignPrelim(x = ss_exp, y = bc_ms)
-#' re <- estCutoffs(x = re)
-#' re <- applyCutoffs(x = re)
-#' spillMat <- computeSpillmat(x = re)
-#' compCytof(x = ss_exp, y = spillMat)
+#' library(SingleCellExperiment)
+#' i <- "Dy162Di"; j <- "Dy163Di"
+#' par(mfrow = c(1, 2))
+#' for (a in c("exprs", "exprs_comped"))
+#'   plot(main = a, xlab = i, ylab = j,
+#'     assay(sce[i, ], a), assay(sce[j, ], a))
 #'
-#' @importFrom flowCore flowFrame flowSet fsApply colnames exprs compensate
-#' @importFrom nnls nnls
-#' @importFrom stats setNames
-# ------------------------------------------------------------------------------
-
 #' @importFrom methods is
 #' @importFrom nnls nnls
-compCytof <- function(x, y, method = c("nnls", "flow"), 
-    assay = "exprs",
+#' @importFrom S4Vectors metadata
+#' @importFrom SummarizedExperiment assay assay<- assayNames
+#' @export
+
+compCytof <- function(x, sm = NULL, method = c("nnls", "flow"),
+    assay = "counts", transform = TRUE, cofactor = NULL, 
     isotope_list = CATALYST::isotope_list) {
-    stopifnot(is(x, "SingleCellExperiment"))
-    if (!is.matrix(y)) y <- as.matrix(y)
-    suppressMessages(sm <- t(adaptSpillmat(y, rownames(x), isotope_list)))
-    assay(x, "comped") <- apply(assay(x, assay), 2, function(u) nnls(sm, u)$x)
+    
+    # check validity of input arguments
+    method <- match.arg(method)
+    stopifnot(is(x, "SingleCellExperiment"),
+        !is.null(sm) || !is.null(metadata(x)$spillover_matrix),
+        is.character(assay), length(assay) == 1, assay %in% assayNames(x),
+        !is.null(cofactor) | !is.null(cofactor <- metadata(x)$cofactor),
+        is.numeric(cofactor), length(cofactor) == 1, cofactor > 0)
+    
+    if (is.null(sm)) sm <- metadata(x)$spillover_matrix
+    if (!is.matrix(sm)) sm <- as.matrix(sm)
+    suppressMessages(sm <- adaptSpillmat(sm, rownames(x), isotope_list))
+    
+    # apply compensation & store compensated data in assays
+    y <- apply(assay(x, assay), 2, function(u) nnls(t(sm), u)$x)
+    assay(x, paste0(assay, "_comped")) <- y
+    
+    # (optionally) apply arcsinh-transformation to compensated data
+    if (transform) assay(x, "exprs_comped") <- asinh(y/cofactor)
     return(x)
 }
-#' 
-#' setMethod(f="compCytof",
-#'     signature=signature(x="flowFrame", y="matrix"),
-#'     definition=function(x, y, out_path=NULL, method="flow", 
-#'         isotope_list=CATALYST::isotope_list) {
-#'         sm <- adaptSpillmat(y, flowCore::colnames(x), isotope_list)
-#'         if (method == "flow") { 
-#'             ff_comped <- flowCore::compensate(x, sm)
-#'         } else if (method == "nnls") {
-#'             es_comped <- t(apply(flowCore::exprs(x), 1, 
-#'                 function(row) nnls(t(sm), row)$x))
-#'             ff_comped <- x
-#'             colnames(es_comped) <- colnames(flowCore::exprs(x))
-#'             rownames(es_comped) <- rownames(flowCore::exprs(x))
-#'             flowCore::exprs(ff_comped) <- es_comped
-#'         } else {
-#'             stop("'method' should be one of \"flow\" or \"nnls\".")
-#'         }
-#'         
-#'         if (!is.null(out_path)) {
-#'             fileNm <- gsub("[[:alpha:]]*/", "", description(x)$FILENAME)
-#'             outNm <- file.path(out_path, paste0(gsub(".fcs", 
-#'                 "_comped.fcs", fileNm, ignore.case=TRUE)))
-#'             suppressWarnings(flowCore::write.FCS(ff_comped, outNm))
-#'         } else {
-#'             ff_comped
-#'         }
-#'     })
-#' 
-#' # ------------------------------------------------------------------------------
-#' #' @rdname compCytof
-#' setMethod(f="compCytof",
-#'     signature=signature(x="flowSet", y="ANY"),
-#'     definition=function(x, y, out_path=NULL, method="flow") {
-#'         fsApply(x, compCytof, y, out_path, method)
-#'     })
-#' 
-#' # ------------------------------------------------------------------------------
-#' #' @rdname compCytof
-#' setMethod(f="compCytof",
-#'     signature=signature(x="character", y="matrix"),
-#'     definition=function(x, y, out_path=NULL, method="flow") {
-#'         if (!file.exists(x))
-#'             stop("x is neither a flowFrame nor a valid file/folder path.")
-#'         fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
-#'         if (length(fcs) == 0)
-#'             stop("No FCS files found in specified location.")
-#'         ffs <- lapply(fcs, flowCore::read.FCS)
-#'         
-#'         if (is.null(out_path)) {
-#'             lapply(ffs, function(i) compCytof(i, y, out_path, method))
-#'         } else {
-#'             for (i in seq_along(ffs))
-#'                 compCytof(ffs[[i]], y, out_path, method)
-#'         }
-#'     })
-#' 
-#' # ------------------------------------------------------------------------------
-#' #' @rdname compCytof
-#' setMethod(f="compCytof",
-#'     signature=signature(x="ANY", y="data.frame"),
-#'     definition=function(x, y, out_path=NULL, method="flow") {
-#'         compCytof(x, as.matrix(y), out_path, method)
-#'     })

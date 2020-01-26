@@ -36,10 +36,10 @@
 #' @examples
 #' data(sample_ff, sample_key)
 #' sce <- fcs2sce(sample_ff)
-#' assay(sce, "exprs") <- asinh(assay(sce, "counts") / 10)
 #' sce <- assignPrelim(x = sce, bc_key = sample_key)
+#' table(sce$bc_id)
 #' 
-#' @author Helena L. Crowell
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -77,35 +77,35 @@ assignPrelim <- function(x, bc_key, assay = "exprs", verbose = TRUE) {
             " channel names and debarcoding scheme.")
     
     # get columns corresponding to barcode channels
-    bc_cols <- vapply(bc_ms, function(u) match(u, ms), numeric(1))
-    if (length(bc_cols) != ncol(bc_key))
+    bc_chs <- vapply(bc_ms, function(u) match(u, ms), numeric(1))
+    if (length(bc_chs) != ncol(bc_key))
         stop("Not all barcode channels found.")
     
     # specify barcode channels
-    rowData(x)$is_bc <- seq_len(nrow(x)) %in% bc_cols
+    rowData(x)$is_bc <- is_bc <- seq_len(nrow(x)) %in% bc_chs
      
     # assign barcode ID to each cell
     if (verbose) message("Debarcoding data...")
-    x$bc_id <- .get_ids(assay(x, assay)[bc_cols, ], bc_key, ids, verbose)
+    x$bc_id <- .get_ids(assay(x, assay)[bc_chs, ], bc_key, ids, verbose)
     
     # rescale transformed barcodes for each population 
     # using preliminary assignments
     if (verbose) message("Normalizing...")
     # split cells by populations
-    cs <- split(seq_len(ncol(x)), x$bc_id)
+    cs <- split(seq_len(ncol(x)), x$bc_id)[ids]
     scaled <- matrix(NA, nrow(x), ncol(x), dimnames = dimnames(x))
-    scaled[!is.na(ms), unlist(cs[ids])] <- do.call("cbind", 
+    scaled[is_bc, unlist(cs[ids])] <- do.call("cbind", 
         lapply(ids, function(id) {
-            y <- assay(x, assay)[, cs[[id]]]
-            pos <- y[rowData(x)$is_bc, ]
-            y[!is.na(ms), ] / quantile(pos, 0.95)
+            y <- assay(x, assay)[, cs[[id]], drop = FALSE]
+            pos <- y[bc_chs[bc_key[id, ] == 1], ]
+            y[is_bc, ] / quantile(pos, 0.95)
         })
     )
     assay(x, "scaled") <- scaled
     
     # get deltas from normalized intensities 
     if (verbose) message("Computing deltas...")
-    y <- assay(x, "scaled")
+    y <- assay(x, "scaled")[is_bc, ]
     x$delta <- .get_deltas(y, bc_key, verbose)
     
     # store debarcoding scheme in metadata & return SCE

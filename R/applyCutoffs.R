@@ -3,6 +3,8 @@
 #' @description Applies separation and mahalanobies distance cutoffs.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param assay character string specifying which assay data to use.
+#'   Should be one of \code{assayNames(x)}.
 #' @param mhl_cutoff 
 #'   mahalanobis distance threshold above which events should be unassigned. 
 #'   This argument will be ignored if the \code{mhl_cutoff} slot of the input 
@@ -19,7 +21,7 @@
 #' and an additional \code{int_metadata} slot \code{"mhl_cutoff"} 
 #' containing the applied mahalanobies distance cutoff.
 #' 
-#' @author Helena L. Crowell
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
 #' Zunder, E.R. et al. (2015).
@@ -32,11 +34,7 @@
 #' 
 #' # construct SCE
 #' data(sample_ff, sample_key)
-#' es <- as.matrix(exprs(sample_ff))
-#' sce <- SingleCellExperiment(
-#'     assays = list(counts = t(es)),
-#'     rowData = pData(parameters(sample_ff)))
-#' assay(sce, "exprs") <- asinh(assay(sce, "counts") / 10)
+#' sce <- fcs2sce(sample_ff)
 #'     
 #' # assign preliminary barcode IDs
 #' # & estimate separation cutoffs
@@ -48,7 +46,7 @@
 #' sce <- applyCutoffs(x = sce, sep_cutoffs = 0)
 #' plotEvents(sce, "A1", out_path = "~/Desktop", n = 1e3)
 #'
-#' @importFrom Matrix rowMeans solve
+#' @importFrom Matrix colMeans solve
 #' @importFrom methods is
 #' @importFrom stats cov mahalanobis
 #' @importFrom S4Vectors metadata
@@ -85,40 +83,33 @@ applyCutoffs <- function(x, assay = "exprs",
         seps <- metadata(x)$sep_cutoffs
         seps[is.na(seps)] <- 1
     }
-    
-    # compute mahalanobis distances given current separation cutoff
-    cs <- split(seq_len(ncol(x)), x$bc_id)
+    # split cells by barcode population
+    cs <- split(seq_len(ncol(x)), x$bc_id)[ids]
     ns <- vapply(cs, length, numeric(1))
-    ex_sep <- ex_mhl <- logical(ncol(x))
-    ex_sep[unlist(cs[ids])] <- unlist(lapply(ids, 
-        function(id) x$delta[cs[[id]]] < seps[id]))
-    mhl_dists <- lapply(ids, function(id) {
-        if (ns[id] == 0) return(NULL)
-        i <- cs[[id]][!ex_sep[cs[[id]]]]
-        foo <- rep(NA, length(i))
-        if (length(i) == 0) return(foo)
-        y <- assay(x, assay)[, i]
-        if (length(y) != n_bcs & ncol(y) > n_bcs) {
-            # compute covarianve matrix
-            cov_mat <- cov(t(y))
-            # check that it's invertible
+    # exclude events falling below separation cutoff
+    ex_sep <- lapply(ids[ns != 0], function(id)
+        x$delta[cs[[id]]] < seps[id])
+   
+    # compute mahalanobis distances given current separation cutoff
+    mhl_dists <- rep(NA, ncol(x))
+    for (id in ids[ns != 0]) {
+        i <- cs[[id]][!ex_sep[[id]]]
+        y <- assay(x, assay)[rowData(x)$is_bc, i, drop = FALSE]
+        y <- t(as.matrix(y))
+        if (length(y) != n_bcs & nrow(y) > n_bcs) {
+            cvm <- cov(y)
             test <- tryCatch(
-                solve(cov_mat) %*% cov_mat, 
+                solve(cvm) %*% cvm, 
                 error = function(e) e)
-            if (!inherits(test, "error")) { 
-                return(mahalanobis(t(y), rowMeans(y), cov_mat))
-            } else {
-                foo
-            }
-        } else {
-            foo
-        } 
-    })
-    x$mhl_dist <- NA
-    x$mhl_dist[which(!ex_sep[unlist(cs[ids])])] <- unlist(mhl_dists)
-    ex_mhl <- x$mhl_dist > mhl_cutoff
+            if (!inherits(test, "error")) 
+                mhl_dists[i] <- mahalanobis(y, colMeans(y), cvm)
+        }
+    }
+    ex_mhl <- mhl_dists > mhl_cutoff
     ex_mhl[is.na(ex_mhl)] <- FALSE
-    x$bc_id[ex_sep | ex_mhl] <- 0
+    x$bc_id[ex_mhl] <- x$bc_id[unlist(cs)[unlist(ex_sep)]] <- 0
+    
+    x$mhl_dist <- mhl_dists
     metadata(x)$mhl_cutoff <- mhl_cutoff
     return(x)
 }

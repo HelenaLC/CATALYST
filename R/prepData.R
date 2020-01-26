@@ -24,6 +24,8 @@
 #'   that contain the FCS file names, sample IDs, and factors of interest
 #'   (batch, condition, treatment etc.).
 #'   
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
+#'   
 #' @return an object of class \code{daFrame}.
 #' 
 #' @examples
@@ -43,17 +45,15 @@ prepData <- function(x, panel, md, features=NULL, cofactor=5,
     md_cols=list(file="file_name", id="sample_id", factors=c("condition", "patient_id"))) {
     
     # check validity of input arguments
-    if (!is(panel, "data.frame")) 
-        panel <- data.frame(panel, check.names = FALSE, stringsAsFactors = FALSE)
-    if (!is(md, "data.frame"))
-        md <- data.frame(md, check.names = FALSE, stringsAsFactors = FALSE)
+    for (u in c("panel", "md"))
+        if (!is(v <- get(u), "data.frame"))
+            assign(u, data.frame(v, 
+                check.names = FALSE, 
+                stringsAsFactors = FALSE))
     
     stopifnot(is.list(panel_cols), is.list(md_cols),
         c("channel", "antigen") %in% names(panel_cols),
         c("file", "id", "factors") %in% names(md_cols))
-    
-    if (!is.null(cofactor))
-        stopifnot(is.numeric(cofactor), length(cofactor) == 1, cofactor > 0)
 
     if (is(x, "flowSet")) {
         fs <- x
@@ -87,7 +87,13 @@ prepData <- function(x, panel, md, features=NULL, cofactor=5,
             stop("Invalid argument 'features'. Should be either", 
                 " a logial vector,\n  a numeric vector of indices, or",
                 " a character vector of column names.")
+        m <- match(panel[[panel_cols$channel]], features, nomatch = 0)
+        features <- features[m]
     }
+    
+    if (!is.null(cofactor))
+        stopifnot(is.numeric(cofactor), cofactor > 0,
+            length(cofactor) %in% c(1, length(features)))
     
     # use identifiers if filenames are not specified
     ids <- c(keyword(fs, "FILENAME"))
@@ -97,14 +103,23 @@ prepData <- function(x, panel, md, features=NULL, cofactor=5,
     # check that filenames match b/w flowSet & metadata &
     # reorder flowSet according to metadata table
     stopifnot(all(ids %in% md[[md_cols$file]]))
-    fs <- fs[match(ids, md[[md_cols$file]])]
+    fs <- fs[m <- match(ids, md[[md_cols$file]])]
     
     # transformation
-    if (!is.null(cofactor))
+    if (!is.null(cofactor)) {
+        if (length(cofactor) == 1) {
+            cofactor <- rep(cofactor, ncol(fs[[1]]))
+        } else if (!is.null(names(cofactor))) {
+            stopifnot(features %in% names(cofactor))
+            m <- match(features, names(cofactor))
+            cofactor <- cofactor[m]
+        } 
         fs <- fsApply(fs, function(ff) {
-            exprs(ff) <- asinh(exprs(ff) / cofactor)
+            exprs(ff) <- asinh(sweep(exprs(ff), 2, cofactor, "/"))
+            #exprs(ff) <- asinh(exprs(ff) / cofactor)
             return(ff)
         })
+    }
     
     # assure correctness of formats
     k <- c(md_cols$id, md_cols$factors)
@@ -137,7 +152,7 @@ prepData <- function(x, panel, md, features=NULL, cofactor=5,
     
     # get & check marker classes if provided
     valid_mcs <- c("type", "state", "none")
-    if (is.null(panel_cols$class)) {
+    if (is.null(panel_cols$class) | is.null(panel[[panel_cols$class]])) {
         mcs <- factor("none", levels=valid_mcs)
     } else {
         mcs <- factor(panel[[panel_cols$class]], levels=valid_mcs)

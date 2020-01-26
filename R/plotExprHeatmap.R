@@ -23,10 +23,10 @@
 #' 
 #' @return a \code{\link{HeatmapList-class}} object.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -38,6 +38,7 @@
 #' 
 #' @import ComplexHeatmap SummarizedExperiment
 #' @importFrom dplyr select select_if
+#' @importFrom grid grid.text
 #' @importFrom grDevices colorRampPalette
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom S4Vectors metadata
