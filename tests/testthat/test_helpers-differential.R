@@ -1,7 +1,26 @@
 context("utilities for differential analysis")
 set.seed(as.numeric(format(Sys.time(), "%s")))
-sce <- .toySCE()
-y <- assay(sce, "exprs")
+y <- assay((sce <- .toySCE()), "exprs")
+
+test_that("guessPanel()", {
+    expect_error(guessPanel("x"))
+    ff <- get(data("sample_ff"))
+    ps0 <- parameters(ff)
+    # channel & antigen in 'name' & 'desc'
+    expect_is(df <- guessPanel(ff), "data.frame")
+    expect_true(nrow(df) == ncol(ff))
+    expect_true(all(df$fcs_colname == ps0@data$name))
+    expect_true(all(df$antigen == ps0@data$desc))
+    expect_true(all(df$desc == ps0@data$desc))
+    # 'desc' of the from channel_antigen
+    ps <- ps0
+    ps@data$desc <- with(ps@data, paste(name, desc, sep = "_"))
+    parameters(ff) <- ps
+    expect_is(df <- guessPanel(ff), "data.frame")
+    expect_true(all(df$fcs_colname == ps@data$name))
+    expect_true(all(df$antigen == ps0@data$desc))
+    expect_true(all(df$desc == ps0@data$name))
+})
 
 test_that(".split_cells() by 1 factor", {
     for (by in c("sample_id", "cluster_id")) {

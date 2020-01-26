@@ -1,8 +1,24 @@
-# ==============================================================================
-# unit tests for compensation helpers
-# ------------------------------------------------------------------------------
-test_that(".make_symetric() works flawlessly", {
-    dims <- sample(1:10, 2)
+test_that(".check_sm()", {
+    ns <- vapply((l <- isotope_list), length, numeric(1))
+    n <- length(chs <- paste0(rep.int(names(l), ns), unlist(l)))
+    x <- matrix(runif(n*n), n, n, dimnames = list(chs, chs))
+    diag(x) <- 1; expect_silent(.check_sm(x))
+    # diagonal entry != 1
+    y <- x; y[1, 1] <- 0; expect_error(.check_sm(y))
+    # entries out of range
+    y <- x; y[1, 2] <- -1; expect_error(.check_sm(y))
+    y <- x; y[1, 2] <- 10; expect_error(.check_sm(y))
+    # spilling != receiving channels
+    y <- x; rownames(y)[1] <- "Abc100"; expect_error(.check_sm(y))
+    # invalid metal-mass combination
+    colnames(y)[1] <- "Abc100"; expect_error(.check_sm(y))
+    # modifying isotope list accordingly
+    # should make SM valid again
+    l <- c(l, Abc = 100); expect_silent(.check_sm(y, l))
+})
+
+test_that(".make_symetric()", {
+    dims <- sample(seq_len(10), 2)
     min <- which.min(dims)
     max <- which.max(dims)
     nms <- as.character(runif(dims[max]))
@@ -19,39 +35,38 @@ test_that(".make_symetric() works flawlessly", {
     expect_true(all.equal(rownames(m), colnames(m)))
 })
 
-test_that(".get_spill_cols() works impeccably", {
+test_that("..get_spill_chs()", {
     n <- 25
     valid_cols <- seq_len(n)
-    ms <- sample(139:176, n)
+    ms <- sample(seq(139, 176), n)
     mets <- sample(size=n, x=c(
         "Ba","La","Ce","Pr","Nd","Nd","Nd","Nd","Nd","Sm","Nd","Sm","Nd",
         "Eu","Sm","Eu","Sm","Gd","Gd","Gd","Gd","Tb","Gd","Dy","Dy","Dy",
         "Dy","Ho","Er","Er","Er","Tm","Er","Yb","Yb","Yb","Yb","Lu","Yb"))
-    l <- .get_spill_cols(ms, mets)
+    l <- .get_spill_chs(ms, mets)
     
     expect_true(is.list(l))
     expect_true(all(unlist(lapply(l, function(i) i %in% valid_cols))))
-    expect_true(all(sapply(l, function(i) length(unique(i)) == length(i))))
+    expect_true(all(vapply(l, function(i) length(unique(i)) == length(i), logical(1))))
 })
-
 
 compare_sm_nms <- function(sm, nms){
     expect_true(all(colnames(sm) == nms))
     expect_true(all(rownames(sm) == nms))
 }
 
-test_that("adaptSpillmat() is magnificent", {
+test_that("adaptSpillmat()", {
     data(ss_exp)
     # generate a dummy spillover matrix
     ncol <- flowCore::ncol(ss_exp)
     sm <- diag(1, ncol, ncol)
-    inds <- cbind(1:(ncol-1),2:(ncol))
-    sm[inds] <- seq(0.01, 0.3, length.out=ncol-1)
+    inds <- cbind(seq_len(ncol-1), seq_len(ncol)[-1])
+    sm[inds] <- seq(0.01, 0.3, length.out = ncol-1)
     colnames(sm) <- rownames(sm) <- flowCore::colnames(ss_exp)
     chs <- flowCore::colnames(ss_exp)
     
     # case a subset of the channels
-    inds <- 1:10
+    inds <- seq_len(10)
     sm_ad <- adaptSpillmat(sm, chs[inds])
     compare_sm_nms(sm_ad, chs[inds])
     # test that underlying spillover structure is not altered
