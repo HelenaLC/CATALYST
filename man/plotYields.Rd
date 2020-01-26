@@ -37,15 +37,19 @@ barcode's plot. The separation cutoff value should be chosen such that
 it appropriately balances confidence in barcode assignment and cell yield.
 }
 \examples{
+# construct SCE & apply arcsinh-transformation
 data(sample_ff, sample_key)
-re <- assignPrelim(x = sample_ff, y = sample_key)
-re <- estCutoffs(x = re)
+sce <- fcs2sce(x = sample_ff)
 
-# all barcodes summary plot
-plotYields(x = sce, which = 0, plotly = TRUE)
+# deconvolute samples & estimate separation cutoffs
+sce <- assignPrelim(x = sce, bc_key = sample_key)
+sce <- estCutoffs(x = sce)
 
 # plot for specific sample
 plotYields(x = sce, which = "C1")
+
+# all barcodes summary plot
+plotYields(x = sce, which = 0, plotly = TRUE)
 
 }
 \references{
@@ -55,5 +59,5 @@ and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
 \author{
-Helena L. Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

@@ -119,5 +119,5 @@ library(SingleCellExperiment)
 metadata(sce)$delta_area
 }
 \author{
-Helena L Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

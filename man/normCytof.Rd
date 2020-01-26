@@ -11,7 +11,8 @@ normCytof(
   k = 500,
   trim = 5,
   remove_beads = TRUE,
-  out_path = NULL,
+  norm_to = NULL,
+  plot = TRUE,
   verbose = TRUE
 )
 }
@@ -22,7 +23,11 @@ normCytof(
 \code{"beta"} (for bead masses 139, 141, 159, 169, 175) or 
 a numeric vector of masses.}
 
-\item{k}{integer width of the median window used for bead smoothing.}
+\item{assay}{character string specifying which assay data to use.
+Should be one of \code{assayNames(x)}.}
+
+\item{k}{integer width of the median window used 
+for bead smoothing (affects visualizations only!).}
 
 \item{trim}{a single non-negative numeric. 
 A \emph{median}+/-\code{trim}*\emph{mad} rule is applied to 
@@ -32,31 +37,29 @@ low signal beads prior to estimating normalization factors.}
 \item{remove_beads}{logical. If TRUE, bead events will be removed from
 the input \code{SingleCellExperiment} and returned as a separate object?}
 
-\item{out_path}{character string. If specified, outputs will be generated here. 
-If NULL (the default), \code{normCytof} will return a \code{SingleCellExperiment} 
-with an additional \code{assay} slot \code{"normed"} containing normalized data.
-If \code{remove_beads = TRUE}, bead events will be removed and returned separately.}
+\item{norm_to}{a \code{\link[flowCore]{flowFrame}} or path to
+an FCS file from which to compute baseline bead intensities,
+and to which the input data should be normalized to.}
+
+\item{plot}{logical. Should bead vs. DNA scatters and smoothed bead 
+intensities before vs. after normalization be included in the output?}
 
 \item{verbose}{logical. Should extra information on progress be reported?}
-
-\item{fn}{a character string to use as the output file name. Defaults to 
-the file name of the input FCS file or \code{flowFrame}, respectively.}
-
-\item{fn_sep}{a character string to use to separate the output file name's prefix
-from the appendage.}
-
-\item{norm_to}{a \code{\link{flowFrame}} or character of an FCS file from which baseline 
-values should be computed and to which the input data should be normalized.}
-
-\item{plot}{logical. Should bead vs. DNA scatters and smoothed 
-bead intensities before vs. after normalization be plotted?}
 }
 \value{
-a list containing with the following elements: 
+a list of the following \code{SingleCellExperiment}... 
 \itemize{
-\item{a \code{SingleCellExperiment} with an additional assay slot \code{normed}}
-\item{a \code{ggplot} of DNA vs. bead scatter plots}
-\item{a \code{ggplot} of smoothed bead intensities before and after normalization}
+\item{\code{data}: SCE with additional assay slot \code{normed} containing 
+  normalized (and optionally filtered, if \code{remove_beads = TRUE}) data}
+\item{\code{beads}, \code{removed}: SCEs containing subsets of events 
+  identified as beads and that were removed, respectively. 
+  The latter includes bead-cell and cell-cell doublets)}
+} ...and \code{ggplot} objects:
+\itemize{
+\item{\code{scatter}: scatter plot of DNA vs. bead 
+  intensities with indication of the applied gates}
+\item{\code{lines}: running-median smoothed bead 
+  intensities before and after normalization}
 }
 }
 \description{
@@ -66,8 +69,13 @@ using bead standards with automated bead gating.
 \examples{
 data(raw_data)
 sce <- fcs2sce(raw_data)
-sce <- transform(sce)
 res <- normCytof(sce, beads = "dvs", k = 80)
+
+ncol(res$beads)   # no. of bead events
+ncol(res$removed) # no. of events removed
+
+res$scatter # plot DNA vs. bead intensities including applied gates
+res$lines   # plot smoothed bead intensities before vs. after normalization
 
 }
 \references{
@@ -76,5 +84,5 @@ Normalization of mass cytometry data with bead standards.
 \emph{Cytometry A} \bold{83A}, 483-494.
 }
 \author{
-Helena L. Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

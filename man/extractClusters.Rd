@@ -55,5 +55,5 @@ extractClusters(sce, k="merging_1", clusters=c("NK cells", "surface-"))
 
 }
 \author{
-Mark D Robinson and Helena Lucia Crowell
+Mark D Robinson & Helena L Crowell \email{helena.crowell@uzh.ch}
 }

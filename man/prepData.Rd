@@ -57,3 +57,6 @@ data(PBMC_fs, PBMC_panel, PBMC_md)
 prepData(PBMC_fs, PBMC_panel, PBMC_md)
 
 }
+\author{
+Helena L Crowell \email{helena.crowell@uzh.ch}
+}

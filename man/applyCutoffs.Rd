@@ -9,6 +9,9 @@ applyCutoffs(x, assay = "exprs", mhl_cutoff = 30, sep_cutoffs = NULL)
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
+\item{assay}{character string specifying which assay data to use.
+Should be one of \code{assayNames(x)}.}
+
 \item{mhl_cutoff}{mahalanobis distance threshold above which events should be unassigned. 
 This argument will be ignored if the \code{mhl_cutoff} slot of the input 
 \code{dbFrame} is specified.}
@@ -33,11 +36,7 @@ library(SingleCellExperiment)
 
 # construct SCE
 data(sample_ff, sample_key)
-es <- as.matrix(exprs(sample_ff))
-sce <- SingleCellExperiment(
-    assays = list(counts = t(es)),
-    rowData = pData(parameters(sample_ff)))
-assay(sce, "exprs") <- asinh(assay(sce, "counts") / 10)
+sce <- fcs2sce(sample_ff)
     
 # assign preliminary barcode IDs
 # & estimate separation cutoffs
@@ -57,5 +56,5 @@ and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
 \author{
-Helena L. Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

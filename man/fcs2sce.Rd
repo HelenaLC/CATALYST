@@ -2,20 +2,60 @@
 % Please edit documentation in R/fcs2sce.R
 \name{fcs2sce}
 \alias{fcs2sce}
-\title{`SingleCellExperiment` from FCS file(s)}
+\title{FCS file & \code{flowFrame/-Set} 
+  conversion to \code{SingleCellExperiment}}
 \usage{
-fcs2sce(x, by_time = TRUE, file_no = FALSE)
+fcs2sce(x, by_time = TRUE, file_no = FALSE, transform = TRUE, cofactor = 5)
 }
 \arguments{
-\item{x}{character vector of FCS file names.}
+\item{x}{character vector of FCS file names, 
+\code{\link[flowCore]{flowFrame}}, or \code{\link[flowCore]{flowSet}}.}
 
-\item{by_time}{logical. Should files be ordered by acquisition time?}
+\item{by_time}{logical. Should files be ordered by acquisition time? (see details)}
 
-\item{file_no}{logical. Should a file number parameter be added?}
+\item{file_no}{logical. Should a file number parameter be stored
+in the \code{int_colData} of the output SCE?}
+
+\item{transform}{logical. Specifies whether an arcsinh-transformation
+with cofactor \code{cofactor} should be performed, in which case expression 
+values (transformed counts) will be stored in \code{assay(x, "exprs")}.}
+
+\item{cofactor}{numeric cofactor to use for optional 
+arcsinh-transformation if \code{transform = TRUE}.}
+}
+\value{
+a \code{SingleCellExperiment}.
 }
 \description{
-Concatenates input FCS files to a `SingleCellExperiment`.
+Converts (and concatenates, if multiple samples are supplied) 
+  input FCS file(s), \code{flowFrame}(s), or a \code{flowSet} to an object 
+  of the \code{SingleCellExperiment} class.
+}
+\details{
+By default, non-mass channels (e.g., time, event lengths)
+  will be removed from the output SCE's assay data and instead
+  stored in the object's internal cell metadata (\code{int_colData})
+  to assure these data are not subject to transformations
+  or other computations applied to the assay data.
+
+  When \code{x} contains more than one sample, \code{fcs2sce} will 
+  concatenate cells into a single \code{SingleCellExperiment} object.
+  Note that cells will hereby be order by \code{"Time"}, regardless 
+  of whether \code{by_time = TRUE} or \code{FALSE}. 
+  Instead, \code{by_time} determines the sample (not cell!) order; 
+  i.e., whether samples should be kept in their original order,
+  or should be re-ordered according to their acquision time 
+  stored in \code{keyword(flowSet, "$BTIM")}.
+}
+\examples{
+data(raw_data)
+(sce <- fcs2sce(raw_data))
+
+library(SingleCellExperiment)
+assayNames(sce)         # view available assays
+names(int_colData(sce)) # non-mass channels
+
 }
 \author{
-Helena L. Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

@@ -16,9 +16,9 @@ plotEvents(
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{which}{\code{"all"}, numeric or character. Specifies which barcode(s) to plot. 
-Valid values are IDs that occur as row names in the \code{bc_key} of the 
-supplied \code{\link{dbFrame}}, or 0 for unassigned events.}
+\item{which}{\code{"all"}, numeric or character specifying which barcode(s) to plot. 
+Valid values are IDs that occur as rownames in the \code{bc_key} slot
+of the input SCE's \code{metadata}, or 0 for unassigned events.}
 
 \item{assay}{character string specifying which 
 assay data slot to use. One of \code{assayNames(x)}.}
@@ -45,13 +45,9 @@ to remove such populations or reconsider their separation cutoffs.
 }
 \examples{
 data(sample_ff, sample_key)
-es <- as.matrix(exprs(sample_ff))
-library(SingleCellExperiment)
-sce <- SingleCellExperiment(
-    assays = list(counts = t(es)),
-    rowData = pData(parameters(sample_ff)))
+sce <- fcs2sce(sample_ff, by_time = FALSE)
 sce <- assignPrelim(x = sce, bc_key = sample_key)
-plotEvents(sce, out_path = "~/Desktop")
+plotEvents(sce, which = "D1")
 
 }
 \references{
@@ -61,5 +57,5 @@ and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
 \author{
-Helena L. Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

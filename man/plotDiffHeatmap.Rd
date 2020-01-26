@@ -110,6 +110,6 @@ plotDiffHeatmap(sce, ds)
 
 }
 \author{
-Lukas M Weber and 
-Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+Lukas M Weber & 
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

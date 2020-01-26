@@ -6,34 +6,41 @@
 \usage{
 compCytof(
   x,
-  y,
+  sm = NULL,
   method = c("nnls", "flow"),
-  assay = "exprs",
+  assay = "counts",
+  transform = TRUE,
+  cofactor = NULL,
   isotope_list = CATALYST::isotope_list
 )
 }
 \arguments{
-\item{x}{a \code{\link{flowFrame}} OR a character string specifying the location of 
+\item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}} 
+OR a character string specifying the location of 
 FCS files that should be compensates.}
 
-\item{y}{a spillover matrix.}
+\item{sm}{a spillover matrix.}
 
 \item{method}{\code{"flow"} or \code{"nnls"}.}
+
+\item{assay}{character string specifying which assay to use. Should 
+correspond to count-like data, as linearity-assumptions underlying 
+spillover estimation won't hold for non-linearly transformed data.}
+
+\item{transform}{logical specifying whether compensated data 
+should be arcsinh-transformed in which case an additional
+assay \code{"exprs_comped"} will be added to the output SCE.}
+
+\item{cofactor}{cofactor to use for optional arcsinh-transformation.
+If NULL, \code{compCytof} will try and access \code{metadata(x)$cofactor}.}
 
 \item{isotope_list}{named list. Used to validate the input spillover matrix.
 Names should be metals; list elements numeric vectors of their isotopes.
 See \code{\link{isotope_list}} for the list of isotopes used by default.}
-
-\item{out_path}{a character string. If specified, compensated FCS files will be generated 
-in this location. If \code{x} is a character string, file names will be 
-inherited from uncompensated FCS files and given extension "_comped".}
 }
 \value{
 Compensates the input \code{\link{flowFrame}} or, 
-if \code{x} is a character string, all FCS files in the specified location. 
-If \code{out_path=NULL} (the default), returns a \code{\link{flowFrame}} 
-containing the compensated data. Otherwise, compensated data will be written 
-to the specified location as FCS 3.0 standard files.
+if \code{x} is a character string, all FCS files in the specified location.
 }
 \description{
 Compensates a mass spectrometry based experiment using a
@@ -55,21 +62,25 @@ a warning will be issued as there could be spillover interactions that have
 been missed and may lead to faulty compensation}}
 }
 \examples{
-# get single-stained control samples
+# deconvolute single-stained control samples
 data(ss_exp)
-
-# specify mass channels stained for
+sce <- fcs2sce(ss_exp, by_time = FALSE)
 bc_ms <- c(139, 141:156, 158:176)
+sce <- assignPrelim(x = sce, bc_key = bc_ms)
+sce <- estCutoffs(x = sce)
+sce <- applyCutoffs(x = sce)
+sce <- computeSpillmat(x = sce)
+(sce <- compCytof(x = sce))
 
-# debarcode
-re <- assignPrelim(x = ss_exp, y = bc_ms)
-re <- estCutoffs(x = re)
-re <- applyCutoffs(x = re)
-spillMat <- computeSpillmat(x = re)
-compCytof(x = ss_exp, y = spillMat)
+library(SingleCellExperiment)
+i <- "Dy162Di"; j <- "Dy163Di"
+par(mfrow = c(1, 2))
+for (a in c("exprs", "exprs_comped"))
+  plot(main = a, xlab = i, ylab = j,
+    assay(sce[i, ], a), assay(sce[j, ], a))
 
 }
 \author{
-Helena Lucia Crowell \email{helena.crowell@uzh.ch}
-and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
+Helena L Crowell \email{helena.crowell@uzh.ch} 
+& Vito RT Zanotelli
 }

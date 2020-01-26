@@ -52,7 +52,6 @@ library(SingleCellExperiment)
 # construct SCE
 data(sample_ff, sample_key)
 sce <- fcs2sce(sample_ff)
-sce <- transform(sce)
     
 # assign preliminary barcode IDs
 # & estimate separation cutoffs
@@ -71,5 +70,5 @@ Finney, D.J. (1971). Probit Analsis.
 \emph{Journal of Pharmaceutical Sciences} \bold{60}, 1432.
 }
 \author{
-Helena L. Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

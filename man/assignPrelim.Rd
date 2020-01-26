@@ -48,8 +48,8 @@ Assigns a preliminary barcode ID to each event.
 \examples{
 data(sample_ff, sample_key)
 sce <- fcs2sce(sample_ff)
-assay(sce, "exprs") <- asinh(assay(sce, "counts") / 10)
 sce <- assignPrelim(x = sce, bc_key = sample_key)
+table(sce$bc_id)
 
 }
 \references{
@@ -59,5 +59,5 @@ and single-cell deconvolution algorithm.
 \emph{Nature Protocols} \bold{10}, 316-333.
 }
 \author{
-Helena L. Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

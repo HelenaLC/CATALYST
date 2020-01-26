@@ -6,8 +6,7 @@
 \usage{
 computeSpillmat(
   x,
-  altExp = "barcodes",
-  assay = "exprs",
+  assay = "counts",
   interactions = c("default", "all"),
   method = c("default", "classic"),
   trim = 0.5,
@@ -16,6 +15,11 @@ computeSpillmat(
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
+
+\item{assay}{character string specifying which assay to use.
+Note that this should correspond to count-like data,
+as linearity assumptions underlying spillover estimation
+won't hold for non-linearly transformed data.}
 
 \item{interactions}{\code{"default"} or \code{"all"}. Specifies which interactions spillover
 should be estimated for. The default exclusively takes into consideration
@@ -62,13 +66,10 @@ interactions, where n denotes the number of single-color controls
 (= \code{nrow(bc_key(re))}).
 }
 \examples{
-# get single-stained control samples
+# construct SCE from single-stained control samples
 data(ss_exp)
-es <- as.matrix(exprs(ss_exp))
-library(SingleCellExperiment)
-sce <- SingleCellExperiment(
-    assays = list(counts = t(es)),
-    rowData = pData(parameters(ss_exp)))
+sce <- fcs2sce(ss_exp, by_time = FALSE)
+
 # specify mass channels stained for
 bc_ms <- c(139, 141:156, 158:176)
 
@@ -76,7 +77,12 @@ bc_ms <- c(139, 141:156, 158:176)
 sce <- assignPrelim(x = sce, bc_key = bc_ms)
 sce <- estCutoffs(x = sce)
 sce <- applyCutoffs(x = sce)
-head(computeSpillmat(x = re))
+
+# estimate & extract spillover matrix 
+sce <- computeSpillmat(x = sce)
+
+library(SingleCellExperiment)
+head(metadata(sce)$spillover_matrix)
 
 }
 \references{
@@ -85,5 +91,5 @@ Atomic weights and isotopic compositions,
 (available at http://physics.nist.gov/Comp).
 }
 \author{
-Helena L. Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }
