@@ -27,7 +27,7 @@ Description:
 Imports: 
 	Biobase, 
 	circlize, ComplexHeatmap, ConsensusClusterPlus, cowplot, 
-	data.table, dplyr, drc, DT, 
+	data.table, dplyr, drc,
 	flowCore, FlowSOM, 
 	ggplot2, ggrepel, ggridges, graphics, grDevices, grid, gridExtra, 
 	htmltools, 
@@ -37,13 +37,12 @@ Imports:
 	plotly, purrr, 
 	RColorBrewer, reshape2, Rtsne, 
 	SingleCellExperiment, SummarizedExperiment, 
-	S4Vectors, scales, scater, shiny, shinydashboard, shinyBS, shinyjs, stats, 
-	utils
+	S4Vectors, scales, scater, stats
 Suggests: BiocStyle, knitr, rmarkdown, testthat, diffcyt
 URL: https://github.com/HelenaLC/CATALYST
 BugReports: https://github.com/HelenaLC/CATALYST/issues
 VignetteBuilder: knitr
-RoxygenNote: 7.0.1
+RoxygenNote: 7.0.2
 License: GPL (>=2)
 LazyData: TRUE
 Encoding: UTF-8
