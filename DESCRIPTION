@@ -26,14 +26,15 @@ Description:
 	standards, ii) single-cell deconvolution, and iii) bead-based compensation.
 Imports: 
 	Biobase, 
-	circlize, ComplexHeatmap, ConsensusClusterPlus, cowplot, 
+	circlize, cluster, ComplexHeatmap, ConsensusClusterPlus, cowplot, 
 	data.table, dplyr, drc,
-	flowCore, FlowSOM, 
+	flowCore, FlowSOM, flowWorkspace,
 	ggplot2, ggrepel, ggridges, graphics, grDevices, grid, gridExtra, 
 	htmltools, 
 	limma, 
 	magrittr, Matrix, matrixStats, methods, 
 	nnls, 
+	openCyto,
 	plotly, purrr, 
 	RColorBrewer, reshape2, Rtsne, 
 	SingleCellExperiment, SummarizedExperiment, 

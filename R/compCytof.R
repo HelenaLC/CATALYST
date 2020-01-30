@@ -64,6 +64,7 @@
 #' @importFrom methods is
 #' @importFrom nnls nnls
 #' @importFrom S4Vectors metadata
+#' @importFrom flowCore compensate exprs
 #' @importFrom SummarizedExperiment assay assay<- assayNames
 #' @export
 
@@ -84,10 +85,22 @@ compCytof <- function(x, sm = NULL, method = c("nnls", "flow"),
     suppressMessages(sm <- adaptSpillmat(sm, rownames(x), isotope_list))
     
     # apply compensation & store compensated data in assays
-    y <- apply(assay(x, assay), 2, function(u) nnls(t(sm), u)$x)
-    assay(x, paste0(assay, "_comped")) <- y
+    y <- switch(method, 
+        flow = {
+            a <- as.matrix(assay(x, assay))
+            ff <- flowFrame(t(a))
+            ff <- compensate(ff, sm)
+            t(exprs(ff))
+        },
+        nnls = apply(assay(x, assay), 2, 
+            function(u) nnls(t(sm), u)$x))
+    a <- sprintf("%s.%scomped", assay, method)
+    assay(x, a) <- y
     
     # (optionally) apply arcsinh-transformation to compensated data
-    if (transform) assay(x, "exprs_comped") <- asinh(y/cofactor)
+    if (transform) {
+        a <- sprintf("exprs.%scomped", method)
+        assay(x, a) <- asinh(y/cofactor)
+    }
     return(x)
 }

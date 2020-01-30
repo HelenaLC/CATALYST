@@ -16,7 +16,9 @@
 #' @param features a logical vector, numeric vector of column indices,
 #'   or character vector of channel names. Specified which column to keep 
 #'   from the input data. Defaults to the channels listed in the input panel.
-#' @param cofactor numeric cofactor to use for arcsinh-transformation.
+#' @param cofactor numeric cofactor to use for arcsinh-transformation. 
+#'   Channel-specific cofactors may be supplied as a named vector. 
+#'   If NULL, no transformation will be applied.
 #' @param panel_cols a names list specifying the column names of \code{panel}
 #'   that contain the channel names, targeted protein markers, and (optionally) 
 #'   marker classes. 
@@ -109,14 +111,13 @@ prepData <- function(x, panel, md, features=NULL, cofactor=5,
     if (!is.null(cofactor)) {
         if (length(cofactor) == 1) {
             cofactor <- rep(cofactor, ncol(fs[[1]]))
-        } else if (!is.null(names(cofactor))) {
+        } else {
             stopifnot(features %in% names(cofactor))
             m <- match(features, names(cofactor))
             cofactor <- cofactor[m]
         } 
         fs <- fsApply(fs, function(ff) {
             exprs(ff) <- asinh(sweep(exprs(ff), 2, cofactor, "/"))
-            #exprs(ff) <- asinh(exprs(ff) / cofactor)
             return(ff)
         })
     }

@@ -1,5 +1,5 @@
-#' @rdname plotMDS
-#' @title MDS plot
+#' @rdname pbMDS
+#' @title Pseudobulk-level MDS plot
 #' 
 #' @description 
 #' Multi-dimensional scaling (MDS) plot on median marker expressions.
@@ -21,7 +21,7 @@
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-#' plotMDS(sce)
+#' pbMDS(sce)
 #' 
 #' @import ggplot2
 #' @importFrom ggrepel geom_label_repel
@@ -32,7 +32,7 @@
 #' @importFrom SummarizedExperiment assay colData
 #' @export
 
-plotMDS <- function(x, color_by="condition") {
+pbMDS <- function(x, color_by="condition") {
     .check_sce(x)
     stopifnot(is.character(color_by), length(color_by) == 1, 
         color_by %in% names(colData(x)))

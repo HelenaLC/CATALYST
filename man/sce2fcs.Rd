@@ -40,9 +40,12 @@ sce <- assignPrelim(sce, sample_key, verbose = FALSE)
 fs <- sce2fcs(sce, split_by = "bc_id", assay = "exprs")
 
 # do some spot checks
+library(flowCore)
+library(SingleCellExperiment)
+
 length(fs) == nrow(sample_key)
 all(fsApply(fs, nrow)[, 1] == table(sce$bc_id))
-identical(t(exprs(fs$A1)), assay(sce, "exprs")[, sce$bc_id == "A1"])
+identical(t(exprs(fs[[1]])), assay(sce, "exprs")[, sce$bc_id == "A1"])
 
 # DIFFERENTIAL ANALYSIS
 data(PBMC_fs, PBMC_panel, PBMC_md)

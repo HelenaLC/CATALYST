@@ -32,9 +32,11 @@
 #' 
 #' # do some spot checks
 #' library(flowCore)
+#' library(SingleCellExperiment)
+#' 
 #' length(fs) == nrow(sample_key)
 #' all(fsApply(fs, nrow)[, 1] == table(sce$bc_id))
-#' identical(t(exprs(fs$A1)), assay(sce, "exprs")[, sce$bc_id == "A1"])
+#' identical(t(exprs(fs[[1]])), assay(sce, "exprs")[, sce$bc_id == "A1"])
 #' 
 #' # DIFFERENTIAL ANALYSIS
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -85,7 +87,8 @@ sce2fcs <- function(x,
             cd <- as.matrix(colData(x)[cs[[i]], cols_keep, drop = FALSE])
             y <- cbind(y, cd)
         }
-        if (keep_dr) y <- cbind(y, as.matrix(drs[cs[[i]], ]))
+        if (keep_dr) 
+            y <- cbind(y, as.matrix(drs[cs[[i]], ]))
         ff <- flowFrame(y)
         ps <- parameters(ff)
         for (i in seq_len(nrow(ps))) {
@@ -97,7 +100,9 @@ sce2fcs <- function(x,
     })
     fs <- as(ffs, "flowSet")
     for (i in seq_along(fs)) {
-        id <- paste(split_by, names(l)[i], sep = ".")
+        fix_name <- !is.na(suppressWarnings(as.numeric(names(l)[i])))
+        prefix <- ifelse(fix_name, paste0(split_by, "_"), "")
+        id <- paste0(prefix, names(l)[i])
         id <- ifelse(length(id) == 0, NA, id)
         description(fs[[i]])[c("GUID", "ORIGINALGUID")] <- 
             identifier(fs[[i]]) <- id

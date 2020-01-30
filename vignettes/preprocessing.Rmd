@@ -35,9 +35,16 @@ output:
 ---
 \DeclareMathOperator*{\argmin}{argmin}
 
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
 ```{r warning = FALSE, message = FALSE}
 # load required packages
 library(CATALYST)
+library(cowplot)
+library(flowCore)
+library(ggplot2)
 library(SingleCellExperiment)
 ```
 
@@ -70,6 +77,75 @@ table(int_colData(sce)$file_no)
 # view non-mass channels
 names(int_colData(sce))
 ```
+
+# Gating & visualization
+
+`gateCytof` currently supports the following `type`s of gates:
+
+- `rect`: Rectangular gate with boundaries specified via `xy = list(c(xmin, ymin), c(xmax, ymax))`.
+- `elip`: Eliptical gate with the upper quantile to be removed specified via `q`, the number of cluster centers specified via `k`, and the target cluster center specified via `xy = c(x, y)`; if `k = NULL`, `gateCytof` will estimate the number of clusters via maximizing the average Silhouette information for $k\in[2,5]$.
+- `live`: Live-gate with the upper quantile to be removed specified via `q`, and line parameters specified via `bs = c(intercept, slope)`.
+
+```{r gateCytof-beads, fig.small = TRUE}
+sce <- gateCytof(sce, 
+    chs = c("Ir191Di", "Ho165Di"),
+    gate_id = "beads",
+    type = "rect", 
+    xy = list(c(0, 6), c(2, 8)))
+plotScatter(sce, gate_id = "beads")
+```
+
+We can easily compute the fraction of cells selected by the above gate:
+
+```{r results = "hold"}
+# view number & fraction selected cells
+table(sce$beads)
+mean(sce$beads)
+```
+
+By default, `gateCytof` will gate on all cells. Alternatively, a previously applied gate my be specified via `gate_on` from which to subset cells from prior to gating. In this case, the newly created gate's parent will be stored in `int_metadata(x)$gates$<gate_id>`.
+
+```{r message = FALSE, fig.width = 5}
+# apply rectangular gate
+chs <- c("Tb159Di", "Yb176Di")
+sce <- gateCytof(sce, chs, gate_id = "gate1",
+    type = "rect", xy = list(c(0, 4), c(6, 8)))
+
+# gate on cells selected by 'gate1'
+sce <- gateCytof(sce, chs, gate_id = "gate2",
+    type = "rect", xy = list(c(2, 4), c(4, 8)),
+    gate_on = "gate1") 
+
+# visualize gating sequence
+plot_grid(plotlist = lapply(c("gate1", "gate2"), function(g) 
+    plotScatter(sce, gate_id = g, color_by = "selection")))
+```
+
+Finally, a grouping variable may be specified via `group_by` such that the gate will be applied separately to different subsets of cells.
+
+```{r gateCytof-cells, fig.width = 2.5}
+sce <- gateCytof(sce,
+    chs = c("Ir191Di", "Ir193Di"),
+    gate_id = "cells", 
+    type = "elip", 
+    xy = c(4, 4))
+```
+
+By default, bins will be colored by density. When a `gate_id` has been supplied, `color_by = "selection"` will instead color cells by whether or not they have been selected such that non-gated cells will be greyed out.
+
+Finally, we can apply a sample-specific gating strategy via using `group_by = "file_name"`:
+
+```{r gateCytof-cells2, fig.width = 5}
+sce <- gateCytof(sce, 
+    chs = c("Ir191Di", "Ir193Di"),
+    gate_id = "cells2",
+    group_by = "file_name",
+    type = "elip", 
+    xy = c(4, 4))
+plotScatter(sce, gate_id = "cells2")
+```
+
+## Gating for live cells
 
 # Normalization
 
@@ -382,44 +458,23 @@ Assuming a linear spillover, `compCytof` compensates mass cytometry based experi
 
 If `out_path = NULL` (the default), the function will return a `SingleCellExperiment` containing both compensated counts (assay slot `"x_comped"`, where `x` is the specified assay data to be compensated) and, if `transform = TRUE`, expression values (assay slot `"exprs_comped"`). 
 
-<!--Otherwise, compensated data will be written to the specified location as FCS 3.0 standard files. Multiple datasets may be corrected based on the same spill estimates if the input `x` is a character string specifying the location of the FCS files to be compensated.-->
-
-```{r compCytof, message = FALSE}
+```{r compCytof, message = FALSE, fig.wide = TRUE}
 # construct SCE of multiplexed cells
 data(mp_cells)
 sce <- fcs2sce(mp_cells, by_time = FALSE)
 # compensate using `flowCore` & NNLS-method
-comped_flow <- compCytof(sce, sm, method = "flow")
-comped_nnls <- compCytof(sce, sm, method = "nnls")
-```
-
-```{r echo = FALSE, message = FALSE, results = "hide"}
-cf <- 20
-es_t <- assay(sce, "exprs")
-es_comped_flow <- assay(comped_flow, "exprs_comped")
-es_comped_nnls <- assay(comped_nnls, "exprs_comped")
-```
-
-```{r echo = FALSE, fig.width = 10, fig.height = 4}
-library(RColorBrewer)
-par(mfrow=c(1,3))
+sce <- compCytof(sce, sm, method = "flow")
+sce <- compCytof(sce, sm, method = "nnls")
+# visualize data before & after compensation
 chs <- c("Er167Di", "Er168Di")
-cols <- colorRampPalette(rev(brewer.pal(10, "Spectral")))
-bw <- 0.2; n <- 100
-smoothScatter(es_t[chs, ], 
-    nrpoints = 0, nbin = n, bandwidth = bw, 
-    colramp = cols, main = "uncompensated")
-smoothScatter(es_comped_flow[chs, ], 
-    nrpoints = 0, nbin = n, bandwidth = bw, 
-    colramp = cols, main = "'flowCore' compensated")
-smoothScatter(es_comped_nnls[chs, ], 
-    nrpoints = 0, nbin = n, bandwidth = bw, 
-    colramp = cols, main = 'NNLS compensated')
+as <- grep("exprs", assayNames(sce), value = TRUE)
+ps <- lapply(as, function(a) plotScatter(sce, chs, assay = a) + ggtitle(a))
+plot_grid(plotlist = ps, nrow = 1, align = "v")
 ```
 
 # Session information
 
-```{r}
+```{r session-info}
 sessionInfo()
 ```
 

@@ -331,7 +331,7 @@ plotDiffHeatmap(sce, res_DS, hm1 = FALSE, top_n = 20)
 
 # Session information
 
-```{r}
+```{r session-info}
 sessionInfo()
 ```
 

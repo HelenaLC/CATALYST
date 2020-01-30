@@ -36,7 +36,9 @@ An exemplary metadata table could look as follows: \itemize{
 or character vector of channel names. Specified which column to keep 
 from the input data. Defaults to the channels listed in the input panel.}
 
-\item{cofactor}{numeric cofactor to use for arcsinh-transformation.}
+\item{cofactor}{numeric cofactor to use for arcsinh-transformation. 
+Channel-specific cofactors may be supplied as a named vector. 
+If NULL, no transformation will be applied.}
 
 \item{panel_cols}{a names list specifying the column names of \code{panel}
 that contain the channel names, targeted protein markers, and (optionally) 

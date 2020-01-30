@@ -13,14 +13,6 @@ test_that("prepData() - cofactor", {
     cfs <- sample(nrow(PBMC_panel))
     names(cfs) <- sample(chs); names(cfs)[8] <- NA
     expect_error(prepData(PBMC_fs, PBMC_panel, PBMC_md, cofactor = cfs))
-    # channel-specific cofactors
-    cfs <- sample(nrow(PBMC_panel))
-    x <- prepData(PBMC_fs, PBMC_panel, PBMC_md, cofactor = cfs)
-    es <- fsApply(PBMC_fs, exprs)
-    es <- vapply(seq_len(nrow(PBMC_panel)), 
-        function(i) asinh(es[, i] / cfs[i]),
-        numeric(nrow(es)))
-    expect_equivalent(t(assay(x)), es)
     # unordered but named channel-specific cofactors
     cfs <- sample(nrow(PBMC_panel))
     names(cfs) <- sample(chs)

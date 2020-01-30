@@ -46,13 +46,13 @@ test_that("plotNRS()", {
     expect_error(plotNRS(x, color_by = "x"))
 })
 
-test_that("plotMDS()", {
-    expect_error(plotMDS(x0, color_by = "x"))
-    expect_is((p <- plotMDS(x0)), "ggplot")
+test_that("pbMDS()", {
+    expect_error(pbMDS(x0, color_by = "x"))
+    expect_is((p <- pbMDS(x0)), "ggplot")
     expect_identical(nrow(p$data), nlevels(x0$sample_id))
     # removal of samples shouldn't cause error
     s <- sample(levels(x0$sample_id), (n <- 3))
-    expect_silent(p <- plotMDS(x0[, !x$sample_id %in% s]))
+    expect_silent(p <- pbMDS(x0[, !x$sample_id %in% s]))
     expect_equal(nrow(p$data) + 3, nlevels(x0$sample_id))
 })
 
