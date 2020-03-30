@@ -21,7 +21,8 @@ test_that("plotClusterHeatmap() - hm2 = 'abundances'", {
     p <- plotClusterHeatmap(x, hm2 = "abundances", k = k)
     y <- p@ht_list$frequency@matrix
     expect_is(p, "HeatmapList")
-    expect_equal(c(y), c(prop.table(table(kids, x$sample_id), 2)))
+    expect_true(all(rowSums(y) == 1))
+    expect_equal(c(y), c(prop.table(table(kids, x$sample_id), 1)))
 })
 
 test_that("plotClusterHeatmap() - hm2 = 'state_markers'", {
