@@ -275,7 +275,7 @@ The final cutoff estimate $c$ is defined as the weighted mean between these esti
 
 $$c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}$$
 
-![(\#fig:estCutoffs) Description of the automatic cutoff estimation for each individual population. The bar graphs indicate the distribution of cells relative to the barcode distance and the dotted line corresponds to the yield upon debarcoding as a function of the applied separation cutoff. This curve is fitted with a linear regression (blue line) and a three parameter log-logistic function (red line). The cutoff estimate is defined as the mean of estimates derived from both fits, weighted with the goodness of the respective fit.](estCutoffs.png)
+![(\#fig:estCutoffs) Description of the automatic cutoff estimation for each individual population. The bar graphs indicate the distribution of cells relative to the barcode distance and the dotted line corresponds to the yield upon debarcoding as a function of the applied separation cutoff. This curve is fitted with a linear regression (blue line) and a three parameter log-logistic function (red line). The cutoff estimate is defined as the mean of estimates derived from both fits, weighted with the goodness of the respective fit.](../inst/extdata/estCutoffs.png)
 
 ```{r estCutoffs}
 # estimate separation cutoffs
@@ -377,7 +377,7 @@ In a population-based fashion, as done in conventional flow cytometry, `method =
 
 $$s_{ij} = \frac{m_j^+-m_j^-}{m_i^+-m_i^-}$$
 
-![(\#fig:methods) Population versus single-cell based spillover estimation.](methods.png)
+![(\#fig:methods) Population versus single-cell based spillover estimation.](../inst/extdata/methods.png)
 
 On the basis of their additive nature, spill values are estimated independently for every pair of interacting channels. `interactions = "default"` thereby exclusively takes into account interactions that are sensible from a chemical and physical point of view:
 
@@ -405,7 +405,7 @@ Lu    | 175, 176                          |
 
 : (\#tab:isotopes) List of isotopes available for each metal used in CyTOF. In addition to $M\pm1$ and $M+16$ channels, these mass channels are considered during estimation of spill to capture channel crosstalk that is due to isotopic contanimations [@isotopes].
 
-![(\#fig:interactions) Heatmap of spill expected interactions. These are considered by the default method of <i>computeSpillmat</i>.](interactions.png){width="80%"}
+![(\#fig:interactions) Heatmap of spill expected interactions. These are considered by the default method of <i>computeSpillmat</i>.](../inst/extdata/interactions.png){width="80%"}
 
 Alternatively, `interactions = "all"` will compute a spill estimate for all $n\cdot(n-1)$ possible interactions, where $n$ denotes the number of measurement parameters. Estimates falling below the threshold specified by `th` will be set to zero. Lastly, note that diagonal entries $s_{ii} = 1$ for all $i\in 1, ..., n$, so that spill is relative to the total signal measured in a given channel.
 
