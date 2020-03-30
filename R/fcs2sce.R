@@ -8,12 +8,14 @@
 #' 
 #' @param x character vector of FCS file names, 
 #'   \code{\link[flowCore]{flowFrame}}, or \code{\link[flowCore]{flowSet}}.
-#' @param by_time logical. Should files be ordered by acquisition time? (see details)
+#' @param by_time logical. Should files be ordered 
+#'   by acquisition time? (see details)
 #' @param file_no logical. Should a file number parameter be stored
 #'   in the \code{int_colData} of the output SCE?
 #' @param transform logical. Specifies whether an arcsinh-transformation
-#'   with cofactor \code{cofactor} should be performed, in which case expression 
-#'   values (transformed counts) will be stored in \code{assay(x, "exprs")}.
+#'   with cofactor \code{cofactor} should be performed, 
+#'   in which case expression values (transformed counts) 
+#'   will be stored in \code{assay(x, "exprs")}.
 #' @param cofactor numeric cofactor to use for optional 
 #'   arcsinh-transformation if \code{transform = TRUE}.
 #' 
@@ -95,11 +97,13 @@ fcs2sce <- function(x,
     
     # fix event times
     t <- grep("time", colnames(fs), ignore.case = TRUE)
-    t0 <- c(1, cumsum(ns) + 1)
-    tx <- t0[-1] - 1
-    for (i in seq_along(fs)[-1]) {
-        idx <- seq(t0[i], tx[i])
-        y[idx, t] <- y[idx, t] + y[tx[i - 1], t]
+    if (length(t) != 0) {
+        t0 <- c(1, cumsum(ns) + 1)
+        tx <- t0[-1] - 1
+        for (i in seq_along(fs)[-1]) {
+            idx <- seq(t0[i], tx[i])
+            y[idx, t] <- y[idx, t] + y[tx[i - 1], t]
+        }
     }
     
     # construct SCE

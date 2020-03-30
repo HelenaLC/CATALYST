@@ -11,14 +11,16 @@ fcs2sce(x, by_time = TRUE, file_no = FALSE, transform = TRUE, cofactor = 5)
 \item{x}{character vector of FCS file names, 
 \code{\link[flowCore]{flowFrame}}, or \code{\link[flowCore]{flowSet}}.}
 
-\item{by_time}{logical. Should files be ordered by acquisition time? (see details)}
+\item{by_time}{logical. Should files be ordered 
+by acquisition time? (see details)}
 
 \item{file_no}{logical. Should a file number parameter be stored
 in the \code{int_colData} of the output SCE?}
 
 \item{transform}{logical. Specifies whether an arcsinh-transformation
-with cofactor \code{cofactor} should be performed, in which case expression 
-values (transformed counts) will be stored in \code{assay(x, "exprs")}.}
+with cofactor \code{cofactor} should be performed, 
+in which case expression values (transformed counts) 
+will be stored in \code{assay(x, "exprs")}.}
 
 \item{cofactor}{numeric cofactor to use for optional 
 arcsinh-transformation if \code{transform = TRUE}.}

@@ -10,6 +10,29 @@
     "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
 # ==============================================================================
+# helper to get & check features for plotting; should be either
+# - a character string specifiying a subset of features to include
+# - one of "type", "state", "none" if 'rowData(x)$marker_class' exists
+# ------------------------------------------------------------------------------
+.get_features <- function(x, fs) {
+    if (!is.null(fs)) {
+        stopifnot(is.character(fs))
+        if (length(fs) == 1) {
+            fs <- match.arg(fs, c("type", "state", "none")) 
+            stopifnot(!is.null(marker_classes(x)))
+            fs <- rownames(x)[marker_classes(x) == fs]
+            if (length(fs) == 0)
+                stop("No features matched the specified marker class.")
+        } else {
+            stopifnot(fs %in% rownames(x))
+        }
+    } else {
+        fs <- rownames(x)
+    }
+    return(fs)
+}
+
+# ==============================================================================
 # scale expression to values b/w 0 and 1 using 
 # low (1%) and high (99%) quantiles as boundaries
 # ------------------------------------------------------------------------------

@@ -49,7 +49,9 @@
 #' all(fsApply(fs, nrow)[, 1] == table(sce$meta20))
 #' 
 #' @importFrom flowCore flowFrame
+#' @importFrom matrixStats colMaxs
 #' @importFrom methods as is
+#' @importFrom SingleCellExperiment int_colData
 #' @importFrom SummarizedExperiment assay assayNames
 #' @export 
 
@@ -62,14 +64,6 @@ sce2fcs <- function(x,
         is.character(assay), length(assay) == 1, assay %in% assayNames(x),
         is.logical(keep_cd), length(keep_cd) == 1,
         is.logical(keep_dr), length(keep_dr) == 1)
-    if (keep_dr && length(drs <- reducedDims(x)) != 0) {
-        # concatenate dimension reductions
-        n_dims <- vapply(drs, ncol, numeric(1))
-        drs <- do.call("cbind", lapply(drs, data.frame))
-        colnames(drs) <- paste(sep = "_",
-            rep.int(reducedDimNames(x), n_dims),
-            unlist(lapply(n_dims, seq_len)))
-    } else keep_dr <- FALSE
     if (!is.null(split_by)) {
         cs <- split(seq_len(ncol(x)), factor(x[[split_by]]))
         l <- lapply(cs, function(i) x[, i])
@@ -77,7 +71,6 @@ sce2fcs <- function(x,
         cs <- list(seq_len(ncol(x)))
         l <- list(x)
     }
-    ds <- metadata(x)
     ffs <- lapply(seq_along(l), function(i) {
         y <- t(assay(l[[i]], assay))
         if (keep_cd) {
@@ -87,16 +80,28 @@ sce2fcs <- function(x,
             cd <- as.matrix(colData(x)[cs[[i]], cols_keep, drop = FALSE])
             y <- cbind(y, cd)
         }
-        if (keep_dr) 
-            y <- cbind(y, as.matrix(drs[cs[[i]], ]))
+        icd <- as.matrix(data.frame(int_colData(l[[i]])))
+        is_dr <- grepl("reducedDims", colnames(icd))
+        pat <- "reducedDims.([[:alpha:]]+).([0-9]+)"
+        colnames(icd) <- gsub(pat, "\\1\\2", colnames(icd))
+        if (!keep_dr) icd <- icd[, !is_dr]
+        y <- cbind(y, icd)
         ff <- flowFrame(y)
         ps <- parameters(ff)
-        for (i in seq_len(nrow(ps))) {
-            ds[[sprintf("$P%sN", i)]] <- as.character(ps$name[i])
-            ds[[sprintf("$P%sS", i)]] <- as.character(ps$desc[i])
+        ps$minRange <- 0
+        ps$maxRange <- colMaxs(y, na.rm = TRUE)
+        ps$name <- as.character(ps$name)
+        ps$desc <- as.character(ps$desc)
+        m <- match(rownames(l[[i]]), ps$name)
+        ps$desc[m] <- rowData(l[[i]])$desc
+        ds <- list()
+        for (p in seq_len(nrow(ps))) {
+            ds[[sprintf("$P%sN", p)]] <- as.character(ps$name[p])
+            ds[[sprintf("$P%sS", p)]] <- as.character(ps$desc[p])
+            ds[[sprintf("$P%sRmin", p)]] <- ps$minRange[p]
+            ds[[sprintf("$P%sRmax", p)]] <- ps$maxRange[p]
         }
-        description(ff) <- ds
-        return(ff)
+        flowFrame(y, ps, ds)
     })
     fs <- as(ffs, "flowSet")
     for (i in seq_along(fs)) {

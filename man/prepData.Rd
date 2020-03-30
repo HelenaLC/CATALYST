@@ -9,6 +9,7 @@ prepData(
   panel,
   md,
   features = NULL,
+  transform = TRUE,
   cofactor = 5,
   panel_cols = list(channel = "fcs_colname", antigen = "antigen", class =
     "marker_class"),
@@ -36,9 +37,12 @@ An exemplary metadata table could look as follows: \itemize{
 or character vector of channel names. Specified which column to keep 
 from the input data. Defaults to the channels listed in the input panel.}
 
-\item{cofactor}{numeric cofactor to use for arcsinh-transformation. 
-Channel-specific cofactors may be supplied as a named vector. 
-If NULL, no transformation will be applied.}
+\item{transform}{logical. Specifies whether an arcsinh-transformation with 
+cofactor cofactor should be performed, in which case expression values 
+(transformed counts) will be stored in assay(x, "exprs").}
+
+\item{cofactor}{numeric cofactor to use for optional 
+arcsinh-transformation when \code{transform = TRUE}.}
 
 \item{panel_cols}{a names list specifying the column names of \code{panel}
 that contain the channel names, targeted protein markers, and (optionally) 

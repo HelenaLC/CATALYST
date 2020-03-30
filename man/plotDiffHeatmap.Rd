@@ -108,6 +108,10 @@ ds <- diffcyt(sce, design = design, contrast = contrast,
 plotDiffHeatmap(sce, da)
 plotDiffHeatmap(sce, ds)
 
+# visualize results for subset of clusters
+sub <- filterSCE(sce, k = "meta20", cluster_id \%in\% seq_len(5))
+plotDiffHeatmap(sub, da)
+
 }
 \author{
 Lukas M Weber & 

@@ -44,10 +44,12 @@ filterSCE <- function(x, ..., k = NULL) {
         check.names=FALSE, stringsAsFactors=FALSE)
     
     # get cluster IDs for specified clustering
-    if (is.null(k)) 
-        k <- names(cluster_codes(x))[1] 
-    k <- .check_validity_of_k(x, k)   
-    cd$cluster_id <- cluster_ids(x, k)
+    if (!is.null(cluster_codes(x))) {
+        if (is.null(k)) 
+            k <- names(cluster_codes(x))[1]
+        k <- .check_validity_of_k(x, k)   
+        cd$cluster_id <- cluster_ids(x, k)
+    }
     
     # filter rows & columns
     rdf <- try(dplyr::filter(rd, ...), silent=TRUE)
@@ -70,6 +72,7 @@ filterSCE <- function(x, ..., k = NULL) {
             ei[, u] %in% levels(cdf[, u]), 
             logical(nrow(ei)))
         ei <- ei[apply(keep, 1, all), ]
+        ei <- mutate_if(ei, is.factor, droplevels)
         rownames(ei) <- NULL
         n_cells <- table(cdf$sample_id)
         m <- match(ei$sample_id, levels(cdf$sample_id))
@@ -78,8 +81,10 @@ filterSCE <- function(x, ..., k = NULL) {
     }
     
     # revert colData(x)$cluster_id to 100 SOM clusters
-    # and refactor colData factor columns
-    cdf$cluster_id <- factor(x$cluster_id[ci], levels=levels(x$cluster_id))
+    if (!is.null(cluster_codes(x)))
+        cdf$cluster_id <- factor(x$cluster_id[ci], levels=levels(x$cluster_id))
+    
+    # refactor 'colData' factor columns
     for (i in colnames(cdf)) if (i %in% names(ei))
         cdf[[i]] <- droplevels(factor(cdf[[i]], levels=levels(ei[[i]])))
     

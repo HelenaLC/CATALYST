@@ -8,8 +8,13 @@
 #' @param x a \code{\link{SingleCellExperiment}{SingleCellExperiment}}.
 #' @param k character string. Specifies the clustering to use.
 #'   If \code{facet = "antigen"}, this argument will be ignored.
+#' @param features specifies which features to include.
+#'   Either a character string specifying a subset of features,
+#'   or NULL for all features. When \code{rowData(x)$marker_class} 
+#'   is specified, can be one of "type", "state", or "none".
 #' @param facet \code{"antigen"} or \code{"cluster_id"}. 
 #'   Note that the latter requires having run \code{\link{cluster}}.
+#' @param 
 #' @param group_by character string specifying 
 #'   a \code{colData(x)} column to group samples by.
 #' @param shape_by character string specifying 
@@ -46,7 +51,8 @@
 #' @importFrom SummarizedExperiment assay
 #' @export
 
-plotMedExprs <- function(x, k="meta20", 
+plotMedExprs <- function(x, 
+    k="meta20", features="state",
     facet=c("antigen", "cluster_id"), 
     group_by="condition", shape_by=NULL) {
     
@@ -77,7 +83,9 @@ plotMedExprs <- function(x, k="meta20",
     } else {
         k <- .check_validity_of_k(x, k)
         x$cluster_id <- cluster_ids(x, k)
-        ms <- .agg(x[state_markers(x), ], by = c("cluster_id", "sample_id"))
+        # subset features to use
+        y <- x[.get_features(x, features), ]
+        ms <- .agg(y, by = c("cluster_id", "sample_id"))
         ms <- lapply(ms, melt, varnames = c("antigen", "sample_id"))
         ms <- bind_rows(ms, .id = "cluster_id")
     }

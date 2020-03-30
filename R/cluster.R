@@ -10,10 +10,10 @@
 #' '\code{state}' markers.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
-#' @param features a character vector. 
-#'   Specifies which antigens to use for clustering. The default (NULL) 
-#'   uses \code{type_markers(x)}. Must be provided if 
-#'   \code{rowData(x)$marker_class} has not been specified.
+#' @param features a character vector specifying which antigens 
+#'   to use for clustering; valid values are \code{"type"/"state"} 
+#'   for \code{type/state_markers(x)} (if \code{rowData(x)$marker_class} 
+#'   have been specified) or a subset of \code{rownames(x)}.
 #' @param xdim,ydim 
 #'   numeric. Specify the grid size of the self-orginizing map. 
 #'   The default 10x10 grid will yield 100 clusters. 
@@ -89,31 +89,41 @@
 #' @importFrom S4Vectors DataFrame metadata<-
 #' @export
 
-cluster <- function(x, features = NULL,
+cluster <- function(x, features = "type",
     xdim=10, ydim=10, maxK=20, verbose=TRUE, seed=1) {
     
     # validity checks
-    stopifnot(is(x, "SingleCellExperiment"))
-    stopifnot(is.logical(verbose), length(verbose) == 1,
-        vapply(list(xdim, ydim, maxK, seed), function(arg) 
+    stopifnot(is(x, "SingleCellExperiment"), is.character(features), 
+        !is.na(match(features, c("type", "state", rownames(x)))),
+        length(features) > 1 & features %in% rownames(x)
+        || length(features) == 1 & features %in% c("type", "state") 
+        & !is.null(marker_classes(x)) & sum(marker_classes(x) == features) > 1,
+        is.logical(verbose), length(verbose) == 1,
+        vapply(list(xdim, ydim, maxK, seed), function(arg)
             is.numeric(arg) && length(arg) == 1, logical(1)))
     
-    if (is.null(features)) {
-        stopifnot("marker_class" %in% colnames(rowData(x)))
-        features <- type_markers(x)
-        if (length(features) < 2)
-            stop("<=2 antigens have been assigned",
-                " to class ", dQuote("type"), ".")
+    if (length(features) == 1) {
+        stopifnot(
+            !is.null(marker_classes(x)),
+            features %in% c("type", "state"),
+            sum(marker_classes(x) == features) > 1)
+        fun <- paste0(features, "_markers")
+        features <- get(fun)(x)
     } else {
-        # replace problematic characters
-        features <- gsub("-", "_", features)
-        features <- gsub(":", ".", features)
         stopifnot(features %in% rownames(x))
-        # assign marker classes
-        rowData(x)$marker_class <- factor(c("state", "type")[
-            as.numeric(rownames(x) %in% features)+1],
-            levels=c("type", "state", "none"))
+        features <- gsub(":", ".", features)
+        features <- gsub("-", "_", features)
     }
+    
+    # assign marker classes if unspecified
+    if (is.null(marker_classes(x))) {
+        rowData(x)$marker_class <- factor(c("state", "type")[
+            as.numeric(rownames(x) %in% features)+1], 
+            levels = c("type", "state", "none"))
+    }
+    
+    # store which markers were used for clustering
+    rowData(x)$used_for_clustering <- rownames(x) %in% features
     
     # flowSOM clustering
     if (verbose)

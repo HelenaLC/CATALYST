@@ -25,6 +25,19 @@
 #' @return a \code{ggplot} object.
 #' 
 #' @examples
+#' data(raw_data)
+#' sce <- fcs2sce(raw_data)
+#' 
+#' # apply file-specific eliptical gate
+#' sce <- gateCytof(sce, 
+#'   chs = c("Ir191Di", "Ir193Di"),
+#'   gate_id = "cells",
+#'   group_by = "file_name",
+#'   type = "elip", 
+#'   xy = c(4, 4))
+#' 
+#' # visualize gates on scatter plots
+#' plotScatter(sce, gate_id = "cells")
 #' 
 #' @import ggplot2
 #' @importFrom methods is

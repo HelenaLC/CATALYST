@@ -87,15 +87,27 @@ setMethod("n_cells", "SingleCellExperiment",
 
 #' @rdname SCE-utils
 setMethod("marker_classes", "SingleCellExperiment",
-    function(x) setNames(unlist(rowData(x)$marker_class), rownames(x)))
+    function(x) {
+        mcs <- rowData(x)$marker_class
+        if (is.null(mcs)) return(NULL)
+        names(mcs) <- rownames(x); mcs
+    })
 
 #' @rdname SCE-utils
 setMethod("type_markers", "SingleCellExperiment",
-    function(x) rownames(x)[marker_classes(x) == "type"])
+    function(x) {
+        mcs <- rowData(x)$marker_class
+        if (is.null(mcs)) return(NULL)
+        rownames(x)[mcs == "type"]
+    })
 
 #' @rdname SCE-utils
 setMethod("state_markers", "SingleCellExperiment",
-    function(x) rownames(x)[marker_classes(x) == "state"])
+    function(x) {
+        mcs <- rowData(x)$marker_class
+        if (is.null(mcs)) return(NULL)
+        rownames(x)[mcs == "state"]
+    })
 
 #' @rdname SCE-utils
 setMethod("cluster_codes", "SingleCellExperiment", 

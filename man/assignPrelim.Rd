@@ -9,8 +9,8 @@ assignPrelim(x, bc_key, assay = "exprs", verbose = TRUE)
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{bc_key}{the debarcoding scheme. A binary matrix with sample names as row
-names and numeric masses as column names OR a vector of numeric masses 
+\item{bc_key}{the debarcoding scheme. A binary matrix with sample names as
+row names and numeric masses as column names OR a vector of numeric masses 
 corresponding to barcode channels. When the latter is supplied, 
 `assignPrelim` will create a scheme of the appropriate format internally.}
 

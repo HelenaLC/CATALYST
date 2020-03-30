@@ -187,7 +187,7 @@ plotClusterHeatmap <- function(x, hm2=NULL,
             if (isTRUE(hm2 == "abundances")) {
                 # cluster frequencies across samples
                 cs <- table(x$cluster_id[idx], x$sample_id[idx])
-                fq <- as.matrix(unclass(prop.table(cs, 2)))
+                fq <- as.matrix(unclass(prop.table(cs, 1)))
                 fq <- fq[, !is.na(colSums(fq)), drop = FALSE]
                 p <- p + Heatmap(matrix=fq, name="frequency", 
                     na_col="lightgrey", rect_gp=gpar(col="white"), 

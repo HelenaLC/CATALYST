@@ -5,6 +5,10 @@
 #' Plots the smoothed densities of arcsinh-transformed marker intensities.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param features specifies which features to include.
+#'   Either a character string specifying a subset of features,
+#'   or NULL for all features. When \code{rowData(x)$marker_class} 
+#'   is specified, can be one of "type", "state", or "none".
 #' @param color_by character string corresponding to a 
 #'   \code{colData(x)} column. Specifies the color coding.
 #' 
@@ -28,19 +32,27 @@
 #' @importFrom SummarizedExperiment assay colData
 #' @export
 
-plotExprs <- function(x, color_by="condition") {
+plotExprs <- function(x, features=NULL, color_by="condition") {
     .check_sce(x)
     stopifnot(is.character(color_by), length(color_by) == 1,
         color_by %in% names(colData(x)))
     
-    df <- data.frame(t(assay(x, "exprs")), colData(x))
+    # subset features to use
+    features <- .get_features(x, features)
+    y <- assay(x, "exprs")[features, ]
+    
+    df <- data.frame(t(y), colData(x))
     df <- melt(df, id.vars=names(colData(x)),
         variable.name="antigen", value.name="expression")
     
-    ggplot(df, aes_string(x="expression", 
-        col=color_by, group="sample_id"), fill=NULL) + 
+    ggplot(df, fill = NULL, 
+        aes_string(
+            x="expression", y="..ndensity..",
+            col=color_by, group="sample_id")) + 
         facet_wrap(~antigen, scales="free") +
-        geom_density() + theme_classic() + theme(
+        geom_density() + 
+        ylab("normalized density") +
+        theme_classic() + theme(
             panel.grid=element_blank(), 
             strip.background=element_blank(),
             strip.text=element_text(face="bold"),

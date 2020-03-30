@@ -33,15 +33,15 @@
 #' @import ggplot2
 #' @importFrom reshape2 melt
 #' @importFrom SummarizedExperiment assay colData
-.plot_bead_scatter <- function(x, chs, assay = "exprs") {
-    dna <- chs$dna[1]
+.plot_bead_scatter <- function(x, dna_chs, bead_chs, assay = "exprs") {
+    dna <- dna_chs[1]
     df <- data.frame(
         i = seq_len(ncol(x)), colData(x),
-        t(assay(x, assay)[c(chs$beads, dna), ]))
+        t(assay(x, assay)[c(bead_chs, dna), ]))
     df <- melt(df, id.vars = c("i", names(colData(x)), dna))
     if(ncol(x) > 1e4) df <- df[df$i %in% sample(ncol(x), 1e4), ]
     ggplot(df, aes_string(x = "value", y = dna, col = "is_bead")) +
-        facet_wrap("variable", ncol = length(chs$beads)) + 
+        facet_wrap("variable", ncol = length(bead_chs)) + 
         geom_rect(data = df[df$is_bead, ], aes_string(
             xmin = "min(value)", xmax = "max(value)",
             ymin = "min(get(dna))", ymax = "max(get(dna))"),

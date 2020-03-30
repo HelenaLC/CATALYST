@@ -114,16 +114,12 @@ n_cells(sce)
 plotCounts(sce, color_by = "condition")
 ```
 
-## `plotMDS`: Multi-dimensional scaling plot
+## `pbMDS`: Pseudobulk-level multi-dimensional scaling plot
 
 A multi-dimensional scaling (MDS) plot on median expresion values may be rendered with `plotMDS`. Such a plot will give a sense of similarities between samples in an unsupervised way and of key difference in expression before conducting any formal testing. In our example, we can see a clear separation between reference (REF) and stimulation condition (BCRXL).
 
-```{r eval=FALSE}
-plotMDS(sce, color_by = "condition")
-```
-
-```{r echo=FALSE, fig.width=5, fig.height=4.5}
-CATALYST::plotMDS(sce, color_by = "condition")
+```{r fig.width = 5, fig.height = 4.5}
+pbMDS(sce, color_by = "condition")
 ```
 
 ## `plotExprHeatmap`: Heatmap of (scaled) median marker expressions

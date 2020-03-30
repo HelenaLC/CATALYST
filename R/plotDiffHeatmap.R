@@ -95,6 +95,10 @@
 #' plotDiffHeatmap(sce, da)
 #' plotDiffHeatmap(sce, ds)
 #' 
+#' # visualize results for subset of clusters
+#' sub <- filterSCE(sce, k = "meta20", cluster_id %in% seq_len(5))
+#' plotDiffHeatmap(sub, da)
+#' 
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
 #' @importFrom data.table data.table
@@ -112,16 +116,17 @@ plotDiffHeatmap <- function(x, y,
     th = 0.1, hm1 = TRUE, normalize = TRUE, 
     row_anno = TRUE, col_anno = TRUE) {
     
+    # check validity of input arguments
     .check_sce(x)
     es <- assay(x, "exprs")
-    
     stopifnot(
         is.numeric(top_n), length(top_n) == 1,
         is.logical(order), length(order) == 1,
         is.numeric(th), length(th) == 1,
         is.logical(hm1), length(hm1) == 1,
         is.logical(normalize), length(normalize) == 1,
-        is.logical(row_anno), length(row_anno) == 1)
+        is.logical(row_anno), length(row_anno) == 1,
+        is.logical(col_anno), length(col_anno) == 1)
     
     stopifnot(!is.null(k <- metadata(y$res)$clustering_name))
     k <- .check_validity_of_k(x, k)
@@ -132,6 +137,9 @@ plotDiffHeatmap <- function(x, y,
     
     y <- rowData(y$res)
     type <- .get_dt_type(y)
+    
+    # subset results in case input SCE has been filtered
+    y <- y[y$cluster_id %in% levels(x$cluster_id), , drop = FALSE]
     
     # get clusters/cluster-marker combinations to plot
     if (order) y <- y[order(y$p_adj), , drop = FALSE]
@@ -165,7 +173,7 @@ plotDiffHeatmap <- function(x, y,
     if (type == "DA") {
         # relative cluster abundances by sample
         cnts <- table(x$cluster_id, x$sample_id)
-        frqs <- prop.table(cnts, 2)
+        frqs <- prop.table(cnts, 1)
         frqs <- frqs[top$cluster_id, ]
         frqs <- as.matrix(unclass(frqs))
         if (normalize) {

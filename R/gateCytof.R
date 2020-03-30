@@ -55,11 +55,13 @@
 #' @importFrom dplyr select_if
 #' @importFrom S4Vectors metadata
 #' @importFrom cluster silhouette
-#' @importFrom flowCore flowFrame flowSet rectangleGate
+#' @importFrom flowCore flowFrame flowSet 
+#'   filterList ellipsoidGate rectangleGate
 #' @importFrom flowWorkspace GatingSet lapply
 #'   gh_pop_get_indices gs_pop_get_gate
 #' @importFrom SingleCellExperiment int_colData int_metadata int_metadata<-
 #' @importFrom SummarizedExperiment assay assayNames colData
+#' @importFrom stats kmeans
 #' @importFrom openCyto gs_add_gating_method gate_flowClust_2d
 #' @export
 
@@ -115,7 +117,8 @@ gateCytof <- function(x, chs,
     df <- lapply(df, select_if, is.numeric)
     # 'openCyto' gating methods
     if (type != "quad") {
-        if (type != "live") stopifnot(is(xy, ifelse(type == "rect", "list", "numeric")))
+        if (type != "live") stopifnot(is(xy, 
+            ifelse(type == "rect", "list", "numeric")))
         if (type == "rect") stopifnot(length(unlist(xy)) == 4)
         # construct'flowSet' 
         ffs <- lapply(df, function(u) 

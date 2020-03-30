@@ -37,6 +37,7 @@
             dep = "mvtnorm", 
             "gating"))
 }
+#' @importFrom stats qchisq
 .get_elip <- function(mu, cov, q, n = 250) {
     es <- eigen(cov)
     e <- es$vec %*% diag(sqrt(es$val))
@@ -47,6 +48,7 @@
     colnames(xy) <- c("x", "y"); xy
 }
 #' @importFrom dplyr bind_rows do group_by group_modify rename_at
+#' @importFrom S4Vectors head
 #' @importFrom purrr map
 .get_gate <- function(gs, type, group_by, ...) {
     args <- list(...)

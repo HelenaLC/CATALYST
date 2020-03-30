@@ -79,23 +79,20 @@ normCytof <- function(x, beads, assay = "exprs", k = 500, trim = 5,
         || is.character(norm_to) & length(norm_to) == 1 & isFCSfile(norm_to),
         is.logical(plot), length(plot) == 1,
         is.logical(verbose), length(verbose) == 1,
-        length(grep("Ir191|Ir193", rownames(x), ignore.case = TRUE)) != 0,
-        length(grep("time", names(int_colData(x)), ignore.case = TRUE)) != 0)
+        any(grepl("Ir191|Ir193", (chs <- rownames(x)), ignore.case = TRUE)),
+        any(grepl("time", names(icd <- int_colData(x)), ignore.case = TRUE)))
 
-    # get time, length, DNA & bead channels
-    icd <- int_colData(x)
-    chs <- c(t = "time", l = "length", n = "file")
-    chs <- lapply(chs, grep, names(icd), ignore.case = TRUE)
-    chs <- lapply(chs, function(ch) icd[[ifelse(length(ch) == 1, ch, NA)]])
-    chs$dna <- grep("Ir191|Ir193", rownames(x), ignore.case = TRUE, value = TRUE)
-    chs$beads <- rownames(x)[.get_bead_cols(rownames(x), beads)]
-    rowData(x)$bead_ch <- rownames(x) %in% chs$beads
-    n_beads <- length(chs$beads)
+    # get times, DNA & bead channels
+    ts <- icd[[grep("time", names(icd), ignore.case = TRUE)]]
+    dna_chs <- grep("Ir191|Ir193", chs, ignore.case = TRUE, value = TRUE)
+    bead_chs <- chs[.get_bead_cols(chs, beads)]
+    rowData(x)$bead_ch <- chs %in% bead_chs
+    n_beads <- length(bead_chs)
     
     # identify bead singlets
     if (verbose) message("Identifying beads...")
-    ms <- .get_ms_from_chs(rownames(x))
-    m <- match(unlist(chs[c("dna", "beads")]), rownames(x))
+    ms <- .get_ms_from_chs(chs)
+    m <- match(c(dna_chs, bead_chs), chs)
     key <- matrix(c(0, 0, rep(1, n_beads)), ncol = n_beads + 2, 
         dimnames = list("is_bead", ms[m]))
     key <- data.frame(key, check.names = FALSE)
@@ -106,12 +103,12 @@ normCytof <- function(x, beads, assay = "exprs", k = 500, trim = 5,
     
     # get all events that should be removed later
     # including bead-bead and cell-bead doublets
-    ths <- rowMins(es[chs$beads, is_bead])
-    rmv <- colSums(es[chs$beads, ] > ths) == n_beads
+    ths <- rowMins(es[bead_chs, is_bead])
+    rmv <- colSums(es[bead_chs, ] > ths) == n_beads
     x$remove <- rmv
 
     # trim tails
-    z <- es[chs$beads, is_bead]
+    z <- es[bead_chs, is_bead]
     meds <- rowMedians(z)
     mads <- rowMads(z) * trim
     diff <- abs(z - meds)
@@ -121,7 +118,7 @@ normCytof <- function(x, beads, assay = "exprs", k = 500, trim = 5,
     
     # get baselines (global mean)
     if (is.null(norm_to)) {
-        bl <- rowMeans(es[chs$beads, is_bead])
+        bl <- rowMeans(es[bead_chs, is_bead])
     } else {
         if (is.character(norm_to)) {
             ref <- read.FCS(norm_to, 
@@ -138,24 +135,24 @@ normCytof <- function(x, beads, assay = "exprs", k = 500, trim = 5,
     
     # assure width of median window is odd 
     if (k %% 2 == 0) k <- k + 1
-    smooth0 <- t(apply(es[chs$beads, is_bead], 1, runmed, k, "constant"))
+    smooth0 <- t(apply(es[bead_chs, is_bead], 1, runmed, k, "constant"))
 
     # compute slopes (baseline versus smoothed bead intensitites)
     # & linearly interpolate slopes at non-bead events
     slopes <- colSums(smooth0 * bl) / colSums(smooth0 ^ 2)
-    slopes <- approx(chs$t[is_bead], slopes, chs$t, rule = 2)$y
+    slopes <- approx(ts[is_bead], slopes, ts, rule = 2)$y
     
     # normalize raw bead intensities via multiplication with slopes
     assay(x, "normed") <- sweep(es, 2, slopes, "*")
    
     # smooth normalized beads
-    y <- assay(x, "normed")[chs$beads, is_bead]
+    y <- assay(x, "normed")[bead_chs, is_bead]
     smooth <- t(apply(y, 1, runmed, k, "constant"))
 
     ps <- NULL
     if (plot) ps <- list(
-        scatter = .plot_bead_scatter(x, chs, assay), 
-        lines = .plot_smooth_beads(smooth0, smooth, chs$t[is_bead]))
+        scatter = .plot_bead_scatter(x, dna_chs, bead_chs, assay), 
+        lines = .plot_smooth_beads(smooth0, smooth, ts[is_bead]))
     if (remove_beads) {
         z <- list(
             data = x[, !(is_bead | rmv)], 

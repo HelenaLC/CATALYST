@@ -16,9 +16,11 @@
 #' @param features a logical vector, numeric vector of column indices,
 #'   or character vector of channel names. Specified which column to keep 
 #'   from the input data. Defaults to the channels listed in the input panel.
-#' @param cofactor numeric cofactor to use for arcsinh-transformation. 
-#'   Channel-specific cofactors may be supplied as a named vector. 
-#'   If NULL, no transformation will be applied.
+#' @param transform logical. Specifies whether an arcsinh-transformation with 
+#'   cofactor cofactor should be performed, in which case expression values 
+#'   (transformed counts) will be stored in assay(x, "exprs").
+#' @param cofactor numeric cofactor to use for optional 
+#'   arcsinh-transformation when \code{transform = TRUE}.
 #' @param panel_cols a names list specifying the column names of \code{panel}
 #'   that contain the channel names, targeted protein markers, and (optionally) 
 #'   marker classes. 
@@ -42,21 +44,35 @@
 #' @importFrom S4Vectors DataFrame
 #' @export
 
-prepData <- function(x, panel, md, features=NULL, cofactor=5,
+prepData <- function(x, panel, md, features=NULL, transform=TRUE, cofactor=5,
     panel_cols=list(channel="fcs_colname", antigen="antigen", class="marker_class"),
     md_cols=list(file="file_name", id="sample_id", factors=c("condition", "patient_id"))) {
     
     # check validity of input arguments
     for (u in c("panel", "md"))
-        if (!is(v <- get(u), "data.frame"))
+        if (!isTRUE(class(v <- get(u)) == "data.frame"))
             assign(u, data.frame(v, 
                 check.names = FALSE, 
                 stringsAsFactors = FALSE))
     
-    stopifnot(is.list(panel_cols), is.list(md_cols),
+    # x <- fs
+    # features <- NULL
+    # args <- list(
+    #     md_cols = list(factors = c("condition", "day")),
+    #     panel_cols=list(channel="fcs_colname", antigen="antigen", class="marker_class"))
+    
+    # fill up missing values with function defaults
+    stopifnot(is.list(panel_cols), is.list(md_cols))
+    args <- as.list(environment())
+    for (i in c("md_cols", "panel_cols")) {
+        defs <- as.list(formals("prepData")[[i]][-1])
+        miss <- !names(defs) %in% names(args[[i]])    
+        if (any(miss)) assign(i, c(args[[i]], defs[miss])[names(defs)])
+    }
+    stopifnot(
         c("channel", "antigen") %in% names(panel_cols),
         c("file", "id", "factors") %in% names(md_cols))
-
+       
     if (is(x, "flowSet")) {
         fs <- x
     } else if (is.character(x)) {
@@ -75,7 +91,7 @@ prepData <- function(x, panel, md, features=NULL, cofactor=5,
     
     # check channels listed in panel 
     stopifnot(panel[[panel_cols$channel]] %in% colnames(fs))
-    
+
     if (is.null(features)) {
         # default to channels listed in panel
         features <- as.character(panel[[panel_cols$channel]])
@@ -92,36 +108,24 @@ prepData <- function(x, panel, md, features=NULL, cofactor=5,
         m <- match(panel[[panel_cols$channel]], features, nomatch = 0)
         features <- features[m]
     }
-    
-    if (!is.null(cofactor))
-        stopifnot(is.numeric(cofactor), cofactor > 0,
-            length(cofactor) %in% c(1, length(features)))
-    
-    # use identifiers if filenames are not specified
-    ids <- c(keyword(fs, "FILENAME"))
-    if (is.null(unlist(ids))) 
-        ids <- c(fsApply(fs, identifier))
-    
-    # check that filenames match b/w flowSet & metadata &
-    # reorder flowSet according to metadata table
-    stopifnot(all(ids %in% md[[md_cols$file]]))
-    fs <- fs[m <- match(ids, md[[md_cols$file]])]
-    
-    # transformation
-    if (!is.null(cofactor)) {
-        if (length(cofactor) == 1) {
-            cofactor <- rep(cofactor, ncol(fs[[1]]))
-        } else {
-            stopifnot(features %in% names(cofactor))
-            m <- match(features, names(cofactor))
-            cofactor <- cofactor[m]
-        } 
-        fs <- fsApply(fs, function(ff) {
-            exprs(ff) <- asinh(sweep(exprs(ff), 2, cofactor, "/"))
-            return(ff)
-        })
+
+    # check that filenames or identifiers 
+    # match b/w 'flowSet' & metadata
+    ids0 <- md[[md_cols$file]]
+    ids1 <- basename(keyword(fs, "FILENAME"))
+    ids2 <- fsApply(fs, identifier)
+    check1 <- all(ids1 %in% ids0)
+    check2 <- all(ids2 %in% ids0)
+    ids_use <- which(c(check1, check2))[1]
+    ids <- list(ids1, ids2)[[ids_use]]
+    if (is.null(ids)) {
+        stop("Couldn't match 'flowSet'/FCS filenames\n", 
+            "with those listed in 'md[[md_cols$file]]'.")
+    } else {
+        # reorder 'flowSet' frames according to metadata table
+        fs <- fs[match(md[[md_cols$file]], ids)]
     }
-    
+
     # assure correctness of formats
     k <- c(md_cols$id, md_cols$factors)
     md <- data.frame(md)[, k] %>% 
@@ -148,6 +152,21 @@ prepData <- function(x, panel, md, features=NULL, cofactor=5,
     # get exprs.
     es <- matrix(fsApply(fs, exprs), byrow = TRUE,
         nrow=length(chs), dimnames=list(chs, NULL))
+    
+    # (optionally) do arcsinh-transformation
+    if (transform) {
+        stopifnot(is.numeric(cofactor), cofactor > 0,
+            length(cofactor) %in% c(1, length(features)))
+        if (length(cofactor) == 1) {
+            cofactor <- rep(cofactor, ncol(fs[[1]]))
+        } else {
+            stopifnot(features %in% names(cofactor))
+            m <- match(features, names(cofactor))
+            cofactor <- cofactor[m]
+        }
+        es_t <- asinh(sweep(es, 1, cofactor, "/"))
+    }
+
     # get nb. of cells per sample
     md$n_cells <- as.numeric(fsApply(fs, nrow))
     
@@ -175,7 +194,9 @@ prepData <- function(x, panel, md, features=NULL, cofactor=5,
     }), row.names = NULL) 
     
     # construct SCE
-    SingleCellExperiment(
-        assays=list(exprs=es), rowData=rd, colData=cd,
+    sce <- SingleCellExperiment(
+        assays=list(counts=es), rowData=rd, colData=cd,
         metadata=list(experiment_info=md, cofactor=cofactor))
+    if (transform) assay(sce, "exprs") <- es_t
+    return(sce)
 }
