@@ -7,6 +7,7 @@
 plotMedExprs(
   x,
   k = "meta20",
+  features = "state",
   facet = c("antigen", "cluster_id"),
   group_by = "condition",
   shape_by = NULL
@@ -17,6 +18,11 @@ plotMedExprs(
 
 \item{k}{character string. Specifies the clustering to use.
 If \code{facet = "antigen"}, this argument will be ignored.}
+
+\item{features}{specifies which features to include.
+Either a character string specifying a subset of features,
+or NULL for all features. When \code{rowData(x)$marker_class} 
+is specified, can be one of "type", "state", or "none".}
 
 \item{facet}{\code{"antigen"} or \code{"cluster_id"}. 
 Note that the latter requires having run \code{\link{cluster}}.}

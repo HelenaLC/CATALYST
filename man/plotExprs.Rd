@@ -4,10 +4,15 @@
 \alias{plotExprs}
 \title{Plot expressions}
 \usage{
-plotExprs(x, color_by = "condition")
+plotExprs(x, features = NULL, color_by = "condition")
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
+
+\item{features}{specifies which features to include.
+Either a character string specifying a subset of features,
+or NULL for all features. When \code{rowData(x)$marker_class} 
+is specified, can be one of "type", "state", or "none".}
 
 \item{color_by}{character string corresponding to a 
 \code{colData(x)} column. Specifies the color coding.}

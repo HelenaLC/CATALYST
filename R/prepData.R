@@ -44,9 +44,12 @@
 #' @importFrom S4Vectors DataFrame
 #' @export
 
-prepData <- function(x, panel, md, features=NULL, transform=TRUE, cofactor=5,
-    panel_cols=list(channel="fcs_colname", antigen="antigen", class="marker_class"),
-    md_cols=list(file="file_name", id="sample_id", factors=c("condition", "patient_id"))) {
+prepData <- function(x, panel, md, 
+    features=NULL, transform=TRUE, cofactor=5,
+    panel_cols=list(channel="fcs_colname", 
+        antigen="antigen", class="marker_class"),
+    md_cols=list(file="file_name", id="sample_id", 
+        factors=c("condition", "patient_id"))) {
     
     # check validity of input arguments
     for (u in c("panel", "md"))
@@ -54,12 +57,6 @@ prepData <- function(x, panel, md, features=NULL, transform=TRUE, cofactor=5,
             assign(u, data.frame(v, 
                 check.names = FALSE, 
                 stringsAsFactors = FALSE))
-    
-    # x <- fs
-    # features <- NULL
-    # args <- list(
-    #     md_cols = list(factors = c("condition", "day")),
-    #     panel_cols=list(channel="fcs_colname", antigen="antigen", class="marker_class"))
     
     # fill up missing values with function defaults
     stopifnot(is.list(panel_cols), is.list(md_cols))

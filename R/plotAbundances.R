@@ -104,7 +104,8 @@ plotAbundances <- function(x, k="meta20",
                 x=group_by, color=group_by, fill=group_by),
                 position=position_dodge(), alpha=.25, outlier.color=NA) + 
             geom_point(position=position_jitter(width=.25),
-                aes_string(x=group_by, y="freq", color=group_by, shape=shape_by)) +
+                aes_string(x=group_by, y="freq", 
+                    color=group_by, shape=shape_by)) +
             scale_shape_manual(values = shapes) +
             theme(panel.grid.major=element_line(color="grey", size=.25)))
 }

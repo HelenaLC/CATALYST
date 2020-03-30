@@ -67,11 +67,9 @@
 #' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 #' sce <- cluster(sce)
 #' 
-#' plotClusterHeatmap(sce, hm2="abundances")
 #' plotClusterHeatmap(sce, hm2="abundances", draw_freqs=TRUE)
-#' plotClusterHeatmap(sce, hm2="state_markers", k="meta16", split_by='condition')
 #' plotClusterHeatmap(sce, hm2="pS6", k="meta12", m="meta8")
-#' plotClusterHeatmap(sce, hm2="abundances", scale=FALSE, draw_freqs=TRUE)
+#' plotClusterHeatmap(sce, hm2="state_markers", split_by="condition")
 #' 
 #' @import ComplexHeatmap
 #' @importFrom grDevices colorRampPalette

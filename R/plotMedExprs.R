@@ -14,7 +14,6 @@
 #'   is specified, can be one of "type", "state", or "none".
 #' @param facet \code{"antigen"} or \code{"cluster_id"}. 
 #'   Note that the latter requires having run \code{\link{cluster}}.
-#' @param 
 #' @param group_by character string specifying 
 #'   a \code{colData(x)} column to group samples by.
 #' @param shape_by character string specifying 

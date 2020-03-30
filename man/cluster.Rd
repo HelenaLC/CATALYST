@@ -6,7 +6,7 @@
 \usage{
 cluster(
   x,
-  features = NULL,
+  features = "type",
   xdim = 10,
   ydim = 10,
   maxK = 20,
@@ -17,10 +17,10 @@ cluster(
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{features}{a character vector. 
-Specifies which antigens to use for clustering. The default (NULL) 
-uses \code{type_markers(x)}. Must be provided if 
-\code{rowData(x)$marker_class} has not been specified.}
+\item{features}{a character vector specifying which antigens 
+to use for clustering; valid values are \code{"type"/"state"} 
+for \code{type/state_markers(x)} (if \code{rowData(x)$marker_class} 
+have been specified) or a subset of \code{rownames(x)}.}
 
 \item{xdim, ydim}{numeric. Specify the grid size of the self-orginizing map. 
 The default 10x10 grid will yield 100 clusters.}
