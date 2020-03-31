@@ -119,7 +119,7 @@
     # check correctness of column names
     da_edgeR <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
     da_GLMM <- c("cluster_id", "p_val", "p_adj")
-    da_voom <- c("cluster_id", "log_FC", "AveExpr", "t", "p_val", "p_adj", "B")
+    da_voom <- c("cluster_id", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
     
     ds_limma <- c("cluster_id", "marker_id", 
         "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
