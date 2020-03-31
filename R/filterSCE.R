@@ -74,6 +74,7 @@ filterSCE <- function(x, ..., k = NULL) {
         n_cells <- table(cdf$sample_id)
         m <- match(ei$sample_id, levels(cdf$sample_id))
         ei$n_cells <- as.numeric(n_cells[m])
+        ei <- droplevels(ei)
         md$experiment_info <- ei
     }
     
