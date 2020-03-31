@@ -75,13 +75,13 @@ plotYields <- function(x, which = 0,
     
     # compute yields & cell counts
     n_seps <- length(names(seps) <- seps <- seq(0, 1, 0.01))
-    yields <- vapply(seps, function(u) x$delta >= u, numeric(ncol(x)))
+    yields <- vapply(seps, function(u) x$delta >= u, logical(ncol(x)))
     counts <- vapply(seps, function(u) {
         v <- ifelse(u == seps[n_seps], u, u + 0.01)
         yields[, as.character(u)] & x$delta < v
     }, numeric(ncol(x)))
     
-    # split cell by barcode ID
+    # split by barcode ID
     cs <- split(seq_len(ncol(x)), x$bc_id)
     yields <- vapply(ids, function(id)
         colMeans(yields[cs[[id]], ]),
@@ -128,7 +128,8 @@ plotYields <- function(x, which = 0,
                 pal <- sample(pal, n_bcs)
             }
             ggplot() +
-                geom_bar(data = h, aes_string("cutoff", "count"), 
+                geom_bar(data = h, orientation = "x",
+                    aes_string(x = "cutoff", y = "count"), 
                     stat = "identity", width = 1 / n_seps, 
                     fill = "lightgrey", col = "white") +
                 geom_line(data = l, aes_string("cutoff", "yield", col = "bc_id")) + 
@@ -137,8 +138,9 @@ plotYields <- function(x, which = 0,
         } else {
             df <- data.frame(cutoff = seps, count = counts[, id]) 
             df$yield <- yields[, id] * (max <- max(df$count))
-            p <- ggplot(df, aes_string("cutoff")) +
-                geom_bar(aes_string(y = "count"), stat = "identity", 
+            p <- ggplot(df, aes_string(x = "cutoff")) +
+                geom_bar(aes_string(y = "count"), 
+                    stat = "identity", orientation = "x",
                     size = 0.2, col = "white", fill = "darkgrey") + 
                 geom_line(aes_string(y = "yield"), col = "red") + 
                 ggtitle(labs[id]) + thm(max) 
@@ -148,7 +150,7 @@ plotYields <- function(x, which = 0,
                 p <- p + geom_label(
                     label = paste0("cutoff: ", cut, "; yield: ", y, "%"),
                     x = cuts[id] + 0.01, y = max, hjust = 0, col = "blue") +
-                    geom_vline(xintercept = cuts[id], col = "blue")
+                    geom_vline(xintercept = cuts[id], lty = 2, col = "blue")
             }
             p
         }
