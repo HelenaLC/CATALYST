@@ -135,11 +135,20 @@ plotScatter <- function(x, chs = NULL, gate_id = NULL,
             check3 <- length(facet$params$facets) != 2
             if (check1 || isTRUE(check2 && check3)) {
                 gate_geom <- switch(gi$type, 
-                    rect = geom_rect(
-                        data = gi$data, aes_string(
-                            xmin = "xmin", xmax = "xmax", 
-                            ymin = "ymin", ymax = "ymax"),
-                        inherit.aes = FALSE, col = "red", fill = NA),
+                    rect = {
+                        # adjust limits in case gate is out of range
+                        gate_range <- as.matrix(gi$data[c(1,3,2,4)])
+                        foo <- rbind(unlist(lims), gate_range)
+                        mins <- colMins(foo[, grep("min", colnames(foo))])
+                        maxs <- colMaxs(foo[, grep("max", colnames(foo))])
+                        lims[[1]] <- c(mins[1], maxs[1])
+                        lims[[2]] <- c(mins[2], maxs[2])
+                        geom_rect(
+                            data = gi$data, aes_string(
+                                xmin = "xmin", xmax = "xmax", 
+                                ymin = "ymin", ymax = "ymax"),
+                            inherit.aes = FALSE, col = "red", fill = NA)
+                    },
                     elip = geom_path(
                         data = gi$data, aes_string("x", "y"),
                         inherit.aes = FALSE, col = "red"),
@@ -158,7 +167,7 @@ plotScatter <- function(x, chs = NULL, gate_id = NULL,
         fill_pal + guides(fill = FALSE) + 
         scale_x_continuous(limits = lims[[1]], expand = c(0, 0)) + 
         scale_y_continuous(limits = lims[[2]], expand = c(0, 0)) + 
-        facet + ylab + gate_geom + geom_perc + 
+        facet + ylab + gate_geom + geom_perc +
         theme_bw() + theme(aspect.ratio = 1,
             panel.grid.minor = element_blank(), 
             axis.text = element_text(color = "black"),
