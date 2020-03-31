@@ -1,3 +1,45 @@
+.get_gate_pars <- function(x, sce, group_by, type = c("q", "i", "s")) {
+    # get default parameter values
+    typs <- eval(formals(".get_gate_pars")$type)
+    defs <- unlist(formals("gateCytof")[typs])
+    if (!is.null(group_by))
+        gids <- unique(sce[[group_by]])
+    if (length(x) > 1) {
+        if (is.null(group_by)) { 
+            x <- x[1]
+            message("'length(", type, ") > 1' but argument 'group_by'",
+                " is unspecified; using first '", type, " = ", x, "'.")
+        } else {
+            if (!setequal(names(x), gids)) {
+                nonm <- names(x) == ""
+                stopifnot(
+                    sum(nonm) == 1,
+                    names(x)[!nonm] %in% gids)
+                if (any(nonm)) {
+                    xs <- rep(x[nonm], length(gids))
+                    names(xs) <- gids
+                    xs[names(x)[-nonm]] <- x[-nonm]
+                    x <- xs
+                } else {
+                    xs <- rep(defs[type], length(gids))
+                    names(xs) <- gids
+                    xs[names(x)] <- x
+                    x <- xs
+                }
+            }
+        }
+    } else {
+        if (is.null(group_by)) {
+            x <- c(all = x)
+        } else {
+            xs <- rep(x, length(gids))
+            names(xs) <- gids
+            x <- xs
+        }
+    }  
+    return(x)
+}
+
 # define live cell gate based on 'openCyto' 
 # plug-in from http://opencyto.org/plugins.html
 # x = expression matrix, q = quantile, bs = line intercept & slope
@@ -6,7 +48,7 @@
 #' @importFrom mvtnorm dmvnorm
 #' @importFrom stats qnorm
 #' @importFrom openCyto register_plugins
-.live_gate <- function(x, q = 0.99, bs = c(1, 0.5)) {
+.live_gate <- function(x, q = 0.99, i = 1, s = 0.5) {
     # specifying gating function
     .gating_fun <- function(fr, pp_res, channels = NA, id = "", ...) {
         # subset channels of interest
@@ -21,7 +63,7 @@
         # find points above boundary level 
         keep1 <- px > pd 
         # find points below line y = a + b * x  
-        keep2 <- (bs[1] + bs[2] * x0[, 1]) > x0[, 2] 
+        keep2 <- (i + s * x0[, 1]) > x0[, 2] 
         # intersection of points below line & above threshold level
         pts <- x[keep1 & keep2, ] 
         # get boundary points (convex hull) 
