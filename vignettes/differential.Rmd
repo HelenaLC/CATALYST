@@ -12,7 +12,7 @@ author:
   - *IMLS
   - *SIB
 package: "`r BiocStyle::pkg_ver('CATALYST')`"
-bibliography: refs.bib
+bibliography: "`r file.path(system.file('extdata', package = 'CATALYST'), 'refs.bib')`"
 vignette: >
   %\VignetteIndexEntry{"2. Differential discovery"}
   %\VignettePackage{CATALYST}

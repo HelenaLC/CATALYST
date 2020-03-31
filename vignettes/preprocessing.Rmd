@@ -23,7 +23,7 @@ author:
 package: "`r BiocStyle::pkg_ver('CATALYST')`"
 abstract: >
     By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to (theoretically) 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed `r Biocpkg("CATALYST")` (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm.
-bibliography: refs.bib
+bibliography: "`r file.path(system.file('extdata', package = 'CATALYST'), 'refs.bib')`"
 csl: science.csl
 vignette: >
   %\VignetteIndexEntry{"1. Preprocessing"}
@@ -249,7 +249,7 @@ Provided with a `SingleCellExperiment` and a compatible barcoding scheme (barcod
 - `rowData` column `is_bc` specifying, for each channel, whether it has been specified as a barcode channel
 
 ```{r assignPrelim, messages = FALSE} 
-sce <- fcs2sce(sample_ff, by_time = FALSE)
+sce <- fcs2sce(sample_ff)
 (sce <- assignPrelim(sce, bc_key = sample_key, verbose = FALSE))
 # view barcode channels
 rownames(sce)[rowData(sce)$is_bc]
@@ -284,6 +284,20 @@ sce <- estCutoffs(sce)
 metadata(sce)$sep_cutoffs
 ```
 
+### `plotYields`: Selecting barcode separation cutoffs
+
+For each barcode, `plotYields` will show the distribution of barcode separations and yields upon debarcoding as a function of separation cutoffs. If available, the currently used separation cutoff as well as its resulting yield within the population is indicated in the plot's main title.
+
+Option `which = 0` will render a summary plot of all barcodes. All yield functions should behave as described above: decline, stagnation, decline. Convergence to 0 yield at low cutoffs is a strong indicator that staining in this channel did not work, and excluding the channel entirely is sensible in this case. It is thus recommended to **always** view the all-barcodes yield plot to eliminate uninformative populations, since small populations may cause difficulties when computing spill estimates.
+
+```{r eval = FALSE}
+plotYields(sce, which = c(0, "C1"), plotly = FALSE)
+```
+
+```{r plotYields, echo = FALSE, fig.width = 7, fig.height = 3.5}
+ps <- plotYields(sce, which = c(0, "C1"), plotly = FALSE); ps[[1]]; ps[[2]]
+```
+
 ### `applyCutoffs`: Applying deconvolution parameters
 
 Once preliminary assignments have been made, `applyCutoffs` will apply the deconvolution parameters: Outliers are filtered by a Mahalanobis distance threshold, which takes into account each population's covariance, and doublets are removed by excluding events from a population if the separation between their positive and negative signals fall below a separation cutoff. Current thresholds are held in the `sep_cutoffs` and `mhl_cutoff` slots of the SCE's `metadata`. By default, `applyCutoffs` will try to access the `metadata` `"sep_cutoffs"` slopt of the input SCE, requiring having run `estCutoffs` prior to this, or manually specifying a vector or separation cutoffs. Alternatively, a numeric vector of cutoff values or a single, global value may be supplied In either case, it is highly recommended to thoroughly review the yields plot (see above), as the choice of separation cutoffs will determine debarcoding quality and cell yield.
@@ -299,20 +313,6 @@ c(specific = mean(sce2$bc_id != 0),
     global = mean(sce3$bc_id != 0))
 # proceed with population-specific filtering
 sce <- sce2
-```
-
-### `plotYields`: Selecting barcode separation cutoffs
-
-For each barcode, `plotYields` will show the distribution of barcode separations and yields upon debarcoding as a function of separation cutoffs. If available, the currently used separation cutoff as well as its resulting yield within the population is indicated in the plot's main title.
-
-Option `which = 0` will render a summary plot of all barcodes. All yield functions should behave as described above: decline, stagnation, decline. Convergence to 0 yield at low cutoffs is a strong indicator that staining in this channel did not work, and excluding the channel entirely is sensible in this case. It is thus recommended to **always** view the all-barcodes yield plot to eliminate uninformative populations, since small populations may cause difficulties when computing spill estimates.
-
-```{r eval = FALSE}
-plotYields(sce, which = c("C1", 0), plotly = FALSE)
-```
-
-```{r plotYields, echo = FALSE, fig.width = 7, fig.height = 3.5}
-ps <- plotYields(sce, which = c("C1", 0), plotly = FALSE); ps[[1]]; ps[[2]]
 ```
 
 ### `plotEvents`: Normalized intensities
