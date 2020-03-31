@@ -65,9 +65,7 @@ runDR <- function(x,
         } else {
             stopifnot(features %in% rownames(x))
         }
-        # use all features
-        features <- rownames(x)
-    }
+    } else features <- rownames(x)
     
     if (!is.null(cells)) {
         stopifnot(
