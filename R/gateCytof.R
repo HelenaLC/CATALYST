@@ -41,8 +41,8 @@
 #' 
 #' # apply eliptical gate
 #' sce <- gateCytof(sce, dna_chs, 
-#'   type = "elip", q = 0.95, xy = c(4, 4), 
-#'   gate_id = "cells")
+#'   group_by = "file_name", gate_id = "cells",
+#'   type = "elip", q = 0.95, xy = c(4, 4))
 #'   
 #' # view number & fraction of selected cells
 #' table(sce$cells)
@@ -52,9 +52,9 @@
 #' plotScatter(sce, gate_id = "cells")
 #' 
 #' @importFrom methods is
-#' @importFrom dplyr select_if
 #' @importFrom S4Vectors metadata
 #' @importFrom cluster silhouette
+#' @importFrom dplyr bind_rows
 #' @importFrom flowCore flowFrame flowSet 
 #'   filterList ellipsoidGate rectangleGate
 #' @importFrom flowWorkspace GatingSet lapply
@@ -66,7 +66,7 @@
 #' @export
 
 gateCytof <- function(x, chs, 
-    xy = NULL, q = 0.99, k = NULL, bs = c(1, 0.5),
+    xy = NULL, q = 0.99, k = NULL, i = 1, s = 0.5,
     type = c("rect", "quad", "elip", "live"), 
     gate_id = NULL, group_by = NULL, gate_on = NULL,
     assay = "exprs", overwrite = FALSE) {
@@ -78,9 +78,8 @@ gateCytof <- function(x, chs,
     stopifnot(
         is.null(xy) || is.numeric(unlist(xy)) & length(xy) == 2,
         is.character(chs), length(chs) == 2, chs %in% vars,
-        is.numeric(q), length(q) == 1, q > 0, q < 1,
+        is.numeric(q), q > 0, q < 1, is.numeric(i), is.numeric(s),
         is.null(k) || is.numeric(k) && (length(k) == 1 & k == round(k)),
-        is.numeric(bs), length(bs) == 2,
         is.null(gate_id) || is.character(gate_id) & length(gate_id) == 1,
         is.null(group_by) || is.character(group_by)
         & length(group_by == 1) & group_by %in% vars,
@@ -88,6 +87,9 @@ gateCytof <- function(x, chs,
         & gate_on %in% names(int_metadata(x)$gates),
         is.character(assay), length(assay) == 1, assay %in% assayNames(x),
         is.logical(overwrite), length(overwrite) == 1)
+    for (u in c("q", "i", "s")) 
+        assign(u, .get_gate_pars(get(u), x, group_by, par))
+    
     # construct unique ID if 'gate_id' is not specified
     if (is.null(gate_id)) {
         n_gs <- length(int_metadata(x)$gates)
@@ -100,7 +102,6 @@ gateCytof <- function(x, chs,
     # construct data.frame containing specified 
     # assay data & all numeric cell metadata
     cd <- cbind(colData(x), int_colData(x))
-    cd <- cd[, vapply(cd@listData, class, character(1)) != "numeric"]
     df <- data.frame(t(as.matrix(assay(x, assay))), cd,
         check.names = FALSE, stringsAsFactors = FALSE,
         # add cell ID column to track cells
@@ -111,29 +112,34 @@ gateCytof <- function(x, chs,
     # split cells if 'group_by' is specified
     if (!is.null(group_by)) {
         stopifnot(!is.numeric(df[[group_by]]))
-        df <- split(df, df[[group_by]])
-    } else df <- list(df)
+        dfs <- split(df, df[[group_by]])
+    } else dfs <- list(all = df)
     # select numeric variables only
-    df <- lapply(df, select_if, is.numeric)
-    # 'openCyto' gating methods
-    if (type != "quad") {
-        if (type != "live") stopifnot(is(xy, 
-            ifelse(type == "rect", "list", "numeric")))
-        if (type == "rect") stopifnot(length(unlist(xy)) == 4)
+    dfs <- lapply(dfs, function(u) 
+        u[, vapply(as.list(u), is.numeric, logical(1))])
+    
+    # 'openCyto' gating --------------------------------------------------------
+    if (guess_k <- type == "elip" && is.null(k))
+        message("'k' required for eliptical gates ",
+            "but unspecified;\nusing Silhouette width ", 
+            "to estimate number of cluster centers.")
+    names(ids) <- ids <- names(dfs)
+    res <- lapply(ids, function(id) {
+        # check validity of 'xy' argument
+        if (type != "live") 
+            stopifnot(is(xy, ifelse(type == "rect", "list", "numeric")))
+        if (type == "rect") 
+            stopifnot(length(unlist(xy)) == 4)
         # construct'flowSet' 
-        ffs <- lapply(df, function(u) 
-            flowFrame(as.matrix(u)))
-        fs <- flowSet(ffs)
+        es <- as.matrix(dfs[[id]])
+        fs <- flowSet(flowFrame(es))
         if (type == "live") {
             # register live-gate
-            .live_gate(x, q, bs)
-        } else if (type == "elip" && is.null(k)) {
-            message("'k' required for eliptical gates ",
-                "but unspecified;\nusing Silhouette width ", 
-                "to estimate number of cluster centers.")
+            .live_gate(x, q[id], i[id], s[id])
+        } else if (guess_k) {
             # estimate number of clusters using silhouette info
             # run k-means clustering for k = 1, ..., 10
-            u <- df[[1]][, chs]
+            u <- dfs[[id]][, chs]
             d <- dist(u)
             names(ks) <- ks <- seq_len(5)
             km_res <- lapply(ks, kmeans, x = u)
@@ -145,7 +151,6 @@ gateCytof <- function(x, chs,
             }, numeric(1))
             # use 'k = 1' if all bad, otherwise use best scoring k
             k <- ifelse(!any(scores > 0.8), 1, which.max(scores) + 1)
-            message("=> Using 'k = ", k, "'.")
         }
         gating_method <- switch(type,
             rect = "boundary",
@@ -158,40 +163,33 @@ gateCytof <- function(x, chs,
                 paste(xy[[2]], collapse = ",")),
             elip = sprintf(
                 "K=%s,quantile=%s,target=c(%s)",
-                k, q, paste(xy, collapse = ",")),
+                k, q[id], paste(xy, collapse = ",")),
             live = NA)
         # construct 'GatingSet' & apply gate
         suppressMessages({
             gs <- GatingSet(fs)
-            gs_add_gating_method(gs,
-                alias = gate_id, pop = "+",  parent = "root", 
-                dims = paste(chs, collapse = ","),
-                gating_method, gating_args)
+            gs_add_gating_method(
+                gs, alias = gate_id, 
+                gating_method, gating_args,
+                pop = "+",  parent = "root",
+                dims = paste(chs, collapse = ","))
         })
-        ids <- lapply(gs, gh_pop_get_indices, gate_id)
-        gs <- gs_pop_get_gate(gs, gate_id)
-    # quadrant-type gate
-    } else {
-        ids <- lapply(df, function(u) {
-            # subset channels of interest
-            u <- u[, chs]
-            # test for right & upper half
-            r <- u[, 1] > xy[1]
-            u <- u[, 2] > xy[2]
-            # test which quadrant ea. cell falls into
-            ids <- list(r & u, !r & u, !r & !u, r & !u)
-            ids <- do.call("cbind", ids)
-            apply(ids, 1, which)
-        })
-    }
-    # store gate assignments
-    idx <- unlist(map(df, "cell_id"))
+        dat <- gs_pop_get_gate(gs, gate_id); names(dat) <- id
+        list(dat = dat, ids = gh_pop_get_indices(gs, gate_id))
+    })
+    # store gate assignments in cell metadata
+    idx <- unlist(map(dfs, "cell_id"))
     x[[gate_id]] <- FALSE
-    x[[gate_id]][idx] <- unlist(ids)
-    # store gating information 
-    gi <- list(type = type, chs = chs,
-        group_by = group_by, gate_on = gate_on, 
-        data = .get_gate(gs, type, group_by, q = q))
+    x[[gate_id]][idx] <- unlist(map(res, "ids"))
+    # store gating information internally
+    gi <- lapply(ids, function(id) 
+        .get_gate(res[[id]]$dat, type, group_by, q = q[id]))
+    gi <- list(
+        chs = chs, 
+        type = type, 
+        gate_on = gate_on, 
+        group_by = group_by,
+        data = bind_rows(gi))
     int_metadata(x)$gates[[gate_id]] <- gi
     # return SCE
     return(x)

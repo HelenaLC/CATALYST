@@ -10,7 +10,8 @@ gateCytof(
   xy = NULL,
   q = 0.99,
   k = NULL,
-  bs = c(1, 0.5),
+  i = 1,
+  s = 0.5,
   type = c("rect", "quad", "elip", "live"),
   gate_id = NULL,
   group_by = NULL,
@@ -30,9 +31,6 @@ and correspond to a numeric variable.}
 
 \item{k}{integer number of cluster centers for eliptical gating.}
 
-\item{bs}{numeric of length 2 specifying the intercept & slope
-of the line used for live-gating.}
-
 \item{gate_id}{character string giving a unique identifier for the gate.}
 
 \item{group_by}{character string specifying the grouping variable
@@ -49,6 +47,9 @@ Should be one of \code{assayNames(x)}.}
 
 \item{overwrite}{logical. If there already exists a gate 
 with identifier \code{gate_id}, should it be overwritten?}
+
+\item{bs}{numeric of length 2 specifying the intercept & slope
+of the line used for live-gating.}
 }
 \value{
 a \code{SingleCellExperiment}.
@@ -68,8 +69,8 @@ dna_chs <- c("Ir191Di", "Ir193Di")
 
 # apply eliptical gate
 sce <- gateCytof(sce, dna_chs, 
-  type = "elip", q = 0.95, xy = c(4, 4), 
-  gate_id = "cells")
+  group_by = "file_name", gate_id = "cells",
+  type = "elip", q = 0.95, xy = c(4, 4))
   
 # view number & fraction of selected cells
 table(sce$cells)
