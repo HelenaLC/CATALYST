@@ -45,22 +45,3 @@ test_that("gateCytof() - type = 'elip'", {
     y <- gateCytof(y, chs[i], type = "elip", k = 2, xy = c(v,v))
     expect_true(sum(y$gate1) == n)
 })
-
-test_that("gateCytof() - type = 'quad'", {
-    n <- 100 # number of cells that should be selected
-    v <- 10  # expression offset for cells to be selected
-    # sample 2 channels and 'n' cells per quadrant
-    i <- sample(n_chs, 2)    
-    j <- sample(n_cells, 4*n)
-    j <- split(j, seq_len(4))
-    # shift cells by -/+10 for each quadrant
-    s <- c(1, -1)
-    s <- expand.grid(s, s)
-    y <- x; for (k in seq_along(j)) {
-        assay(y)[i[1], j[[k]]] <- s[k, 1] * v
-        assay(y)[i[2], j[[k]]] <- s[k, 2] * v
-    }
-    y <- gateCytof(y, chs[i], gate_id = "gate",
-        type = "quad", xy = c(-3, -3))
-    expect_true(all(table(y$gate)[-1] == n))
-})
