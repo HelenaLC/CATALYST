@@ -12,7 +12,7 @@ plotScatter(
   show_perc = TRUE,
   bins = 100,
   assay = "exprs",
-  color_by = c("density", "selection")
+  color_by = NULL
 )
 }
 \arguments{

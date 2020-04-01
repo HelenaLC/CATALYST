@@ -49,16 +49,17 @@
 
 plotScatter <- function(x, chs = NULL, gate_id = NULL, 
     show_gate = TRUE, show_perc = TRUE, bins = 100,
-    assay = "exprs", color_by = c("density", "selection")) {
+    assay = "exprs", color_by = NULL) {
     # check validity of input arguments
-    color_by <- match.arg(color_by)
     stopifnot(is(x, "SingleCellExperiment"))
     cd_vars <- c(names(colData(x)), names(int_colData(x)))
     stopifnot(is.null(chs) & !is.null(gate_id) 
         || is.character(chs) & chs %in% c(rownames(x), cd_vars),
         is.character(assay), length(assay) == 1, assay %in% assayNames(x),
         is.null(gate_id) || is.character(gate_id) & length(gate_id) == 1 
-        & !is.null(gi <- int_metadata(x)$gates[[gate_id]]))
+        & !is.null(gi <- int_metadata(x)$gates[[gate_id]]),
+        is.logical(show_gate), length(show_gate) == 1,
+        is.logical(show_perc), length(show_perc) == 1)
     # construct data.frame of specified assay data & all cell metadata
     df <- data.frame(check.names = FALSE, stringsAsFactors = FALSE,
         t(as.matrix(assay(x, assay))), colData(x), int_colData(x))
@@ -86,17 +87,8 @@ plotScatter <- function(x, chs = NULL, gate_id = NULL,
         ylab <- NULL
     }
     # initial aesthetics
-    fill_var <- "sqrt(..ncount..)"
-    fill_pal <- scale_fill_distiller(palette = "Spectral")
-    gate_geom <- geom_perc <- NULL
-    if (is.null(gate_id)) {
-        if (color_by == "selection")
-            message("No 'gate_id' specified. Coloring by density instead.")
-    } else {
-        if (color_by == "selection") {
-            fill_var <- gate_id
-            fill_pal <- scale_fill_manual(values = c("grey", "royalblue"))
-        } 
+    gate_geom <- perc_geom <- NULL
+    if (!is.null(gate_id)) {
         # update facetting scheme
         if (is.null(facet)) {
             if (!is.null(gi$group_by))
@@ -121,7 +113,7 @@ plotScatter <- function(x, chs = NULL, gate_id = NULL,
             ps <- data.frame(p = ps)
             if (!is.null(gi$group_by))
                 ps[[gi$group_by]] <- names(cs)
-            geom_perc <- geom_label(
+            perc_geom <- geom_label(
                 data = ps, inherit.aes = FALSE, 
                 label.r = unit(0.1, "lines"), 
                 label.padding = unit(0.2, "lines"),
@@ -161,16 +153,32 @@ plotScatter <- function(x, chs = NULL, gate_id = NULL,
             }
         }
     } 
+    main_geom <- geom_hex(bins = bins, na.rm = TRUE, show.legend = FALSE)
+    if (is.null(color_by)) {
+        col_var <- NULL; fill_var <- "sqrt(..ncount..)"
+        scales <- scale_fill_distiller(palette = "Spectral")
+    } else {
+        not_numeric <- cd_vars[!vapply(df[, cd_vars], is.numeric, logical(1))]
+        stopifnot(is.character(color_by), sum(color_by == not_numeric) == 1)
+        if (color_by %in% names(int_metadata(x)$gates)) {
+            col_var <- NULL; fill_var <- sprintf("`%s`", color_by)
+            scales <- scale_fill_manual(NULL, values = c("grey", "royalblue"))
+        } else {
+            main_geom <- geom_point(alpha = 0.2, size = 0.8, na.rm = TRUE)
+            fill_var <- NULL; col_var <- sprintf("`%s`", color_by)
+            scales <- NULL
+        }
+    }
     xy <- sprintf("`%s`", chs)
-    ggplot(df, aes_string(xy[1], xy[2], fill = fill_var)) + 
-        geom_hex(na.rm = TRUE, bins = bins) + 
-        fill_pal + guides(fill = FALSE) + 
+    ggplot(df, aes_string(xy[1], xy[2], col = col_var, fill = fill_var)) + 
+        main_geom + gate_geom + perc_geom + scales + facet + ylab + 
         scale_x_continuous(limits = lims[[1]], expand = c(0, 0)) + 
         scale_y_continuous(limits = lims[[2]], expand = c(0, 0)) + 
-        facet + ylab + gate_geom + geom_perc +
         theme_bw() + theme(aspect.ratio = 1,
             panel.grid.minor = element_blank(), 
             axis.text = element_text(color = "black"),
-            strip.background = element_rect(fill = "white"))
+            strip.background = element_rect(fill = "white"),
+            legend.key.height = unit(2, "mm")) +
+        guides(color = guide_legend(override.aes = list(alpha = 1, size = 3)))
 }
    
