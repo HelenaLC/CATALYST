@@ -78,75 +78,6 @@ table(int_colData(sce)$file_no)
 names(int_colData(sce))
 ```
 
-# Gating & visualization
-
-`gateCytof` currently supports the following `type`s of gates:
-
-- `rect`: Rectangular gate with boundaries specified via `xy = list(c(xmin, ymin), c(xmax, ymax))`.
-- `elip`: Eliptical gate with the upper quantile to be removed specified via `q`, the number of cluster centers specified via `k`, and the target cluster center specified via `xy = c(x, y)`; if `k = NULL`, `gateCytof` will estimate the number of clusters via maximizing the average Silhouette information for $k\in[2,5]$.
-- `live`: Live-gate with the upper quantile to be removed specified via `q`, and line parameters specified via `bs = c(intercept, slope)`.
-
-```{r gateCytof-beads, fig.small = TRUE}
-sce <- gateCytof(sce, 
-    chs = c("Ir191Di", "Ho165Di"),
-    gate_id = "beads",
-    type = "rect", 
-    xy = list(c(0, 6), c(2, 8)))
-plotScatter(sce, gate_id = "beads")
-```
-
-We can easily compute the fraction of cells selected by the above gate:
-
-```{r results = "hold"}
-# view number & fraction selected cells
-table(sce$beads)
-mean(sce$beads)
-```
-
-By default, `gateCytof` will gate on all cells. Alternatively, a previously applied gate my be specified via `gate_on` from which to subset cells from prior to gating. In this case, the newly created gate's parent will be stored in `int_metadata(x)$gates$<gate_id>`.
-
-```{r message = FALSE, fig.width = 5}
-# apply rectangular gate
-chs <- c("Tb159Di", "Yb176Di")
-sce <- gateCytof(sce, chs, gate_id = "gate1",
-    type = "rect", xy = list(c(0, 4), c(6, 8)))
-
-# gate on cells selected by 'gate1'
-sce <- gateCytof(sce, chs, gate_id = "gate2",
-    type = "rect", xy = list(c(2, 4), c(4, 8)),
-    gate_on = "gate1") 
-
-# visualize gating sequence
-plot_grid(plotlist = lapply(c("gate1", "gate2"), function(g) 
-    plotScatter(sce, gate_id = g, color_by = "selection")))
-```
-
-Finally, a grouping variable may be specified via `group_by` such that the gate will be applied separately to different subsets of cells.
-
-```{r gateCytof-cells, fig.width = 2.5}
-sce <- gateCytof(sce,
-    chs = c("Ir191Di", "Ir193Di"),
-    gate_id = "cells", 
-    type = "elip", 
-    xy = c(4, 4))
-```
-
-By default, bins will be colored by density. When a `gate_id` has been supplied, `color_by = "selection"` will instead color cells by whether or not they have been selected such that non-gated cells will be greyed out.
-
-Finally, we can apply a sample-specific gating strategy via using `group_by = "file_name"`:
-
-```{r gateCytof-cells2, fig.width = 5}
-sce <- gateCytof(sce, 
-    chs = c("Ir191Di", "Ir193Di"),
-    gate_id = "cells2",
-    group_by = "file_name",
-    type = "elip", 
-    xy = c(4, 4))
-plotScatter(sce, gate_id = "cells2")
-```
-
-## Gating for live cells
-
 # Normalization
 
 `r Biocpkg("CATALYST")` provides an implementation of bead-based normalization as described by Finck et al. [@Finck13]. Here, identification of bead-singlets (used for normalization), as well as of bead-bead and cell-bead doublets (to be removed) is automated as follows: 
@@ -470,6 +401,170 @@ chs <- c("Er167Di", "Er168Di")
 as <- grep("exprs", assayNames(sce), value = TRUE)
 ps <- lapply(as, function(a) plotScatter(sce, chs, assay = a) + ggtitle(a))
 plot_grid(plotlist = ps, nrow = 1, align = "v")
+```
+
+# Gating & scatter plots
+
+## `gateCytof`: Rectangular, eliptical & polygonal gates
+
+`CATALYST`s `gateCytof` currently supports the following `type`s of gates:
+
+- `rect`: Rectangular gate with boundaries specified via `xy = list(c(xmin, ymin), c(xmax, ymax))`.
+- `elip`: Eliptical gate with the upper quantile to be removed specified via `q`, the number of cluster centers specified via `k`, and the target cluster center specified via `xy = c(x, y)`; if `k = NULL`, `gateCytof` will estimate the number of clusters via maximizing the average Silhouette information for $k\in[2,...,5]$.
+- `live`: Live-gate with the upper quantile to be removed specified via `q`, and line parameters specified via `i` (intercept) and `s` (slope).
+
+The pair of channels to which the gate should be applied with is given by `chs` for all type of gates. Besides general gating parameters (`xy`, `q`, `k`, `i` and `s`), `gateCytof` allows for i) gating on a subset of cells selected by a previos gate (argument `gate_on`); and, ii) applying group-specific gates (argument `group_by`).
+
+<span style="color:firebrick">**The following examples shall serve to illustrate these capabilities as well as the different types of gates, and are not meant to be biologically meaningful.**</span>
+
+### Example 1: Sequential rectangular gates
+
+By default, `gateCytof` will gate on all cells. Alternatively, a previously applied gate my be specified via `gate_on` from which to subset cells from prior to gating. In this case, the newly created gate's parent will be stored in `int_metadata(x)$gates$<gate_id>`.
+
+For this example, to make things more interpretable, we first modify the above SCE to use the channel descriptors as rownames:
+
+```{r}
+ss <- strsplit(rowData(sce)$desc, "-")
+as <- sapply(ss, .subset, 2)
+sce <- sce[!(emtpy <- is.na(as)), ]
+(rownames(sce) <- make.unique(as[!emtpy]))
+```
+
+To illustrate how gates can be applied in sequence, we first gate for cells that are CD3+/CD45+, and then select for CD4+ T-cells:
+
+```{r gateCytof-rect, fig.width = 5, fig.height = 3}
+# select for double positive CD3+/CD45+ cells
+sce <- gateCytof(sce, 
+    type = "rect", 
+    gate_id = "T cells",
+    chs = c("CD3", "CD45"),
+    xy = list(c(2, 4), c(5, 8)))
+
+# select for single positive CD4+ T cells
+sce <- gateCytof(sce, 
+    type = "rect", 
+    gate_on = "T cells",
+    gate_id = "CD4+ T cells",
+    chs = c("CD4", "CD8"),
+    xy = list(c(2, 0), c(5, 2)))
+
+# visualize gating sequence
+plot_grid(
+    plotScatter(sce, gate_id = "T cells"),
+    plotScatter(sce, gate_id = "CD4+ T cells"))
+```
+
+We can easily view the number and fraction of cells selected in each step of the above gating scheme:
+
+```{r}
+gate_md <- int_metadata(sce)$gates
+names(gate_ids) <- gate_ids <- names(gate_md)
+sapply(gate_ids, function(u) {
+    sub <- sce[[u]]
+    c(table(sub), "%" = 100*mean(sub))
+})
+```
+
+### Example 2: Partly specific eliptical gates
+
+Gating parameters can be applied in a group-specific manner. In the example below, we first gate for cells with respect to their DNA expression applying a 95%-quantile (argument `q`) eliptical gate separately for each sample. Secondly, we loosen the gate for one sample and tighten it for the other.
+
+There are a view ways in which quantiles can be specified, and `gateCytof` will handel them as follows (the same applies to arguments `k`, and `i` and `s` for live gates): 
+
+* By default, `q = 0.95` and this value will be recycled for each group (when `group_on` is specified).
+* Group-specific `q`s can be passed as a named vector.
+* When only some group-specific values are provided, at most one unnamed entry will be used for the remainder of samples; when no element is unnamed, the default of 0.95 will be used for all unspecified groups.
+
+```{r gateCytof-elip, message = FALSE, fig.width = 6, fig.height = 3}
+# load example data containing 2 samples
+raw <- fcs2sce(x = raw_data, file_no = TRUE)
+
+# same stringency for both samples 
+# (defaulting to 95%-quantile)
+raw <- gateCytof(raw,
+    type = "elip",
+    gate_id = "cells1",
+    group_by = "file_name",
+    chs = c("Ir191Di", "Ir193Di"))
+
+# be less stringent on sample 1, 
+# but more stringent on sample 2
+raw <- gateCytof(raw,
+    type = "elip",
+    gate_id = "cells2",
+    group_by = "file_name",
+    chs = c("Ir191Di", "Ir193Di"), 
+    q = c(0.99, raw_data_2.fcs = 0.8))
+
+# visualize gates with & without 
+# group-specific gating parameters
+plot_grid(
+    plotScatter(raw, gate_id = "cells1"),
+    plotScatter(raw, gate_id = "cells2"))
+```
+
+### Example 3: Sample-specific polygon gates
+
+```{r gateCytof-live, fig.width = 6, fig.height = 4}
+# randomly group cells 
+sids <- sample(seq_len(4), ncol(raw), TRUE)
+raw$sample_id <- paste0("sample", sids)
+
+# vary intercepts for each sample
+raw <- gateCytof(raw,
+    type = "live",
+    gate_id = "live1",
+    group_by = "sample_id",
+    chs = c("Ir191Di", "Pt194Di"),
+    i = c(sample1 = 0, sample2 = 0.5, sample3 = 1, sample4 = 2))
+
+# vary slopes for each sample
+raw <- gateCytof(raw,
+    type = "live",
+    gate_id = "live2",
+    group_by = "sample_id",
+    chs = c("Ir191Di", "Pt194Di"),
+    s = c(sample1 = 2, sample2 = 1, sample3 = 0.5, sample4 = 0))
+
+plot_grid(
+    plotScatter(raw, gate_id = "live1"),
+    plotScatter(raw, gate_id = "live2"))
+```
+
+## `plotScatter`: Bivariate scatter plot visualization
+
+Pair-wise scatter plots can be generated with `plotScatter`. By default (`color_by = NULL`), bins will be colored by density. Alternatively, `color_by` can be any non-numeric `(int_)colData` column (containing, for example, cluster, sample or group IDs). In this case, the rendered `ggplot` will use `geom_point` rather than `geom_hex`:
+
+```{r plotScatter1, fig.width = 4, fig.height = 3}
+plotScatter(raw, 
+    chs = c("Pt194Di", "Pt195Di"), 
+    color_by = "file_name")
+```
+
+As already demonstrated above, argument `chs` specifying the channels to plot needn't be specified if a `gate_id` is provided, in which case `plotScatter` will default to using the channels used by that gate:
+
+```{r plotScatter2, eval = FALSE}
+# the following default to using
+# 'int_metadata(sce)$gates$cells1$chs'
+plotScatter(raw, gate_id = "cells1")
+
+# which is equivalent to explicitly specifying 
+# the same channels used to generate this gate
+plotScatter(raw, gate_id = "cells1",
+    chs = c("Ir191Di", "Ir193Di"))
+```
+
+When a `gate_id` is specified, `plotScatter` will default to including the gate's boundaries (only if the same pair of channels is plotted as was used for the gate) as well as the percentage of gated cells in the visualization. This can be ommited by setting `show_gate` and/or `show_perc` to `FALSE`:
+
+```{r plotScatter3, fig.width = 5, fig.height = 3}
+plot_grid(
+    # visualize gate with cells colored by density
+    # including boundaries & percentage of selected cells
+    plotScatter(sce, gate_id = "T cells"),
+    plotScatter(sce, 
+        # omit extra geoms & color by selection
+        gate_id = "T cells", color_by = "T cells",
+        show_gate = FALSE, show_perc = FALSE))
 ```
 
 # Session information
