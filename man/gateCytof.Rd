@@ -7,12 +7,12 @@
 gateCytof(
   x,
   chs,
-  xy = NULL,
+  type = c("rect", "elip", "live"),
+  xy = c(1, 1),
   q = 0.99,
   k = NULL,
   i = 1,
   s = 0.5,
-  type = c("rect", "quad", "elip", "live"),
   gate_id = NULL,
   group_by = NULL,
   gate_on = NULL,
@@ -27,9 +27,15 @@ gateCytof(
 Should be one of \code{rownames(x)} or a \code{[int_]colData(x)} column,
 and correspond to a numeric variable.}
 
-\item{q}{numeric in (0,1) giving the quantile for eliptical and live-gating.}
+\item{type}{character string specifying the gate type:
+"rect" for rectangular, "elip" for eliptical, or "live" for polygonal.}
 
-\item{k}{integer number of cluster centers for eliptical gating.}
+\item{q}{numeric in (0,1) giving the quantile(s) 
+for gate of type "elip" and "live".}
+
+\item{k}{integer number of cluster centers for eliptical gates.}
+
+\item{i, s}{numeric specifying line intercept & slope for "live" gates.}
 
 \item{gate_id}{character string giving a unique identifier for the gate.}
 
@@ -47,16 +53,25 @@ Should be one of \code{assayNames(x)}.}
 
 \item{overwrite}{logical. If there already exists a gate 
 with identifier \code{gate_id}, should it be overwritten?}
-
-\item{bs}{numeric of length 2 specifying the intercept & slope
-of the line used for live-gating.}
 }
 \value{
-a \code{SingleCellExperiment}.
+a \code{SingleCellExperiment} with gating information stored in
+\code{int_metadata(.)$gates$<gate_id>} as a list containing:
+\describe{
+\item{\code{chs}}{channels that were gated on (length 2 character vector)}
+\item{\code{type}}{gating type (one of "rect", "elip", "live")}
+\item{\code{pars}}{list of applied gating parameters
+(e.g., group-specific quantiles for "elip"/"live" gates)}
+\item{\code{gate_on}}{gate ID of an upstream gate determining a cell subset}
+\item{\code{group_by}}{variable by which cells were grouped by}
+\item{\code{data}}{\code{data.frame} storing the gate's metadata 
+(e.g., x- and y-range for rectangular gates; 
+gate boundaries for "elip" and "live" gates)}
+}
 }
 \description{
-Wrapper around dimension reduction methods available 
-through \code{scater}, with optional cell subsampling.
+Wrapper around \code{openCyto} gating methods for 
+\code{SingleCellExperiment}s, including group-specific gating parameters.
 }
 \examples{
 data(raw_data)
@@ -75,6 +90,12 @@ sce <- gateCytof(sce, dna_chs,
 # view number & fraction of selected cells
 table(sce$cells)
 mean(sce$cells)
+
+# view gating metadata
+library(SingleCellExperiment)
+gi <- int_metadata(sce)$gates
+head(gi$cells$data) # data.frame of gate boundaries
+gi$cells$pars       # list of applied parameters
 
 # visualize gate on scatter plot
 plotScatter(sce, gate_id = "cells")

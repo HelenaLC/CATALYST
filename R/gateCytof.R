@@ -1,18 +1,19 @@
 #' @rdname gateCytof
 #' @title Gating on CyTOF data
 #' 
-#' @description 
-#' Wrapper around dimension reduction methods available 
-#' through \code{scater}, with optional cell subsampling.
+#' @description Wrapper around \code{openCyto} gating methods for 
+#' \code{SingleCellExperiment}s, including group-specific gating parameters.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param chs character string of length 2 specifying the channels to gate on. 
 #'   Should be one of \code{rownames(x)} or a \code{[int_]colData(x)} column,
 #'   and correspond to a numeric variable.
-#' @param q numeric in (0,1) giving the quantile for eliptical and live-gating.
-#' @param k integer number of cluster centers for eliptical gating.
-#' @param bs numeric of length 2 specifying the intercept & slope
-#'   of the line used for live-gating.
+#' @param type character string specifying the gate type:
+#'   "rect" for rectangular, "elip" for eliptical, or "live" for polygonal.
+#' @param q numeric in (0,1) giving the quantile(s) 
+#'   for gate of type "elip" and "live".
+#' @param k integer number of cluster centers for eliptical gates.
+#' @param i,s numeric specifying line intercept & slope for "live" gates.
 #' @param gate_id character string giving a unique identifier for the gate.
 #' @param group_by character string specifying the grouping variable
 #'   in case gates should be applied to specified cell subsets (e.g., 
@@ -28,7 +29,19 @@
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
-#' @return a \code{SingleCellExperiment}.
+#' @return a \code{SingleCellExperiment} with gating information stored in
+#' \code{int_metadata(.)$gates$<gate_id>} as a list containing:
+#' \describe{
+#' \item{\code{chs}}{channels that were gated on (length 2 character vector)}
+#' \item{\code{type}}{gating type (one of "rect", "elip", "live")}
+#' \item{\code{pars}}{list of applied gating parameters
+#' (e.g., group-specific quantiles for "elip"/"live" gates)}
+#' \item{\code{gate_on}}{gate ID of an upstream gate determining a cell subset}
+#' \item{\code{group_by}}{variable by which cells were grouped by}
+#' \item{\code{data}}{\code{data.frame} storing the gate's metadata 
+#' (e.g., x- and y-range for rectangular gates; 
+#' gate boundaries for "elip" and "live" gates)}
+#' }
 #' 
 #' @examples
 #' data(raw_data)
@@ -48,6 +61,12 @@
 #' table(sce$cells)
 #' mean(sce$cells)
 #' 
+#' # view gating metadata
+#' library(SingleCellExperiment)
+#' gi <- int_metadata(sce)$gates
+#' head(gi$cells$data) # data.frame of gate boundaries
+#' gi$cells$pars       # list of applied parameters
+#' 
 #' # visualize gate on scatter plot
 #' plotScatter(sce, gate_id = "cells")
 #' 
@@ -65,9 +84,9 @@
 #' @importFrom openCyto gs_add_gating_method gate_flowClust_2d
 #' @export
 
-gateCytof <- function(x, chs, 
-    xy = NULL, q = 0.99, k = NULL, i = 1, s = 0.5,
-    type = c("rect", "quad", "elip", "live"), 
+gateCytof <- function(x, 
+    chs, type = c("rect", "elip", "live"), 
+    xy = c(1, 1), q = 0.99, k = NULL, i = 1, s = 0.5,
     gate_id = NULL, group_by = NULL, gate_on = NULL,
     assay = "exprs", overwrite = FALSE) {
     # check validity of input arguments
@@ -113,7 +132,7 @@ gateCytof <- function(x, chs,
     if (!is.null(group_by)) {
         stopifnot(!is.numeric(df[[group_by]]))
         dfs <- split(df, df[[group_by]])
-    } else dfs <- list(all = df)
+    } else dfs <- list(root = df)
     # select numeric variables only
     dfs <- lapply(dfs, function(u) 
         u[, vapply(as.list(u), is.numeric, logical(1))])
@@ -181,12 +200,18 @@ gateCytof <- function(x, chs,
     idx <- unlist(map(dfs, "cell_id"))
     x[[gate_id]] <- FALSE
     x[[gate_id]][idx] <- unlist(map(res, "ids"))
+    # get relevant gating parameters
+    pars <- switch(type,
+        rect = xy,
+        live = list(q = q, xy = xy),
+        elip = list(q = q, xy = xy, k = k))
     # store gating information internally
     gi <- lapply(ids, function(id) 
         .get_gate(res[[id]]$dat, type, group_by, q = q[id]))
     gi <- list(
         chs = chs, 
         type = type, 
+        pars = pars,
         gate_on = gate_on, 
         group_by = group_by,
         data = bind_rows(gi))
