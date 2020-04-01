@@ -143,10 +143,10 @@ normCytof <- function(x, beads, assay = "exprs", k = 500, trim = 5,
     slopes <- approx(ts[is_bead], slopes, ts, rule = 2)$y
     
     # normalize raw bead intensities via multiplication with slopes
-    assay(x, "normed") <- sweep(es, 2, slopes, "*")
+    assay(x, "normed", withDimnames = FALSE) <- sweep(es, 2, slopes, "*")
    
     # smooth normalized beads
-    y <- assay(x, "normed")[bead_chs, is_bead]
+    y <- assay(x, "normed", withDimnames = FALSE)[bead_chs, is_bead]
     smooth <- t(apply(y, 1, runmed, k, "constant"))
 
     ps <- NULL

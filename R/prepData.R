@@ -194,6 +194,6 @@ prepData <- function(x, panel, md,
     sce <- SingleCellExperiment(
         assays=list(counts=es), rowData=rd, colData=cd,
         metadata=list(experiment_info=md, cofactor=cofactor))
-    if (transform) assay(sce, "exprs") <- es_t
+    if (transform) assay(sce, "exprs", withDimnames = FALSE) <- es_t
     return(sce)
 }

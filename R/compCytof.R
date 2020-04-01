@@ -95,12 +95,12 @@ compCytof <- function(x, sm = NULL, method = c("nnls", "flow"),
         nnls = apply(assay(x, assay), 2, 
             function(u) nnls(t(sm), u)$x))
     a <- sprintf("%s.%scomped", assay, method)
-    assay(x, a) <- y
+    assay(x, a, withDimnames = FALSE) <- y
     
     # (optionally) apply arcsinh-transformation to compensated data
     if (transform) {
         a <- sprintf("exprs.%scomped", method)
-        assay(x, a) <- asinh(y/cofactor)
+        assay(x, a, withDimnames = FALSE) <- asinh(y/cofactor)
     }
     return(x)
 }

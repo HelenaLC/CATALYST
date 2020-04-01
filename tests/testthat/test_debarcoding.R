@@ -49,7 +49,7 @@ test_that("assignPrelim();
     m <- match(bc_chs, c(in_bcs, ex_bcs))
     a <- do.call(cbind, a)[m, ]
     y <- x[, seq_len(n)]
-    assay(y, "exprs") <- a
+    assay(y, "exprs", withDimnames = FALSE) <- a
     # sample some IDs to be unassigned
     ex_ids <- sample(ids, 3)
     in_ids <- setdiff(ids, ex_ids)

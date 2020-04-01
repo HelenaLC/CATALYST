@@ -101,11 +101,11 @@ assignPrelim <- function(x, bc_key, assay = "exprs", verbose = TRUE) {
             y[is_bc, ] / quantile(pos, 0.95)
         })
     )
-    assay(x, "scaled") <- scaled
+    assay(x, "scaled", withDimnames = FALSE) <- scaled
     
     # get deltas from normalized intensities 
     if (verbose) message("Computing deltas...")
-    y <- assay(x, "scaled")[is_bc, ]
+    y <- assay(x, "scaled", withDimnames = FALSE)[is_bc, ]
     x$delta <- .get_deltas(y, bc_key, verbose)
     
     # store debarcoding scheme in metadata & return SCE
