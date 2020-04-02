@@ -38,14 +38,18 @@
 #'     
 #' # assign preliminary barcode IDs
 #' # & estimate separation cutoffs
-#' sce <- assignPrelim(x = sce, bc_key = sample_key)
+#' sce <- assignPrelim(sce, sample_key)
 #' sce <- estCutoffs(sce)
 #' 
-#' # apply cutoffs
-#' sce <- estCutoffs(x = sce)
-#' sce <- applyCutoffs(x = sce, sep_cutoffs = 0)
-#' plotEvents(sce, "A1", out_path = "~/Desktop", n = 1e3)
-#'
+#' # use estimated population-specific 
+#' # vs. global separation cutoff(s)
+#' sce1 <- applyCutoffs(sce)
+#' sce2 <- applyCutoffs(sce, sep_cutoffs = 0.35)
+#' 
+#' # compare yields after applying cutoff(s)
+#' c(global = mean(sce1$bc_id != 0), 
+#' specific = mean(sce2$bc_id != 0))
+#'   
 #' @importFrom Matrix colMeans solve
 #' @importFrom methods is
 #' @importFrom stats cov mahalanobis
