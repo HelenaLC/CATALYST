@@ -25,9 +25,11 @@ assay data slot to use. One of \code{assayNames(x)}.}
 
 \item{n}{single numeric specifying the number of events to plot.}
 
-\item{out_path}{character string. If specified, outputs will be generated here.}
+\item{out_path}{character string. 
+If specified, outputs will be generated here.}
 
-\item{name_ext}{character string. If specified, will be appended to the file name.}
+\item{name_ext}{character string. 
+If specified, will be appended to the file name.}
 }
 \value{
 a list of \code{ggplot} objects.

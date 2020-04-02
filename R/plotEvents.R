@@ -10,8 +10,10 @@
 #' @param assay character string specifying which 
 #'   assay data slot to use. One of \code{assayNames(x)}.
 #' @param n single numeric specifying the number of events to plot.
-#' @param out_path character string. If specified, outputs will be generated here.
-#' @param name_ext character string. If specified, will be appended to the file name. 
+#' @param out_path character string. 
+#'   If specified, outputs will be generated here.
+#' @param name_ext character string. 
+#'   If specified, will be appended to the file name. 
 #' 
 #' @return a list of \code{ggplot} objects.
 #' 
