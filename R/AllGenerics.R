@@ -170,7 +170,7 @@ setGeneric("compCytof",
     function(x, y, ...) standardGeneric("compCytof"))
 
 # ==============================================================================
-# Generics to access slots in a daFrame
+# Generics to access SCE slots frequently used by 'CATALYST'
 # ------------------------------------------------------------------------------
 
 #' @rdname SCE-utils
