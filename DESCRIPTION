@@ -43,7 +43,7 @@ Suggests: BiocStyle, knitr, rmarkdown, testthat, diffcyt
 URL: https://github.com/HelenaLC/CATALYST
 BugReports: https://github.com/HelenaLC/CATALYST/issues
 VignetteBuilder: knitr
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 License: GPL (>=2)
 LazyData: TRUE
 Encoding: UTF-8
