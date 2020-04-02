@@ -18,15 +18,17 @@ merge in the 1st, and the cluster IDs to newly assign in the 2nd column.}
 \item{id}{character string. Used as a label for the merging.}
 }
 \value{
-Writes the newly assigend cluster codes into the metadata slot 
-\code{cluster_codes} of the input \code{daFrame} and returns the latter.
+Writes the newly assigend cluster codes into 
+the metadata slot \code{cluster_codes} of the input 
+\code{SingleCellExperiment} and returns the latter.
 }
 \description{
-\code{mergeClusters} provides a simple wrapper 
-to store a manual merging inside the input \code{daFrame}.
+\code{mergeClusters} provides a simple wrapper to
+store a manual merging inside the input \code{SingleCellExperiment}.
 }
 \details{
-in the following code snippets, \code{x} is a \code{daFrame} object.
+in the following code snippets, 
+\code{x} is a \code{SingleCellExperiment} object.
 \itemize{
 \item{merging codes are accesible through \code{cluster_codes(x)$id}}
 \item{all functions that ask for specification of a clustering 

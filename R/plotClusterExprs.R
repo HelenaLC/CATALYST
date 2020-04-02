@@ -45,20 +45,7 @@ plotClusterExprs <- function(x, k="meta20", features=NULL) {
     .check_sce(x, TRUE)
     k <- .check_validity_of_k(x, k)
     x$cluster_id <- cluster_ids(x, k)
-  
-    if (is.null(features)) {
-        features <- rownames(x)
-    } else if (length(features) == 1) {
-        features <- match.arg(features, c("type", "state", "none"))
-        features <- get(paste0(features, "_markers"))(x)
-        if (length(features) == 0)
-            stop("No features matched the specified marker class.")
-    } else {
-        # replace problematic characters
-        features <- gsub("-", "_", features)
-        features <- gsub(":", ".", features)
-        stopifnot(features %in% rownames(x))
-    }
+    features <- .get_features(x, features)
 
     # order clusters according to hierarchical 
     # clustering on median feature expressions 

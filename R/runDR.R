@@ -9,10 +9,11 @@
 #' @param dr character string specifying which dimension reduction to use.
 #' @param cells single numeric specifying the maximal number of cells
 #'   per sample to use for dimension reduction; NULL for all cells.
-#' @param features specifies the features to use for dimension reduction. 
-#'   Either a character string specifying a subset of features,
-#'   or NULL for all features. When \code{rowData(x)$marker_class} 
-#'   is specified, can be one of "type", "state", or "none".
+#' @param features a character vector specifying 
+#'   which antigens to use for clustering; valid values are
+#'   \code{"type"/"state"} for \code{type/state_markers(x)} 
+#'   if \code{rowData(x)$marker_class} have been specified; 
+#'   a subset of \code{rownames(x)}; NULL to use all features.
 #' @param assay character string specifying 
 #'   which assay of \code{x} conatins expression values.
 #' @param ... optional arguments for dimension reduction; passed to 
@@ -46,26 +47,15 @@
 
 runDR <- function(x, 
     dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"), 
-    cells = NULL, features = NULL, assay = "exprs", ...) {
+    cells = NULL, features = "type", assay = "exprs", ...) {
     
     # check validity of input arguments
     .check_sce(x)
     dr <- match.arg(dr)
     stopifnot(
-        is.character(assay), 
-        length(assay) == 1,
-        assay %in% assayNames(x))
-    if (!is.null(features)) {
-        stopifnot(is.character(features))
-        if (length(features) == 1) {
-            features <- match.arg(features, c("type", "state", "none")) 
-            features <- rownames(x)[rowData(x)$marker_class == features]
-            if (length(features) == 0)
-                stop("No features matched the specified marker class.")
-        } else {
-            stopifnot(features %in% rownames(x))
-        }
-    } else features <- rownames(x)
+        is.character(assay), length(assay) == 1, 
+        sum(assay == assayNames(x)) == 1)
+    features <- .get_features(x, features)
     
     if (!is.null(cells)) {
         stopifnot(

@@ -1,19 +1,18 @@
 #' @rdname cluster
-#' @title FlowSOM clustering & ConsensusClusterPlus metaclustering
+#' @title \code{FlowSOM} clustering & 
+#' \code{ConsensusClusterPlus} metaclustering
 #' 
 #' @description 
 #' \code{cluster} will first group cells into \code{xdim}x\code{ydim} 
 #' clusters using \pkg{FlowSOM}, and subsequently perform metaclustering 
-#' with \pkg{ConsensusClusterPlus} into 2 through \code{maxK} clusters. 
-#' In the returned \code{daFrame}, those antigens used for clustering will be 
-#' labelled as '\code{type}' markers, and the remainder of antigens as 
-#' '\code{state}' markers.
+#' with \pkg{ConsensusClusterPlus} into 2 through \code{maxK} clusters.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
-#' @param features a character vector. 
-#'   Specifies which antigens to use for clustering. The default (NULL) 
-#'   uses \code{type_markers(x)}. Must be provided if 
-#'   \code{rowData(x)$marker_class} has not been specified.
+#' @param features a character vector specifying 
+#'   which antigens to use for clustering; valid values are
+#'   \code{"type"/"state"} for \code{type/state_markers(x)} 
+#'   if \code{rowData(x)$marker_class} have been specified; 
+#'   a subset of \code{rownames(x)}; NULL to use all features.
 #' @param xdim,ydim 
 #'   numeric. Specify the grid size of the self-orginizing map. 
 #'   The default 10x10 grid will yield 100 clusters. 
@@ -24,20 +23,18 @@
 #' @param verbose logical. Should information on progress be reported?
 #' @param seed numeric. Sets random seed in \code{ConsensusClusterPlus()}.
 #' 
-#' @return 
-#' The function will add information to the following slots 
-#' of the input \code{daFrame} (and return it):
+#' @return a \code{SingleCellEcperiment} with the following newly added data:
 #' \itemize{
-#' \item{\code{rowData}\itemize{
+#' \item{\code{colData}\itemize{
 #' \item{\code{cluster_id}:
 #'   each cell's cluster ID as inferred by \code{FlowSOM}. 
 #'   One of 1, ..., \code{xdim}x\code{ydim}.}
 #' }}
-#' \item{\code{colData}\itemize{
-#' \item{\code{marker_class}: 
-#'   \code{"type"} or \code{"state"}. 
-#'   Specifies whether an antigen has been used for clustering 
-#'   or not, respectively.}
+#' \item{\code{rowData}\itemize{
+#' \item{\code{marker_class}: added when previosly unspecified. \code{"type"}
+#'   when an antigen has been used for clustering, otherwise \code{"state"}.}
+#' \item{\code{used_for_clustering}: logical indicating 
+#'   whether an antigen has been used for clustering.}
 #' }}
 #' \item{\code{metadata}\itemize{
 #' \item{\code{SOM_codes}:
@@ -75,6 +72,14 @@
 #' # run clustering
 #' (sce <- cluster(sce))
 #' 
+#' #' # view delta area plot
+#' library(SingleCellExperiment)
+#' metadata(sce)$delta_area
+#' 
+#' # exract cluster IDs for a specific resolution
+#' cluster_ids_meta8 <- cluster_ids(sce, k = "meta8")
+#' table(cluster_ids_meta8)
+#' 
 #' @import ConsensusClusterPlus ggplot2
 #' @importFrom dplyr %>% mutate_all
 #' @importFrom flowCore flowFrame
@@ -88,7 +93,7 @@
 #' @importFrom S4Vectors DataFrame
 #' @export
 
-cluster <- function(x, features = NULL,
+cluster <- function(x, features = "type",
     xdim=10, ydim=10, maxK=20, verbose=TRUE, seed=1) {
     
     # validity checks
@@ -96,32 +101,25 @@ cluster <- function(x, features = NULL,
     stopifnot(is.logical(verbose), length(verbose) == 1,
         vapply(list(xdim, ydim, maxK, seed), function(arg) 
             is.numeric(arg) && length(arg) == 1, logical(1)))
-    
-    if (is.null(features)) {
-        stopifnot("marker_class" %in% colnames(rowData(x)))
-        features <- type_markers(x)
-        if (length(features) < 2)
-            stop("<=2 antigens have been assigned",
-                " to class ", dQuote("type"), ".")
-    } else {
-        # replace problematic characters
-        features <- gsub("-", "_", features)
-        features <- gsub(":", ".", features)
-        stopifnot(features %in% rownames(x))
-        # assign marker classes
+    features <- .get_features(x, features)
+
+    # assign marker classes if unspecified
+    if (is.null(marker_classes(x))) {
         rowData(x)$marker_class <- factor(c("state", "type")[
-            as.numeric(rownames(x) %in% features)+1],
-            levels=c("type", "state", "none"))
+            as.numeric(rownames(x) %in% features)+1], 
+            levels = c("type", "state", "none"))
     }
+    # store which markers were used for clustering
+    rowData(x)$used_for_clustering <- rownames(x) %in% features
     
-    # flowSOM clustering
+    # do 'FlowSOM' clustering
     if (verbose)
         message("o running FlowSOM clustering...")
     fsom <- ReadInput(flowFrame(t(assay(x, "exprs"))))
     som <- BuildSOM(fsom, colsToUse=features, 
         silent=TRUE, xdim=xdim, ydim=ydim)
     
-    # metaclustering
+    # do 'ConsensusClusterPlus' metaclustering
     if (verbose)
         message("o running ConsensusClusterPlus metaclustering...")
     pdf(NULL)
@@ -133,10 +131,13 @@ cluster <- function(x, features = NULL,
     k <- xdim * ydim
     mcs <- seq_len(maxK)[-1]
     
+    # construct data.frame of cluster codes for each resolution
     codes <- data.frame(seq_len(k), map(mc[-1], "consensusClass"))
     codes <- mutate_all(codes, function(u) factor(u, levels = sort(unique(u))))
     colnames(codes) <- c(sprintf("som%s", k), sprintf("meta%s", mcs))
     
+    # store cluster assignments in cell metadata;
+    # cluster, SOM codes & delta area plot in metadata
     x$cluster_id <- factor(som$map$mapping[, 1])
     metadata(x)$cluster_codes <- codes
     metadata(x)$SOM_codes <- som$map$codes

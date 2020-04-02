@@ -1,8 +1,5 @@
-# ==============================================================================
-# Accessor & replacement methods for class daFrame
-# ------------------------------------------------------------------------------
 #' @rdname SCE-utils
-#' @title \code{\link{SingleCellExperiment}} convencience functions
+#' @title \code{SingleCellExperiment} convencience functions
 #' @aliases exprs marker_classes type_markers state_markers
 #'   n_cells sample_ids cluster_ids ei cluster_codes
 #' 
@@ -68,11 +65,9 @@
 #' library(SingleCellExperiment)
 #' metadata(sce)$delta_area
 
-#' @rdname SCE-utils
 #' @importFrom S4Vectors metadata
 setMethod("ei", "SingleCellExperiment",
     function(x) {
-        stopifnot("experiment_info" %in% names(metadata(x)))
         metadata(x)$experiment_info
     }
 )

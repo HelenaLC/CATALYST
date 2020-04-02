@@ -2,18 +2,27 @@
 % Please edit documentation in R/cluster.R
 \name{cluster}
 \alias{cluster}
-\title{FlowSOM clustering & ConsensusClusterPlus metaclustering}
+\title{\code{FlowSOM} clustering & 
+\code{ConsensusClusterPlus} metaclustering}
 \usage{
-cluster(x, features = NULL, xdim = 10, ydim = 10, maxK = 20,
-  verbose = TRUE, seed = 1)
+cluster(
+  x,
+  features = "type",
+  xdim = 10,
+  ydim = 10,
+  maxK = 20,
+  verbose = TRUE,
+  seed = 1
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{features}{a character vector. 
-Specifies which antigens to use for clustering. The default (NULL) 
-uses \code{type_markers(x)}. Must be provided if 
-\code{rowData(x)$marker_class} has not been specified.}
+\item{features}{a character vector specifying 
+which antigens to use for clustering; valid values are
+\code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
 
 \item{xdim, ydim}{numeric. Specify the grid size of the self-orginizing map. 
 The default 10x10 grid will yield 100 clusters.}
@@ -27,19 +36,18 @@ metaclustering will be performed for 2 through 20 clusters.}
 \item{seed}{numeric. Sets random seed in \code{ConsensusClusterPlus()}.}
 }
 \value{
-The function will add information to the following slots 
-of the input \code{daFrame} (and return it):
+a \code{SingleCellEcperiment} with the following newly added data:
 \itemize{
-\item{\code{rowData}\itemize{
+\item{\code{colData}\itemize{
 \item{\code{cluster_id}:
   each cell's cluster ID as inferred by \code{FlowSOM}. 
   One of 1, ..., \code{xdim}x\code{ydim}.}
 }}
-\item{\code{colData}\itemize{
-\item{\code{marker_class}: 
-  \code{"type"} or \code{"state"}. 
-  Specifies whether an antigen has been used for clustering 
-  or not, respectively.}
+\item{\code{rowData}\itemize{
+\item{\code{marker_class}: added when previosly unspecified. \code{"type"}
+  when an antigen has been used for clustering, otherwise \code{"state"}.}
+\item{\code{used_for_clustering}: logical indicating 
+  whether an antigen has been used for clustering.}
 }}
 \item{\code{metadata}\itemize{
 \item{\code{SOM_codes}:
@@ -56,10 +64,7 @@ of the input \code{daFrame} (and return it):
 \description{
 \code{cluster} will first group cells into \code{xdim}x\code{ydim} 
 clusters using \pkg{FlowSOM}, and subsequently perform metaclustering 
-with \pkg{ConsensusClusterPlus} into 2 through \code{maxK} clusters. 
-In the returned \code{daFrame}, those antigens used for clustering will be 
-labelled as '\code{type}' markers, and the remainder of antigens as 
-'\code{state}' markers.
+with \pkg{ConsensusClusterPlus} into 2 through \code{maxK} clusters.
 }
 \details{
 The delta area represents the amount of extra cluster stability gained when 
@@ -76,6 +81,14 @@ sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 
 # run clustering
 (sce <- cluster(sce))
+
+#' # view delta area plot
+library(SingleCellExperiment)
+metadata(sce)$delta_area
+
+# exract cluster IDs for a specific resolution
+cluster_ids_meta8 <- cluster_ids(sce, k = "meta8")
+table(cluster_ids_meta8)
 
 }
 \references{

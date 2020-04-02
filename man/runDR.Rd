@@ -4,8 +4,14 @@
 \alias{runDR}
 \title{Dimension reduction}
 \usage{
-runDR(x, dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"),
-  cells = NULL, features = NULL, assay = "exprs", ...)
+runDR(
+  x,
+  dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"),
+  cells = NULL,
+  features = "type",
+  assay = "exprs",
+  ...
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -15,10 +21,11 @@ runDR(x, dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"),
 \item{cells}{single numeric specifying the maximal number of cells
 per sample to use for dimension reduction; NULL for all cells.}
 
-\item{features}{specifies the features to use for dimension reduction. 
-Either a character string specifying a subset of features,
-or NULL for all features. When \code{rowData(x)$marker_class} 
-is specified, can be one of "type", "state", or "none".}
+\item{features}{a character vector specifying 
+which antigens to use for clustering; valid values are
+\code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
 
 \item{assay}{character string specifying 
 which assay of \code{x} conatins expression values.}

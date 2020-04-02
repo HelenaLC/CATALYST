@@ -1,8 +1,8 @@
 #' @rdname mergeClusters
 #' @title Manual cluster merging
 #'
-#' @description \code{mergeClusters} provides a simple wrapper 
-#' to store a manual merging inside the input \code{daFrame}.
+#' @description \code{mergeClusters} provides a simple wrapper to
+#' store a manual merging inside the input \code{SingleCellExperiment}.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param k a character string specifying the clustering to merge.
@@ -11,16 +11,17 @@
 #'   merge in the 1st, and the cluster IDs to newly assign in the 2nd column.
 #' @param id character string. Used as a label for the merging.
 #' 
-#' @details 
-#' in the following code snippets, \code{x} is a \code{daFrame} object.
+#' @details in the following code snippets, 
+#' \code{x} is a \code{SingleCellExperiment} object.
 #' \itemize{
 #' \item{merging codes are accesible through \code{cluster_codes(x)$id}}
 #' \item{all functions that ask for specification of a clustering 
 #'   (e.g. \code{\link{plotAbundances}}, \code{\link{plotClusterHeatmap}})
 #'   take the merging ID as a valid input argument.}}
 #' 
-#' @return Writes the newly assigend cluster codes into the metadata slot 
-#' \code{cluster_codes} of the input \code{daFrame} and returns the latter.
+#' @return Writes the newly assigend cluster codes into 
+#' the metadata slot \code{cluster_codes} of the input 
+#' \code{SingleCellExperiment} and returns the latter.
 #' 
 #' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 #' 

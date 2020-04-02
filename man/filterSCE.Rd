@@ -2,7 +2,7 @@
 % Please edit documentation in R/filterSCE.R
 \name{filterSCE}
 \alias{filterSCE}
-\title{`SingleCellExperiment` filtering}
+\title{\code{SingleCellExperiment} filtering}
 \usage{
 filterSCE(x, ..., k = NULL)
 }

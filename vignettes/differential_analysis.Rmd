@@ -93,7 +93,7 @@ md2 <- PBMC_md
 colnames(md2) <- c("file", "sampleID", "cond1", "patientID")
 md2$cond2 <- rep(c("A", "B"), 4)
 
-# construct daFrame
+# construct SCE
 prepData(PBMC_fs, panel2, md2, 
     panel_cols = list(channel = "channel_name", antigen = "marker"),
     md_cols = list(file = "file", id = "sampleID", 
@@ -147,7 +147,7 @@ sce <- cluster(sce, features = lineage_markers,
     xdim = 10, ydim = 10, maxK = 20, verbose = FALSE, seed = 1)       
 ```
 
-Let K = `xdim` x `ydim` be the number of `r Biocpkg("FlowSOM")` clusters. `cluster` will add information to the following slots of the input `daFrame`: 
+Let K = `xdim` x `ydim` be the number of `r Biocpkg("FlowSOM")` clusters. `cluster` will add information to the following slots of the input `SingleCellExperiment`: 
 
 - `rowData`:
   - `cluster_id`: cluster ID as inferred by `r Biocpkg("FlowSOM")`. One of 1, ..., K.
@@ -197,7 +197,7 @@ plotClusterExprs(sce, k = "meta8", features = "type")
 
 ## `mergeClusters`: Manual cluster merging
 
-Provided with a 2 column data.frame containing `old_cluster` and `new_cluster` IDs, `mergeClusters` allows for manual cluster merging of any clustering available within the input `daFrame` (i.e. the `xdim` x `ydim` `r Biocpkg("FlowSOM")` clusters, and any of the 2-`maxK` `r Biocpkg("ConsensusClusterPlus")` metaclusters). For latter accession (visualization, differential testing), the function will assign a unique ID (specified with `id`) to each merging, and add a column to the `cluster_codes` inside the `metadata` slot of the input `daFrame`. 
+Provided with a 2 column data.frame containing `old_cluster` and `new_cluster` IDs, `mergeClusters` allows for manual cluster merging of any clustering available within the input `SingleCellExperiment` (i.e. the `xdim` x `ydim` `r Biocpkg("FlowSOM")` clusters, and any of the 2-`maxK` `r Biocpkg("ConsensusClusterPlus")` metaclusters). For latter accession (visualization, differential testing), the function will assign a unique ID (specified with `id`) to each merging, and add a column to the `cluster_codes` inside the `metadata` slot of the input `SingleCellExperiment`. 
 
 ```{r}
 data(merging_table)
@@ -285,7 +285,7 @@ plot_grid(
 
 # Differental testing with `r Biocpkg("diffcyt")`
 
-`r Biocpkg("CATALYST")` has been designed to be compatible with the `r Biocpkg("diffcyt")` package [@diffcyt], which implements statistical methods for differential discovery in high-dimensional cytometry (including flow cytometry, mass cytometry or CyTOF, and oligonucleotide-tagged cytometry) using high-resolution clustering and moderated tests. The input to the `r Biocpkg("diffcyt")` pipeline can either be raw data, or a `daFrame` object. We give an exmaple of the latter below.  
+`r Biocpkg("CATALYST")` has been designed to be compatible with the `r Biocpkg("diffcyt")` package [@diffcyt], which implements statistical methods for differential discovery in high-dimensional cytometry (including flow cytometry, mass cytometry or CyTOF, and oligonucleotide-tagged cytometry) using high-resolution clustering and moderated tests. The input to the `r Biocpkg("diffcyt")` pipeline can either be raw data, or a `SingleCellExperiment` object. We give an example of the latter below.  
 Please refer to the `r Biocpkg("diffcyt")` [vignette](https://bioconductor.org/packages/3.7/bioc/vignettes/diffcyt/inst/doc/diffcyt_workflow.html) and R documentation (`??diffcyt`) for more detailed information.
 
 ```{r message=FALSE, warning=FALSE, fig.show='hide'}

@@ -83,7 +83,7 @@
 }
 
 # ==============================================================================
-# Validity check for columns (used in daFrame constructor): should be...
+# Validity check for columns (used in SCE constructor): should be...
 #        - a logical vector
 #        - numeric vector of indices
 #        - character vector of column names

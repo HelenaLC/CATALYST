@@ -134,8 +134,9 @@
         line$Sample <- rep(bc_labs, each=length(seps))
         
         p <- suppressWarnings(ggplot() + 
-            geom_bar(data=hist, aes_string(x="seps", y="counts"), width=1/101, 
-                stat="identity", fill="lightgrey", col="white") +
+            geom_bar(data=hist, aes_string(x="seps", y="counts"), 
+                width=1/101, fill="lightgrey", col="white",
+                orientation="x", stat="identity") +
             geom_line(data=line, size=.5, aes_string(x="seps", y="value",
                 col="as.factor(variable)", text="Sample")) +
             guides(colour=guide_legend(override.aes=list(size=1))) +
@@ -150,8 +151,9 @@
         inds <- seq(1, nrow(df), 2)
         
         p <- ggplot(df) + 
-            geom_bar(aes_string(x="Cutoff", y="Count"), width=1/101, size=.3, 
-                stat="identity", fill="lavender", colour="darkslateblue") +
+            geom_bar(aes_string(x="Cutoff", y="Count"), 
+                width=1/101, size=.3, fill="lavender", colour="darkslateblue",
+                orientation="x", stat="identity") +
             geom_point(data=data.frame(df[inds, ]),
                 aes_string(x="Cutoff", y="yield", group="Yield"), 
                 fill="mintcream", color="aquamarine4", 
