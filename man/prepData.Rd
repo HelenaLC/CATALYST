@@ -47,7 +47,7 @@ that contain the FCS file names, sample IDs, and factors of interest
 (batch, condition, treatment etc.).}
 }
 \value{
-an object of class \code{daFrame}.
+a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 }
 \description{
 Data preparation

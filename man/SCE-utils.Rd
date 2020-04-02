@@ -19,7 +19,7 @@
 \alias{sample_ids,SingleCellExperiment-method}
 \alias{cluster_ids,SingleCellExperiment,missing-method}
 \alias{cluster_ids,SingleCellExperiment,character-method}
-\title{\code{\link{SingleCellExperiment}} convencience functions}
+\title{\code{SingleCellExperiment} convencience functions}
 \usage{
 ei(x)
 
