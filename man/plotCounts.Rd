@@ -9,7 +9,8 @@ plotCounts(x, color_by = "condition", anno = TRUE)
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{color_by}{character string specifying a \code{colData(x)} column to color by.}
+\item{color_by}{character string specifying 
+a non-numeric \code{colData(x)} column to color by.}
 
 \item{anno}{logical. Whether to annotate cell numbers as text above bars.}
 }
