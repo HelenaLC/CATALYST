@@ -1,5 +1,5 @@
 #' @rdname filterSCE
-#' @title `SingleCellExperiment` filtering
+#' @title \code{SingleCellExperiment} filtering
 #' 
 #' @description Filters cells/features from a \code{SingleCellExperiment} 
 #'   using conditional statements a la \code{dplyr}.
@@ -36,22 +36,26 @@
 
 filterSCE <- function(x, ..., k = NULL) {
     
-    rd <- vapply(rowData(x), as.character, character(nrow(x)))
-    cd <- vapply(colData(x), as.character, character(ncol(x)))
-    rd <- data.frame(i=seq_len(nrow(x)), rd, 
-        check.names=FALSE, stringsAsFactors=FALSE)
-    cd <- data.frame(i=seq_len(ncol(x)), cd, 
-        check.names=FALSE, stringsAsFactors=FALSE)
-    
-    # get cluster IDs for specified clustering
+    # check validity of input arguments
+    stopifnot(is(x, "SingleCellExperiment"))
     if (is.null(k)) 
         k <- names(cluster_codes(x))[1] 
-    k <- .check_validity_of_k(x, k)   
+    k <- .check_validity_of_k(x, k)  
+    
+    # construct data.frames of cell & feature metadata
+    rd <- vapply(rowData(x), as.character, character(nrow(x)))
+    cd <- vapply(colData(x), as.character, character(ncol(x)))
+    rd <- data.frame(i = seq_len(nrow(x)), rd, 
+        check.names = FALSE, stringsAsFactors = FALSE)
+    cd <- data.frame(i = seq_len(ncol(x)), cd, 
+        check.names = FALSE, stringsAsFactors = FALSE)
+    
+    # get cluster IDs for specified clustering
     cd$cluster_id <- cluster_ids(x, k)
     
     # filter rows & columns
-    rdf <- try(dplyr::filter(rd, ...), silent=TRUE)
-    cdf <- try(dplyr::filter(cd, ...), silent=TRUE)
+    rdf <- try(dplyr::filter(rd, ...), silent = TRUE)
+    cdf <- try(dplyr::filter(cd, ...), silent = TRUE)
     if (inherits(rdf, "try-error")) rdf <- rd
     if (inherits(cdf, "try-error")) cdf <- cd
     ri <- rdf$i; rdf <- select(rdf, -"i")
@@ -74,26 +78,26 @@ filterSCE <- function(x, ..., k = NULL) {
         n_cells <- table(cdf$sample_id)
         m <- match(ei$sample_id, levels(cdf$sample_id))
         ei$n_cells <- as.numeric(n_cells[m])
-        md$experiment_info <- ei
+        md$experiment_info <- droplevels(ei)
     }
     
-    # revert colData(x)$cluster_id to 100 SOM clusters
-    # and refactor colData factor columns
-    cdf$cluster_id <- factor(x$cluster_id[ci], levels=levels(x$cluster_id))
-    for (i in colnames(cdf)) if (i %in% names(ei))
-        cdf[[i]] <- droplevels(factor(cdf[[i]], levels=levels(ei[[i]])))
+    # revert cluster IDs to 100 SOM clusters
+    cdf$cluster_id <- factor(x$cluster_id[ci], levels = levels(x$cluster_id))
+    
+    # refactor 'colData' columns
+    for (i in intersect(colnames(cdf), names(ei)))
+        cdf[[i]] <- factor(cdf[[i]], levels = levels(ei[[i]]))
+    cdf <- droplevels(cdf)
     
     # subset reduced dimensions
     if (length(reducedDims(x)) > 0) {
         dr <- reducedDims(x)
-        dr <- lapply(dr, "[", i=ci, j=TRUE)
-    } else {
-        dr <- NULL
-    }
+        dr <- lapply(dr, "[", i = ci, j = TRUE)
+    } else dr <- NULL
     
-    # returned filtered SCE
-    SingleCellExperiment(
-        assays=lapply(assays(x), "[", i=ri, j=ci), 
-        rowData=rdf, colData=cdf, 
-        reducedDims=dr, metadata=md)
+    # subset assays & returned filtered SCE
+    as <- lapply(assays(x), "[", i = ri, j = ci)
+    SingleCellExperiment(assays = as, 
+        rowData = rdf, colData = cdf, 
+        reducedDims = dr, metadata = md)
 }

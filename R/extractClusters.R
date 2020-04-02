@@ -1,10 +1,9 @@
 #' @rdname extractClusters
-#' @title Extract clusters from a \code{daFrame}
+#' @title Extract clusters from a \code{SingleCellExperiment}
 #' 
-#' @description 
-#' Extracts clusters from a \code{daFrame}. Populations will be 
-#' either returned as a \code{flowSet} or written to FCS files,
-#' depending on argument \code{as}.
+#' @description Extracts clusters from a \code{SingleCellExperiment}. 
+#' Populations will be either returned as a \code{flowSet} or written 
+#' to FCS files, depending on argument \code{as}.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param k 
