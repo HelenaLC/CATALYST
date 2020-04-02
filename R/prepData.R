@@ -24,7 +24,7 @@
 #'   that contain the FCS file names, sample IDs, and factors of interest
 #'   (batch, condition, treatment etc.).
 #'   
-#' @return an object of class \code{daFrame}.
+#' @return a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
