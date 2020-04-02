@@ -405,12 +405,12 @@ plot_grid(plotlist = ps, nrow = 1, align = "v")
 
 # Gating & scatter plots
 
-## `gateCytof`: Rectangular, eliptical & polygonal gates
+## `gateCytof`: Rectangular, elliptical & polygonal gates
 
 `CATALYST`s `gateCytof` currently supports the following `type`s of gates:
 
 - `rect`: Rectangular gate with boundaries specified via `xy = list(c(xmin, ymin), c(xmax, ymax))`.
-- `elip`: Eliptical gate with the upper quantile to be removed specified via `q`, the number of cluster centers specified via `k`, and the target cluster center specified via `xy = c(x, y)`; if `k = NULL`, `gateCytof` will estimate the number of clusters via maximizing the average Silhouette information for $k\in[2,...,5]$.
+- `elip`: Elliptical gate with the upper quantile to be removed specified via `q`, the number of cluster centers specified via `k`, and the target cluster center specified via `xy = c(x, y)`; if `k = NULL`, `gateCytof` will estimate the number of clusters via maximizing the average Silhouette information for $k\in[2,...,5]$.
 - `live`: Live-gate with the upper quantile to be removed specified via `q`, and line parameters specified via `i` (intercept) and `s` (slope).
 
 The pair of channels to which the gate should be applied with is given by `chs` for all type of gates. Besides general gating parameters (`xy`, `q`, `k`, `i` and `s`), `gateCytof` allows for i) gating on a subset of cells selected by a previos gate (argument `gate_on`); and, ii) applying group-specific gates (argument `group_by`).
@@ -465,9 +465,9 @@ sapply(gate_ids, function(u) {
 })
 ```
 
-### Example 2: Partly specific eliptical gates
+### Example 2: Partly specific elliptical gates
 
-Gating parameters can be applied in a group-specific manner. In the example below, we first gate for cells with respect to their DNA expression applying a 95%-quantile (argument `q`) eliptical gate separately for each sample. Secondly, we loosen the gate for one sample and tighten it for the other.
+Gating parameters can be applied in a group-specific manner. In the example below, we first gate for cells with respect to their DNA expression applying a 95%-quantile (argument `q`) elliptical gate separately for each sample. Secondly, we loosen the gate for one sample and tighten it for the other.
 
 There are a view ways in which quantiles can be specified, and `gateCytof` will handel them as follows (the same applies to arguments `k`, and `i` and `s` for live gates): 
 
