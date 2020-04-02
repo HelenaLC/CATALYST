@@ -57,7 +57,7 @@
 #' library(SingleCellExperiment)
 #' i <- "Dy162Di"; j <- "Dy163Di"
 #' par(mfrow = c(1, 2))
-#' for (a in c("exprs", "exprs_comped"))
+#' for (a in c("exprs", "exprs.nnlscomped"))
 #'   plot(main = a, xlab = i, ylab = j,
 #'     assay(sce[i, ], a), assay(sce[j, ], a))
 #'
