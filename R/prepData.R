@@ -51,12 +51,11 @@ prepData <- function(x, panel, md,
     md_cols=list(file="file_name", id="sample_id", 
         factors=c("condition", "patient_id"))) {
     
-    # check validity of input arguments
+    # assure panel & metadata are data.frames
     for (u in c("panel", "md"))
-        if (!isTRUE(class(v <- get(u)) == "data.frame"))
-            assign(u, data.frame(v, 
-                check.names = FALSE, 
-                stringsAsFactors = FALSE))
+        assign(u, data.frame(get(u), 
+            check.names = FALSE, 
+            stringsAsFactors = FALSE))
     
     # fill up missing values with function defaults
     stopifnot(is.list(panel_cols), is.list(md_cols))
