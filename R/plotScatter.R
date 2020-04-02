@@ -1,14 +1,13 @@
 #' @rdname plotScatter
 #' @title Scatter plot
 #' 
-#' @description 
+#' @description Bivariate scatter plots including visualization of
+#' (group-specific) gates, their boundaries and percentage of selected cells.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param chs character string of length 2 specifying which channels to plot.
 #'   Should be one of \code{rownames(x)} or \code{names([int_]colData(x))},
 #'   and correspond to a numeric or logical variable.
-#' @param assay character string specifying which assay data to use.
-#'   Should be one of \code{assayNames(x)}.
 #' @param gate_id a character vector specifying 
 #'   a gate added via \code{\link{gateCytof}}.
 #' @param show_gate logical. If \code{gate_id} is specified, specifies 
@@ -19,6 +18,10 @@
 #' @param color_by specifies the color coding. If \code{gate_id} is specified, 
 #'   \code{color_by = "selection"} will color cells in a binary fashion, 
 #'   i.e., whether cells fall within the gate's boundary or not.
+#' @param bins numeric of length 1 giving the number of bins 
+#'   for \code{\link[ggplot2]{geom_hex}} when coloring by density.
+#' @param assay character string specifying which assay data to use.
+#'   Should be one of \code{assayNames(x)}.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -42,14 +45,15 @@
 #' @import ggplot2
 #' @importFrom methods is
 #' @importFrom reshape2 melt
-#' @importFrom matrixStats colMaxs
+#' @importFrom matrixStats colMaxs colMins
 #' @importFrom SingleCellExperiment int_colData
 #' @importFrom SummarizedExperiment assay assayNames colData
 #' @export
 
-plotScatter <- function(x, chs = NULL, gate_id = NULL, 
-    show_gate = TRUE, show_perc = TRUE, bins = 100,
-    assay = "exprs", color_by = NULL) {
+plotScatter <- function(x, 
+    chs = NULL, gate_id = NULL, 
+    show_gate = TRUE, show_perc = TRUE, 
+    assay = "exprs", color_by = NULL, bins = 100) {
     # check validity of input arguments
     stopifnot(is(x, "SingleCellExperiment"))
     cd_vars <- c(names(colData(x)), names(int_colData(x)))

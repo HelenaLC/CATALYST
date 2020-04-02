@@ -10,9 +10,9 @@ plotScatter(
   gate_id = NULL,
   show_gate = TRUE,
   show_perc = TRUE,
-  bins = 100,
   assay = "exprs",
-  color_by = NULL
+  color_by = NULL,
+  bins = 100
 )
 }
 \arguments{
@@ -38,12 +38,16 @@ Should be one of \code{assayNames(x)}.}
 \item{color_by}{specifies the color coding. If \code{gate_id} is specified, 
 \code{color_by = "selection"} will color cells in a binary fashion, 
 i.e., whether cells fall within the gate's boundary or not.}
+
+\item{bins}{numeric of length 1 giving the number of bins 
+for \code{\link[ggplot2]{geom_hex}} when coloring by density.}
 }
 \value{
 a \code{ggplot} object.
 }
 \description{
-
+Bivariate scatter plots including visualization of
+(group-specific) gates, their boundaries and percentage of selected cells.
 }
 \examples{
 data(raw_data)
