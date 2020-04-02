@@ -4,7 +4,8 @@
 #' @description Barplot of the number of cells measured for each sample.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
-#' @param color_by character string specifying a \code{colData(x)} column to color by.
+#' @param color_by character string specifying 
+#'   a non-numeric \code{colData(x)} column to color by.
 #' @param anno logical. Whether to annotate cell numbers as text above bars.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
