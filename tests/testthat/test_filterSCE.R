@@ -16,7 +16,7 @@ test_that("filterSCE", {
     s <- sample(sids, sample(ns, 1))
     y <- filterSCE(sce, sample_id %in% s)
     expect_identical(ncol(y), sum(sce$sample_id %in% s))
-    expect_identical(ei(y), filter(ei(sce), sample_id %in% s))
+    expect_identical(ei(y), droplevels(filter(ei(sce), sample_id %in% s)))
     expect_equal(sum(ei(y)$n_cells), ncol(y))
     m <- match(levels(y$sample_id), ei(y)$sample_id)
     expect_equal(ei(y)$n_cells[m], as.numeric(table(y$sample_id)))
