@@ -9,6 +9,21 @@
     "#aa8282", "#d4b7b7", "#8600bf", "#ba5ce3", "#808000",
     "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
+.get_features <- function(x, features) {
+    if (is.null(features)) {
+        features <- rownames(x)
+    } else if (length(features) > 1) {
+        stopifnot(features %in% rownames(x))
+    } else {
+        stopifnot(!is.null(marker_classes(x)))
+        features <- match.arg(features, c("type", "state"))
+        features <- get(paste0(features, "_markers"))(x)
+        if (length(features) == 0)
+            stop("No features matched the specified marker class.")
+    }
+    return(features)
+}
+
 # ==============================================================================
 # scale expression to values b/w 0 and 1 using 
 # low (1%) and high (99%) quantiles as boundaries
@@ -33,6 +48,7 @@
 #' @importFrom Matrix rowSums
 #' @importFrom stats prcomp
 .nrs <- function(u, n=3) {
+    if (ncol(u) < n) return(NULL)
     pc <- prcomp(t(u), center=TRUE, scale.=FALSE)
     rowSums(abs(pc$rotation[, seq_len(n)]) 
         *outer(rep(1, nrow(u)), pc$sdev[seq_len(n)]^2))
