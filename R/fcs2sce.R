@@ -133,7 +133,7 @@ fcs2sce <- function(x,
     # (optionally) apply arcsinh-transformation
     if (transform) {
         metadata(sce)$cofactor <- cofactor
-        assay(sce, "exprs", withDimnames = FALSE) <- asinh(assay(sce) / cofactor)
+        assay(sce, "exprs", FALSE) <- asinh(assay(sce) / cofactor)
     }
     return(sce)
 }
