@@ -10,6 +10,10 @@
 #'   and correspond to a numeric variable.
 #' @param type character string specifying the gate type:
 #'   "rect" for rectangular, "elip" for eliptical, or "live" for polygonal.
+#' @param xy for "elip" gates, a numeric vectors of length 2
+#'   giving the x- and y- coordinates for the ellipse's center;
+#'   for "rect" gates, a list of rectangular gate boundaries
+#'   formatted as `list(c(xmin, ymin), c(xmax, ymax))`.
 #' @param q numeric in (0,1) giving the quantile(s) 
 #'   for gate of type "elip" and "live".
 #' @param k integer number of cluster centers for eliptical gates.
@@ -106,8 +110,8 @@ gateCytof <- function(x,
         & gate_on %in% names(int_metadata(x)$gates),
         is.character(assay), length(assay) == 1, assay %in% assayNames(x),
         is.logical(overwrite), length(overwrite) == 1)
-    for (u in c("q", "i", "s")) 
-        assign(u, .get_gate_pars(get(u), x, group_by, par))
+    for (u in c("q", "i", "s"))
+        assign(u, .get_gate_pars(get(u), x, group_by, u))
     
     # construct unique ID if 'gate_id' is not specified
     if (is.null(gate_id)) {

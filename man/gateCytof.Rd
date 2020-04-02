@@ -30,6 +30,11 @@ and correspond to a numeric variable.}
 \item{type}{character string specifying the gate type:
 "rect" for rectangular, "elip" for eliptical, or "live" for polygonal.}
 
+\item{xy}{for "elip" gates, a numeric vectors of length 2
+giving the x- and y- coordinates for the ellipse's center;
+for "rect" gates, a list of rectangular gate boundaries
+formatted as `list(c(xmin, ymin), c(xmax, ymax))`.}
+
 \item{q}{numeric in (0,1) giving the quantile(s) 
 for gate of type "elip" and "live".}
 
