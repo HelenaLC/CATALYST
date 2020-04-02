@@ -1,52 +1,9 @@
-=========================
-  *** Version 1.4.0 ***
--------------------------
+------------------------------------ 1.10.3 ------------------------------------
 
-CATALYST now provides a series of visualization tools 
-for differential analysis. These have been adapted from 
+o filterSCE() now drops non-existent levels in metadata(.)$experiment_info
+  
+o plotNRS() no-longer fails when samples have an insufficient number of cells;
+  added check.names = FALSE in data.frame() to prevent renaming of antigens
 
-  Nowicka M, Krieg C, Weber LM et al.
-
-       "CyTOF workflow: differential discovery in
-  high-throughput high-dimensional cytometry datasets"
-
-  F1000Research 2017, 6:748 (doi: 10.12688/f1000research.11622.2)
-
-and may be used in conjunction with
-
-  Weber L (2018) 
-
-  "diffcyt: differential discovery in high-dimensional 
-        cytometry via high-resolution clustering" 
-
-  R package version 0.99.11, https://github.com/lmweber/diffcyt
-
---------------------------------------------------
-
-o Data returned by & used throughout differential analysis
-  are held in objects of the 'daFrame-class'
-
-o The following functions are newly available:
-
-  - plotCounts(), plotMDS(), plotExprs(), plotMedsExprs():
-      > general overview of data features
-
-  - plotNRS(): 
-      > non-redundancy scores
-
-  - tSNE(), plotSNE():
-      > run & visualize t-SNE
-
-  - cluster(), mergeClusters():
-      > FlowSOM clustering, ConsensusClusterPlus 
-        meta-clustering, and manual cluster merging
-
-  - plotCodes():
-      > PCA & t-SNE of SOM codes 
-    
-  - plotAbundances():
-      > relative cluster abundances
-
-  - plotClusterHeatmap(), plotDiffHeatmap()
-      > ComplexHeatmap's summarizing clustering,
-        meta-clustering & differential analysis results
+o any mention of the daFrame class has been replaced by SingleCellExperiment
+  in all function documentation and the differential analysis vignette
