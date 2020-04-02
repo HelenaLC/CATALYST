@@ -39,7 +39,6 @@
     }  
     return(x)
 }
-
 # define live cell gate based on 'openCyto' 
 # plug-in from http://opencyto.org/plugins.html
 # x = expression matrix, q = quantile, bs = line intercept & slope
