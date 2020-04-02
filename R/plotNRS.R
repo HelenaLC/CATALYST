@@ -41,7 +41,7 @@ plotNRS <- function(x, features=NULL, color_by="condition") {
     
     # check validity of input arguments
     stopifnot(is(x, "SingleCellExperiment"), 
-        is.character(color_by), length(color_by == 1),
+        is.character(color_by), length(color_by) == 1,
         sum(color_by == names(colData(x))) == 1)
     features <- .get_features(x, features)
     
