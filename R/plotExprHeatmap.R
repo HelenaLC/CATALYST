@@ -12,11 +12,11 @@
 #' @param palette character vector of colors to interpolate. 
 #' @param scale logical. Should scaled values be displayed? (see details)
 #' @param draw_freqs logical. Should cell counts and proportions be displayed?
-#' @param cluster logical. Should row clustering be drawn?
 #' @param clustering_distance character string that specifies 
 #'   the metric to use in \code{\link[stats]{dist}} for clustering.
 #' @param clustering_linkage character string that specifies 
 #'   the linkage to use in \code{\link[stats]{hclust}} for clustering.
+#' 
 #' @details Scaled values corresponds to cofactor arcsinh-transformed 
 #' expression values scaled between 0 and 1 using 1% and 99% percentiles as 
 #' boundaries. Hierarchical clustering is performed on the unscaled data.
@@ -47,22 +47,15 @@
 #' @export
 
 plotExprHeatmap <- function(x, bin_anno=TRUE, row_anno=TRUE,
-                            palette=brewer.pal(n=8, name="YlGnBu"), scale=TRUE, draw_freqs=FALSE, 
-                            cluster = TRUE, clustering_distance="euclidean", 
-                            clustering_linkage="average") {
+                            palette=brewer.pal(n=8, name="YlGnBu"), scale=TRUE, draw_freqs=FALSE,  
+                            clustering_distance="euclidean", clustering_linkage="average") {
   
   .check_sce(x)
   
   # compute medians across samples
   ms <- t(.agg(x, "sample_id"))
-  
-  if (cluster) {
-    d <- dist(ms, method=clustering_distance)
-    row_clustering <- hclust(d, method=clustering_linkage)
-  } else {
-    row_clustering <- FALSE
-  }
-  
+  d <- dist(ms, method=clustering_distance)
+  row_clustering <- hclust(d, method=clustering_linkage)
   if (scale) ms <- .scale_exprs(ms, 2)
   
   # barplots of event counts
