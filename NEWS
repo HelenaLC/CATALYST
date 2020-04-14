@@ -1,52 +1,69 @@
-=========================
-  *** Version 1.4.0 ***
--------------------------
+------------------------------------ 1.12.0 ------------------- Bioc 3.11, R 4.0
 
-CATALYST now provides a series of visualization tools 
-for differential analysis. These have been adapted from 
+PREPROCESSING
 
-  Nowicka M, Krieg C, Weber LM et al.
+o The daFrame class been removed and the preprocessing pipeline 
+  rewritten to use the SingleCellExperiment class instead. 
+  This greatly improves runtimes of debarcoding and normalization,
+  and affects all functions associated with preprocessing:
+  - normalization: normCytof()
+  - debarcoding: assignPrelim(), est/applyCutoffs(), plotEvents/Yields()
+  - compensation: computeSpillmat(), compCytof(), plotSpillmat()
 
-       "CyTOF workflow: differential discovery in
-  high-throughput high-dimensional cytometry datasets"
-
-  F1000Research 2017, 6:748 (doi: 10.12688/f1000research.11622.2)
-
-and may be used in conjunction with
-
-  Weber L (2018) 
-
-  "diffcyt: differential discovery in high-dimensional 
-        cytometry via high-resolution clustering" 
-
-  R package version 0.99.11, https://github.com/lmweber/diffcyt
-
---------------------------------------------------
-
-o Data returned by & used throughout differential analysis
-  are held in objects of the 'daFrame-class'
-
-o The following functions are newly available:
-
-  - plotCounts(), plotMDS(), plotExprs(), plotMedsExprs():
-      > general overview of data features
-
-  - plotNRS(): 
-      > non-redundancy scores
-
-  - tSNE(), plotSNE():
-      > run & visualize t-SNE
-
-  - cluster(), mergeClusters():
-      > FlowSOM clustering, ConsensusClusterPlus 
-        meta-clustering, and manual cluster merging
-
-  - plotCodes():
-      > PCA & t-SNE of SOM codes 
+o concatFCS() has been replaced by prepData(), which is used during 
+  differential analysis and already provided most of concatFCS()'s 
+  functionality. It has been adapted to 
+  - not require input panel and metadata tables (arguments 'panel' and 'md')
+  - fix event times in the Time channel as was done previously by concatFCS() 
+  - reorder samples according to their acquisiton time when 'md' is unspecified
+  
+o sce2fcs() has been added to allow for easy conversion from SCE 
+  to flowFrame/Set, which can inturn be written to FCS file(s)
+  - the SCE can be split into separate frames by a cell metadata variable 
+    (argument 'split_by') to, e.g., write debarcoded samples to separate files
+  - any cell metadata and dimensionality reductions stored in the SCE can be 
+    optionally included in the output (arguments 'keep_cd' and 'keep_dr')
     
-  - plotAbundances():
-      > relative cluster abundances
+o plotScatter() has been added to support basic visualization of biscatters,
+  but is not meant to compete with other tools available that were designed
+  specifically for this task (namely, ggcyto)
+  - cells my be colored by 
+    - density, in which case cells are binned via geom_hex()
+    - a continuous or categorical cell metadata variable
+  - facetting is flexible and allows to plot 
+    - one channel against a set of others
+    - a pair of channels split by two variables
+    - one channel against others split by one variable
 
-  - plotClusterHeatmap(), plotDiffHeatmap()
-      > ComplexHeatmap's summarizing clustering,
-        meta-clustering & differential analysis results
+DIFFERENTIAL ANALYSIS
+
+o The metadata()$experiment_info slot is constructed by prepData() and 
+  subsetted by filterSCE() as before. However, it is no longer required 
+  for any of the plotting functions associate with differential analysis. 
+  Instead, these rely only on the existence of the colData()$sample_id
+  (and, for some, colData()$cluster_id) slot(s).
+  
+o added options for customizing visualizations, e.g., providing custom 
+  color palettes for heatmaps and clusters, turning on/off row/column
+  clustering and dendrograms in heatmaps etc.
+  
+o plotCounts() previously only supported plotting absolute cell counts by 
+  sample and now allows to i) plot relative abundances (frequencies) instead;
+  and, ii) group cell counts/frequencies by an addition cell metadata variable 
+  (e.g., to plot abundances split by both sample and patient ID)
+  
+o The vignette has been extended to include sections on how
+  - ggplot2 & ComplexHeatmap visualizations 
+    can be customized or modified in retrospect
+  - any clustering algorithms other than FlowSOM can be applied and 
+    incorporated to make use of the visualizations available in CATALYST
+  
+------------------------------------ 1.10.3 ------------------------------------
+
+o filterSCE() now drops non-existent levels in metadata()$experiment_info
+  
+o plotNRS() no-longer fails when samples have an insufficient number of cells;
+  added check.names = FALSE in data.frame() to prevent renaming of antigens
+
+o any mention of the daFrame class has been replaced by SingleCellExperiment
+  in all function documentation and the differential analysis vignette
