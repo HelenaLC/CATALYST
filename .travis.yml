@@ -7,6 +7,8 @@ bioc_check: true
 env:
   - _R_CHECK_LENGTH_1_LOGIC2_=true _R_CHECK_LENGTH_1_CONDITION=true
 
+r_github_packages:
+  - JinmiaoChenLab/Rphenograph
 r_binary_packages:
   - covr
 after_success:
