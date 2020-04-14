@@ -1,24 +1,29 @@
 #' @rdname plotMedExprs
-#' @title Plot median expressions
+#' @title Median expressions
 #' 
-#' @description 
-#' Plots median marker expressions across samples
-#' computed on arcsinh-transformed intensities.
+#' @description Boxplots of median marker expressions by sample
+#' and colored by a non-numeric cell metadata variable of interest.
 #'
 #' @param x a \code{\link{SingleCellExperiment}{SingleCellExperiment}}.
-#' @param k character string. Specifies the clustering to use.
-#'   If \code{facet = "antigen"}, this argument will be ignored.
-#' @param facet \code{"antigen"} or \code{"cluster_id"}. 
-#'   Note that the latter requires having run \code{\link{cluster}}.
-#' @param group_by character string specifying 
-#'   a \code{colData(x)} column to group samples by.
-#' @param shape_by character string specifying 
-#'   a \code{colData(x)} column to shape samples by.
+#' @param k character string specifying which clustering to use;
+#'   values values are \code{names(cluster_codes(x))}.
+#'   Ignored if \code{facet_by = "antigen"}.
+#' @param features character vector specifying 
+#'   which features to include; valid values are 
+#'   \code{"type"/"state"} for \code{type/state_markers(x)} 
+#'   if \code{rowData(x)$marker_class} have been specified; 
+#'   a subset of \code{rownames(x)}; NULL to use all features.
+#' @param facet_by \code{"antigen"} or \code{"cluster_id"}; 
+#'   the latter requires having run \code{\link{cluster}}.
+#' @param group_by character string specifying a non-numeric cell metadata 
+#'   variable to group samples by; valid values are \code{names(colData(x))}.
+#' @param shape_by character string specifying a non-numeric cell metadata 
+#'   variable to shape samples by; valid values are \code{names(colData(x))}.
 #' 
-#' @author Helena Lucia Crowell
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -31,13 +36,22 @@
 #' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 #' 
 #' # plot median expressions
-#' plotMedExprs(sce, shape_by = "patient_id")
+#' plotMedExprs(sce, 
+#'   shape_by = "patient_id",
+#'   features = sample(rownames(sce), 6))
 #' 
 #' # run clustering
 #' sce <- cluster(sce)
 #' 
 #' # plot median expressions across clusters
-#' plotMedExprs(sce, facet = "cluster_id", k = "meta8")
+#' p <- plotMedExprs(sce, facet_by = "cluster_id", k = "meta8")
+#' p$facet$params$ncol <- 4; p
+#' 
+#' # change colors & facetting layout
+#' library(ggplot2)
+#' p$facet$params$ncol <- 4
+#' p + scale_color_manual(values = c(
+#'   Ref = "royalblue", BCRXL = "orange"))
 #' 
 #' @import ggplot2
 #' @importFrom dplyr bind_rows
@@ -46,65 +60,67 @@
 #' @importFrom SummarizedExperiment assay
 #' @export
 
-plotMedExprs <- function(x, k="meta20", 
-    facet=c("antigen", "cluster_id"), 
-    group_by="condition", shape_by=NULL) {
+plotMedExprs <- function(x, 
+    k = "meta20", features = "state",
+    facet_by = c("antigen", "cluster_id"), 
+    group_by = "condition", shape_by = NULL) {
     
-    .check_sce(x)
+    # check validity of input arguments
+    facet_by <- match.arg(facet_by)
+    if (facet_by == "antigen") {
+        .check_sce(x)
+    } else {
+        .check_sce(x, TRUE)
+        k <- .check_k(x, k)
+    }
     .check_cd_factor(x, group_by)
     .check_cd_factor(x, shape_by)
-    facet <- match.arg(facet)
+    features <- .get_features(x, features)
+    shapes <- .get_shapes(x, shape_by)
+    if (is.null(shapes)) shape_by <- NULL
 
-    if (!is.null(shape_by)) {
-        shapes <- c(16, 17, 15, 3, 7, 8) # default shapes
-        if ((n <- nlevels(x[[shape_by]])) > 6) {
-            if (n > 18) {
-                message("At most 17 shapes are currently supported but ",
-                    n, " are required. Setting 'shape_by' to NULL.")
-                shape_by <- NULL
-            } else {
-                new <- setdiff(c(seq_len(16) - 1, 18), shapes)
-                shapes <- c(shapes, new[seq_len(n - 6)])
-            }
-        }
+    x <- x[features, ]
+    if (facet_by == "antigen") {
+        ms <- .agg(x, "sample_id")
+        df <- melt(ms, varnames = c("antigen", "sample_id"))
+        # aesthetics
+        x_var <- group_by
+        thm <-  theme(
+            axis.text.x = element_blank(), 
+            axis.ticks.x = element_blank())
     } else {
-        shapes <- NULL
-    }
-    
-    if (facet == "antigen") {
-        ms <- .agg(x, by = "sample_id")
-        ms <- melt(ms, varnames = c("antigen", "sample_id"))
-    } else {
-        k <- .check_validity_of_k(x, k)
         x$cluster_id <- cluster_ids(x, k)
-        ms <- .agg(x[state_markers(x), ], by = c("cluster_id", "sample_id"))
-        ms <- lapply(ms, melt, varnames = c("antigen", "sample_id"))
-        ms <- bind_rows(ms, .id = "cluster_id")
+        ms <- .agg(x, c("cluster_id", "sample_id"))
+        dfs <- lapply(ms, melt, varnames = c("antigen", "sample_id"))
+        df <- bind_rows(dfs, .id = "cluster_id")
+        df$cluster_id <- factor(df$cluster_id, 
+            levels = levels(x$cluster_id))
+        # aesthetics
+        x_var <- "antigen"
+        thm <-  theme(axis.text.x = element_text(
+            angle = 45, hjust = 1, vjust = 1))
     }
     # add metadata information
-    m <- match(ms$sample_id, ei(x)$sample_id)
-    ms <- data.frame(ms, ei(x)[m, ])
+    m <- match(df$sample_id, x$sample_id)
+    for (i in c(group_by, shape_by))
+        df[[i]] <- x[[i]][m]
     
-    style <- list(ylab("median expression"),
-        guides(color=guide_legend(override.aes=list(alpha=1))),
-        geom_point(alpha=.75, aes_string(fill=group_by, shape=shape_by),
-            position=position_jitterdodge(jitter.width=.25, jitter.height=0)),
-        scale_shape_manual(values = shapes),
-        scale_fill_manual(values = rep(NA, length(levels(ms[, group_by])))),
-        geom_boxplot(alpha=.5, width=.75, fill=NA, outlier.color=NA),
-        theme_bw(), theme(
-            axis.text=element_text(color="black"),
-            panel.grid.minor=element_blank(),
-            panel.grid.major=element_line(color="lightgrey", size=.25),
-            strip.background=element_rect(fill="grey90", color=NA)))
-    
-    if (facet == "antigen") {
-        ggplot(ms, aes_string(x=group_by, y="value", col=group_by)) +
-            facet_wrap(facets="antigen", scales="free_y") + style + 
-            theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
-    } else {
-        ggplot(ms, aes_string(x="antigen", y="value", col=group_by)) + 
-            facet_wrap(facets="cluster_id", scales="free_y", ncol=2) + style +
-            theme(axis.text.x=element_text(angle=90, hjust=1, vjust=.5))
-    }
+    ggplot(df, aes_string(x_var, "value", col = group_by)) +
+        facet_wrap(facet_by, scales = "free_y") +
+        geom_point(alpha = 0.8, 
+            aes_string(fill = group_by, shape = shape_by),
+            position = position_jitterdodge(
+                jitter.width = 0.2, jitter.height = 0)) +
+        geom_boxplot(alpha = 0.4, width = 0.8, 
+            fill = NA, outlier.color = NA, show.legend = FALSE) +
+        scale_shape_manual(values = shapes) + guides(
+            shape = guide_legend(override.aes = list(size = 3)),
+            col = guide_legend(override.aes = list(alpha = 1, size = 3))) +
+        ylab("expression") + theme_bw() + thm + theme(
+            legend.key.height  =  unit(0.8, "lines"),
+            axis.text = element_text(color = "black"),
+            strip.text = element_text(face = "bold"),
+            strip.background = element_rect(fill = NA, color = NA),
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_line(color = "grey", size = 0.2))
 }

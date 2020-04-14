@@ -1,22 +1,21 @@
 #' @rdname plotClusterExprs
 #' @title Plot expression distributions by cluster
 #' 
-#' @description 
-#' Plots smoothed densities of arcsinh-transformed 
-#' marker intensities by cluster.
+#' @description Plots smoothed densities of marker intensities by cluster.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
-#' @param k 
-#'   character string. Specifies the clustering to use.
-#' @param features
-#'   character string specifying which features to include. Defaults to NULL 
-#'   (= all features). Alternatively, if the \code{colData(x)$marker_class} 
-#'   column is specified, can be one of "type", "state", or "none".
+#' @param k character string specifying which clustering to use;
+#'   valid values are \code{names(cluster_codes(x))}.
+#' @param features a character vector specifying 
+#'   which antigens to include; valid values are
+#'   \code{"type"/"state"} for \code{type/state_markers(x)} 
+#'   if \code{rowData(x)$marker_class} have been specified; 
+#'   a subset of \code{rownames(x)}; NULL to use all features.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -29,7 +28,7 @@
 #' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 #' sce <- cluster(sce)
 #' 
-#' plotClusterExprs(sce)
+#' plotClusterExprs(sce, k = "meta8")
 #' 
 #' @import ggplot2
 #' @importFrom ggridges geom_density_ridges theme_ridges
@@ -39,11 +38,12 @@
 #' @importFrom SummarizedExperiment assay colData
 #' @export
 
-plotClusterExprs <- function(x, k="meta20", features=NULL) {
+plotClusterExprs <- function(x, 
+    k = "meta20", features = "type") {
     
     # check validity of input arguments
     .check_sce(x, TRUE)
-    k <- .check_validity_of_k(x, k)
+    k <- .check_k(x, k)
     x$cluster_id <- cluster_ids(x, k)
     features <- .get_features(x, features)
 
@@ -53,16 +53,20 @@ plotClusterExprs <- function(x, k="meta20", features=NULL) {
     d <- dist(ms, method="euclidean")
     o <- hclust(d, method="average")$order
     
-    # construct data.frame & reference for plotting
+    # construct data.frame of expression matrix include cell metadata
+    cd <- colData(x)
     es <- assay(x[features, ], "exprs")
-    cd <- data.frame(t(es), colData(x))
-    df <- melt(cd, id.vars=names(colData(x)),
-        variable.name="antigen", value.name="expression")
-    df$ref <- "no"
-    ref <- df
-    ref$cluster_id <- "ref"
-    ref$ref <- "yes"
-    df <- rbind(df, ref)
+    df <- data.frame(t(es), cd, check.names = FALSE)
+    df <- melt(df, 
+        id.vars = names(cd),
+        variable.name = "antigen", 
+        value.name = "expression")
+    # add average across all clusters as referebce
+    df$avg <- "no"
+    avg <- df
+    avg$cluster_id <- "avg"
+    avg$avg <- "yes"
+    df <- rbind(df, avg)
     
     # compute cluster frequencies
     fq <- tabulate(x$cluster_id) / ncol(x)
@@ -71,15 +75,16 @@ plotClusterExprs <- function(x, k="meta20", features=NULL) {
     
     # reorder clusters
     df$cluster_id <- factor(df$cluster_id, 
-        levels=rev(c("ref", levels(x$cluster_id)[o])),
-        labels=rev(c("ref", paste0(names(fq), " (", fq, "%)")[o])))
+        levels = rev(c("avg", levels(x$cluster_id)[o])),
+        labels = rev(c("average", paste0(names(fq), " (", fq, "%)")[o])))
     
-    ggplot(df, 
-        aes_string(x="expression", y="cluster_id", col="ref", fill="ref")) + 
-        facet_wrap(~antigen, scales="free_x", nrow=2) + 
-        geom_density_ridges(alpha=.2) + 
+    ggplot(df, aes_string(
+        x = "expression", y = "cluster_id", 
+        col = "avg", fill = "avg")) + 
+        facet_wrap(~antigen, scales = "free_x", nrow = 2) + 
+        geom_density_ridges(alpha = 0.2) + 
         theme_ridges() + theme(
-            legend.position="none",
-            strip.background=element_blank(),
-            strip.text=element_text(face="bold"))
+            legend.position = "none",
+            strip.background = element_blank(),
+            strip.text = element_text(face = "bold"))
 }

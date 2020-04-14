@@ -9,19 +9,20 @@
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param features a character vector specifying 
-#'   which antigens to use for clustering; valid values are
+#'   which features to use for clustering; valid values are
 #'   \code{"type"/"state"} for \code{type/state_markers(x)} 
 #'   if \code{rowData(x)$marker_class} have been specified; 
 #'   a subset of \code{rownames(x)}; NULL to use all features.
-#' @param xdim,ydim 
-#'   numeric. Specify the grid size of the self-orginizing map. 
-#'   The default 10x10 grid will yield 100 clusters. 
-#' @param maxK 
-#'   numeric. Specifies the maximum number of clusters to evaluate
-#'   in the metaclustering. For \code{maxK = 20}, for example, 
-#'   metaclustering will be performed for 2 through 20 clusters.
+#' @param xdim,ydim numeric specifying the grid size of the 
+#'   self-orginizing map; passed to \code{\link[FlowSOM]{BuildSOM}}. 
+#'   The default 10x10 grid will yield 100 clusters.
+#' @param maxK numeric specifying the maximum number of 
+#'   clusters to evaluate in the metaclustering; passed to 
+#'   \code{\link[ConsensusClusterPlus]{ConsensusClusterPlus}}.
+#'   The default (\code{maxK = 20}) will yield 2 through 20 metaclusters.
 #' @param verbose logical. Should information on progress be reported?
-#' @param seed numeric. Sets random seed in \code{ConsensusClusterPlus()}.
+#' @param seed numeric. Sets the random seed for reproducible results 
+#'   in \code{\link[ConsensusClusterPlus]{ConsensusClusterPlus}}.
 #' 
 #' @return a \code{SingleCellEcperiment} with the following newly added data:
 #' \itemize{
@@ -44,7 +45,7 @@
 #'   a table with dimensions K x (\code{maxK} + 1). 
 #'   Contains the cluster codes for all metaclustering.}
 #' \item{\code{delta_area}: 
-#'   a \code{\link{ggplot}} object. See above for details.}
+#'   a \code{\link{ggplot}} object (see details).}
 #' }}
 #' }
 #' 
@@ -56,10 +57,10 @@
 #' the data should thus corresponds to the value of k where there is no longer 
 #' a considerable increase in stability (pleateau onset).
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -72,13 +73,14 @@
 #' # run clustering
 #' (sce <- cluster(sce))
 #' 
-#' #' # view delta area plot
-#' library(SingleCellExperiment)
-#' metadata(sce)$delta_area
+#' # view all available clustering
+#' names(cluster_codes(sce))
 #' 
-#' # exract cluster IDs for a specific resolution
-#' cluster_ids_meta8 <- cluster_ids(sce, k = "meta8")
-#' table(cluster_ids_meta8)
+#' # access specific clustering resolution
+#' table(cluster_ids(sce, "meta8"))
+#' 
+#' # view delta area plot
+#' delta_area(sce)
 #' 
 #' @import ConsensusClusterPlus ggplot2
 #' @importFrom dplyr %>% mutate_all
@@ -87,14 +89,15 @@
 #' @importFrom graphics hist
 #' @importFrom magrittr set_colnames
 #' @importFrom matrixStats colQuantiles
+#' @importFrom methods is
 #' @importFrom purrr map
 #' @importFrom reshape2 melt
 #' @importFrom SummarizedExperiment assay rowData rowData<-
-#' @importFrom S4Vectors DataFrame
+#' @importFrom S4Vectors DataFrame metadata<-
 #' @export
 
 cluster <- function(x, features = "type",
-    xdim=10, ydim=10, maxK=20, verbose=TRUE, seed=1) {
+    xdim = 10, ydim = 10, maxK = 20, verbose = TRUE, seed = 1) {
     
     # validity checks
     stopifnot(is(x, "SingleCellExperiment"))
@@ -102,7 +105,7 @@ cluster <- function(x, features = "type",
         vapply(list(xdim, ydim, maxK, seed), function(arg) 
             is.numeric(arg) && length(arg) == 1, logical(1)))
     features <- .get_features(x, features)
-
+    
     # assign marker classes if unspecified
     if (is.null(marker_classes(x))) {
         rowData(x)$marker_class <- factor(c("state", "type")[
@@ -123,21 +126,24 @@ cluster <- function(x, features = "type",
     if (verbose)
         message("o running ConsensusClusterPlus metaclustering...")
     pdf(NULL)
-    mc <- suppressMessages(ConsensusClusterPlus(t(som$map$codes), 
-        maxK=maxK, reps=100, distance="euclidean", seed=seed, plot=NULL))
+    mc <- suppressWarnings(suppressMessages(
+        ConsensusClusterPlus(t(som$map$codes), 
+            maxK = maxK, reps = 100, 
+            distance = "euclidean", 
+            seed = seed, plot = NULL)))
     dev.off()
     
     # get cluster codes
     k <- xdim * ydim
     mcs <- seq_len(maxK)[-1]
     
-    # construct data.frame of cluster codes for each resolution
+    # construct data.frame of clustering codes
     codes <- data.frame(seq_len(k), map(mc[-1], "consensusClass"))
     codes <- mutate_all(codes, function(u) factor(u, levels = sort(unique(u))))
     colnames(codes) <- c(sprintf("som%s", k), sprintf("meta%s", mcs))
     
     # store cluster assignments in cell metadata;
-    # cluster, SOM codes & delta area plot in metadata
+    # cluster / SOM codes & delta area plot in metadata
     x$cluster_id <- factor(som$map$mapping[, 1])
     metadata(x)$cluster_codes <- codes
     metadata(x)$SOM_codes <- som$map$codes

@@ -2,12 +2,13 @@
 % Please edit documentation in R/plotMedExprs.R
 \name{plotMedExprs}
 \alias{plotMedExprs}
-\title{Plot median expressions}
+\title{Median expressions}
 \usage{
 plotMedExprs(
   x,
   k = "meta20",
-  facet = c("antigen", "cluster_id"),
+  features = "state",
+  facet_by = c("antigen", "cluster_id"),
   group_by = "condition",
   shape_by = NULL
 )
@@ -15,24 +16,31 @@ plotMedExprs(
 \arguments{
 \item{x}{a \code{\link{SingleCellExperiment}{SingleCellExperiment}}.}
 
-\item{k}{character string. Specifies the clustering to use.
-If \code{facet = "antigen"}, this argument will be ignored.}
+\item{k}{character string specifying which clustering to use;
+values values are \code{names(cluster_codes(x))}.
+Ignored if \code{facet_by = "antigen"}.}
 
-\item{facet}{\code{"antigen"} or \code{"cluster_id"}. 
-Note that the latter requires having run \code{\link{cluster}}.}
+\item{features}{character vector specifying 
+which features to include; valid values are 
+\code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
 
-\item{group_by}{character string specifying 
-a \code{colData(x)} column to group samples by.}
+\item{facet_by}{\code{"antigen"} or \code{"cluster_id"}; 
+the latter requires having run \code{\link{cluster}}.}
 
-\item{shape_by}{character string specifying 
-a \code{colData(x)} column to shape samples by.}
+\item{group_by}{character string specifying a non-numeric cell metadata 
+variable to group samples by; valid values are \code{names(colData(x))}.}
+
+\item{shape_by}{character string specifying a non-numeric cell metadata 
+variable to shape samples by; valid values are \code{names(colData(x))}.}
 }
 \value{
 a \code{ggplot} object.
 }
 \description{
-Plots median marker expressions across samples
-computed on arcsinh-transformed intensities.
+Boxplots of median marker expressions by sample
+and colored by a non-numeric cell metadata variable of interest.
 }
 \examples{
 # construct SCE
@@ -40,21 +48,30 @@ data(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 
 # plot median expressions
-plotMedExprs(sce, shape_by = "patient_id")
+plotMedExprs(sce, 
+  shape_by = "patient_id",
+  features = sample(rownames(sce), 6))
 
 # run clustering
 sce <- cluster(sce)
 
 # plot median expressions across clusters
-plotMedExprs(sce, facet = "cluster_id", k = "meta8")
+p <- plotMedExprs(sce, facet_by = "cluster_id", k = "meta8")
+p$facet$params$ncol <- 4; p
+
+# change colors & facetting layout
+library(ggplot2)
+p$facet$params$ncol <- 4
+p + scale_color_manual(values = c(
+  Ref = "royalblue", BCRXL = "orange"))
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al. 
+Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

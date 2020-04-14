@@ -37,5 +37,5 @@ filterSCE(sce, cluster_id \%in\% c(7, 8, 18), k = "meta20")
 
 }
 \author{
-Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

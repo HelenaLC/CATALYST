@@ -40,8 +40,8 @@ a \code{flowSet} or character vector of the output file names.
 }
 \description{
 Extracts clusters from a \code{SingleCellExperiment}. 
-Populations will be either returned as a \code{flowSet} or written 
-to FCS files, depending on argument \code{as}.
+Populations will be either returned as a \code{flowSet} 
+or written to FCS files, depending on argument \code{as}.
 }
 \examples{
 # construct SCE & run clustering
@@ -55,5 +55,5 @@ extractClusters(sce, k="merging_1", clusters=c("NK cells", "surface-"))
 
 }
 \author{
-Mark D Robinson and Helena Lucia Crowell
+Mark D Robinson & Helena L Crowell \email{helena.crowell@uzh.ch}
 }

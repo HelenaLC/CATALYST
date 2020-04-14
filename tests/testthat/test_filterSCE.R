@@ -1,7 +1,3 @@
-context("SingleCellExperiment filtering")
-
-library(SingleCellExperiment)
-
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- cluster(sce, verbose = FALSE)
 

@@ -4,19 +4,28 @@
 #' @description Compensates a mass spectrometry based experiment using a
 #' provided spillover matrix & assuming a linear spillover in the experiment.
 #'
-#' @param x       
-#'   a \code{\link{flowFrame}} OR a character string specifying the location of 
+#' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}} 
+#'   OR a character string specifying the location of 
 #'   FCS files that should be compensates.
-#' @param y 
-#'   a spillover matrix.
-#' @param out_path
-#'   a character string. If specified, compensated FCS files will be generated 
-#'   in this location. If \code{x} is a character string, file names will be 
-#'   inherited from uncompensated FCS files and given extension "_comped".
-#' @param method
-#'   \code{"flow"} or \code{"nnls"}.
-#' @param isotope_list
-#'   named list. Used to validate the input spillover matrix.
+#' @param sm a spillover matrix.
+#' @param method \code{"flow"} or \code{"nnls"}.
+#' @param assay character string specifying which assay data to use; 
+#'   should be one of \code{assayNames(x)} and correspond to count-like data, 
+#'   as linearity assumptions underlying compensation won't hold otherwise.
+#' @param overwrite logical; should the specified \code{assay} slot 
+#'   (and \code{exprs}, when \code{transform = TRUE}) be overwritten 
+#'   with the compensated data? If \code{FALSE}, compensated counts 
+#'   (and expressions, if \code{transform = TRUE}) will be stored in 
+#'   assay(s) \code{compcounts/exprs}, respectively.
+#' @param transform logical; should normalized counts be 
+#'   arcsinh-transformed with the specified \code{cofactor}(s)?
+#' @param cofactor numeric cofactor(s) to use for optional 
+#'   arcsinh-transformation when \code{transform = TRUE};
+#'   single value or a vector with channels as names.
+#'   If NULL, \code{compCytof} will try and access the cofactor(s)
+#'   stored in \code{int_metadata(x)}, thus re-using the same 
+#'   transformation applied previously.
+#' @param isotope_list named list. Used to validate the input spillover matrix.
 #'   Names should be metals; list elements numeric vectors of their isotopes.
 #'   See \code{\link{isotope_list}} for the list of isotopes used by default.
 #' 
@@ -38,92 +47,72 @@
 #' @return 
 #' Compensates the input \code{\link{flowFrame}} or, 
 #' if \code{x} is a character string, all FCS files in the specified location. 
-#' If \code{out_path=NULL} (the default), returns a \code{\link{flowFrame}} 
-#' containing the compensated data. Otherwise, compensated data will be written 
-#' to the specified location as FCS 3.0 standard files. 
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
-#' and Vito Zanotelli \email{vito.zanotelli@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch} 
+#' & Vito RT Zanotelli
 #' 
 #' @examples
-#' # get single-stained control samples
+#' # deconvolute single-stained control samples
 #' data(ss_exp)
-#' 
-#' # specify mass channels stained for
+#' sce <- prepData(ss_exp)
 #' bc_ms <- c(139, 141:156, 158:176)
+#' sce <- assignPrelim(sce, bc_ms)
+#' sce <- applyCutoffs(estCutoffs(sce))
 #' 
-#' # debarcode
-#' re <- assignPrelim(x = ss_exp, y = bc_ms)
-#' re <- estCutoffs(x = re)
-#' re <- applyCutoffs(x = re)
-#' spillMat <- computeSpillmat(x = re)
-#' compCytof(x = ss_exp, y = spillMat)
+#' # estimate spillover matrix 
+#' sce <- computeSpillmat(sce)
+#' 
+#' # compensate & store compensated data in separate assays
+#' sce <- compCytof(sce, overwrite = FALSE)
+#' assayNames(sce)
+#' 
+#' # biscatter before vs. after compensation
+#' par(mfrow = c(1, 2))
+#' i <- "Dy162Di"; j <- "Dy163Di"
+#' for (a in c("exprs", "compexprs")) {
+#'   es <- assay(sce, a)
+#'   plot(es[i, ], es[j, ], main = a, xlab = i, ylab = j, cex = 0.2, pch = 19)
+#' }
 #'
-#' @importFrom flowCore flowFrame flowSet fsApply colnames exprs compensate
 #' @importFrom nnls nnls
-#' @importFrom stats setNames
-# ------------------------------------------------------------------------------
+#' @importFrom S4Vectors metadata
+#' @importFrom flowCore compensate exprs
+#' @importFrom SingleCellExperiment int_metadata
+#' @importFrom SummarizedExperiment assay assay<- assayNames rowData
+#' @export
 
-setMethod(f="compCytof",
-    signature=signature(x="flowFrame", y="matrix"),
-    definition=function(x, y, out_path=NULL, method="flow", 
-        isotope_list=CATALYST::isotope_list) {
-        sm <- adaptSpillmat(y, flowCore::colnames(x), isotope_list)
-        if (method == "flow") { 
-            ff_comped <- flowCore::compensate(x, sm)
-        } else if (method == "nnls") {
-            es_comped <- t(apply(flowCore::exprs(x), 1, 
-                function(row) nnls(t(sm), row)$x))
-            ff_comped <- x
-            colnames(es_comped) <- colnames(flowCore::exprs(x))
-            rownames(es_comped) <- rownames(flowCore::exprs(x))
-            flowCore::exprs(ff_comped) <- es_comped
-        } else {
-            stop("'method' should be one of \"flow\" or \"nnls\".")
-        }
-        
-        if (!is.null(out_path)) {
-            fileNm <- gsub("[[:alpha:]]*/", "", description(x)$FILENAME)
-            outNm <- file.path(out_path, paste0(gsub(".fcs", 
-                "_comped.fcs", fileNm, ignore.case=TRUE)))
-            suppressWarnings(flowCore::write.FCS(ff_comped, outNm))
-        } else {
-            ff_comped
-        }
-    })
-
-# ------------------------------------------------------------------------------
-#' @rdname compCytof
-setMethod(f="compCytof",
-    signature=signature(x="flowSet", y="ANY"),
-    definition=function(x, y, out_path=NULL, method="flow") {
-        fsApply(x, compCytof, y, out_path, method)
-    })
-
-# ------------------------------------------------------------------------------
-#' @rdname compCytof
-setMethod(f="compCytof",
-    signature=signature(x="character", y="matrix"),
-    definition=function(x, y, out_path=NULL, method="flow") {
-        if (!file.exists(x))
-            stop("x is neither a flowFrame nor a valid file/folder path.")
-        fcs <- list.files(x, ".fcs", ignore.case=TRUE, full.names=TRUE)
-        if (length(fcs) == 0)
-            stop("No FCS files found in specified location.")
-        ffs <- lapply(fcs, flowCore::read.FCS)
-        
-        if (is.null(out_path)) {
-            lapply(ffs, function(i) compCytof(i, y, out_path, method))
-        } else {
-            for (i in seq_along(ffs))
-                compCytof(ffs[[i]], y, out_path, method)
-        }
-    })
-
-# ------------------------------------------------------------------------------
-#' @rdname compCytof
-setMethod(f="compCytof",
-    signature=signature(x="ANY", y="data.frame"),
-    definition=function(x, y, out_path=NULL, method="flow") {
-        compCytof(x, as.matrix(y), out_path, method)
-    })
+compCytof <- function(x, sm = NULL, method = c("nnls", "flow"),
+    assay = "counts", overwrite = TRUE, transform = TRUE, cofactor = NULL, 
+    isotope_list = CATALYST::isotope_list) {
+    # check validity of input arguments
+    method <- match.arg(method)
+    args <- as.list(environment())
+    .check_args_compCytof(args)
+    if (is.null(cofactor))
+        cofactor <- int_metadata(x)$cofactor
+    
+    rownames(x) <- rowData(x)$channel_name
+    if (is.null(sm)) sm <- metadata(x)$spillover_matrix
+    if (!is.matrix(sm)) sm <- as.matrix(sm)
+    suppressMessages(sm <- adaptSpillmat(sm, rownames(x), isotope_list))
+    
+    # apply compensation & store compensated data in assays
+    y <- switch(method, 
+        flow = {
+            a <- as.matrix(assay(x, assay))
+            ff <- flowFrame(t(a))
+            ff <- compensate(ff, sm)
+            t(exprs(ff))
+        },
+        nnls = apply(assay(x, assay), 2, 
+            function(u) nnls(t(sm), u)$x))
+    c <- ifelse(overwrite, assay, "compcounts")
+    assay(x, c, FALSE) <- y
+    
+    # do arcsinh-transformation on compensated counts
+    if (transform) {
+        e <- ifelse(overwrite, "exprs", "compexprs")
+        x <- .transform(x, cofactor, ain = c, aout = e)
+    }
+    return(x)
+}

@@ -9,13 +9,19 @@ plotClusterHeatmap(
   hm2 = NULL,
   k = "meta20",
   m = NULL,
-  fun = c("median", "mean"),
-  cluster_anno = TRUE,
+  assay = "exprs",
+  fun = c("median", "mean", "sum"),
+  row_anno = TRUE,
   split_by = NULL,
   scale = TRUE,
-  draw_dend = TRUE,
+  row_dend = TRUE,
+  col_dend = FALSE,
   draw_freqs = FALSE,
-  palette = rev(brewer.pal(11, "RdYlBu"))
+  hm1_pal = rev(brewer.pal(11, "RdBu")),
+  hm2_pal = (if (!is.null(hm2)) if (isTRUE(hm2 == "abundances")) {    
+    rev(brewer.pal(11, "PuOr")) } else hm1_pal),
+  k_pal = CATALYST:::.cluster_cols,
+  m_pal = k_pal
 )
 }
 \arguments{
@@ -24,54 +30,72 @@ plotClusterHeatmap(
 \item{hm2}{character string. Specifies the right-hand side heatmap. 
 One of: \itemize{
 \item{\code{"abundances"}: cluster frequencies across samples}
-\item{\code{"state_markers"}: median cell state marker expressions 
+\item{\code{"state"}: median state-marker expressions 
   across clusters (analogous to the left-hand side heatmap)}
 \item{a character string/vector corresponding to one/multiple marker(s): 
   median marker expressions across samples and clusters}}}
 
-\item{k}{character string. Specifies the clustering 
-across which median marker expressions should be computed.}
+\item{k}{character string specifying the clustering 
+across which median marker expressions should be computed;
+valid values are \code{names(cluster_codes(x))}.}
 
-\item{m}{character string. Specifies the metaclustering to be shown. 
-(This is for display only and will not effect any computations!)}
+\item{m}{character string specifying a metaclustering to include 
+as a row annotation (for display only, does not effect computations!);
+valid values are \code{names(cluster_codes(x))}.}
 
-\item{fun}{character string specifying the function to use as summary statistic.}
+\item{assay}{character string specifying which assay data to use;
+valid values are \code{assayNames(x)}.}
 
-\item{cluster_anno}{logical. Specifies if clusters should be annotated.}
+\item{fun}{character string specifying 
+the function to use as summary statistic.}
 
-\item{split_by}{character string. Must corresponds to a column name of \code{rowData(x)}. 
-If specified, the data will be subset according to this variable, 
-and multiple heatmaps will be drawn.}
+\item{row_anno}{logical. Should row annotations for each
+clustering specified by \code{k} (and \code{m}) be included?}
 
-\item{scale}{logical. Specifies whether scaled values should be plotted.
-(see below for details)}
+\item{split_by}{character string specifying a cell metadata variable
+to group the data by; valid values are \code{names(colData(x))}. 
+If specified, a list of multiple heatmaps will be rendered.}
 
-\item{draw_dend}{logical. Specifies if the row dendrogram should be drawn.}
+\item{scale}{logical specifying whether expression values should be scaled
+between 0 and 1 using lower (1\%) and upper (99\%) quantiles as boundaries.}
 
-\item{draw_freqs}{logical. Specifyies whether to display cell counts and proportions.}
+\item{row_dend}{logical. Should a row dendrogram
+for the hierarchical clustering of clusters be included?}
 
-\item{palette}{character vector of colors to interpolate.}
+\item{col_dend}{logical. Should a column dendrogram
+for the hierarchical clustering of markers be included?}
+
+\item{draw_freqs}{logical specifying whether to display
+a barplot of cell counts labeled with proportions 
+for each cluster as a right-hand side row annotation.}
+
+\item{hm1_pal, hm2_pal}{character vector of colors 
+to interpolate for each heatmap.}
+
+\item{k_pal, m_pal}{character vector of colors
+to use for cluster and merging row annotations.
+If less than \code{nlevels(cluster_ids(x, k/m))} 
+values are supplied, colors will be interpolated 
+via \code{\link[grDevices]{colorRampPalette}}.}
 }
 \value{
-a \code{\link{HeatmapList-class}} object.
+a \code{\link[ComplexHeatmap]{HeatmapList-class}} object.
 }
 \description{
 Plots heatmaps summarizing a clustering and/or metaclustering of interest.
 }
 \details{
-Scaled values corresponds to cofactor arcsinh-transformed 
-expression values scaled between 0 and 1 using 1% and 99% percentiles as 
-boundaries. Hierarchical clustering is performed on the unscaled data.
-
-In its 1st panel, \code{plotClusterHeatmap} will display
-median (scaled, arcsinh-transformed) cell-type marker expressions (across all samples).
+In its 1st panel, \code{plotClusterHeatmap} will display (scaled) 
+type-marker expressions aggregated by cluster (across all samples).
 Depending on argument \code{hm2}, the 2nd panel will contain one of:
-\itemize{
-\item{relataive cluster abundances by sample}
-\item{median (scaled, arcsinh-transformed) 
-  cell-state marker expressions (across all samples)}
-\item{median (scaled, arcsinh-transformed) 
-  cell-state marker expressions by sample}
+\describe{
+\item{\code{hm2 = "abundances"}}{
+  relataive cluster abundances by cluster & sample}
+\item{\code{hm2 = "state"}}{
+  aggregated (scaled) state-marker expressions by 
+  cluster (across all samples; analogous to panel 1)}
+\item{\code{hm2 \%in\% rownames(x)}}{
+  aggregated (scaled) marker expression by cluster & sample}
 }
 }
 \examples{
@@ -80,19 +104,17 @@ data(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- cluster(sce)
 
-plotClusterHeatmap(sce, hm2="abundances")
-plotClusterHeatmap(sce, hm2="abundances", draw_freqs=TRUE)
-plotClusterHeatmap(sce, hm2="state_markers", k="meta16", split_by='condition')
+plotClusterHeatmap(sce, hm2="abundances", draw_freqs = TRUE)
 plotClusterHeatmap(sce, hm2="pS6", k="meta12", m="meta8")
-plotClusterHeatmap(sce, hm2="abundances", scale=FALSE, draw_freqs=TRUE)
+plotClusterHeatmap(sce, hm2="state", split_by="condition")
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al. 
+Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

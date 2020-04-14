@@ -21,19 +21,19 @@ runDR(
 \item{cells}{single numeric specifying the maximal number of cells
 per sample to use for dimension reduction; NULL for all cells.}
 
-\item{features}{a character vector specifying 
-which antigens to use for clustering; valid values are
+\item{features}{a character vector specifying which 
+antigens to use for dimension reduction; valid values are
 \code{"type"/"state"} for \code{type/state_markers(x)} 
 if \code{rowData(x)$marker_class} have been specified; 
 a subset of \code{rownames(x)}; NULL to use all features.}
 
-\item{assay}{character string specifying 
-which assay of \code{x} conatins expression values.}
+\item{assay}{character string specifying which assay data to use
+for dimension reduction; valid values are \code{assayNames(x)}.}
 
 \item{...}{optional arguments for dimension reduction; passed to 
 \code{\link[scater]{runUMAP}}, \code{\link[scater]{runTSNE}}, 
-\code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}} and
-\code{\link[scater]{runDiffusionMap}}, respecttively.
+\code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}}
+and \code{\link[scater]{runDiffusionMap}}, respecttively.
 See \code{?"scater-red-dim-args"} for details.}
 }
 \value{
@@ -41,7 +41,7 @@ a \code{ggplot} object.
 }
 \description{
 Wrapper around dimension reduction methods available 
-through \code{scater}, with optional cell subsampling.
+through \code{scater}, with optional subsampling of cells per each sample.
 }
 \examples{
 # construct SCE
@@ -53,11 +53,11 @@ sce <- runDR(sce, features = type_markers(sce), cells = 100)
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al. 
+Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

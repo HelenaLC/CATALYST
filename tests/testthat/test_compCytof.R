@@ -1,39 +1,51 @@
-test_that("compCytof() is flowSOM", {
-    # tests if artificially added spillover can be removed
-    data(ss_exp)
-    
-    # generate a dummy spillover matrix
-    ncol <- flowCore::ncol(ss_exp)
-    sm <- diag(1, ncol, ncol)
-    inds <- cbind(1:(ncol-1), 2:(ncol))
-    sm[inds] <- seq(0.01, 0.3, length.out=ncol-1)
-    colnames(sm) <- rownames(sm) <- flowCore::colnames(ss_exp)
-    
-    # add spillover
-    ss_morespill <- ss_exp
-    flowCore::exprs(ss_morespill) <- flowCore::exprs(ss_exp) %*% sm
-    # compensate
-    ss_morespill_comp <- CATALYST::compCytof(ss_morespill, sm, method="flow")
-    
-    s <- adaptSpillmat(sm, flowCore::colnames(ss_morespill)) 
-    # check the data
-    dat_orig <- flowCore::exprs(ss_exp)
-    dat_spill <- flowCore::exprs(ss_morespill)
-    dat_corr <- flowCore::exprs(ss_morespill_comp)
-    
-    # to test if the spillover addition was correct, 
-    # the data gets also compensated using flowCore directly
-    dat_corr_flowCore <- flowCore::compensate(ss_morespill, sm)
-    dat_corr_flowCore <- flowCore::exprs(dat_corr_flowCore)
-    
-    testthat::expect_equal(dat_orig, dat_corr_flowCore, tolerance=10^-10, 
-        info="Tests if the spillover was correctly simulated.")
-    testthat::expect_equal(dat_orig, dat_corr, tolerance=10^-10, 
-        info="Tests if the compCytof corrects artificial spillover.")
-    
-    # test nnls
-    dat_corr_nnls <- CATALYST::compCytof(ss_morespill, sm, method='nnls')
-    dat_corr_nnls <- flowCore::exprs(dat_corr_nnls)
-    testthat::expect_equal(dat_orig, dat_corr_nnls, tolerance=10^-10, 
-        info="Tests if the compCytof nnls corrects artificial spillover.")
+data(ss_exp)
+library(flowCore)
+library(SingleCellExperiment)
+
+# generate a dummy spillover matrix
+n_chs <- ncol(ss_exp)
+sm <- diag(1, n_chs, n_chs)
+inds <- cbind(seq_len(n_chs - 1), seq_len(n_chs)[-1])
+sm[inds] <- seq(0.01, 0.3, l = n_chs - 1)
+rownames(sm) <- colnames(sm) <- colnames(ss_exp)
+
+# add artificial spillover
+ss_spill <- ss_exp
+exprs(ss_spill) <- exprs(ss_spill) %*% sm
+
+# construct SCEs of reference & spilldata
+ref <- t(exprs(ss_exp))
+x <- prepData(ss_spill)
+
+test_that("compCytof() - method = 'flow'/'nnls'", {
+    y <- compCytof(x, sm, method = "flow", overwrite = TRUE)
+    comped <- assay(y, "counts")
+    expect_equal(unname(ref), unname(comped), tolerance = 10^-10)
+    # test 'flow' method including comparison to 'flowCore' compensation
+    comped_fC <- t(exprs(compensate(ss_spill, sm)))
+    expect_equal(ref, comped, tolerance = 10^-10)
+    expect_equal(ref, comped_fC, tolerance = 10^-10)
+    # test 'nnls' method
+    y <- compCytof(x, sm, method = "nnls", overwrite = TRUE)
+    comped_nnls <- assay(y, "counts")
+    expect_equal(ref, comped_nnls, tolerance = 10^-10)
+})
+
+test_that("compCytof() - overwrite = TRUE", {
+    i <- sample(ncol(x), 1e3)
+    y <- compCytof(x[, i], sm, overwrite = TRUE)
+    z <- compCytof(x[, i], sm, overwrite = FALSE)
+    expect_true(!"ncounts" %in% assayNames(x))
+    expect_true(2*length(assays(y)) == length(assays(z)))
+    expect_identical(assay(y, "counts"), assay(z, "compcounts"))
+    expect_identical(assay(y, "exprs"), assay(z, "compexprs"))
+})
+
+test_that("compCytof() - cofactor = NULL", {
+    cfs <- sample(10, ncol(ss_spill), TRUE)
+    names(cfs) <- colnames(ss_spill)
+    x <- prepData(ss_spill, cofactor = cfs)
+    i <- sample(ncol(x), 1e3)
+    y <- compCytof(x[, i], sm, cofactor = NULL)
+    expect_identical(int_metadata(y)$cofactor, cfs)
 })

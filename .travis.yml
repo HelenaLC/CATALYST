@@ -1,4 +1,56 @@
 language: r
-r: bioc-devel
-sudo: false
+sudo: required
 cache: packages
+
+r: bioc-devel
+bioc_check: true
+env:
+  - _R_CHECK_LENGTH_1_LOGIC2_=true _R_CHECK_LENGTH_1_CONDITION=true
+
+install:
+  - Rscript -e "if (!require('devtools')) install.packages('devtools')"
+  - Rscript -e "devtools::install_github('JinmiaoChenLab/Rphenograph')"
+  - Rscript -e "devtools::install_github('jimhester/covr')"
+  - Rscript -e "devtools::install_deps(dep = TRUE)"
+
+after_success:
+  - R -e "covr::codecov()"
+
+r_binary_packages:
+  - BiocStyle
+  - diffcyt
+  - flowWorkspace
+  - ggcyto
+  - knitr
+  - openCyto
+  - rmarkdown
+  - ComplexHeatmap
+  - ConsensusClusterPlus
+  - cowplot
+  - data.table
+  - dyplr
+  - ggplot2
+  - ggrepel
+  - ggridges
+  - graphics
+  - grDevices
+  - grid
+  - gridExtra
+  - htmltools
+  - limma
+  - magrittr
+  - Matrix
+  - matrixStats
+  - methods
+  - nnls
+  - plotly
+  - purrr
+  - RColorBrewer
+  - reshape2
+  - Rtsne
+  - SingleCellExperiment
+  - SummarizedExperiment
+  - S4Vectors
+  - scales
+  - scater
+  - stats

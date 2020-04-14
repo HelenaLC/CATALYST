@@ -4,15 +4,22 @@
 \alias{plotCounts}
 \title{Plot cell counts}
 \usage{
-plotCounts(x, color_by = "condition", anno = TRUE)
+plotCounts(x, group_by = "condition", color_by = group_by, prop = FALSE)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{color_by}{character string specifying 
-a \code{colData(x)} column to color by.}
+\item{group_by}{character string specifying a non-numeric 
+cell metadata column to group by (determines x-axis ticks);
+valid values are \code{names(colData(x))}.}
 
-\item{anno}{logical. Whether to annotate cell numbers as text above bars.}
+\item{color_by}{character string specifying a non-numeric
+cell metadata column to color by (determines grouping of bars);
+valid values are \code{names(colData(x))}; NULL for no color.}
+
+\item{prop}{logical specifying whether to plot relative abundances 
+(frequencies) for each group rather than total cell counts;
+bars will be stacked when \code{prop = TRUE} and dodged otherwise.}
 }
 \value{
 a \code{\link{ggplot}} object.
@@ -23,15 +30,26 @@ Barplot of the number of cells measured for each sample.
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-plotCounts(sce)
+
+# plot number of cells from each condition by patient
+plotCounts(
+  sce, prop = FALSE,
+  group_by = "sample_id", 
+  color_by = "condition")
+
+# plot proportion of cells from each patient by condition
+plotCounts(
+  sce, prop = TRUE, 
+  group_by = "condition", 
+  color_by = "patient_id")
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al. 
+Nowicka M, Krieg C, Crowell HL, Weber LM et al.  
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

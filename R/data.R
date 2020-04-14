@@ -93,6 +93,6 @@
 #' Atomic weights and isotopic compositions, 
 #' (available at http://physics.nist.gov/Comp).
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
-# ------------------------------------------------------------------------------
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
+
 NULL

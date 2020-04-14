@@ -11,7 +11,7 @@
 #'   populations from. Must be one of \code{names(cluster_codes(x))}.
 #'   Defaults to the 1st clustering available.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @return a \code{SingleCellExperiment}.
 #' 
@@ -51,7 +51,12 @@ filterSCE <- function(x, ..., k = NULL) {
         check.names = FALSE, stringsAsFactors = FALSE)
     
     # get cluster IDs for specified clustering
-    cd$cluster_id <- cluster_ids(x, k)
+    if (!is.null(cluster_codes(x))) {
+        if (is.null(k)) 
+            k <- names(cluster_codes(x))[1]
+        k <- .check_k(x, k)   
+        cd$cluster_id <- cluster_ids(x, k)
+    }
     
     # filter rows & columns
     rdf <- try(dplyr::filter(rd, ...), silent = TRUE)
@@ -74,6 +79,7 @@ filterSCE <- function(x, ..., k = NULL) {
             ei[, u] %in% levels(cdf[, u]), 
             logical(nrow(ei)))
         ei <- ei[apply(keep, 1, all), ]
+        ei <- mutate_if(ei, is.factor, droplevels)
         rownames(ei) <- NULL
         n_cells <- table(cdf$sample_id)
         m <- match(ei$sample_id, levels(cdf$sample_id))
@@ -81,13 +87,15 @@ filterSCE <- function(x, ..., k = NULL) {
         md$experiment_info <- droplevels(ei)
     }
     
-    # revert cluster IDs to 100 SOM clusters
-    cdf$cluster_id <- factor(x$cluster_id[ci], levels = levels(x$cluster_id))
+    # revert colData(x)$cluster_id to 100 SOM clusters
+    if (!is.null(cluster_codes(x)))
+        cdf$cluster_id <- factor(
+            x$cluster_id[ci], 
+            levels = levels(x$cluster_id))
     
-    # refactor 'colData' columns
-    for (i in intersect(colnames(cdf), names(ei)))
-        cdf[[i]] <- factor(cdf[[i]], levels = levels(ei[[i]]))
-    cdf <- droplevels(cdf)
+    # refactor 'colData' factor columns
+    for (i in colnames(cdf)) if (i %in% names(ei))
+        cdf[[i]] <- droplevels(factor(cdf[[i]], levels=levels(ei[[i]])))
     
     # subset reduced dimensions
     if (length(reducedDims(x)) > 0) {

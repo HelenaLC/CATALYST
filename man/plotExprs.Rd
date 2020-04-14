@@ -2,21 +2,30 @@
 % Please edit documentation in R/plotExprs.R
 \name{plotExprs}
 \alias{plotExprs}
-\title{Plot expressions}
+\title{Expression densities}
 \usage{
-plotExprs(x, color_by = "condition")
+plotExprs(x, features = NULL, color_by = "condition")
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{color_by}{character string corresponding to a 
-\code{colData(x)} column. Specifies the color coding.}
+\item{features}{character vector specifying 
+which features to invlude; valid values are 
+\code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
+
+\item{color_by}{character string specifying 
+a non-numeric cell metadata column by which 
+to color density curves for each sample; 
+valid values are \code{names(colData(x))}.}
 }
 \value{
 a \code{\link{ggplot}} object.
 }
 \description{
-Plots the smoothed densities of arcsinh-transformed marker intensities.
+Plots smoothed densities of marker intensities, with a density curve for 
+each sample ID, and curves colored by a cell metadata variable of interest.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -25,11 +34,11 @@ plotExprs(sce)
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al. 
+Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

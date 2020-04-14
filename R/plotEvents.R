@@ -1,22 +1,23 @@
 #' @rdname plotEvents
 #' @title Event plot
-#' 
 #' @description Plots normalized barcode intensities for a given barcode.
 #'
-#' @param x 
-#'   a \code{\link{dbFrame}}.
+#' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param which 
-#'   \code{"all"}, numeric or character. Specifies which barcode(s) to plot. 
-#'   Valid values are IDs that occur as row names in the \code{bc_key} of the 
-#'   supplied \code{\link{dbFrame}}, or 0 for unassigned events. 
-#' @param n_events 
-#'   numeric. Specifies number of events to plot. Defaults to 100.
-#' @param out_path 
-#'   character string. If specified, outputs will be generated here.
-#' @param name_ext 
-#'   character string. If specified, will be appended to the file name. 
+#'   \code{"all"}, numeric or character specifying which barcode(s) to plot. 
+#'   Valid values are IDs that occur as rownames in the \code{bc_key} slot
+#'   of the input SCE's \code{metadata}, or 0 for unassigned events. 
+#' @param assay character string specifying which 
+#'   assay data slot to use. One of \code{assayNames(x)}.
+#' @param n single numeric specifying the number of events to plot.
+#' @param out_path character string. 
+#'   If specified, outputs will be generated here.
+#' @param name_ext character string. 
+#'   If specified, will be appended to the file name. 
 #' 
-#' @return 
+#' @return a list of \code{ggplot} objects.
+#' 
+#' @details 
 #' Plots intensities normalized by population for each barcode specified
 #' by \code{which}: Each event corresponds to the intensities plotted on a 
 #' vertical line at a given point along the x-axis. Events are scaled to the 
@@ -24,7 +25,7 @@
 #' less than 50 event assignments will be skipped; it is strongly recoomended
 #' to remove such populations or reconsider their separation cutoffs.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references
 #' Zunder, E.R. et al. (2015).
@@ -34,99 +35,88 @@
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
-#' 
-#' # view preliminary assignments
-#' re <- assignPrelim(x = sample_ff, y = sample_key)
-#' plotEvents(x = re, which = "D1", n_events = 1000)
-#' 
-#' # apply deconvolution parameters
-#' re <- estCutoffs(re)
-#' re <- applyCutoffs(x = re)
-#' plotEvents(x = re, which = "D1", n_events = 500)
+#' sce <- prepData(sample_ff, by_time = FALSE)
+#' sce <- assignPrelim(sce, sample_key)
+#' plotEvents(sce, which = "D1")
 #'
 #' @import ggplot2
 #' @importFrom graphics plot
+#' @importFrom grDevices colorRampPalette
+#' @importFrom methods is
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom grDevices colorRampPalette pdf dev.off
-# ------------------------------------------------------------------------------
+#' @importFrom reshape2 melt
+#' @importFrom S4Vectors metadata
+#' @importFrom SummarizedExperiment assay assayNames colData
+#' @export
 
-setMethod(f="plotEvents", 
-    signature=signature(x="dbFrame"), 
-    definition=function(x, which="all", n_events=100, 
-        out_path=NULL, name_ext=NULL) {
-        
-        # check validity of function arguments
-        if ("all" %in% which & length(which) > 1) {
-            warning("'which' must either be \"all\"", 
-                "or a numeric or character\n",
-                "corresponding to valid barcode IDs; ",
-                "using default value \"all\".")
-        } else if (!"all" %in% which) {
-            which <- .check_validity_which(
-                which, rownames(bc_key(x)), "events")
-        }
-        if (!is.numeric(n_events) || n_events == 0 || length(n_events) > 1) {
-            warning("'n_events' must be a numeric greater than 0",
-                " and of length one;\n  using default value 100.")
-            n_events <- 100
-        }
-        
-        # get barcode labels: 
-        # channel name if barcodes are single-positive, 
-        # sample ID and binary code otherwise
-        n_chs <- ncol(bc_key(x))
-        ids <- sort(unique(bc_ids(x)))
-        if ("all" %in% which) 
-            which <- ids
-        bc_labs <- .get_bc_labs(x)
-        if ("0" %in% ids) 
-            bc_labs <- c("Unassigned", bc_labs)
-        
-        # get colors for plotting:
-        # interpolate if more than 11 barcodes, 
-        # use colors spaced equally along palette elsewise
-        pal <- RColorBrewer::brewer.pal(11,"Spectral")
-        if (n_chs > 11) {
-            cols <- colorRampPalette(pal)(ncol(normed_bcs(x)))
-        } else {
-            cols <- pal[ceiling(seq(1, 11, length=ncol(normed_bcs(x))))] 
-        }
-        
-        skipped <- NULL
-        p <- list()
-        for (id in which) {
-            inds <- bc_ids(x) == id
-            N <- sum(inds)
-            # store IDs with no or insufficient events assigned
-            if (N < 50) {
-                skipped <- c(skipped, id)
-                next
-            }
-            # subsample events if more than 'n_events' assigned 
-            if (N > n_events) {
-                inds <- sort(sample(which(inds), n_events))
-                n <- n_events
-            } else {
-                n <- N
-            }
-            title <- bquote(bold(.(bc_labs[match(id, c("0", rownames(
-                bc_key(x))))]))*scriptstyle(" ("*.(N)*" events)"))
-            p[[length(p) + 1]] <- .plot_events(x, inds, n, cols, title)
-        }
-        
-        # throw warning about populations with less than 50 event assignments
-        if (!is.null(skipped))
-            warning("Less than 50 events assigned to Barcode ID(s) ", 
-                paste(skipped, collapse=", "), ".")
-        
-        if (length(p) != 0) {
-            if (!is.null(out_path)) {
-                pdf(width=10, height=5, file=file.path(out_path, 
-                    paste0("event_plot", name_ext, ".pdf")))
-                for (i in seq_len(length(p))) plot(p[[i]])
-                dev.off()
-            } else {
-                for (i in seq_len(length(p))) plot(p[[i]])
-            }
-        }
+plotEvents <- function(x, which = "all", assay = "scaled", 
+    n = 1e3, out_path = NULL, name_ext = NULL) {
+    
+    stopifnot(is(x, "SingleCellExperiment"),
+        is.character(assay), length(assay) == 1, assay %in% assayNames(x),
+        is.numeric(n), length(n) == 1, n > 0, n == as.integer(n),
+        is.null(out_path) || dir.exists(out_path),
+        is.null(name_ext) || is.character(name_ext) & length(name_ext) == 1)
+    
+    # retreive IDs to include & barcode channels
+    n_bcs <- ncol(bc_key <- metadata(x)$bc_key)
+    .check_which(which, rownames(bc_key), "events")
+    names(ids) <- ids <- unique(x$bc_id)
+    ms <- .get_ms_from_chs(rownames(x))
+    bc_ms <- as.numeric(colnames(bc_key))
+    m <- match(ms, bc_ms, nomatch = 0)
+    bc_chs <- rownames(x)[m]
+
+    labs <- apply(bc_key[ids, ], 1, paste, collapse = "")
+    labs <- paste(ids, labs, sep = ": ")
+    names(labs) <- ids
+    labs["0"] <- "unassigned"
+   
+    if (isTRUE(which == "all")) which <- ids
+    m <- match(c("0", rownames(bc_key)), which, nomatch = 0)
+    names(which) <- which <- which[m]
+    
+    cs <- split(seq_len(ncol(x)), x$bc_id)
+    ns <- vapply(cs, length, numeric(1))
+    pal <- brewer.pal(11, "Spectral")
+    if (n_bcs > 11) {
+        pal <- colorRampPalette(pal)(n_bcs)
+    } else {
+        idx <- seq(1, 11, length.out = n_bcs)
+        pal <- pal[ceiling(idx)]
+    }
+    
+    ps <- lapply(which, function(id) {
+        if (is.na(ns[id]) || ns[id] == 0) return(NULL)
+        if (ns[id] > n) cs[[id]] <- sample(cs[[id]], n)
+        df <- data.frame(
+            t(assay(x, assay)[bc_chs, cs[[id]]]), 
+            check.names = FALSE)
+        df$i <- seq_len(nrow(df))
+        gg_df <- melt(df, id.vars = "i")
+        ggplot(gg_df, aes_string(x = "i", y = "value", col = "variable")) +
+            geom_point() + scale_color_manual(NULL, values = pal) +
+            scale_x_continuous(limits = c(0, nrow(df) + 1), expand = c(0, 0)) +
+            ggtitle(bquote(bold(.(labs[id]))*" ("*.(ns[id])*" events)")) +
+            labs(x = NULL, y = NULL) + theme_bw() + theme(
+                panel.grid.minor = element_blank(),
+                panel.grid.major.x = element_blank(),
+                axis.text = element_text(color = "black"),
+                axis.ticks.x=element_blank(),
+                axis.text.x=element_blank(),
+                legend.key.height = unit(2, "mm"))
     })
+    ps <- ps[!vapply(ps, is.null, logical(1))]
+    if (length(ps) == 0)
+        stop("No or insufficient number of events",
+            " assigned to the specified barcode population(s).")
+    if (!is.null(out_path)) {
+        fn <- paste0("event_plot", name_ext, ".pdf")
+        fn <- file.path(out_path, fn)
+        pdf(fn, width = 8, height = 4)
+        lapply(ps, plot)
+        dev.off()
+    } else {
+        if (length(ps) == 1) ps[[1]] else ps
+    }
+}

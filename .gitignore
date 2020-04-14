@@ -3,6 +3,5 @@
 .RData
 .Ruserdata
 .DS_Store
-.github
 vignettes/*.html
-vignettes/*/*
+vignettes/*/

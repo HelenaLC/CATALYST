@@ -15,14 +15,15 @@ which antigens to use for clustering; valid values are
 if \code{rowData(x)$marker_class} have been specified; 
 a subset of \code{rownames(x)}; NULL to use all features.}
 
-\item{color_by}{character string specifying the color coding.
-Valid values are \code{namescolData(x))}.}
+\item{color_by}{character string specifying the color coding;
+valid values are \code{namescolData(x))}.}
 }
 \value{
 a \code{ggplot} object.
 }
 \description{
-Plots non-redundancy scores (NRS) by features in decreasing order.
+Plots non-redundancy scores (NRS) by feature 
+in decreasing order of average NRS across samples.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -33,11 +34,11 @@ plotNRS(sce, features = "type") # type-markers only
 
 }
 \references{
-Nowicka M, Krieg C, Weber LM et al. 
+Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \author{
-Helena Lucia Crowell \email{helena.crowell@uzh.ch}
+Helena L Crowell \email{helena.crowell@uzh.ch}
 }

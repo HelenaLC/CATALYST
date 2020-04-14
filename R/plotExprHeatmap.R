@@ -2,31 +2,41 @@
 #' @title Plot expression heatmap
 #' 
 #' @description 
-#' Plots median marker expressions across samples 
-#' computed on arcsinh-transformed intensities.
-#'
+#' Heatmap of median marker expressions by sample, include annotation 
+#' of cell metadata factors as well as relative and absolute cell counts.
+#' 
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param features character string specifying which features to include;
+#'   valid values are \code{"type"/"state"} for \code{type/state_markers(x)} 
+#'   if \code{rowData(x)$marker_class} have been specified; 
+#'   a subset of \code{rownames(x)}; NULL to use all features.
+#' @param scale logical specifying whether expressions should be scaled
+#'   using lower (1\%) and upper (99\%) quantiles as boundaries;
+#'   hierarchical clustering is performed on unscaled data, 
+#'   regardless of whether \code{scale = TRUE} or \code{FALSE}.
+#' @param row_anno logical. Should row annotations for 
+#'   each non-numeric cell metadata factor be included?
+#' @param row_clust,col_clust logical specifying 
+#'   whether rows/columns (samples/features) should be 
+#'   hierarchically clustered and re-ordered accordingly.
+#' @param row_dend,col_dend logical specifying whether to include the
+#'   row/column dendrogram for the hierarchical clustering of samples/markers.
 #' @param bin_anno logical. Specifies whether to display values inside bins.
-#' @param row_anno logical. Should row annotations for each factor 
-#'   in \code{metadata(x)$experiment_info} be included?
-#' @param palette character vector of colors to interpolate. 
-#' @param scale logical. Should scaled values be displayed? (see details)
-#' @param draw_freqs logical. Should cell counts and proportions be displayed?
-#' @param clustering_distance character string that specifies 
-#'   the metric to use in \code{\link[stats]{dist}} for clustering.
-#' @param clustering_linkage character string that specifies 
-#'   the linkage to use in \code{\link[stats]{hclust}} for clustering.
+#' @param draw_freqs logical specifying whether to display
+#'   a barplot of cell counts labeled with proportions 
+#'   for each sample as a right-hand side row annotation.
+#' @param hm_pal character vector of colors to interpolate for the heatmap. 
+#' @param distance character string specifying the distance metric 
+#'   to use in \code{\link[stats]{dist}} for hierarchical clustering. 
+#' @param linkage character string specifying the agglomeration method 
+#'   to use in \code{\link[stats]{hclust}} for hierarchical clustering. 
 #' 
-#' @details Scaled values corresponds to cofactor arcsinh-transformed 
-#' expression values scaled between 0 and 1 using 1% and 99% percentiles as 
-#' boundaries. Hierarchical clustering is performed on the unscaled data.
+#' @return a \code{\link[ComplexHeatmap]{Heatmap-class}} object.
 #' 
-#' @return a \code{\link{HeatmapList-class}} object.
-#' 
-#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -34,69 +44,114 @@
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-#' plotExprHeatmap(sce, draw_freqs=TRUE)
+#' 
+#' # turn everything on
+#' plotExprHeatmap(sce, 
+#'   bin_anno = TRUE,
+#'   draw_freqs = TRUE)
+#'   
+#' # turn everything off
+#' plotExprHeatmap(sce,
+#'   row_anno = FALSE,
+#'   row_dend = FALSE,
+#'   col_dend = FALSE)
 #' 
 #' @import ComplexHeatmap SummarizedExperiment
 #' @importFrom dplyr select select_if
+#' @importFrom grid grid.text
 #' @importFrom grDevices colorRampPalette
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom S4Vectors metadata
-#' @importFrom scales hue_pal
 #' @importFrom stats dist hclust
 #' @importFrom SummarizedExperiment assay
 #' @export
 
-plotExprHeatmap <- function(x, bin_anno=TRUE, row_anno=TRUE,
-    palette=brewer.pal(n=8, name="YlGnBu"), scale=TRUE, draw_freqs=FALSE,  
-    clustering_distance="euclidean", clustering_linkage="average") {
+plotExprHeatmap <- function(x, features = NULL, scale = TRUE, row_anno = TRUE, 
+    row_clust = TRUE, col_clust = TRUE, row_dend = TRUE, col_dend = TRUE, 
+    draw_freqs = FALSE,  bin_anno = FALSE, 
+    hm_pal = brewer.pal(9, "YlGnBu"), 
+    distance = c(
+        "euclidean", "maximum", "manhattan", 
+        "canberra", "binary", "minkowski"), 
+    linkage = c(
+        "average", "ward.D", "single", "complete", 
+        "mcquitty", "median", "centroid", "ward.D2")) {
     
+    # check validity of input arguments
     .check_sce(x)
+    .check_colors(hm_pal)
+    stopifnot(
+        is.logical(scale), length(scale) == 1,
+        is.logical(bin_anno), length(bin_anno) == 1,
+        is.logical(row_anno), length(row_anno) == 1,
+        is.logical(row_dend), length(row_dend) == 1,
+        is.logical(col_dend), length(col_dend) == 1,
+        is.logical(row_clust), length(row_clust) == 1,
+        is.logical(col_clust), length(col_clust) == 1,
+        is.logical(draw_freqs), length(draw_freqs) == 1)
+    distance <- match.arg(distance)
+    linkage <- match.arg(linkage)
+
+    # subset features of interest
+    features <- .get_features(x, features)
+    x <- x[features, ]
     
     # compute medians across samples
-    ms <- t(.agg(x, "sample_id"))
-    d <- dist(ms, method=clustering_distance)
-    row_clustering <- hclust(d, method=clustering_linkage)
-    if (scale) ms <- .scale_exprs(ms, 2)
+    z <- t(.agg(x, "sample_id"))
+    # (optionally) cluster rows (markers)
+    if (row_clust) {
+        d <- dist(z, method = distance)
+        row_clust <- hclust(d, method = linkage) 
+    }
+    # (optionally) do 0-1 scaling for each marker
+    if (scale) 
+        z <- .scale_exprs(z, 2)
     
-    # barplots of event counts
+    # left-hand side heatmap annotation:
+    # non-numeric cell metadata variables
+    cd <- data.frame(colData(x))
+    cd <- select_if(cd, is.factor)
+    cols_keep <- setdiff(colnames(cd), 
+        c("cluster_id", "sample_id"))
+    if (row_anno && length(cols_keep) > 0) {
+        m <- match(rownames(z), x$sample_id)
+        cd <- cd[m, cols_keep, drop = FALSE]
+        left_anno <- .anno_factors(cd, "row")
+    } else left_anno <- NULL
+    
+    # right-hand side heatmap annotation:
+    # labeled barplot of event counts by sample
     freq_bars <- freq_anno <- NULL
     if (draw_freqs) {
-        counts <- as.numeric(n_cells(x))
-        freqs <- round(counts/sum(counts)*100, 2)
-        freq_bars <- rowAnnotation(width=unit(2, "cm"), 
-            "n_cells"=row_anno_barplot(x=counts, border=FALSE, axis=TRUE,
-                gp=gpar(fill="grey50", col="white"), bar_with=.8))
-        labs <- paste0(counts, " (", freqs, "%)")
-        freq_anno <- rowAnnotation(
-            text=row_anno_text(labs), 
-            width=max_text_width(labs))
-    } 
+        ns <- tabulate(x$sample_id)
+        fq <- round(ns/sum(ns)*100, 2)
+        txt <- sprintf("%s (%s%%)", rownames(z), fq)
+        right_anno <- rowAnnotation(
+            "n_cells" = row_anno_barplot(
+                x = ns, width = max_text_width(txt),
+                gp = gpar(fill = "grey", col = "white"),
+                border = FALSE, axis = TRUE, bar_width = 0.8),
+            "foo" = row_anno_text(x = txt, location = 0.5, just = "centre"))
+    } else right_anno <- NULL
     
-    # heatmap of medians across antigens and samples
-    hm_cols <- colorRampPalette(palette)(100)
-    hm <- function (cell_fun) { 
-        Heatmap(matrix=ms, col=hm_cols, name="expression", 
-            cell_fun=cell_fun, cluster_rows=row_clustering,
-            heatmap_legend_param=list(color_bar="continuous"),
-            column_names_gp=gpar(fontsize=8), 
-            row_names_gp=gpar(fontsize=8)) 
-    }
     if (bin_anno) {
-        hm <- hm(cell_fun=function(j, i, x, y, ...)
-            grid.text(gp=gpar(fontsize=8),
-                sprintf("%.2f", ms[i, j]), x, y))
-    } else {
-        hm <- hm(cell_fun=function(...) NULL)
-    }
+        cell_fun <- function(j, i, x, y, ...) 
+            grid.text(
+                gp = gpar(fontsize = 8), 
+                sprintf("%.2f", z[i, j]), x, y)
+    } else cell_fun <- NULL
     
-    if (row_anno) {
-        md <- metadata(x)$experiment_info
-        m <- match(rownames(ms), md$sample_id)
-        df <- select(md[m, ], -"sample_id")
-        df <- select_if(df, is.factor)
-        row_anno <- .anno_factors(df, "row")
-        row_anno + hm + freq_bars + freq_anno
-    } else {
-        hm + freq_bars + freq_anno
-    }
+    Heatmap(
+        matrix = z, 
+        name = paste0("scaled\n"[scale], "expression"),
+        col = colorRampPalette(hm_pal)(100), 
+        cell_fun = cell_fun, 
+        cluster_rows = row_clust,
+        cluster_columns = col_clust,
+        show_row_dend = row_dend,
+        show_column_dend = col_dend,
+        show_row_names = is.null(right_anno),
+        row_names_side = ifelse(row_anno || row_dend, "right", "left"),
+        left_annotation = left_anno,
+        right_annotation = right_anno)
 }

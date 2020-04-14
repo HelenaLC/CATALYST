@@ -8,14 +8,14 @@
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param k character string. Specifies the clustering to use for color coding.
-#' @param out_path character string. If specified, 
-#'   output will be generated in this location.
-#' @param verbose logical. Should information on progress be reported?
+#' @param k_pal character string specifying the cluster color palette;
+#'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors 
+#'   will be interpolated via \code{\link[grDevices]{colorRampPalette}}.
 #' 
-#' @author Helena Lucia Crowell \email{helena.crowell@@uzh.ch}
+#' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @references 
-#' Nowicka M, Krieg C, Weber LM et al. 
+#' Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
 #' CyTOF workflow: Differential discovery in 
 #' high-throughput high-dimensional cytometry datasets.
 #' \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
@@ -30,73 +30,70 @@
 #' 
 #' plotCodes(sce, k = "meta14")
 #' 
+#' # use custom cluster color palette
+#' plotCodes(sce, k = "meta12",
+#'   k_pal = c("lightgrey", "cornflowerblue", "navy"))
+#' 
 #' @import ggplot2
 #' @importFrom cowplot get_legend plot_grid
-#' @importFrom grDevices png
-#' @importFrom gridExtra arrangeGrob grid.arrange
 #' @importFrom Rtsne Rtsne
 #' @importFrom stats prcomp
 #' @export
 
-plotCodes <- function(x, k="meta20", out_path=NULL, verbose=TRUE) {
+plotCodes <- function(x, k = "meta20", 
+    k_pal = CATALYST:::.cluster_cols) {
     
-    # validity check
-    .check_validity_of_k(x, k)
-    stopifnot(c("cluster_codes", "SOM_codes") %in% names(metadata(x)))
-    stopifnot(is.logical(verbose), length(verbose) == 1)
-    if (!is.null(out_path))
-        stopifnot(is.character(out_path), dir.exists(out_path))
+    # check validity of input arguments
+    .check_sce(x, TRUE)
+    k <- .check_k(x, k)
+    .check_colors(k_pal)
     
+    # ramp cluster color palette
+    nk <- nlevels(cluster_ids(x, k))
+    if (length(k_pal) < nk)
+        k_pal <- colorRampPalette(k_pal)(nk)
+    
+    # run t-SNE & PCA on SOM codes
     codes <- metadata(x)$SOM_codes
-    if (verbose) message("o running tSNE...")
-    tsne <- Rtsne(codes, pca=FALSE)
-    if (verbose) message("o running PCA...")
-    pca <- prcomp(codes, center=TRUE, scale.=FALSE)
+    tsne <- Rtsne(codes, pca = FALSE)
+    pca <- prcomp(codes, center = TRUE, scale. = FALSE)
     
-    df <- data.frame(
-        tSNE1=tsne$Y[, 1], tSNE2=tsne$Y[, 2],
-        PCA1=pca$x[, 1], PCA2=pca$x[, 2])
-    # get cluster IDs & sizes
+    # construct data.frame of t-SNE & PCA coordinates
+    df <- data.frame(tsne$Y, pca$x[, c(1, 2)]) 
+    colnames(df) <- c("tsne1", "tsne2", "pc1", "pc2")
+    
+    # add cluster IDs & sizes
     df$cluster_id <- cluster_codes(x)[, k]
     df$counts <- as.numeric(table(cluster_ids(x)))
     
-    p <- ggplot(df, aes_string(color="cluster_id", size="counts")) +
+    # specify shared aesthetics
+    p <- ggplot(df, aes_string(col = "cluster_id", size = "counts")) +
         theme_classic() + theme(
-            aspect.ratio=1, legend.position="top",
-            panel.grid.minor=element_blank(),
-            panel.grid.major=element_line(color='lightgrey', size=.2), 
-            axis.title=element_text(face='bold'),
-            axis.text=element_text(color="black"))
+            aspect.ratio = 1, 
+            legend.position = "top",
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_line(color = "grey", size = 0.2), 
+            axis.text=element_text(color = "black"))
+
+    ps <- list(
+        p + geom_point(aes_string("tsne1", "tsne2")) + 
+            labs(x = "t-SNE dim. 1", y = "t-SNE dim. 2") +
+            scale_color_manual(values = k_pal, guide = FALSE) +
+            scale_size(guide = FALSE)
+        ,
+        p + geom_point(aes_string("pc1", "pc2")) +
+            labs(x = "1st PC", y = "2nd PC") +
+            scale_color_manual(values = k_pal) +
+            guides(col = guide_legend(
+                override.aes = list(size = 3),
+                order = 1, nrow = ifelse(nk > 10, 2, 1)))
+    )
     
-    # expand palette if more than 30 clusters
-    nk <- nlevels(df$cluster_id)
-    if (nk > 30) {
-        cols <- colorRampPalette(.cluster_cols)(nk)
-    } else {
-        cols <- .cluster_cols[seq_len(nk)]
-    }
-    names(cols) <- levels(df$cluster_id)
-    
-    tsne_plot <- p + geom_point(aes_string(x="tSNE1", y="tSNE2")) + 
-        scale_color_manual(values=cols, guide=FALSE) +
-        scale_size(guide=FALSE)
-    
-    if (k > 10) n_row <- 2 else n_row <- 1
-    pca_plot <- p + geom_point(aes_string(x="PCA1", y="PCA2")) +
-        guides(color=guide_legend(override.aes=list(size=3), 
-            order=1, nrow=n_row)) + scale_color_manual(values=cols) 
-    
-    p <- plot_grid(
-        get_legend(pca_plot), 
-        ncol = 1, rel_heights = c(1, 5),
-        plot_grid(nrow = 1,
-            tsne_plot + theme(legend.position = "none"), 
-            pca_plot + theme(legend.position = "none")))
-        
-    if (!is.null(out_path)) {
-        fn <- file.path(out_path, "codes_tsne+pca.png")
-        ggsave(fn, p, width=9, height=5)
-    } else {
-        p
-    }
+    # arrange plots side-by-side
+    lgd <- get_legend(ps[[2]])
+    ps <- lapply(ps, "+", theme(legend.position = "none"))
+    plot_grid(
+        lgd, ncol = 1, rel_heights = c(1, 5),
+        plot_grid(plotlist = ps, nrow = 1))
 }
+

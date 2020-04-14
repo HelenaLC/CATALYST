@@ -1,4 +1,4 @@
-### Welcome to CATALYST <img src="docs/logo.png" width="200" align="right" />
+### Welcome to CATALYST <img src="inst/extdata/sticker.png" width="200" align="right" />
 
 Mass cytometry (CyTOF) uses heavy metal isotopes rather than fluorescent tags as reporters to label antibodies, thereby substantially decreasing spectral overlap and allowing for examination of over 50 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. 
 

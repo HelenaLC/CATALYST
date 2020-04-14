@@ -1,13 +1,9 @@
-context("Extract clusters from a SCE")
+sce0 <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
+sce <- cluster(sce0, verbose = FALSE)
 
-# construct SCE
-sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-
-test_that("cluster extraction fails prior to running cluster()",
-    expect_error(extractClusters(sce)))
-
-# run clustering
-sce <- cluster(sce, verbose = FALSE)
+test_that("extractClusters() - without having run cluster()", {
+    expect_error(extractClusters(sce0))
+})
 
 test_that("extractClusters()", {
     # check vebosity
