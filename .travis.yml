@@ -7,8 +7,8 @@ env:
   - _R_CHECK_LENGTH_1_LOGIC2_=true _R_CHECK_LENGTH_1_CONDITION=true
 
 install:
-  - devtools::install_github("JinmiaoChenLab/Rphenograph")
+  - R -e "devtools::install_github('JinmiaoChenLab/Rphenograph')"
 r_binary_packages:
   - covr
 after_success:
-  - Rscript -e 'covr::codecov()'
+  - R -e "covr::codecov()"
