@@ -8,8 +8,5 @@ env:
 
 r_binary_packages:
   - covr
-  - devtools
-install:
-  - R -e "devtools::install_github('JinmiaoChenLab/Rphenograph')"
 after_success:
   - R -e "covr::codecov()"
