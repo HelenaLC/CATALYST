@@ -6,6 +6,7 @@
 \usage{
 plotExprHeatmap(
   x,
+  features = NULL,
   scale = TRUE,
   row_anno = TRUE,
   row_clust = TRUE,
@@ -22,6 +23,11 @@ plotExprHeatmap(
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
+
+\item{features}{character string specifying which features to include;
+valid values are \code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
 
 \item{scale}{logical specifying whether expressions should be scaled
 using lower (1\%) and upper (99\%) quantiles as boundaries;

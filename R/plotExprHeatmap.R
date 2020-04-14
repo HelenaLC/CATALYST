@@ -6,6 +6,10 @@
 #' of cell metadata factors as well as relative and absolute cell counts.
 #' 
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param features character string specifying which features to include;
+#'   valid values are \code{"type"/"state"} for \code{type/state_markers(x)} 
+#'   if \code{rowData(x)$marker_class} have been specified; 
+#'   a subset of \code{rownames(x)}; NULL to use all features.
 #' @param scale logical specifying whether expressions should be scaled
 #'   using lower (1\%) and upper (99\%) quantiles as boundaries;
 #'   hierarchical clustering is performed on unscaled data, 
@@ -62,7 +66,7 @@
 #' @importFrom SummarizedExperiment assay
 #' @export
 
-plotExprHeatmap <- function(x, scale = TRUE, row_anno = TRUE, 
+plotExprHeatmap <- function(x, features = NULL, scale = TRUE, row_anno = TRUE, 
     row_clust = TRUE, col_clust = TRUE, row_dend = TRUE, col_dend = TRUE, 
     draw_freqs = FALSE,  bin_anno = FALSE, 
     hm_pal = brewer.pal(9, "YlGnBu"), 
@@ -87,6 +91,10 @@ plotExprHeatmap <- function(x, scale = TRUE, row_anno = TRUE,
         is.logical(draw_freqs), length(draw_freqs) == 1)
     distance <- match.arg(distance)
     linkage <- match.arg(linkage)
+
+    # subset features of interest
+    features <- .get_features(x, features)
+    x <- x[features, ]
     
     # compute medians across samples
     z <- t(.agg(x, "sample_id"))
