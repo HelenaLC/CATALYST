@@ -27,6 +27,10 @@
 #'   or cluster-marker combinations (DS) should be considered significant.
 #' @param hm1 
 #'   logical. Specifies whether the left-hand side heatmap should be plotted.
+#' @param fun character string specifying the function to use 
+#'   as summary statistic for aggregation of expression values.
+#' @param scale logical specifying whether expression values should be scaled
+#'   between 0 and 1 using lower (1\%) and upper (99\%) quantiles as boundaries.
 #' @param normalize
 #'   logical. Specifies whether Z-score normalized values should be plotted 
 #'   in the right-hand side heatmap. If \code{y} contains DA analysis results, 
@@ -39,6 +43,8 @@
 #' @param col_anno
 #'   logical. Should column annotations for each factor 
 #'   in \code{metadata(x)} be included?
+#' @param hm1_pal,hm2_pal character vector of 
+#'   colors to interpolate for each heatmap(s).  
 #' 
 #' @details 
 #' For DA tests, \code{plotDiffHeatmap} will display
@@ -100,147 +106,180 @@
 #' plotDiffHeatmap(sub, da)
 #' 
 #' @import ComplexHeatmap
-#' @importFrom circlize colorRamp2
 #' @importFrom data.table data.table
 #' @importFrom dplyr mutate_if
+#' @importFrom grid unit.c
 #' @importFrom methods is
 #' @importFrom purrr map_depth
-#' @importFrom scales hue_pal
 #' @importFrom stats quantile
 #' @importFrom SummarizedExperiment assay colData
 #' @importFrom S4Vectors metadata
 #' @export
 
 plotDiffHeatmap <- function(x, y, 
-    top_n = 20, all = FALSE, order = TRUE,
-    th = 0.1, hm1 = TRUE, normalize = TRUE, 
-    row_anno = TRUE, col_anno = TRUE) {
+    top_n = 20, all = FALSE, order = TRUE, th = 0.1, 
+    hm1 = TRUE, fun = c("median", "mean"), 
+    scale = TRUE, normalize = TRUE, 
+    row_anno = TRUE, col_anno = TRUE,
+    hm1_pal = rev(brewer.pal(11, "RdBu")),
+    hm2_pal = rev(brewer.pal(11, "PuOr"))) {
     
     # check validity of input arguments
-    .check_sce(x)
-    es <- assay(x, "exprs")
-    stopifnot(
-        is.numeric(top_n), length(top_n) == 1,
-        is.logical(order), length(order) == 1,
-        is.numeric(th), length(th) == 1,
-        is.logical(hm1), length(hm1) == 1,
-        is.logical(normalize), length(normalize) == 1,
-        is.logical(row_anno), length(row_anno) == 1,
-        is.logical(col_anno), length(col_anno) == 1)
+    fun <- match.arg(fun)
+    args <- as.list(environment())
+    .check_args_plotDiffHeatmap(args)
     
     stopifnot(!is.null(k <- metadata(y$res)$clustering_name))
-    k <- .check_validity_of_k(x, k)
+    k <- .check_k(x, k)
     x$cluster_id <- cluster_ids(x, k)
-    factors <- select(
-        as.data.frame(colData(x)), 
-        -c("sample_id", "cluster_id"))
     
     y <- rowData(y$res)
     type <- .get_dt_type(y)
     
     # subset results in case input SCE has been filtered
     y <- y[y$cluster_id %in% levels(x$cluster_id), , drop = FALSE]
-    
+
     # get clusters/cluster-marker combinations to plot
     if (order) y <- y[order(y$p_adj), , drop = FALSE]
-    if (all | top_n > nrow(y)) top_n <- nrow(y)
-    top <- as.data.frame(y[seq_len(top_n), ])
+    if (all || top_n > nrow(y)) top_n <- nrow(y)
+    top <- data.frame(y[seq_len(top_n), ])
     top <- mutate_if(top, is.factor, as.character)
     
     # 1st heatmap: median type-marker expression by cluster
     if (hm1) {
-        ms_by_k <- t(.agg(x[type_markers(x)], "cluster_id"))[top$cluster_id, ]
-        qs <- quantile(ms_by_k, probs = c(.01, .5, .99), na.rm = TRUE)
-        hm_cols <- colorRamp2(qs, c("royalblue3", "white", "tomato2"))
-        hm1 <- .diff_hm(ms_by_k, hm_cols, "expression",
-            cluster_rows = !order, xlab = "type_markers",
-            row_title = "cluster_id"[!is.null(hm1)], 
-            row_names_side = "left")
-    } else {
-        hm1 <- NULL
-    }
+        es <- assay(x, "exprs")
+        if (scale) es <- .scale_exprs(es, 1)
+        z <- x; assay(z, "exprs") <- es
+        z <- z[type_markers(x), ]
+        z <- .agg(z, "cluster_id", fun)
+        z <- t(z)[top$cluster_id, ]
+        #hm1_pal <- colorRampPalette(hm1_pal)(100)
+        # qs <- quantile(z, probs = c(0.01, 0.5, 0.99), na.rm = TRUE)
+        # if (length(hm1_pal) %% 2 == 0)
+        #     hm1_pal <- colorRampPalette(hm1_pal)(length(hm1_pal)+1)  
+        # mid <- ceiling(length(hm1_pal)/2)
+        # qs1 <- seq(qs[1], qs[2], l = mid)
+        # qs2 <- seq(qs[2], qs[3], l = mid)
+        # qs <- c(qs1[-mid], qs2)
+        #hm1_pal <- colorRamp2(qs, hm1_pal)
+        if (type == "DS" && row_anno)
+            rownames(z) <- sprintf("%s(%s)", 
+                top$marker_id, top$cluster_id)
+        hm1 <- Heatmap(
+            matrix = z,
+            name = paste0("scaled\n"[scale], "expression"),
+            col = hm1_pal,
+            cluster_rows = FALSE,
+            cluster_columns = FALSE,
+            row_title = "cluster_id",
+            column_title = "type_markers",
+            row_names_side = "left",
+            column_title_side = "bottom",
+            clustering_distance_rows = "euclidean",
+            clustering_method_rows = "median",
+            column_names_gp = gpar(fontsize = 8),
+            rect_gp = gpar(col = "white"))
+    } else hm1 <- NULL
     
     # column annotation: factors
-    if (col_anno) {
+    cd <- data.frame(colData(x))
+    cd <- select_if(cd, is.factor)
+    cols_keep <- setdiff(colnames(cd), 
+        c("cluster_id", "sample_id"))
+    if (col_anno && length(cols_keep) > 0) {
         m <- match(levels(x$sample_id), x$sample_id)
-        df <- data.frame(factors[m, ], row.names = NULL)
+        df <- data.frame(cd[m, cols_keep, drop = FALSE])
         col_anno <- .anno_factors(df, "column")
-    } else {
-        col_anno <- NULL
-    }
-    
-    # 2nd heatmap:
-    if (type == "DA") {
-        # relative cluster abundances by sample
-        cnts <- table(x$cluster_id, x$sample_id)
-        frqs <- prop.table(cnts, 1)
-        frqs <- frqs[top$cluster_id, ]
-        frqs <- as.matrix(unclass(frqs))
-        if (normalize) {
-            frqs <- .z_normalize(asin(sqrt(frqs)))
-            at <- seq(-2.5, 2.5, 0.5)
-            labels <- at
-            labels[-seq(2, length(at), 2)] <- ""
-        } else {
-            min <- floor(min(frqs)/0.1)*0.1
-            max <- ceiling(max(frqs)/0.1)*0.1
-            at <- seq(min, max, 0.1)
-            labels <- at
-        }
-        hm2 <- .diff_hm(matrix = frqs, cluster_rows = !order, 
-            col = c("skyblue", "cornflowerblue", "royalblue", 
-                "black", "orange3", "orange", "gold"),
-            name = paste0("normalized\n"[normalize], "frequency"),
-            show_row_names = is.null(hm1), row_names_side = "left",
-            heatmap_legend_param = list(at = at, labels = labels),
-            top_annotation = col_anno,
-            xlab = "sample_id", 
-            row_title = "cluster_id")
-    } else {
-        # median state-marker expression by sample
-        cs_by_ks <- .split_cells(x, c("cluster_id", "sample_id"))
-        ms_by_ks <- t(mapply(function(k, g)
-            vapply(cs_by_ks[[k]], function(cs)
-                median(es[g, cs, drop=FALSE]),
-                numeric(1)),
-            k = top$cluster_id, 
-            g = top$marker_id))
-        if (!is.null(hm1)) {
-            rownames(ms_by_ks) <- top$marker_id 
-        } else { 
-            rownames(ms_by_ks) <- sprintf("%s(%s)", 
-                top$marker_id, top$cluster_id)
-        }
-        if (normalize) 
-            ms_by_ks <- .z_normalize(ms_by_ks) 
-            hm2 <- .diff_hm(matrix=ms_by_ks, cluster_rows=!order,
-                name=paste0("normalized\n"[normalize], "expression"),
-                col=c("skyblue", "cornflowerblue", "royalblue", 
-                    "black", "orange3", "orange", "gold"),
-                xlab="sample_id", top_annotation=col_anno,
-                row_names_side=c("right", "left")[as.numeric(is.null(hm1)) + 1])
-    }
+    } else col_anno <- NULL
     
     # row annotation: significant = (adj. p-values <= th)
     if (row_anno) {
         s <- top$p_adj <= th
         s[is.na(s)] <- FALSE
-        s <- as.matrix(c("no", "yes")[as.numeric(s)+1])
-        rownames(s) <- format(top$p_adj, digits = 2)
-        row_anno <- Heatmap(
-            matrix = s, name = "significant",
-            col = c(no="lightgrey", yes="limegreen"), 
-            width = unit(5, "mm"), rect_gp = gpar(col = "white"),
-            show_row_names = TRUE, row_names_side = "right")
-    } else {
-        row_anno <- NULL
-    }
+        ss <- c("no", "yes")
+        s <- factor(ss[s+1], ss)
+        txt <- format(top$p_adj, digits = 2)
+        right_anno <- rowAnnotation(
+            df = data.frame(significant = s),
+            col = list(significant = c(no = "lightgrey", yes = "lightgreen")),
+            "foo" = row_anno_text(txt, gp = gpar(fontsize = 8)),
+            gp = gpar(col = "white"),
+            show_annotation_name = FALSE,
+            annotation_width = unit.c(unit(2, "mm"), max_text_width(txt)))
+    } else right_anno <- NULL
     
-    # combine panels
-    main <- switch(type, 
-        DA = "top DA clusters", 
-        DS = "top DS cluster-marker combinations")
-    suppressWarnings(draw(hm1 + hm2 + row_anno, 
-        column_title = main, auto_adjust = FALSE,
-        column_title_gp = gpar(fontface = "bold", fontsize = 12)))
+    # 2nd heatmap:
+    hm2 <- switch(type, 
+        DA = {
+            # relative cluster abundances by sample
+            ns <- table(x$cluster_id, x$sample_id)
+            fq <- prop.table(ns, 1)
+            fq <- fq[top$cluster_id, ]
+            fq <- as.matrix(unclass(fq))
+            if (normalize) {
+                fq <- .z_normalize(asin(sqrt(fq)))
+                at <- seq(-2.5, 2.5, 0.5)
+                labels <- at
+                labels[-seq(2, length(at), 2)] <- ""
+            } else {
+                min <- floor(min(fq)/0.1)*0.1
+                max <- ceiling(max(fq)/0.1)*0.1
+                at <- seq(min, max, 0.1)
+                labels <- at
+            }
+            Heatmap(
+                matrix = fq,
+                name = paste0("normalized\n"[normalize], "frequency"),
+                col = hm2_pal,
+                row_title = "cluster_id",
+                column_title = "sample_id",
+                cluster_rows = !order, 
+                cluster_columns = FALSE,
+                show_row_names = !is.null(hm1), 
+                row_names_side = "left",
+                column_title_side = "bottom",
+                top_annotation = col_anno,
+                column_names_gp = gpar(fontsize = 8),
+                rect_gp = gpar(col = "white"),
+                right_annotation = right_anno,
+                heatmap_legend_param = list(at = at, labels = labels))
+        },
+        DS = {
+            # median state-marker expression by sample
+            es <- assay(x, "exprs")
+            cs_by_ks <- .split_cells(x, c("cluster_id", "sample_id"))
+            ms_by_ks <- t(mapply(function(k, g)
+                vapply(cs_by_ks[[k]], function(cs) {
+                    if (length(cs) == 0)
+                        return(NA)
+                    get(fun)(es[g, cs, drop=FALSE])
+                }, numeric(1)),
+                k = top$cluster_id, 
+                g = top$marker_id))
+            if (!is.null(hm1)) {
+                rownames(ms_by_ks) <- top$marker_id 
+            } else { 
+                rownames(ms_by_ks) <- sprintf("%s(%s)", 
+                    top$marker_id, top$cluster_id)
+            }
+            if (normalize) 
+                ms_by_ks <- .z_normalize(ms_by_ks) 
+            Heatmap(
+                matrix = ms_by_ks,
+                name = paste0("z-normalized\n"[normalize], "expression"),
+                col = hm2_pal,
+                column_title = "sample_id",
+                cluster_rows = FALSE,
+                cluster_columns = FALSE,
+                top_annotation = col_anno,
+                column_title_side = "bottom",
+                show_row_names = is.null(right_anno),
+                row_names_side = "right",
+                clustering_distance_rows = "euclidean",
+                clustering_method_rows = "median",
+                column_names_gp = gpar(fontsize = 8),
+                rect_gp = gpar(col = "white"),
+                right_annotation = right_anno)
+        })
+    hm1 + hm2
 }

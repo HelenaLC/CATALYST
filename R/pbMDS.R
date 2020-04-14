@@ -1,12 +1,19 @@
 #' @rdname pbMDS
 #' @title Pseudobulk-level MDS plot
 #' 
-#' @description 
-#' Multi-dimensional scaling (MDS) plot on median marker expressions.
+#' @description Pseudobulk-level Multi-Dimensional Scaling (MDS) 
+#' plot computed on median marker expressions in each sample.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
-#' @param color_by character string corresponding to a
-#'   \code{colData(x)} column. Specifies the color coding.
+#' @param color_by character string specifying a 
+#'   non-numeric cell metadata column to color by; 
+#'   valid values are \code{names(colData(x))}.
+#' @param label_by character string specifying a 
+#'   non-numeric cell metadata column to label by; 
+#'   valid values are \code{names(colData(x))}.
+#' @param shape_by character string specifying a 
+#'   non-numeric cell metadata column to shape by; 
+#'   valid values are \code{names(colData(x))}.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -32,36 +39,35 @@
 #' @importFrom SummarizedExperiment assay colData
 #' @export
 
-pbMDS <- function(x, color_by="condition") {
+pbMDS <- function(x, color_by = "condition", label_by = "sample_id", shape_by = NULL) {
+    # check validity of input arguments
     .check_sce(x)
-    stopifnot(is.character(color_by), length(color_by) == 1, 
-        color_by %in% names(colData(x)))
+    .check_cd_factor(x, color_by)
+    .check_cd_factor(x, label_by)
+    .check_cd_factor(x, shape_by)
     
     # compute medians across samples
-    cs_by_s <- split(seq_len(ncol(x)), droplevels(x$sample_id))
-    es <- as.matrix(assay(x, "exprs"))
-    ms <- vapply(cs_by_s, function(cs)
-        rowMedians(es[, cs, drop = FALSE]),
-        numeric(nrow(x)))
-    rownames(ms) <- rownames(x)
+    y <- .agg(x, "sample_id", "median")
+    y <- y[, colSums(y) != 0]
     
     # get MDS coordinates
-    mds <- limma::plotMDS(ms, plot=FALSE)
-    df <- data.frame(MDS1=mds$x, MDS2=mds$y)
+    mds <- plotMDS(y, plot = FALSE)
+    df <- data.frame(mds1 = mds$x, mds2 = mds$y)
     
-    # add metadata information
-    md <- metadata(x)$experiment_info
-    m <- match(rownames(df), md$sample_id)
-    df <- data.frame(df, md[m, ])
+    # add relevant cell metadata
+    m <- match(rownames(df), x$sample_id)
+    for (i in c(color_by, label_by, shape_by))
+        df[[i]] <- x[[i]][m]
     
-    ggplot(df, aes_string(x="MDS1", y="MDS2", col=color_by)) + 
-        geom_label_repel(aes_string(label="sample_id"), 
-            show.legend=FALSE) + geom_point(alpha=.8, size=1.2) + 
-        guides(col=guide_legend(overide.aes=list(alpha=1, size=3))) +
-        theme_void() + theme(aspect.ratio=1,
-            panel.grid.minor=element_blank(),
-            panel.grid.major=element_line(color='lightgrey', size=.25), 
-            axis.title=element_text(face='bold'),
-            axis.title.y=element_text(angle=90),
-            axis.text=element_text())
+    ggplot(df, aes_string("mds1", "mds2", col = color_by, shape = shape_by)) + 
+        geom_point(alpha = 0.8, size = 2) + 
+        geom_label_repel(aes_string(label = label_by), show.legend = FALSE) + 
+        guides(shape = guide_legend(override.aes = list(size = 3)),
+            col = guide_legend(override.aes = list(alpha = 1, size = 3))) +
+        labs(x = "MDS dim. 1", y = "MDS dim. 2") +
+        coord_equal() + theme_minimal() + theme(
+            legend.key.height  =  unit(0.8, "lines"),
+            axis.text = element_text(color = "black"),
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_line(color = "grey", size = 0.2))
 }

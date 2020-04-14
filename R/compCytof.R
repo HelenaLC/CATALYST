@@ -9,14 +9,22 @@
 #'   FCS files that should be compensates.
 #' @param sm a spillover matrix.
 #' @param method \code{"flow"} or \code{"nnls"}.
-#' @param assay character string specifying which assay to use. Should 
-#'   correspond to count-like data, as linearity-assumptions underlying 
-#'   spillover estimation won't hold for non-linearly transformed data.
-#' @param transform logical specifying whether compensated data 
-#'   should be arcsinh-transformed in which case an additional
-#'   assay \code{"exprs_comped"} will be added to the output SCE.
-#' @param cofactor cofactor to use for optional arcsinh-transformation.
-#'   If NULL, \code{compCytof} will try and access \code{metadata(x)$cofactor}.
+#' @param assay character string specifying which assay data to use; 
+#'   should be one of \code{assayNames(x)} and correspond to count-like data, 
+#'   as linearity assumptions underlying compensation won't hold otherwise.
+#' @param overwrite logical; should the specified \code{assay} slot 
+#'   (and \code{exprs}, when \code{transform = TRUE}) be overwritten 
+#'   with the compensated data? If \code{FALSE}, compensated counts 
+#'   (and expressions, if \code{transform = TRUE}) will be stored in 
+#'   assay(s) \code{compcounts/exprs}, respectively.
+#' @param transform logical; should normalized counts be 
+#'   arcsinh-transformed with the specified \code{cofactor}(s)?
+#' @param cofactor numeric cofactor(s) to use for optional 
+#'   arcsinh-transformation when \code{transform = TRUE};
+#'   single value or a vector with channels as names.
+#'   If NULL, \code{compCytof} will try and access the cofactor(s)
+#'   stored in \code{int_metadata(x)}, thus re-using the same 
+#'   transformation applied previously.
 #' @param isotope_list named list. Used to validate the input spillover matrix.
 #'   Names should be metals; list elements numeric vectors of their isotopes.
 #'   See \code{\link{isotope_list}} for the list of isotopes used by default.
@@ -46,40 +54,44 @@
 #' @examples
 #' # deconvolute single-stained control samples
 #' data(ss_exp)
-#' sce <- fcs2sce(ss_exp, by_time = FALSE)
+#' sce <- prepData(ss_exp)
 #' bc_ms <- c(139, 141:156, 158:176)
-#' sce <- assignPrelim(x = sce, bc_key = bc_ms)
-#' sce <- estCutoffs(x = sce)
-#' sce <- applyCutoffs(x = sce)
-#' sce <- computeSpillmat(x = sce)
-#' (sce <- compCytof(x = sce))
+#' sce <- assignPrelim(sce, bc_ms)
+#' sce <- applyCutoffs(estCutoffs(sce))
 #' 
-#' library(SingleCellExperiment)
-#' i <- "Dy162Di"; j <- "Dy163Di"
+#' # estimate spillover matrix 
+#' sce <- computeSpillmat(sce)
+#' 
+#' # compensate & store compensated data in separate assays
+#' sce <- compCytof(sce, overwrite = FALSE)
+#' assayNames(sce)
+#' 
+#' # biscatter before vs. after compensation
 #' par(mfrow = c(1, 2))
-#' for (a in c("exprs", "exprs.nnlscomped"))
-#'   plot(main = a, xlab = i, ylab = j,
-#'     assay(sce[i, ], a), assay(sce[j, ], a))
+#' i <- "Dy162Di"; j <- "Dy163Di"
+#' for (a in c("exprs", "compexprs")) {
+#'   es <- assay(sce, a)
+#'   plot(es[i, ], es[j, ], main = a, xlab = i, ylab = j, cex = 0.2, pch = 19)
+#' }
 #'
-#' @importFrom methods is
 #' @importFrom nnls nnls
 #' @importFrom S4Vectors metadata
 #' @importFrom flowCore compensate exprs
-#' @importFrom SummarizedExperiment assay assay<- assayNames
+#' @importFrom SingleCellExperiment int_metadata
+#' @importFrom SummarizedExperiment assay assay<- assayNames rowData
 #' @export
 
 compCytof <- function(x, sm = NULL, method = c("nnls", "flow"),
-    assay = "counts", transform = TRUE, cofactor = NULL, 
+    assay = "counts", overwrite = TRUE, transform = TRUE, cofactor = NULL, 
     isotope_list = CATALYST::isotope_list) {
-    
     # check validity of input arguments
     method <- match.arg(method)
-    stopifnot(is(x, "SingleCellExperiment"),
-        !is.null(sm) || !is.null(metadata(x)$spillover_matrix),
-        is.character(assay), length(assay) == 1, assay %in% assayNames(x),
-        !is.null(cofactor) | !is.null(cofactor <- metadata(x)$cofactor),
-        is.numeric(cofactor), length(cofactor) == 1, cofactor > 0)
+    args <- as.list(environment())
+    .check_args_compCytof(args)
+    if (is.null(cofactor))
+        cofactor <- int_metadata(x)$cofactor
     
+    rownames(x) <- rowData(x)$channel_name
     if (is.null(sm)) sm <- metadata(x)$spillover_matrix
     if (!is.matrix(sm)) sm <- as.matrix(sm)
     suppressMessages(sm <- adaptSpillmat(sm, rownames(x), isotope_list))
@@ -94,13 +106,13 @@ compCytof <- function(x, sm = NULL, method = c("nnls", "flow"),
         },
         nnls = apply(assay(x, assay), 2, 
             function(u) nnls(t(sm), u)$x))
-    a <- sprintf("%s.%scomped", assay, method)
-    assay(x, a, withDimnames = FALSE) <- y
+    c <- ifelse(overwrite, assay, "compcounts")
+    assay(x, c, FALSE) <- y
     
-    # (optionally) apply arcsinh-transformation to compensated data
+    # do arcsinh-transformation on compensated counts
     if (transform) {
-        a <- sprintf("exprs.%scomped", method)
-        assay(x, a, withDimnames = FALSE) <- asinh(y/cofactor)
+        e <- ifelse(overwrite, "exprs", "compexprs")
+        x <- .transform(x, cofactor, ain = c, aout = e)
     }
     return(x)
 }

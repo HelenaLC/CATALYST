@@ -32,10 +32,8 @@
 #' \deqn{c=(1-w)\cdot c_{log-logistic}+w\cdot c_{linear}}{
 #' c = (1 - w) x c(log-logistic) + w x c(linear)}
 #' 
-#' @return the input \code{SingleCellExperiment} \code{x} is returned
-#' with an additional \code{int_metadata} slot \code{sep_cutoffs}
-#' stored in \code{altExp(x, altExp)}. If \code{altExp} is NULL, 
-#' \code{sep_cutoffs} are stored in the \code{int_metadata} of \code{x}.
+#' @return the input \code{SingleCellExperiment} is returned
+#' with an additional \code{metadata} slot \code{sep_cutoffs}.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #'
@@ -47,30 +45,36 @@
 #' 
 #' # construct SCE
 #' data(sample_ff, sample_key)
-#' sce <- fcs2sce(sample_ff)
+#' sce <- prepData(sample_ff)
 #'     
 #' # assign preliminary barcode IDs
 #' # & estimate separation cutoffs
-#' sce <- assignPrelim(x = sce, bc_key = sample_key)
+#' sce <- assignPrelim(sce, sample_key)
 #' sce <- estCutoffs(sce)
 #' 
 #' # access separation cutoff estimates
-#' metadata(sce)$sep_cutoffs
+#' (seps <- metadata(sce)$sep_cutoffs)
+#'
+#' # compute population yields
+#' cs <- split(seq_len(ncol(sce)), sce$bc_id)
+#' sapply(names(cs), function(id) {
+#'   sub <- sce[, cs[[id]]]
+#'   mean(sub$delta > seps[id])
+#' })
 #' 
 #' # view yield plots including current cutoff
 #' plotYields(sce, which = "A1")
 #' 
 #' @importFrom drc drm LL.3
 #' @importFrom Matrix colMeans
-#' @importFrom methods is
 #' @importFrom stats coef D lm predict
 #' @importFrom S4Vectors metadata metadata<-
 #' @export
 
 estCutoffs <- function(x) {
-    stopifnot(is(x, "SingleCellExperiment"),
-        !is.null(metadata(x)$bc_key),
-        !is.null(x$bc_id), !is.null(x$delta))
+    # check validity of input arguments
+    args <- as.list(environment())
+    .check_args_estCutoffs(args)
     
     ids <- rownames(bc_key <- metadata(x)$bc_key)
     n_seps <- length(names(seps) <- seps <- seq(0, 1, 0.01))

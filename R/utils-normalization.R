@@ -1,8 +1,8 @@
 # ==============================================================================
 # get indices of bead columns
 # ------------------------------------------------------------------------------
-.get_bead_cols <- function(channels, beads) {
-    ms <- gsub("[[:alpha:][:punct:]]", "", channels)
+.get_bead_cols <- function(chs, beads) {
+    ms <- .get_ms_from_chs(chs)
     if (is.character(beads)) {
         if (isTRUE(beads == "dvs")) {
             bead_ms <- c(140, 151, 153, 165, 175)
@@ -31,29 +31,43 @@
 # bead vs. dna scatter
 # ------------------------------------------------------------------------------
 #' @import ggplot2
-#' @importFrom reshape2 melt
-#' @importFrom SummarizedExperiment assay colData
-.plot_bead_scatter <- function(x, dna_chs, bead_chs, assay = "exprs") {
-    dna <- dna_chs[1]
-    df <- data.frame(
-        i = seq_len(ncol(x)), colData(x),
-        t(assay(x, assay)[c(bead_chs, dna), ]))
-    df <- melt(df, id.vars = c("i", names(colData(x)), dna))
-    if(ncol(x) > 1e4) df <- df[df$i %in% sample(ncol(x), 1e4), ]
-    ggplot(df, aes_string(x = "value", y = dna, col = "is_bead")) +
-        facet_wrap("variable", ncol = length(bead_chs)) + 
-        geom_rect(data = df[df$is_bead, ], aes_string(
-            xmin = "min(value)", xmax = "max(value)",
-            ymin = "min(get(dna))", ymax = "max(get(dna))"),
-            fill = NA, size = 0.1, show.legend = FALSE) +
-        geom_point(pch = 16, size = 0.5, alpha = 0.5, show.legend = FALSE) + 
-        scale_color_manual(NULL, values = c("black", "red")) +
-        coord_equal() + theme_bw() + theme(
-            panel.grid = element_blank(),
-            axis.title.x = element_blank(),
-            axis.text = element_text(color = "black"),
-            panel.spacing = unit(0, "mm"),
-            strip.background = element_rect(fill = "white"))
+#' @importFrom matrixStats colMins colMaxs
+#' @importFrom SummarizedExperiment assay rowData
+.plot_bead_scatter <- function(x, dna_chs, bead_chs, assay) {
+    # downsample to at most 10k events
+    x <- x[, sample(ncol(x), min(1e4, ncol(x)))]
+    p <- plotScatter(x, 
+        chs = c(dna_chs[1], bead_chs), assay = assay, 
+        color_by = "is_bead", label = "channel")
+    p$facet$params$nrow <- 1
+    p$layers[[1]]$aes_params$alpha <- 0.4
+    p$layers[[1]]$aes_params$size <- 0.1
+    # get bead intensity boundaries
+    y <- t(assay(x, assay))[x$is_bead, ]
+    colnames(y) <- rowData(x)$channel_name
+    gate <- data.frame(
+        variable = factor(bead_chs),
+        xmin = min(y[, dna_chs[1]]),
+        xmax = max(y[, dna_chs[1]]),
+        ymin = colMins(y[, bead_chs]),
+        ymax = colMaxs(y[, bead_chs]))
+    gate[, -1] <- t(t(gate[, -1]) + rep(0.2, 4)*c(-1, 1))
+    # round to nearest 0.25 & expand axes by 0.5 in all directions
+    maxs <- vapply(as.list(p$data[c(dna_chs[1], "value")]), 
+        function(u) ceiling(max(u)/0.25)*0.25+0.5, numeric(1))
+    p + scale_color_manual(values = c("darkgrey", "royalblue")) +
+        scale_x_continuous(expand = c(0, 0), 
+            breaks = seq(0, maxs[1], 2), limits = c(-0.5, maxs[1])) +
+        scale_y_continuous(expand = c(0, 0), 
+            breaks = seq(0, maxs[2], 2), limits = c(-0.5, maxs[2])) +
+        geom_rect(data = gate, inherit.aes = FALSE, 
+            col = "blue", fill = NA, size = 0.4,
+            aes_string(
+                xmin = "xmin", xmax = "xmax", 
+                ymin = "ymin", ymax = "ymax")) + 
+        coord_flip() + theme(
+            legend.position = "none", 
+            panel.spacing = unit(0, "mm"))
 }
 
 # ==============================================================================

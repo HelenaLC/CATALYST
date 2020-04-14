@@ -4,17 +4,15 @@
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param assay character string specifying which assay data to use.
-#'   Should be one of \code{assayNames(x)}.
-#' @param mhl_cutoff 
-#'   mahalanobis distance threshold above which events should be unassigned. 
-#'   This argument will be ignored if the \code{mhl_cutoff} slot of the input 
-#'   \code{dbFrame} is specified.
-#' @param sep_cutoffs 
-#'   non-negative numeric of length one or of same length as the number of rows 
-#'   in the \code{bc_key(x)}. Specifies the distance separation cutoffs between 
-#'   positive and negative barcode populations below which events should be 
-#'   unassigned. If \code{NULL} (default), \code{applyCutoffs} will try to 
-#'   access the \code{sep_cutoffs} slot of the input \code{dbFrame}.
+#'   Should be one of \code{assayNames(x)} and 
+#'   correspond to expression-like not count data.
+#' @param mhl_cutoff numeric mahalanobis distance threshold above which events 
+#'   should be unassigned; ignored if \code{metadata(x)$mhl_cutoff} exists.
+#' @param sep_cutoffs non-negative numeric of length one or of same length 
+#'   as the number of rows in the \code{bc_key(x)}. Specifies the distance 
+#'   separation cutoffs between positive and negative barcode populations 
+#'   below which events should be unassigned. If \code{NULL} (default), 
+#'   \code{applyCutoffs} will try to access \code{metadata(x)$sep_cutoffs}.
 #'
 #' @return the input \code{SingleCellExperiment} \code{x} is returned with 
 #' updated \code{colData} columns \code{"bc_id"} and \code{"mhl_dist"}, 
@@ -34,7 +32,7 @@
 #' 
 #' # construct SCE
 #' data(sample_ff, sample_key)
-#' sce <- fcs2sce(sample_ff)
+#' sce <- prepData(sample_ff)
 #'     
 #' # assign preliminary barcode IDs
 #' # & estimate separation cutoffs
@@ -51,7 +49,6 @@
 #' specific = mean(sce2$bc_id != 0))
 #'   
 #' @importFrom Matrix colMeans solve
-#' @importFrom methods is
 #' @importFrom stats cov mahalanobis
 #' @importFrom S4Vectors metadata
 #' @importFrom SummarizedExperiment assay assayNames
@@ -59,18 +56,21 @@
 
 applyCutoffs <- function(x, assay = "exprs", 
     mhl_cutoff = 30, sep_cutoffs = NULL) {
-    stopifnot(
-        is(x, "SingleCellExperiment"),
-        is.character(assay), length(assay) == 1, assay %in% assayNames(x),
-        !is.null(x$bc_id), !is.null(x$delta),
-        !is.null(sep_cutoffs) | !is.null(metadata(x)$sep_cutoffs))
+    # check validity of input arguments
+    args <- as.list(environment())
+    .check_args_applyCutoffs(args)
     
-    n_bcs <- ncol(bc_key <- metadata(x)$bc_key)
-    ms <- .get_ms_from_chs(rownames(x))
+    chs <- rowData(x)$channel_name
+    ms <- .get_ms_from_chs(chs)
+    bc_key <- metadata(x)$bc_key
     bc_cols <- match(colnames(bc_key), ms)
-    n_ids <- length(names(ids) <- ids <- rownames(bc_key))
+    names(ids) <- ids <- rownames(bc_key)
     
-    if (!is.null(sep_cutoffs)) {
+    if (is.null(sep_cutoffs)) {
+        seps <- metadata(x)$sep_cutoffs
+        seps[is.na(seps)] <- 1
+    } else {
+        n_ids <- length(ids)
         seps <- sep_cutoffs
         if (length(seps) == 1) {
             seps <- rep(seps, n_ids)
@@ -83,9 +83,6 @@ applyCutoffs <- function(x, assay = "exprs",
                 stopifnot(all(names(seps) %in% ids))
             }
         }
-    } else {
-        seps <- metadata(x)$sep_cutoffs
-        seps[is.na(seps)] <- 1
     }
     # split cells by barcode population
     cs <- split(seq_len(ncol(x)), x$bc_id)[ids]
@@ -93,14 +90,15 @@ applyCutoffs <- function(x, assay = "exprs",
     # exclude events falling below separation cutoff
     ex_sep <- lapply(ids[ns != 0], function(id)
         x$delta[cs[[id]]] < seps[id])
-   
+    
     # compute mahalanobis distances given current separation cutoff
+    n_bcs <- ncol(bc_key)
     mhl_dists <- rep(NA, ncol(x))
     for (id in ids[ns != 0]) {
         i <- cs[[id]][!ex_sep[[id]]]
         y <- assay(x, assay)[rowData(x)$is_bc, i, drop = FALSE]
         y <- t(as.matrix(y))
-        if (length(y) != n_bcs & nrow(y) > n_bcs) {
+        if (length(y) != n_bcs && nrow(y) > n_bcs) {
             cvm <- cov(y)
             test <- tryCatch(
                 solve(cvm) %*% cvm, 

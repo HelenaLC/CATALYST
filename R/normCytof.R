@@ -9,8 +9,9 @@
 #' @param beads \code{"dvs"} (for bead masses 140, 151, 153 ,165, 175) or 
 #'   \code{"beta"} (for bead masses 139, 141, 159, 169, 175) or 
 #'   a numeric vector of masses.
-#' @param assay character string specifying which assay data to use.
-#'   Should be one of \code{assayNames(x)}.
+#' @param assays lnegth 2 character string specifying 
+#'   which assay data to use; both should be in \code{assayNames(x)} 
+#'   and correspond to count- and expression-like data, respectively.
 #' @param remove_beads logical. If TRUE, bead events will be removed from
 #'   the input \code{SingleCellExperiment} and returned as a separate object?
 #' @param norm_to a \code{\link[flowCore]{flowFrame}} or path to
@@ -22,17 +23,35 @@
 #'   A \emph{median}+/-\code{trim}*\emph{mad} rule is applied to 
 #'   preliminary bead populations to remove bead-bead doublets and 
 #'   low signal beads prior to estimating normalization factors.
-#' @param verbose logical. Should extra information on progress be reported?
-#' @param plot logical. Should bead vs. DNA scatters and smoothed bead 
+#' @param overwrite logical; should the specified \code{assays}
+#'   (both, when \code{transform = TRUE}) be overwritten 
+#'   with the normalized data? If \code{FALSE}, normalized counts 
+#'   (and expressions, if \code{transform = TRUE}) will be stored in 
+#'   assay(s) \code{normcounts/exprs}, respectively.
+#' @param transform logical; should normalized counts be 
+#'   arcsinh-transformed with the specified \code{cofactor}(s)?
+#' @param cofactor numeric cofactor(s) to use for optional 
+#'   arcsinh-transformation when \code{transform = TRUE};
+#'   single value or a vector with channels as names.
+#'   If NULL, \code{normCytof} will try and access the cofactor(s)
+#'   stored in \code{int_metadata(x)}, thus re-using the same 
+#'   transformation applied previsouly.
+#' @param plot logical; should bead vs. DNA scatters and smoothed bead 
 #'   intensities before vs. after normalization be included in the output?
+#' @param verbose logical; should extra information on progress be reported?
 #' 
 #' @return a list of the following \code{SingleCellExperiment}... 
 #' \itemize{
-#' \item{\code{data}: SCE with additional assay slot \code{normed} containing 
-#'   normalized (and optionally filtered, if \code{remove_beads = TRUE}) data}
-#' \item{\code{beads}, \code{removed}: SCEs containing subsets of events 
-#'   identified as beads and that were removed, respectively. 
-#'   The latter includes bead-cell and cell-cell doublets)}
+#' \item{\code{data}: 
+#'   The filtered input SCE (when \code{remove_beads = TRUE}); 
+#'   otherwise, \code{colData} columns \code{is_bead} and \code{remove} 
+#'   indicate whether an event as been identified as a bead or doublet.
+#'   If \code{overwrite = FALSE}, assays \code{normcounts/exprs} are added;
+#'   otherwise, the specified \code{counts/exprs} assays are overwritten.}
+#' \item{\code{beads}, \code{removed}: 
+#'   SCEs containing subsets of events identified as beads 
+#'   and that were removed, respectively. The latter includes 
+#'   bead-cell and cell-cell doublets)}
 #' } ...and \code{ggplot} objects:
 #' \itemize{
 #' \item{\code{scatter}: scatter plot of DNA vs. bead 
@@ -49,8 +68,10 @@
 #' 
 #' @examples
 #' data(raw_data)
-#' sce <- fcs2sce(raw_data)
-#' res <- normCytof(sce, beads = "dvs", k = 80)
+#' sce <- prepData(raw_data)
+#' 
+#' # apply normalization & write normalized data to separate assays
+#' res <- normCytof(sce, beads = "dvs", k = 80, overwrite = FALSE) 
 #' 
 #' ncol(res$beads)   # no. of bead events
 #' ncol(res$removed) # no. of events removed
@@ -58,31 +79,38 @@
 #' res$scatter # plot DNA vs. bead intensities including applied gates
 #' res$lines   # plot smoothed bead intensities before vs. after normalization
 #' 
-#' @importFrom flowCore colnames exprs isFCSfile read.FCS
-#' @importFrom methods is
+#' # filtered SCE now additionally includes 
+#' # normalized count & expression data
+#' assayNames(res$data)
+#' 
+#' @importFrom flowCore colnames exprs read.FCS
 #' @importFrom Matrix colMeans
 #' @importFrom matrixStats colAnys rowMins rowMedians rowMads
 #' @importFrom stats approx runmed
-#' @importFrom SingleCellExperiment int_colData int_metadata int_metadata<-
-#' @importFrom SummarizedExperiment assayNames assay assay<-
+#' @importFrom SingleCellExperiment int_colData int_metadata
+#' @importFrom SummarizedExperiment assayNames assay assay<- rowData
 #' @export
 
-normCytof <- function(x, beads, assay = "exprs", k = 500, trim = 5, 
-    remove_beads = TRUE, norm_to = NULL, plot = TRUE, verbose = TRUE) {
+normCytof <- function(x, beads, k = 500, trim = 5, 
+    remove_beads = TRUE, norm_to = NULL, 
+    assays = c("counts", "exprs"),
+    overwrite = TRUE, transform = TRUE, cofactor = NULL, 
+    plot = TRUE, verbose = TRUE) {
     # check validity of input arguments
-    stopifnot(is(x, "SingleCellExperiment"),
-        is.character(assay), length(assay) == 1, assay %in% assayNames(x),
-        is.numeric(k), length(k) == 1, k > 1,
-        is.numeric(trim), length(trim) == 1, trim >= 0,
-        is.logical(remove_beads), length(remove_beads) == 1,
-        is.null(norm_to) || is(norm_to, "flowFrame") 
-        || is.character(norm_to) & length(norm_to) == 1 & isFCSfile(norm_to),
-        is.logical(plot), length(plot) == 1,
-        is.logical(verbose), length(verbose) == 1,
-        any(grepl("Ir191|Ir193", (chs <- rownames(x)), ignore.case = TRUE)),
-        any(grepl("time", names(icd <- int_colData(x)), ignore.case = TRUE)))
+    args <- as.list(environment())
+    .check_args_normCytof(args)
+    if (is.null(cofactor))
+        cofactor <- int_metadata(x)$cofactor
 
     # get times, DNA & bead channels
+    icd <- int_colData(x)
+    chs <- rowData(x)$channel_name
+    chs0 <- rownames(x)
+    rownames(x) <- chs
+    stopifnot(
+        any(grepl("Ir191|Ir193", chs, ignore.case = TRUE)),
+        any(grepl("time", names(icd), ignore.case = TRUE)))
+    
     ts <- icd[[grep("time", names(icd), ignore.case = TRUE)]]
     dna_chs <- grep("Ir191|Ir193", chs, ignore.case = TRUE, value = TRUE)
     bead_chs <- chs[.get_bead_cols(chs, beads)]
@@ -96,19 +124,19 @@ normCytof <- function(x, beads, assay = "exprs", k = 500, trim = 5,
     key <- matrix(c(0, 0, rep(1, n_beads)), ncol = n_beads + 2, 
         dimnames = list("is_bead", ms[m]))
     key <- data.frame(key, check.names = FALSE)
-    is_bead <- .get_bead_inds(x, key, assay = assay)
+    is_bead <- .get_bead_inds(x, key, assays[2])
     
     # subset specified assay
-    es <- assay(x, assay)
+    y <- assay(x, "counts")
     
     # get all events that should be removed later
     # including bead-bead and cell-bead doublets
-    ths <- rowMins(es[bead_chs, is_bead])
-    rmv <- colSums(es[bead_chs, ] > ths) == n_beads
+    ths <- rowMins(y[bead_chs, is_bead])
+    rmv <- colSums(y[bead_chs, ] > ths) == n_beads
     x$remove <- rmv
-
+    
     # trim tails
-    z <- es[bead_chs, is_bead]
+    z <- y[bead_chs, is_bead]
     meds <- rowMedians(z)
     mads <- rowMads(z) * trim
     diff <- abs(z - meds)
@@ -118,7 +146,7 @@ normCytof <- function(x, beads, assay = "exprs", k = 500, trim = 5,
     
     # get baselines (global mean)
     if (is.null(norm_to)) {
-        bl <- rowMeans(es[bead_chs, is_bead])
+        bl <- rowMeans(y[bead_chs, is_bead])
     } else {
         if (is.character(norm_to)) {
             ref <- read.FCS(norm_to, 
@@ -135,24 +163,36 @@ normCytof <- function(x, beads, assay = "exprs", k = 500, trim = 5,
     
     # assure width of median window is odd 
     if (k %% 2 == 0) k <- k + 1
-    smooth0 <- t(apply(es[bead_chs, is_bead], 1, runmed, k, "constant"))
-
+    smooth0 <- t(apply(y[bead_chs, is_bead], 1, runmed, k, "constant"))
+    
     # compute slopes (baseline versus smoothed bead intensitites)
     # & linearly interpolate slopes at non-bead events
     slopes <- colSums(smooth0 * bl) / colSums(smooth0 ^ 2)
     slopes <- approx(ts[is_bead], slopes, ts, rule = 2)$y
     
     # normalize raw bead intensities via multiplication with slopes
-    assay(x, "normed", withDimnames = FALSE) <- sweep(es, 2, slopes, "*")
-   
+    y <- sweep(y, 2, slopes, "*")
+    c <- ifelse(overwrite, assays[1], "normcounts")
+    assay(x, c, FALSE) <- y
+    
     # smooth normalized beads
-    y <- assay(x, "normed", withDimnames = FALSE)[bead_chs, is_bead]
-    smooth <- t(apply(y, 1, runmed, k, "constant"))
-
+    z <- y[bead_chs, is_bead]
+    smooth <- t(apply(z, 1, runmed, k, "constant"))
+    
     ps <- NULL
-    if (plot) ps <- list(
-        scatter = .plot_bead_scatter(x, dna_chs, bead_chs, assay), 
-        lines = .plot_smooth_beads(smooth0, smooth, ts[is_bead]))
+    if (plot) {
+        ps <- list(
+            scatter = .plot_bead_scatter(x, dna_chs, bead_chs, assays[2]), 
+            lines = .plot_smooth_beads(smooth0, smooth, ts[is_bead]))
+    }
+    
+    # do arcsinh-transformation on normalized counts
+    if (transform) {
+        e <- ifelse(overwrite, assays[2], "normexprs")
+        x <- .transform(x, cofactor, ain = c, aout = e)
+    }
+    
+    rownames(x) <- chs0
     if (remove_beads) {
         z <- list(
             data = x[, !(is_bead | rmv)], 

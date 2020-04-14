@@ -1,24 +1,24 @@
 #' @rdname runDR
 #' @title Dimension reduction
 #' 
-#' @description 
-#' Wrapper around dimension reduction methods available 
-#' through \code{scater}, with optional cell subsampling.
+#' @description Wrapper around dimension reduction methods available 
+#' through \code{scater}, with optional subsampling of cells per each sample.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param dr character string specifying which dimension reduction to use.
 #' @param cells single numeric specifying the maximal number of cells
 #'   per sample to use for dimension reduction; NULL for all cells.
-#' @param features specifies the features to use for dimension reduction. 
-#'   Either a character string specifying a subset of features,
-#'   or NULL for all features. When \code{rowData(x)$marker_class} 
-#'   is specified, can be one of "type", "state", or "none".
-#' @param assay character string specifying 
-#'   which assay of \code{x} conatins expression values.
+#' @param features a character vector specifying which 
+#'   antigens to use for dimension reduction; valid values are
+#'   \code{"type"/"state"} for \code{type/state_markers(x)} 
+#'   if \code{rowData(x)$marker_class} have been specified; 
+#'   a subset of \code{rownames(x)}; NULL to use all features.
+#' @param assay character string specifying which assay data to use
+#'   for dimension reduction; valid values are \code{assayNames(x)}.
 #' @param ... optional arguments for dimension reduction; passed to 
 #'   \code{\link[scater]{runUMAP}}, \code{\link[scater]{runTSNE}}, 
-#'   \code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}} and
-#'   \code{\link[scater]{runDiffusionMap}}, respecttively.
+#'   \code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}}
+#'   and \code{\link[scater]{runDiffusionMap}}, respecttively.
 #'   See \code{?"scater-red-dim-args"} for details.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
@@ -46,30 +46,18 @@
 
 runDR <- function(x, 
     dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"), 
-    cells = NULL, features = NULL, assay = "exprs", ...) {
+    cells = NULL, features = "type", assay = "exprs", ...) {
     
     # check validity of input arguments
     .check_sce(x)
     dr <- match.arg(dr)
-    stopifnot(
-        is.character(assay), 
-        length(assay) == 1,
-        assay %in% assayNames(x))
-    if (!is.null(features)) {
-        stopifnot(is.character(features))
-        if (length(features) == 1) {
-            features <- match.arg(features, c("type", "state", "none")) 
-            features <- rownames(x)[rowData(x)$marker_class == features]
-            if (length(features) == 0)
-                stop("No features matched the specified marker class.")
-        } else {
-            stopifnot(features %in% rownames(x))
-        }
-    } else {
-        features <- rownames(x)
-    }
+    .check_assay(x, assay)
+    features <- .get_features(x, features)
     
-    if (!is.null(cells)) {
+    if (is.null(cells)) {
+        # use all cells
+        cs <- TRUE 
+    } else {
         stopifnot(
             is.numeric(cells), length(cells) == 1,
             as.integer(cells) == cells, cells > 0)
@@ -78,9 +66,6 @@ runDR <- function(x,
         # sample at most 'n' cells per sample
         cs <- unlist(lapply(cs, function(u)
             sample(u, min(cells, length(u)))))
-    } else {
-        # use all cells
-        cs <- TRUE
     }
     
     # run dimension reduction
@@ -95,5 +80,5 @@ runDR <- function(x,
     m <- matrix(NA, nrow = ncol(x), ncol = ncol(xy))
     m[cs, ] <- xy
     reducedDim(x, dr) <- m
-    x
+    return(x)
 }

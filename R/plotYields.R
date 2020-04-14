@@ -26,17 +26,17 @@
 #' @examples
 #' # construct SCE & apply arcsinh-transformation
 #' data(sample_ff, sample_key)
-#' sce <- fcs2sce(x = sample_ff)
+#' sce <- prepData(sample_ff)
 #' 
 #' # deconvolute samples & estimate separation cutoffs
-#' sce <- assignPrelim(x = sce, bc_key = sample_key)
-#' sce <- estCutoffs(x = sce)
+#' sce <- assignPrelim(sce, sample_key)
+#' sce <- estCutoffs(sce)
 #' 
 #' # plot for specific sample
-#' plotYields(x = sce, which = "C1")
+#' plotYields(sce, which = "C1")
 #' 
 #' # all barcodes summary plot
-#' plotYields(x = sce, which = 0, plotly = TRUE)
+#' plotYields(sce, which = 0, plotly = TRUE)
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #'
@@ -69,7 +69,7 @@ plotYields <- function(x, which = 0,
         is.null(name_ext) || (is.character(name_ext) & length(name_ext) == 1),
         is.logical(plotly), length(plotly) == 1)
     n_bcs <- length(ids <- rownames(bc_key <- metadata(x)$bc_key))
-    which <- .check_validity_which(which, ids, "yields")
+    which <- .check_which(which, ids, "yields")
     m <- match(c("0", rownames(bc_key)), which, nomatch = 0)
     names(which) <- which <- which[m]
     

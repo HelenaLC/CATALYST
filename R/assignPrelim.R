@@ -35,8 +35,8 @@
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
-#' sce <- fcs2sce(sample_ff)
-#' sce <- assignPrelim(x = sce, bc_key = sample_key)
+#' sce <- prepData(sample_ff)
+#' sce <- assignPrelim(sce, sample_key)
 #' table(sce$bc_id)
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
@@ -54,24 +54,21 @@
 #' @export
 
 assignPrelim <- function(x, bc_key, assay = "exprs", verbose = TRUE) {
-    # check validity of input agruments
-    stopifnot(
-        is(x, "SingleCellExperiment"), 
-        is.character(assay), length(assay) == 1, assay %in% assayNames(x),
-        is.numeric(unlist(bc_key)), 
-        is.vector(bc_key) | all(unlist(bc_key) %in% c(0, 1)),
-        is.logical(verbose), length(verbose) == 1)
+    # check validity of input arguments
+    args <- as.list(environment())
+    .check_args_assignPrelim(args)
     
     if (is.vector(bc_key)) {
         n <- length(bc_key)
         bc_key <- matrix(diag(n), ncol = n, dimnames = list(bc_key, bc_key))
-        bc_key <- data.frame(bc_key, check.names=FALSE)
+        bc_key <- data.frame(bc_key, check.names = FALSE)
     }
     
     # extract masses & check validity of debarcoding scheme
     n_bcs <- length(ids <- rownames(bc_key))
     bc_ms <- as.numeric(colnames(bc_key))
-    ms <- .get_ms_from_chs(rownames(x))
+    chs <- rowData(x)$channel_name
+    ms <- .get_ms_from_chs(chs)
     if (any(!bc_ms %in% ms))
         stop("Couldn't match masses extracted from", 
             " channel names and debarcoding scheme.")
@@ -83,7 +80,7 @@ assignPrelim <- function(x, bc_key, assay = "exprs", verbose = TRUE) {
     
     # specify barcode channels
     rowData(x)$is_bc <- is_bc <- seq_len(nrow(x)) %in% bc_chs
-     
+    
     # assign barcode ID to each cell
     if (verbose) message("Debarcoding data...")
     x$bc_id <- .get_ids(assay(x, assay)[bc_chs, ], bc_key, ids, verbose)

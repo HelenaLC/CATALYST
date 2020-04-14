@@ -1,9 +1,121 @@
+# x: SingleCellExperiment
+# y: length 1 character string 
+#    appearing uniquely in assayNames(x)
+#' @importFrom SummarizedExperiment assayNames
+.check_assay <- function(x, y) {
+    stopifnot(
+        length(y) == 1, 
+        is.character(y),
+        sum(y == assayNames(x)) == 1)
+    return(TRUE)
+}
+
+# PREPROCESSING ================================================================
+
+#' @importFrom methods is
+#' @importFrom flowCore isFCSfile
+#' @importFrom SingleCellExperiment int_metadata
+.check_args_normCytof <- function(u) {
+    stopifnot(
+        is(u$x, "SingleCellExperiment"),
+        length(u$assays) == 2,
+        .check_assay(u$x, u$assays[1]),
+        .check_assay(u$x, u$assays[2]),
+        is.numeric(u$k), length(u$k) == 1, u$k > 1,
+        is.numeric(u$trim), length(u$trim) == 1, u$trim >= 0,
+        is.logical(u$remove_beads), length(u$remove_beads) == 1,
+        is.null(u$norm_to) || is(u$norm_to, "flowFrame") 
+        || is.character(u$norm_to) & sum(isFCSfile(u$norm_to) == 1),
+        is.logical(u$overwrite), length(u$overwrite) == 1,
+        is.logical(u$transform), length(u$transform) == 1,
+        !is.null(u$cofactor) || !is.null(int_metadata(u$x)$cofactor),
+        is.logical(u$plot), length(u$plot) == 1,
+        is.logical(u$verbose), length(u$verbose) == 1)
+}
+
+#' @importFrom methods is
+.check_args_assignPrelim <- function(u) {
+    stopifnot(
+        is(u$x, "SingleCellExperiment"), 
+        .check_assay(u$x, u$assay), is.numeric(unlist(u$bc_key)), 
+        is.vector(u$bc_key) || all(unlist(u$bc_key) %in% c(0, 1)),
+        is.logical(u$verbose), length(u$verbose) == 1)
+}
+
+#' @importFrom methods is
+#' @importFrom S4Vectors metadata
+.check_args_estCutoffs <- function(u) {
+    stopifnot(
+        is(u$x, "SingleCellExperiment"),
+        !is.null(metadata(u$x)$bc_key),
+        !is.null(u$x$bc_id), !is.null(u$x$delta))
+}
+
+#' @importFrom methods is
+#' @importFrom S4Vectors metadata
+.check_args_applyCutoffs <- function(u) {
+    stopifnot(
+        is(u$x, "SingleCellExperiment"), 
+        .check_assay(u$x, u$assay),
+        !is.null(u$x$bc_id), !is.null(u$x$delta),
+        is.numeric(u$mhl_cutoff), length(u$mhl_cutoff) == 1,
+        !is.null(u$sep_cutoffs) || !is.null(metadata(u$x)$sep_cutoffs))
+}
+
+#' @importFrom methods is
+#' @importFrom S4Vectors metadata
+#' @importFrom SingleCellExperiment int_metadata
+.check_args_compCytof <- function(u) {
+    stopifnot(
+        is(u$x, "SingleCellExperiment"), 
+        .check_assay(u$x, u$assay),
+        !is.null(u$sm) || !is.null(metadata(u$x)$spillover_matrix),
+        is.logical(u$overwrite), length(u$overwrite) == 1,
+        is.logical(u$transform), length(u$transform) == 1,
+        !is.null(u$cofactor) || !is.null(int_metadata(u$x)$cofactor))
+}
+
+#' @importFrom methods is
+#' @importFrom S4Vectors metadata
+#' @importFrom SingleCellExperiment int_metadata
+.check_args_sce2fcs <- function(u) {
+    stopifnot(
+        is(u$x, "SingleCellExperiment"), 
+        .check_assay(u$x, u$assay),
+        is.null(u$split_by) || is.character(u$split_by) 
+        && length(u$split_by) == 1 && !is.null(u$x[[u$split_by]]),
+        is.logical(u$keep_cd), length(u$keep_cd) == 1,
+        is.logical(u$keep_dr), length(u$keep_dr) == 1)
+}
+
+# plotting ---------------------------------------------------------------------
+
+#' @importFrom methods is
+.check_args_plotScatter <- function(u) {
+    stopifnot(
+        is(u$x, "SingleCellExperiment"),
+        .check_assay(u$x, u$assay),
+        is.null(u$chs) && !is.null(u$gate_id) || (
+            is.character(u$chs) && all(u$chs %in% c(rownames(u$x),
+                c(names(colData(u$x)), names(int_colData(u$x)))))
+        ),
+        is.null(u$gate_id) || (
+            is.character(u$gate_id) && length(u$gate_id) == 1 
+            && !is.null(int_metadata(u$x)$gates[[u$gate_id]])
+        ),
+        is.logical(u$show_gate), length(u$show_gate) == 1,
+        is.logical(u$show_perc), length(u$show_perc) == 1)
+}
+
 # ==============================================================================
 # Validity check for 'which' in 'plotEvents()' and 'plotYields()'
 #       - stop if not a single ID is valid
 #       - warning if some ID(s) is/are not valid and remove it/them
 # ------------------------------------------------------------------------------
-.check_validity_which <- function(which, ids, fct) {
+# which: input argument to plotEvents/Yields
+# ids:   valid barcode IDs including 'all' for plotEvents
+# fun:   function call (used to vary message)
+.check_which <- function(which, ids, fun = c("events", "yields")) {
     msg_events <- c(
         " Valid values for 'which' are IDs that occur as row names in the\n",
         " 'bc_key' slot of the supplied 'dbFrame', or 0 for unassigned events.")
@@ -12,11 +124,11 @@
         " 'bc_key' slot of the supplied 'dbFrame', or 0 for all barcodes.")
     
     if (length(which) == 1 && !which %in% c(0, ids)) {
-        if (fct == "events" & which != "all") {
+        if (fun == "events" & which != "all") {
             stop(paste(which), 
                 " is not a valid barcode ID.\n", 
                 msg_events, call.=FALSE)
-        } else if (fct == "yields") {
+        } else if (fun == "yields") {
             stop(paste(which), 
                 " is not a valid barcode ID.\n", 
                 msg_yields, call.=FALSE)
@@ -25,11 +137,11 @@
         new <- which[!is.na(match(which, c(0, ids)))]
         removed <- which[!which %in% new]
         if (length(new) == 0) {
-            if (fct == "events") {
+            if (fun == "events") {
                 stop(paste(removed, collapse=", "), 
                     " are not valid barcode IDs.\n",
                     msg_events, call.=FALSE)
-            } else if (fct == "yields") {
+            } else if (fun == "yields") {
                 stop(paste(removed, collapse=", "), 
                     " are not valid barcode IDs.\n",
                     msg_yields, call.=FALSE)
@@ -50,64 +162,103 @@
     as.character(which)
 }
 
-# ==============================================================================
-# Validity check for clustering 'k': should be...
-#       - a numeric that accesses the FlowSOM clustering (100),
-#         or ConsensusClusterPlus metaclustering (2, ..., 20)
-#       - a character string that matches with a 'label' specifying
-#         a merging done with 'mergeClusters'
-# ------------------------------------------------------------------------------
-#' @importFrom S4Vectors metadata
-.check_validity_of_k <- function(x, k) {
-    if (is.null(k)) {
-        k <- names(cluster_codes(x))[1]
-    } else {
-        avail <- colnames(metadata(x)$cluster_codes)
-        valid <- as.character(k) %in% avail
-        if (!is.null(k) & !valid) {
-            if (is.numeric(k)) {
-                txt <- k 
-            } else {
-                txt <- dQuote(k)
-            }
-            ks <- suppressWarnings(as.numeric(colnames(cluster_codes(x))))
-            ks <- ks[!is.na(ks)]
-            stop("Clustering 'k = ", txt, "' doesnt't exist. ", 
-                "Should be one of\n  ", paste(c(ks, dQuote(setdiff(
-                    avail, ks))), collapse=", "))
-        }
-    }
-    return(as.character(k))
+# DIFFERENTIAL =================================================================
+
+# x: SingleCellExperiment
+# k: valid clustering identifier
+.check_k <- function(x, k) {
+    kids <- names(cluster_codes(x))
+    if (is.null(k)) return(kids[1])
+    stopifnot(length(k) == 1, is.character(k))
+    if (!k %in% kids)
+        stop("Clustering ", dQuote(k), 
+            " doesnt't exist; valid are",
+            " 'names(cluster_codes(x))'.")
+    return(k)
 }
 
-# ==============================================================================
-# check correct format of SCE for differential analysis
-#   - x:  a 'SingleCellExperiment' constructed with 'prepData()'
-#   - y:  logical; should 'cluster()' have been run?
-# ------------------------------------------------------------------------------
+# x: SingleCellExperiment
+# y: logical; should cluster() have been run?
 #' @importFrom methods is
 #' @importFrom S4Vectors metadata
-#' @importFrom SummarizedExperiment colData
 .check_sce <- function(x, y = FALSE) {
-    stopifnot(is(x, "SingleCellExperiment"),
-        "sample_id" %in% names(colData(x)),
-        "experiment_info" %in% names(metadata(x)),
-        setdiff(names(ei(x)), "n_cells") %in% names(colData(x)))
-    if (y) stopifnot(!is.null(x$cluster_id),
-        c("SOM_codes", "cluster_codes", "delta_area") %in% names(metadata(x)))
+    stopifnot(
+        is(x, "SingleCellExperiment"), 
+        !is.null(x$sample_id))
+    if (y) 
+        stopifnot(
+            !is.null(x$cluster_id),
+            !is.null(metadata(x)$SOM_codes),
+            !is.null(metadata(x)$delta_area),
+            !is.null(metadata(x)$cluster_codes))
 }
 
-# ==============================================================================
-# check whether input character string correspond to a colData factor
-#   - x:  a 'SingleCellExperiment'
-#   - y:  a character string specifying a colData 
-#           factor column, e.g., to color or shape by
-# ------------------------------------------------------------------------------
+# x: SingleCellExperiment
+# y: character string corresponding to 
+#    non-numeric cell metadata column
 #' @importFrom methods is
 #' @importFrom S4Vectors metadata
 #' @importFrom SummarizedExperiment colData
 .check_cd_factor <- function(x, y) {
-    if (!is.null(y)) 
-        stopifnot(is.character(y), length(y) == 1, 
-            y %in% colnames(colData(x)), !is.numeric(x[[y]]))
+    if (is.null(y))
+        return(NULL)
+    stopifnot(
+        is.character(y), length(y) == 1, 
+        !is.null(x[[y]]), !is.numeric(x[[y]]))
+}
+
+# plotting ---------------------------------------------------------------------
+
+#' @importFrom grDevices col2rgb
+.check_colors <- function(x, n = 2) {
+    if (is.null(x)) 
+        return(NULL)
+    stopifnot(
+        length(x) >= n,
+        is.character(x))
+    foo <- tryCatch(col2rgb(x),
+        error = function(e) {})
+    if (is.null(foo)) {
+        arg_nm <- deparse(substitute(x))
+        stop(sprintf("'%s' is invalid.", arg_nm))
+    }
+}
+
+.check_args_plotClusterHeatmap <- function(u) {
+    .check_sce(u$x, TRUE)
+    .check_k(u$x, u$k)
+    .check_k(u$x, u$m)
+    match.arg(u$fun, eval(formals(
+        "plotClusterHeatmap")$fun))
+    .check_cd_factor(u$x, u$split_by)
+    .check_colors(u$k_pal)
+    .check_colors(u$m_pal)
+    .check_colors(u$hm1_pal)
+    .check_colors(u$hm2_pal)
+    .check_assay(u$x, u$assay)
+    stopifnot(
+        is.logical(u$scale), length(u$scale) == 1,
+        is.logical(u$row_anno), length(u$row_anno) == 1,
+        is.logical(u$row_dend), length(u$row_dend) == 1,
+        is.logical(u$col_dend), length(u$col_dend) == 1,
+        is.logical(u$draw_freqs), length(u$draw_freqs) == 1)
+    if (!is.null(u$hm2))
+        stopifnot(
+            is.character(u$hm2), all(u$hm2 %in% rownames(u$x)) 
+            || length(u$hm2) == 1 && u$hm2 %in% c("abundances", "state"))
+}
+
+.check_args_plotDiffHeatmap <- function(u) {
+    .check_sce(u$x)
+    .check_colors(u$hm1_pal)
+    .check_colors(u$hm2_pal)
+    match.arg(u$fun, eval(formals("plotDiffHeatmap")$fun))
+    stopifnot(
+        is.numeric(u$top_n), length(u$top_n) == 1, u$top_n > 1,
+        is.logical(u$order), length(u$order) == 1,
+        is.numeric(u$th), length(u$th) == 1, 
+        is.logical(u$hm1), length(u$hm1) == 1,
+        is.logical(u$normalize), length(u$normalize) == 1,
+        is.logical(u$row_anno), length(u$row_anno) == 1,
+        is.logical(u$col_anno), length(u$col_anno) == 1)
 }

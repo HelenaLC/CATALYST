@@ -5,10 +5,9 @@
 #' priorly identified single-positive populations.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
-#' @param assay character string specifying which assay to use.
-#'   Note that this should correspond to count-like data,
-#'   as linearity assumptions underlying spillover estimation
-#'   won't hold for non-linearly transformed data.
+#' @param assay character string specifying which assay to use; should be one
+#'   of \code{assayNames(x)} and correspond to count-like data, as linearity 
+#'   assumptions underlying spillover estimation won't hold otherwise.
 #' @param method
 #'   \code{"default"} or \code{"classic"}. Specifies the function
 #'   to be used for spillover estimation (see below for details).
@@ -60,18 +59,18 @@
 #' @examples
 #' # construct SCE from single-stained control samples
 #' data(ss_exp)
-#' sce <- fcs2sce(ss_exp, by_time = FALSE)
+#' sce <- prepData(ss_exp)
 #' 
 #' # specify mass channels stained for
 #' bc_ms <- c(139, 141:156, 158:176)
 #'
 #' # debarcode single-positive populations
-#' sce <- assignPrelim(x = sce, bc_key = bc_ms)
-#' sce <- estCutoffs(x = sce)
-#' sce <- applyCutoffs(x = sce)
+#' sce <- assignPrelim(sce, bc_ms)
+#' sce <- estCutoffs(sce)
+#' sce <- applyCutoffs(sce)
 #' 
 #' # estimate & extract spillover matrix 
-#' sce <- computeSpillmat(x = sce)
+#' sce <- computeSpillmat(sce)
 #' 
 #' library(SingleCellExperiment)
 #' head(metadata(sce)$spillover_matrix)
@@ -90,8 +89,7 @@ computeSpillmat <- function(x, assay = "counts",
     method <- match.arg(method)
 
     stopifnot(
-        is(x, "SingleCellExperiment"),
-        is.character(assay), length(assay) == 1, assay %in% assayNames(x),
+        is(x, "SingleCellExperiment"), .check_assay(x, assay),
         !is.null(metadata(x)$bc_key), !is.null(x$bc_id),
         is.numeric(trim), length(trim) == 1, !trim < 0, !trim > 0.5,
         is.numeric(th), length(th) == 1)
@@ -102,8 +100,9 @@ computeSpillmat <- function(x, assay = "counts",
             " from non single-staining experiment.")
 
     # get channel masses & metals
-    ms <- .get_ms_from_chs(rownames(x))
-    mets <- .get_mets_from_chs(rownames(x))
+    chs <- rowData(x)$channel_name
+    ms <- .get_ms_from_chs(chs)
+    mets <- .get_mets_from_chs(chs)
     
     # get barcode IDs & barcode channels
     ids <- setdiff(unique(x$bc_id), 0)
@@ -120,7 +119,6 @@ computeSpillmat <- function(x, assay = "counts",
     
     # initialize spillover matrix
     sm <- diag(nrow(x))
-    chs <- rownames(x)
     dimnames(sm) <- list(chs, chs)
     
     # split cells by barcode population

@@ -1,10 +1,10 @@
 #' @rdname extractClusters
-#' @title Extract clusters from a \code{daFrame}
+#' @title Extract clusters from a \code{SingleCellExperiment}
 #' 
 #' @description 
-#' Extracts clusters from a \code{daFrame}. Populations will be 
-#' either returned as a \code{flowSet} or written to FCS files,
-#' depending on argument \code{as}.
+#' Extracts clusters from a \code{SingleCellExperiment}. 
+#' Populations will be either returned as a \code{flowSet} 
+#' or written to FCS files, depending on argument \code{as}.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param k 
@@ -41,19 +41,19 @@
 #' sce <- mergeClusters(sce, k="meta20", table=merging_table, id="merging_1")
 #' extractClusters(sce, k="merging_1", clusters=c("NK cells", "surface-"))
 #' 
-#' @importFrom flowCore identifier<- description<- write.FCS
+#' @importFrom flowCore identifier<- keyword<- write.FCS
 #' @importFrom methods is
 #' @importFrom S4Vectors metadata
 #' @importFrom SummarizedExperiment assay colData rowData
 #' @export
 
-extractClusters <- function(x, k, clusters=NULL, 
-    as=c("flowSet", "fcs"), out_dir=".", verbose=TRUE) {
+extractClusters <- function(x, k, clusters = NULL, 
+    as = c("flowSet", "fcs"), out_dir = ".", verbose = TRUE) {
     
     # check validity of input arguments
     as <- match.arg(as)
     .check_sce(x, TRUE)
-    k <- .check_validity_of_k(x, k)
+    k <- .check_k(x, k)
     stopifnot(
         is.character(out_dir), dir.exists(out_dir), 
         is.logical(verbose), length(verbose) == 1)
@@ -74,17 +74,16 @@ extractClusters <- function(x, k, clusters=NULL,
     
     # back-transform expressions
     es <- assay(x, "exprs")
-    if (!is.null(metadata(x)$cofactor)) {
-        cf <- metadata(x)$cofactor
+    if (!is.null(cf <- int_metadata(x)$cofactor)) {
         if (verbose) message("Back-transforming using cofactor ", cf, "...")
         es <- sinh(es)*cf
     }
     
-    fct <- switch(as,
+    fun <- switch(as,
         flowSet = function(u, v) {
             ff <- new("flowFrame", exprs=t(es[, u, drop=FALSE]))
             identifier(ff) <- v
-            description(ff)$note <- paste0(nrow(ff), "/", n, " cells")
+            keyword(ff)$note <- paste0(nrow(ff), "/", n, " cells")
             if (verbose) message("Storing ", nrow(ff), 
                 " cells in flowFrame ", dQuote(v), "...")
             return(ff)
@@ -98,6 +97,6 @@ extractClusters <- function(x, k, clusters=NULL,
         }
     )
     cs_by_k <- split(seq_len(ncol(es)), cluster_ids(x, k))
-    ffs <- mapply(fct, cs_by_k, names(cs_by_k))[clusters]
+    ffs <- mapply(fun, cs_by_k, names(cs_by_k))[clusters]
     if (as == "flowSet") as(ffs, "flowSet") else if (as == "fcs") ffs
 }

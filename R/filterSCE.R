@@ -47,7 +47,7 @@ filterSCE <- function(x, ..., k = NULL) {
     if (!is.null(cluster_codes(x))) {
         if (is.null(k)) 
             k <- names(cluster_codes(x))[1]
-        k <- .check_validity_of_k(x, k)   
+        k <- .check_k(x, k)   
         cd$cluster_id <- cluster_ids(x, k)
     }
     
@@ -77,12 +77,14 @@ filterSCE <- function(x, ..., k = NULL) {
         n_cells <- table(cdf$sample_id)
         m <- match(ei$sample_id, levels(cdf$sample_id))
         ei$n_cells <- as.numeric(n_cells[m])
-        md$experiment_info <- ei
+        md$experiment_info <- droplevels(ei)
     }
     
     # revert colData(x)$cluster_id to 100 SOM clusters
     if (!is.null(cluster_codes(x)))
-        cdf$cluster_id <- factor(x$cluster_id[ci], levels=levels(x$cluster_id))
+        cdf$cluster_id <- factor(
+            x$cluster_id[ci], 
+            levels = levels(x$cluster_id))
     
     # refactor 'colData' factor columns
     for (i in colnames(cdf)) if (i %in% names(ei))

@@ -22,11 +22,11 @@
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
-#' sce <- fcs2sce(sample_ff, by_time = FALSE)
-#' sce <- assignPrelim(x = sce, bc_key = sample_key)
-#' sce <- estCutoffs(x = sce)
-#' sce <- applyCutoffs(x = sce)
-#' plotMahal(x = sce, which = "B3")
+#' sce <- prepData(sample_ff, by_time = FALSE)
+#' sce <- assignPrelim(sce, sample_key)
+#' sce <- estCutoffs(sce)
+#' sce <- applyCutoffs(sce)
+#' plotMahal(sce, which = "B3")
 #'
 #' @import ggplot2
 #' @importFrom gridExtra grid.arrange 

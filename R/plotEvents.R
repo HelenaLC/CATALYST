@@ -35,8 +35,8 @@
 #' 
 #' @examples
 #' data(sample_ff, sample_key)
-#' sce <- fcs2sce(sample_ff, by_time = FALSE)
-#' sce <- assignPrelim(x = sce, bc_key = sample_key)
+#' sce <- prepData(sample_ff, by_time = FALSE)
+#' sce <- assignPrelim(sce, sample_key)
 #' plotEvents(sce, which = "D1")
 #'
 #' @import ggplot2
@@ -60,7 +60,7 @@ plotEvents <- function(x, which = "all", assay = "scaled",
     
     # retreive IDs to include & barcode channels
     n_bcs <- ncol(bc_key <- metadata(x)$bc_key)
-    .check_validity_which(which, rownames(bc_key), "events")
+    .check_which(which, rownames(bc_key), "events")
     names(ids) <- ids <- unique(x$bc_id)
     ms <- .get_ms_from_chs(rownames(x))
     bc_ms <- as.numeric(colnames(bc_key))

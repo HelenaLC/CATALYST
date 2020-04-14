@@ -32,6 +32,24 @@
     return(fs)
 }
 
+.get_shapes <- function(x, shape_by) {
+    if (is.null(shape_by))
+        return(NULL)
+    # default shapes
+    shapes <- c(16, 17, 15, 3, 7, 8) 
+    n <- nlevels(x[[shape_by]])
+    if (n > 18) {
+        message(
+            "At most 17 shapes are currently supported but ",
+            n, " are required; setting 'shape_by' to NULL.")
+        return(NULL)
+    } else if (n > 6) {
+        more_shapes <- setdiff(c(seq_len(16)-1, 18), shapes)
+        shapes <- c(shapes, more_shapes[seq_len(n-length(shapes))])
+    }
+    return(shapes)
+}
+
 # ==============================================================================
 # scale expression to values b/w 0 and 1 using 
 # low (1%) and high (99%) quantiles as boundaries
@@ -42,6 +60,7 @@
     if (!is(x, "matrix")) x <- as.matrix(x)
     qs <- c(rowQuantiles, colQuantiles)[[margin]]
     qs <- qs(x, probs = c(.01, .99))
+    qs <- matrix(qs, ncol = 2)
     x <- switch(margin,
         "1" = (x - qs[, 1]) / (qs[, 2] - qs[, 1]),
         "2" = t((t(x) - qs[, 1]) / (qs[, 2] - qs[, 1])))
@@ -51,11 +70,12 @@
 }
 
 # ==============================================================================
-# calculate non-redundancy score (NRS) for ea. sample
+# calculate non-redundancy score (NRS) for ea. feature & sample
 # ------------------------------------------------------------------------------
 #' @importFrom Matrix rowSums
 #' @importFrom stats prcomp
 .nrs <- function(u, n=3) {
+    if (ncol(u) < n) return(NULL)
     pc <- prcomp(t(u), center=TRUE, scale.=FALSE)
     rowSums(abs(pc$rotation[, seq_len(n)]) 
         *outer(rep(1, nrow(u)), pc$sdev[seq_len(n)]^2))
@@ -64,11 +84,36 @@
 # ==============================================================================
 # wrapper for ComplexHeatmap annotations
 # ------------------------------------------------------------------------------
-.row_anno <- function(anno, cols, name, clustering, dend) {
-    Heatmap(matrix=anno, col=cols, name=name, 
-        rect_gp=gpar(col="white"), width=unit(.4, "cm"),
-        cluster_rows=clustering, cluster_columns=FALSE,
-        show_row_dend=dend, row_dend_reorder=FALSE)
+#' @importFrom ComplexHeatmap rowAnnotation
+#' @importFrom dplyr mutate_all
+#' @importFrom grDevices colorRampPalette
+#' @importFrom grid gpar unit
+.get_row_anno <- function(x, k, m, k_pal, m_pal) {
+    kids <- levels(cluster_ids(x, k))
+    nk <- length(kids)
+    if (nk > length(k_pal))
+        k_pal <- colorRampPalette(k_pal)(nk)
+    k_pal <- k_pal[seq_len(nk)]
+    names(k_pal) <- kids
+    df <- data.frame(cluster_id = kids)
+    col <- list(cluster_id = k_pal)
+    if (!is.null(m)) {
+        i <- match(seq_len(nk), cluster_codes(x)[, k])
+        mids <- cluster_codes(x)[, m][i]
+        nm <- nlevels(mids)
+        if (nm > length(m_pal))
+            m_pal <- colorRampPalette(m_pal)(nk)
+        m_pal <- m_pal[seq_len(nm)]
+        names(m_pal) <- levels(mids)
+        df$merging_id <- mids
+        col$merging_id <- m_pal
+    }
+    df <- mutate_all(df, function(u)
+        factor(u, unique(u)))
+    rowAnnotation(
+        df = df, col = col,
+        width = unit(4, "mm"),
+        gp = gpar(col = "white"))
 }
 
 #' @importFrom ComplexHeatmap columnAnnotation rowAnnotation
@@ -173,20 +218,6 @@
 }
 
 # ==============================================================================
-# wrapper for heatmaps by plotDiffHeatmap()
-# ------------------------------------------------------------------------------
-.diff_hm <- function(matrix, col, name, xlab, ...) {
-    Heatmap(matrix, col, name, ..., 
-        cluster_columns=FALSE,
-        column_title=xlab, 
-        column_title_side="bottom",
-        clustering_distance_rows="euclidean",
-        clustering_method_rows="median",
-        column_names_gp=gpar(fontsize=8),
-        rect_gp=gpar(col='white'))
-}
-
-# ==============================================================================
 # wrapper for Z-score normalization
 # ------------------------------------------------------------------------------
 .z_normalize <- function(es, th=2.5) {
@@ -229,13 +260,20 @@
 #' @importFrom Matrix rowMeans rowSums
 #' @importFrom matrixStats rowMedians
 #' @importFrom purrr map_depth
-.agg <- function(x, by, fun = c("median", "mean", "sum")) {
-    fun <- switch(match.arg(fun), 
-        median = rowMedians, mean = rowMeans, sum = rowSums)
+#' @importFrom SummarizedExperiment assay
+.agg <- function(x, 
+    by = c("cluster_id", "sample_id"), 
+    fun = c("median", "mean", "sum"),
+    assay = "exprs") {
+    fun <- switch(
+        match.arg(fun), 
+        median = rowMedians, 
+        mean = rowMeans, 
+        sum = rowSums)
     cs <- .split_cells(x, by)
     pb <- map_depth(cs, -1, function(i) {
         if (length(i) == 0) return(numeric(nrow(x)))
-        fun(assay(x, "exprs")[, i, drop = FALSE])
+        fun(assay(x, assay)[, i, drop = FALSE])
     })
     map_depth(pb, -2, function(u) as.matrix(data.frame(
         u, row.names = rownames(x), check.names = FALSE)))
@@ -250,9 +288,11 @@
     cs <- paste0("c", seq_len(ncs <- 2e3))
     y <- sample(100, ngs * ncs, replace = TRUE)
     y <- matrix(y, ngs, ncs, TRUE, list(gs, cs))
-    cd <- data.frame(mapply(function(i, n) 
-        sample(paste0(i, seq_len(n)), ncs, TRUE),
-        i = c("k", "s", "g"), n = c(5, 4, 3)))
+    cd <- data.frame(
+        mapply(function(i, n) 
+            sample(paste0(i, seq_len(n)), ncs, TRUE),
+            i = c("k", "s", "g"), n = c(5, 4, 3)),
+        stringsAsFactors = TRUE)
     cd$s <- factor(paste(cd$s, cd$g, sep = "."))
     colnames(cd) <- paste(c("cluster", "sample", "group"), "id", sep = "_")
     SingleCellExperiment(assay = list(exprs = y), colData = cd)

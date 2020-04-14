@@ -8,8 +8,9 @@
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param split_by NULL or a character string 
 #'   specifying a \code{colData(x)} column to split by.
-#' @param assay a character string specifying which assay data to use.
-#'   Valid values are \code{assayNames(x)}.
+#' @param assay a character string specifying 
+#'   which assay data to use; valid values are \code{assayNames(x)}. 
+#'   When writing out FCS files, this should correspond to count-like data!
 #' @param keep_cd,keep_dr logials specifying whether cell metadata 
 #'   (stored in \code{colData(x)}) and dimension reductions 
 #'   (stored in \code{reducedDims(x)}), respectively,
@@ -24,11 +25,11 @@
 #' @examples 
 #' # PREPROCESSING
 #' data(sample_ff, sample_key)
-#' sce <- fcs2sce(sample_ff, by_time = FALSE)
+#' sce <- prepData(sample_ff, by_time = FALSE)
 #' sce <- assignPrelim(sce, sample_key, verbose = FALSE)
 #' 
 #' # split SCE by barcode population
-#' fs <- sce2fcs(sce, split_by = "bc_id", assay = "exprs")
+#' fs <- sce2fcs(sce, split_by = "bc_id")
 #' 
 #' # do some spot checks
 #' library(flowCore)
@@ -48,22 +49,20 @@
 #' fs <- sce2fcs(sce, split_by = "meta20", assay = "exprs")
 #' all(fsApply(fs, nrow)[, 1] == table(sce$meta20))
 #' 
-#' @importFrom flowCore flowFrame
+#' @importFrom flowCore flowFrame parameters
 #' @importFrom matrixStats colMaxs
-#' @importFrom methods as is
-#' @importFrom SingleCellExperiment int_colData
-#' @importFrom SummarizedExperiment assay assayNames
+#' @importFrom methods is
+#' @importFrom SingleCellExperiment int_colData int_metadata
+#' @importFrom SummarizedExperiment assay assayNames rowData
 #' @export 
 
-sce2fcs <- function(x, 
-    split_by = NULL, assay = "exprs",
-    keep_cd = FALSE, keep_dr = FALSE) {
+sce2fcs <- function(x, split_by = NULL, 
+    keep_cd = FALSE, keep_dr = FALSE, assay = "counts") {
     # check validity of input arguments
-    stopifnot(is(x, "SingleCellExperiment"), is.null(split_by) 
-        || is.character(split_by) & !is.null(x[[split_by]]),
-        is.character(assay), length(assay) == 1, assay %in% assayNames(x),
-        is.logical(keep_cd), length(keep_cd) == 1,
-        is.logical(keep_dr), length(keep_dr) == 1)
+    args <- as.list(environment())
+    .check_args_sce2fcs(args)
+    
+    # (optionally) split cells according to 'split_by'
     if (!is.null(split_by)) {
         cs <- split(seq_len(ncol(x)), factor(x[[split_by]]))
         l <- lapply(cs, function(i) x[, i])
@@ -71,46 +70,70 @@ sce2fcs <- function(x,
         cs <- list(seq_len(ncol(x)))
         l <- list(x)
     }
-    ffs <- lapply(seq_along(l), function(i) {
-        y <- t(assay(l[[i]], assay))
-        if (keep_cd) {
-            cols_keep <- vapply(colData(x), function(u) 
-                suppressWarnings(!all(is.na(as.numeric(as.character(u))))), 
-                logical(1))
-            cd <- as.matrix(colData(x)[cs[[i]], cols_keep, drop = FALSE])
-            y <- cbind(y, cd)
-        }
-        icd <- as.matrix(data.frame(int_colData(l[[i]])))
-        is_dr <- grepl("reducedDims", colnames(icd))
-        pat <- "reducedDims.([[:alpha:]]+).([0-9]+)"
-        colnames(icd) <- gsub(pat, "\\1\\2", colnames(icd))
-        if (!keep_dr) icd <- icd[, !is_dr]
-        y <- cbind(y, icd)
-        ff <- flowFrame(y)
-        ps <- parameters(ff)
-        ps$minRange <- 0
-        ps$maxRange <- colMaxs(y, na.rm = TRUE)
-        ps$name <- as.character(ps$name)
-        ps$desc <- as.character(ps$desc)
-        m <- match(rownames(l[[i]]), ps$name)
-        ps$desc[m] <- rowData(l[[i]])$desc
-        ds <- list()
-        for (p in seq_len(nrow(ps))) {
-            ds[[sprintf("$P%sN", p)]] <- as.character(ps$name[p])
-            ds[[sprintf("$P%sS", p)]] <- as.character(ps$desc[p])
-            ds[[sprintf("$P%sRmin", p)]] <- ps$minRange[p]
-            ds[[sprintf("$P%sRmax", p)]] <- ps$maxRange[p]
-        }
-        flowFrame(y, ps, ds)
-    })
-    fs <- as(ffs, "flowSet")
-    for (i in seq_along(fs)) {
-        fix_name <- !is.na(suppressWarnings(as.numeric(names(l)[i])))
+    
+    # get numeric cell metadata columns to be added into assay data
+    if (keep_cd) {
+        cols_keep <- vapply(colData(x), function(u) 
+            suppressWarnings(!all(is.na(as.numeric(as.character(u))))), 
+            logical(1))
+    } else cols_keep <- FALSE
+    
+    # construct 'flowFrame' identifiers
+    if (!is.null(split_by)) {
+        fix_name <- vapply(seq_along(l), function(i) 
+            !is.na(suppressWarnings(as.numeric(names(l)[i]))),
+            logical(1))
         prefix <- ifelse(fix_name, paste0(split_by, "_"), "")
-        id <- paste0(prefix, names(l)[i])
-        id <- ifelse(length(id) == 0, NA, id)
-        description(fs[[i]])[c("GUID", "ORIGINALGUID")] <- 
-            identifier(fs[[i]]) <- id
-    }
-    if (length(fs) == 1) fs[[1]] else fs
+        ids <- paste0(prefix, names(l))
+    } else ids <- NULL
+    
+    # get internal cell metadata (optionally) including reduced dimensions
+    icd <- as.matrix(data.frame(int_colData(x)))
+    is_dr <- grepl("reducedDims", colnames(icd))
+    pat <- "reducedDims.([[:alpha:]]+).([0-9]+)"
+    colnames(icd) <- gsub(pat, "\\1\\2", colnames(icd))
+    if (!keep_dr) icd <- icd[, !is_dr]
+    
+    # construct expression matrix including all cell metadata
+    y <- t(assay(x, assay))
+    cd <- colData(x)[cols_keep]
+    y <- cbind(icd, y, as.matrix(cd))
+    
+    is <- seq_along(l)
+    names(is) <- ids
+    ffs <- lapply(is, function(i) {
+        # construct preliminary 'flowFrame'
+        z <- y[cs[[i]], , drop = FALSE]
+        ff <- flowFrame(z)
+        # update 'AnnotatedDataFrame' of parameters
+        ps <- parameters(ff)
+        rs <- 2^(ceiling(log2(colMaxs(z))))
+        m <- match(rownames(x), colnames(z), nomatch = 0)
+        ps$name[m] <- rowData(x)$channel_name
+        ps$desc[-m] <- NA
+        ps$range <- rs
+        ps$minRange <- 0
+        ps$maxRange <- rs-1
+        colnames(z) <- ps$name
+        # update description list
+        ds <- int_metadata(x)$description
+        if (is.null(ds)) 
+            ds <- list()
+        if (is.null(ds$`$CYT`))
+            ds$`$CYT` <- "cytof2"
+        ds$GUID <- ids[i]
+        ds$transformation <- "custom"
+        ds$`$DATE` <- format(Sys.Date(), "%d-%b-%Y")
+        for (i in seq_len(nrow(ps))) {
+            ds[[sprintf("$P%sN", i)]] <- ps$name[i]
+            ds[[sprintf("$P%sS", i)]] <- ps$desc[i]
+            ds[[sprintf("$P%sR", i)]] <- paste(rs[i])
+            ds[[sprintf("flowCore_$P%sRmin", i)]] <- "0"
+            ds[[sprintf("flowCore_$P%sRmax", i)]] <- paste(rs[i]-1)
+        }
+        # construct final 'flowFrame'
+        attr(z, "ranges") <- rs-1
+        flowFrame(z, ps, ds)
+    })
+    if (length(ffs) == 1) ffs[[1]] else flowSet(ffs)
 }
