@@ -6,9 +6,10 @@ bioc_check: true
 env:
   - _R_CHECK_LENGTH_1_LOGIC2_=true _R_CHECK_LENGTH_1_CONDITION=true
 
-install:
-  - R -e "devtools::install_github('JinmiaoChenLab/Rphenograph')"
 r_binary_packages:
   - covr
+  - devtools
+install:
+  - R -e "devtools::install_github('JinmiaoChenLab/Rphenograph')"
 after_success:
   - R -e "covr::codecov()"
