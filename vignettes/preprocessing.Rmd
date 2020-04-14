@@ -22,7 +22,7 @@ author:
   - *SIB
 package: "`r BiocStyle::pkg_ver('CATALYST')`"
 abstract: >
-    By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to (theoretically) 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed `r Biocpkg("CATALYST")` (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm.
+    By addressing the limit of measurable fluorescent parameters due to instrumentation and spectral overlap, mass cytometry (CyTOF) combines heavy metal spectrometry to allow examination of up to (theoretically) 100 parameters at the single cell level. While spectral overlap is significantly less pronounced in CyTOF than flow cytometry, spillover due to detection sensitivity, isotopic impurities, and oxide formation can impede data interpretability. We designed `r BiocStyle::Biocpkg("CATALYST")` (Cytometry dATa anALYSis Tools) to provide tools for (pre)processing and analysis of cytometry data, including compensation and in particular, an improved implementation of the single-cell deconvolution algorithm.
 bibliography: "`r file.path(system.file('extdata', package = 'CATALYST'), 'refs.bib')`"
 csl: science.csl
 vignette: >
@@ -53,34 +53,32 @@ library(SingleCellExperiment)
 - **Normalization:**  
 `raw_data` is a `flowSet` with 2 experiments, each containing 2'500 raw measurements with a variation of signal over time. Samples were mixed with DVS beads captured by mass channels 140, 151, 153, 165 and 175.
 - **Debarocoding:**  
-To demonstrate the debarcoding workflow with `r Biocpkg("CATALYST")`, we provide `sample_ff` which follows a 6-choose-3 barcoding scheme where mass channels 102, 104, 105, 106, 108, and 110 were used for labeling such that each of the 20 individual barcodes are positive for exactly 3 out of the 6 barcode channels. Accompanying this, `sample_key` contains a binary code of length 6 for each sample, e.g. 111000, as its unique identifier.
+To demonstrate the debarcoding workflow with `r BiocStyle::Biocpkg("CATALYST")`, we provide `sample_ff` which follows a 6-choose-3 barcoding scheme where mass channels 102, 104, 105, 106, 108, and 110 were used for labeling such that each of the 20 individual barcodes are positive for exactly 3 out of the 6 barcode channels. Accompanying this, `sample_key` contains a binary code of length 6 for each sample, e.g. 111000, as its unique identifier.
 - **Compensation:**  
-Alongside the multiplexed-stained cell sample `mp_cells`, the package contains 36 single-antibody stained controls in `ss_exp` where beads were stained with antibodies captured by mass channels 139, 141 through 156, and 158 through 176, respectively, and pooled together. Note that, to decrease running time, we downsampled to a total of 10'000 events. Lastly, `isotope_list` contains a named list of isotopic compositions for all elements within 75 through 209 u corresponding to the CyTOF mass range at the time of writing [@isotopes].
+Alongside the multiplexed-stained cell sample `mp_cells`, the package contains 36 single-antibody stained controls in `ss_exp` where beads were stained with antibodies captured by mass channels 139, 141 through 156, and 158 through 176, respectively, and pooled together. Note that, to decrease running time, we downsampled to a total of 10'000 events. Lastly, `isotope_list` contains a named list of isotopic compositions for all elements within 75 through 209 u corresponding to the CyTOF mass range at the time of writing [@Coursey2015].
 
 # Data organization
 
-Data used and retuned throughout preprocessing are organized into an object of the `r Biocpkg("SingleCellExperiment")` (SCE) class. A SCE can be constructed from a single or set of FCS files, `flowFrame`(s) or `flowSet` (from the `r Biocpkg("flowCore")` package) using `CATALYST`'s `fcs2sce` function. 
+Data used and returned throughout preprocessing are organized into an object of the `r BiocStyle::Biocpkg("SingleCellExperiment")` (SCE) class. A SCE can be constructed from a directory housing a single or set of FCS files, a character vector of the file(s), `flowFrame`(s) or a `flowSet` (from the `r BiocStyle::Biocpkg("flowCore")` package) using `CATALYST`'s `prepData` function. 
 
-`fcs2sce` will automatically identify channels not corresponding to masses (e.g., event times), remove them from the output SCE's assay data, and store them as internal event metadata (`int_colData`).
+`prepData` will automatically identify channels not corresponding to masses (e.g., event times), remove them from the output SCE's assay data, and store them as internal event metadata (`int_colData`).
 
-When multiple files or frames are supplied, `fcs2sce` will concatenate the data into a single object, and argument `by_time` (default `TRUE`) specifies whether runs should be ordered by their acquisition time (`keyword(x, "$BTIM")`, where `x` is a `flowFrame` or `flowSet`). 
-
-Optionally, a `"file_no"` column can be added to the output SCE's `colData` to track which file/frame events originally source from.
+When multiple files or frames are supplied, `prepData` will concatenate the data into a single object, and argument `by_time` (default `TRUE`) specifies whether runs should be ordered by their acquisition time (`keyword(x, "$BTIM")`, where `x` is a `flowFrame` or `flowSet`). A `"sample_id"` column will be added to the output SCE's `colData` to track which file/frame events originally source from.
 
 Finally, when `transform` (default `TRUE`), an arcsinh-transformation with cofactor `cofactor` (defaults to 5) is applied to the input (count) data, and the resulting expression matrix is stored in the `"exprs"` assay slot of the output SCE.
 
-```{r fcs2sce}
-data(raw_data)
-(sce <- fcs2sce(x = raw_data, file_no = TRUE))
+```{r prepData}
+data("raw_data")
+(sce <- prepData(raw_data))
 # view number of events per sample
-table(int_colData(sce)$file_no)
+table(sce$sample_id)
 # view non-mass channels
 names(int_colData(sce))
 ```
 
 # Normalization
 
-`r Biocpkg("CATALYST")` provides an implementation of bead-based normalization as described by Finck et al. [@Finck13]. Here, identification of bead-singlets (used for normalization), as well as of bead-bead and cell-bead doublets (to be removed) is automated as follows: 
+`r BiocStyle::Biocpkg("CATALYST")` provides an implementation of bead-based normalization as described by Finck et al. [@Finck2013-normalization]. Here, identification of bead-singlets (used for normalization), as well as of bead-bead and cell-bead doublets (to be removed) is automated as follows: 
 
 1. beads are identified as events with their top signals in the bead channels
 1. cell-bead doublets are remove by applying a separation cutoff to the distance between the lowest bead and highest non-bead signal
@@ -101,7 +99,7 @@ By default, we apply a $median\;\pm5\;mad$ rule to remove low- and high-signal e
 
 `normCytof` will return the following list of SCE(s)...
 
-- `data`: Input dataset including normalized intensities as assay slot `"normed"`.
+- `data`: Input dataset including normalized counts (and expressions, if `transform = TRUE`).
     - if `remove_beads = FALSE`, `colData` columns `"is_bead"` and `"remove"` indicate whether an event has been marker as a bead or for removal, respectively.
     - otherwise, bead and doublet events are excluded and the following additional data is returned:
         - `beads`: Subset of identified bead events.
@@ -113,9 +111,16 @@ including bead events as well as bead-bead and bead-cell doublets.
 - `scatter`: Scatter plot of bead vs. DNA intensities with indication of applied gates.
 - `lines`: Running-median smoothed bead intensities vs. time before and after normalization.
 
-```{r normCytof, fig.width = 8, fig.height = 6}
-sce <- fcs2sce(raw_data)
-res <- normCytof(sce, beads = "dvs", k = 50, verbose = FALSE)
+Besides general normalized parameters (`beads` specifying the normalization beads, and running median windown width `k`), `normCytof` requires as input to `assays` corresponding to count- and expression-like data respectively. Here, correction factors are computed on the linear (count) scale, while automated bead-identification happens on the transformed (expression) scale.
+
+By default, `normCytof` will overwrite the specified `assays` with the normalized data (`overwrite = TRUE`). In order to retain both unnormalized and normalized data, `overwrite` should be set to `FALSE`, in which case normalized counts (and expression, when `transform = TRUE`) will be written to separate assay `normcounts/exprs`, respectively.
+
+```{r normCytof, message = FALSE, fig.width = 8, fig.height = 6}
+# construct SCE
+sce <- prepData(raw_data)
+# apply normalization; keep raw data
+res <- normCytof(sce, beads = "dvs", k = 50, 
+  assays = c("counts", "exprs"), overwrite = FALSE)
 # check number & percentage of bead / removed events
 n <- ncol(sce); ns <- c(ncol(res$beads), ncol(res$removed))
 data.frame(
@@ -123,10 +128,10 @@ data.frame(
     "#" = c(ns[1], ns[2]), 
     "%" = 100*c(ns[1]/n, ns[2]/n),
     row.names = c("beads", "removed"))
-# extract data excluding beads & doubltes,
+# extract data excluding beads & doublets,
 # and including normalized intensitied
 sce <- res$data
-sum(sce$is_bead) == 0
+assayNames(sce)
 ```
 
 ```{r normCytof-scatter, fig.wide = TRUE, fig.width = 10, fig.height = 2}
@@ -141,7 +146,7 @@ res$lines
 
 # Debarcoding
 
-`r BiocStyle::Biocpkg("CATALYST")` provides an implementation of the single-cell deconvolution algorithm described by Zunder et al. [@Zunder15]. The package contains three functions for debarcoding and three visualizations that guide selection of thresholds and give a sense of barcode assignment quality.
+`r BiocStyle::Biocpkg("CATALYST")` provides an implementation of the single-cell deconvolution algorithm described by Zunder et al. [@Zunder2015-debarcoding]. The package contains three functions for debarcoding and three visualizations that guide selection of thresholds and give a sense of barcode assignment quality.
 
 In summary, events are assigned to a sample when i) their positive and negative barcode populations are separated by a distance larger than a threshold value and ii) the combination of their positive barcode channels appears in the barcoding scheme. Depending on the supplied scheme, there are two possible ways of arriving at preliminary event assignments:
 
@@ -150,7 +155,7 @@ Given a binary barcoding scheme with a coherent number $k$ of positive channels 
 1. **Non-constant number of 1's**:  
 Given a non-uniform number of 1's in the binary codes, the highest separation between consecutive barcodes is looked at. In both, the doublet-filtering and the latter case, each event is assigned a binary code that, if matched with a code in the barcoding scheme supplied, dictates which row name will be assigned as ID. Cells whose positive barcodes are still very low or whose binary pattern of positive and negative barcodes doesn't occur in the barcoding scheme will be given ID 0 for *"unassigned"*.
 
-All data required for debarcoding are held in objects of the `r Biocpkg("SingleCellExperiment")` (SCE) class, allowing for the following easy-to-use workflow:
+All data required for debarcoding are held in objects of the `r BiocStyle::Biocpkg("SingleCellExperiment")` (SCE) class, allowing for the following easy-to-use workflow:
 
 1. as the initial step of single-cell deconcolution, `assignPrelim` will return a SCE containing the input measurement data, barcoding scheme, and preliminary event assignments.
 2. assignments will be made final by `applyCutoffs`. It is recommended to estimate, and possibly adjust, population-specific separation cutoffs by running `estCutoffs` prior to this.
@@ -160,7 +165,7 @@ All data required for debarcoding are held in objects of the `r Biocpkg("SingleC
 
 ### `assignPrelim`: Assignment of preliminary IDs
 
-The debarcoding process commences by assigning each event a preliminary barcode ID. `assignPrelim` thereby takes either a binary barcoding scheme or a vector of numeric masses as input, and accordingly assigns each event the appropirate row name or mass as ID. FCS files are read into R with `read.FCS` of the `r Biocpkg("flowCore")` package, and are represented as an object of class `flowFrame`:
+The debarcoding process commences by assigning each event a preliminary barcode ID. `assignPrelim` thereby takes either a binary barcoding scheme or a vector of numeric masses as input, and accordingly assigns each event the appropirate row name or mass as ID. FCS files are read into R with `read.FCS` of the `r BiocStyle::Biocpkg("flowCore")` package, and are represented as an object of class `flowFrame`:
 
 ```{r}
 data(sample_ff)
@@ -180,8 +185,8 @@ Provided with a `SingleCellExperiment` and a compatible barcoding scheme (barcod
 - `rowData` column `is_bc` specifying, for each channel, whether it has been specified as a barcode channel
 
 ```{r assignPrelim, messages = FALSE} 
-sce <- fcs2sce(sample_ff)
-(sce <- assignPrelim(sce, bc_key = sample_key, verbose = FALSE))
+sce <- prepData(sample_ff)
+(sce <- assignPrelim(sce, sample_key))
 # view barcode channels
 rownames(sce)[rowData(sce)$is_bc]
 # view number of events assigned to each barcode population
@@ -192,7 +197,7 @@ table(sce$bc_id)
 
 As opposed to a single global cutoff, `estCutoffs` will estimate a sample-specific cutoff to deal with barcode population cell yields that decline in an asynchronous fashion. Thus, the choice of thresholds for the distance between negative and positive barcode populations can be *i) automated* and *ii) independent for each barcode*. Nevertheless, reviewing the yield plots (see below), checking and possibly refining separation cutoffs is advisable. 
 
-For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. To facilitate robust estimation, we fit a linear and a three-parameter log-logistic function [@Finney] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@drc] (Figure \@ref(fig:estCutoffs)). As an adequate cutoff estimate, we target a point that marks the end of the plateau regime and on-set of yield decline to appropriately balance confidence in barcode assignment and cell yield. 
+For the estimation of cutoff parameters we consider yields upon debarcoding as a function of the applied cutoffs. Commonly, this function will be characterized by an initial weak decline, where doublets are excluded, and subsequent rapid decline in yields to zero. Inbetween, low numbers of counts with intermediate barcode separation give rise to a plateau. To facilitate robust estimation, we fit a linear and a three-parameter log-logistic function [@Finney1971] to the yields function with the `LL.3` function of the `r CRANpkg("drc")` R package [@Ritz2015] (Figure \@ref(fig:estCutoffs)). As an adequate cutoff estimate, we target a point that marks the end of the plateau regime and on-set of yield decline to appropriately balance confidence in barcode assignment and cell yield. 
 
 The goodness of the linear fit relative to the log-logistic fit is weighed as follow: 
 $$w = \frac{\text{RSS}_{log-logistic}}{\text{RSS}_{log-logistic}+\text{RSS}_{linear}}$$
@@ -270,7 +275,7 @@ plotMahal(sce, which = "B3")
 
 # Compensation
 
-`r Biocpkg("CATALYST")` performs compensation via a two-step approach comprising: 
+`r BiocStyle::Biocpkg("CATALYST")` performs compensation via a two-step approach comprising: 
 
 i. identification of single positive populations via single-cell debarcoding (SCD) of single-stained beads (or cells)
 i. estimation of a spillover matrix (SM) from the populations identified, followed by compensation via multiplication of measurement intensities by its inverse, the compensation matrix (CM).
@@ -292,7 +297,7 @@ While mathematically exact, the solution to this equation will yield negative va
 
 $$\min \: \{ \: ( I_{observed} - SM \cdot I_{real} ) ^ T \cdot ( I_{observed} - SM \cdot I_{real} ) \: \} \quad \text{s.t.} \: I_{real} ≥ 0$$
 
-This approach will solve for $I_{real}$ such that the least squares criterion is optimized under the constraint of non-negativity. To arrive at such a solution we apply the Lawson-Hanson algorithm [@nnls1; @nnls2] for NNLS implemented in the  `r BiocStyle::Rpackage("nnls")` R package (`method="nnls"`).
+This approach will solve for $I_{real}$ such that the least squares criterion is optimized under the constraint of non-negativity. To arrive at such a solution we apply the Lawson-Hanson algorithm [@Lawson1974-NNLS1; @Lawson1995-NNLS2] for NNLS implemented in the  `r BiocStyle::Rpackage("nnls")` R package (`method="nnls"`).
 
 ***Estimation of SM.*** Because any signal not in a single stain experiment’s primary channel $j$ results from channel crosstalk, each spill entry $s_{ij}$ can be approximated by the slope of a linear regression with channel $j$ signal as the response, and channel $i$ signals as the predictors, where $i\in w_j$. `computeSpillmat()` offers two alternative ways for spillover estimation, summarized in Figure \@ref(fig:methods).
 
@@ -334,7 +339,7 @@ Yb    | 168, 170, 171, 172, 173, 174, 176 |
 Tm    | 169                               |
 Lu    | 175, 176                          |
 
-: (\#tab:isotopes) List of isotopes available for each metal used in CyTOF. In addition to $M\pm1$ and $M+16$ channels, these mass channels are considered during estimation of spill to capture channel crosstalk that is due to isotopic contanimations [@isotopes].
+: (\#tab:isotopes) List of isotopes available for each metal used in CyTOF. In addition to $M\pm1$ and $M+16$ channels, these mass channels are considered during estimation of spill to capture channel crosstalk that is due to isotopic contanimations [@Coursey2015].
 
 ![(\#fig:interactions) Heatmap of spill expected interactions. These are considered by the default method of <i>computeSpillmat</i>.](../inst/extdata/interactions.png){width="80%"}
 
@@ -348,14 +353,14 @@ Given a SCE of single-stained beads (or cells) and a numeric vector specifying t
 
 Spill values are affected my the `method` chosen for their estimation, that is `"median"` or `"mean"`, and, in the latter case, the specified `trim` percentage. The process of adjusting these options and reviewing the compensated data may iterative until compensation is satisfactory.
 
-```{r computeSpillmat} 
+```{r computeSpillmat, message} 
 # get single-stained control samples
 data(ss_exp)
 
 # specify mass channels stained for & debarcode
 bc_ms <- c(139, 141:156, 158:176)
-sce <- fcs2sce(ss_exp, by_time = FALSE)
-sce <- assignPrelim(sce, bc_key = bc_ms, verbose = FALSE)
+sce <- prepData(ss_exp)
+sce <- assignPrelim(sce, bc_ms, verbose = FALSE)
 sce <- applyCutoffs(estCutoffs(sce))
 
 # compute & extract spillover matrix
@@ -363,7 +368,8 @@ sce <- computeSpillmat(sce)
 sm <- metadata(sce)$spillover_matrix
 
 # do some sanity checks
-ss_chs <- rownames(sce)[rowData(sce)$is_bc]
+chs <- rowData(sce)$channel_name
+ss_chs <- chs[rowData(sce)$is_bc]
 all(diag(sm[ss_chs, ss_chs]) == 1)
 all(sm >= 0 & sm <= 1)
 ```
@@ -387,184 +393,153 @@ Assuming a linear spillover, `compCytof` compensates mass cytometry based experi
 1. metal columns that have the same mass as a channel present in the SM will receive (but not emit) spillover according to that channel
 1. if an added channel could potentially receive spillover (as it has +/-1M or +16M of, or is of the same metal type as another channel measured), a warning will be issued as there could be spillover interactions that have been missed and may lead to faulty compensation
 
-If `out_path = NULL` (the default), the function will return a `SingleCellExperiment` containing both compensated counts (assay slot `"x_comped"`, where `x` is the specified assay data to be compensated) and, if `transform = TRUE`, expression values (assay slot `"exprs_comped"`). 
+To omit the need to respecify the `cofactor`(s) for transformation, `transform = TRUE` will auto-transform the compensated data. `compCytof` will thereby try to reuse the `cofactor`(s) stored under `int_metadata(sce)$cofactor` from the previously applied transformation; otherwise, the `cofactor` argument should be specified.
 
-```{r compCytof, message = FALSE, fig.wide = TRUE}
+If `overwrite = TRUE` (the default), `compCytof` will overwrite the specified counts `assay` (and `exprs`, when `transform = TRUE`) with the compensated data. Otherwise, compensated count (and expression) data will be stored in separate assays `compcounts/exprs`, respectively.
+
+```{r compCytof, message = FALSE, fig.width = 8, fig.height = 3}
 # construct SCE of multiplexed cells
 data(mp_cells)
-sce <- fcs2sce(mp_cells, by_time = FALSE)
-# compensate using `flowCore` & NNLS-method
-sce <- compCytof(sce, sm, method = "flow")
-sce <- compCytof(sce, sm, method = "nnls")
+sce <- prepData(mp_cells)
+# compensate using NNLS-method; keep uncompensated data
+sce <- compCytof(sce, sm, method = "nnls", overwrite = FALSE)
 # visualize data before & after compensation
 chs <- c("Er167Di", "Er168Di")
-as <- grep("exprs", assayNames(sce), value = TRUE)
-ps <- lapply(as, function(a) plotScatter(sce, chs, assay = a) + ggtitle(a))
-plot_grid(plotlist = ps, nrow = 1, align = "v")
+as <- c("exprs", "compexprs")
+ps <- lapply(as, function(a) 
+    plotScatter(sce, chs, assay = a))
+plot_grid(plotlist = ps, nrow = 1)
 ```
 
-# Gating & scatter plots
+# Scatter plot visualization
 
-## `gateCytof`: Rectangular, elliptical & polygonal gates
+`plotScatter` provides a flexible way of visualizing expression data as biscatters, and supports automated facetting (should more than 2 channels be visualized). Cells may be colored by density (default `color_by = NULL`) or other (non-)continous variables. When coloring by density, `plotScatter` will use `geom_hex` to bin cells into the number of specified `bins`; otherwise cells will be plotted as points. The following code chunks shall illustrate these different functionalities:
 
-`CATALYST`s `gateCytof` currently supports the following `type`s of gates:
+## Example 1: Coloring by cell density
 
-- `rect`: Rectangular gate with boundaries specified via `xy = list(c(xmin, ymin), c(xmax, ymax))`.
-- `elip`: Elliptical gate with the upper quantile to be removed specified via `q`, the number of cluster centers specified via `k`, and the target cluster center specified via `xy = c(x, y)`; if `k = NULL`, `gateCytof` will estimate the number of clusters via maximizing the average Silhouette information for $k\in[2,...,5]$.
-- `live`: Live-gate with the upper quantile to be removed specified via `q`, and line parameters specified via `i` (intercept) and `s` (slope).
-
-The pair of channels to which the gate should be applied with is given by `chs` for all type of gates. Besides general gating parameters (`xy`, `q`, `k`, `i` and `s`), `gateCytof` allows for i) gating on a subset of cells selected by a previos gate (argument `gate_on`); and, ii) applying group-specific gates (argument `group_by`).
-
-<span style="color:firebrick">**The following examples shall serve to illustrate these capabilities as well as the different types of gates, and are not meant to be biologically meaningful.**</span>
-
-### Example 1: Sequential rectangular gates
-
-By default, `gateCytof` will gate on all cells. Alternatively, a previously applied gate my be specified via `gate_on` from which to subset cells from prior to gating. In this case, the newly created gate's parent will be stored in `int_metadata(x)$gates$<gate_id>`.
-
-For this example, to make things more interpretable, we first modify the above SCE to use the channel descriptors as rownames:
-
-```{r}
-ss <- strsplit(rowData(sce)$desc, "-")
-as <- sapply(ss, .subset, 2)
-sce <- sce[!(emtpy <- is.na(as)), ]
-(rownames(sce) <- make.unique(as[!emtpy]))
+```{r plotScatter-1, fig.small = TRUE, fig.height = 2.5}
+# biscatter of DNA channels colored by cell density
+sce <- prepData(raw_data)
+chs <- c("DNA1", "DNA2")
+plotScatter(sce, chs)
 ```
 
-To illustrate how gates can be applied in sequence, we first gate for cells that are CD3+/CD45+, and then select for CD4+ T-cells:
-
-```{r gateCytof-rect, fig.width = 5, fig.height = 3}
-# select for double positive CD3+/CD45+ cells
-sce <- gateCytof(sce, 
-    type = "rect", 
-    gate_id = "T cells",
-    chs = c("CD3", "CD45"),
-    xy = list(c(2, 4), c(5, 8)))
-
-# select for single positive CD4+ T cells
-sce <- gateCytof(sce, 
-    type = "rect", 
-    gate_on = "T cells",
-    gate_id = "CD4+ T cells",
-    chs = c("CD4", "CD8"),
-    xy = list(c(2, 0), c(5, 2)))
-
-# visualize gating sequence
-plot_grid(
-    plotScatter(sce, gate_id = "T cells"),
-    plotScatter(sce, gate_id = "CD4+ T cells"))
+```{r plotScatter-2, fig.width = 6, fig.height = 4}
+# biscatters for selected CD-channels
+sce <- prepData(mp_cells)
+chs <- grep("^CD", rownames(sce), value = TRUE)
+chs <- sample(chs, 7)
+p <- plotScatter(sce, chs)
+p$facet$params$ncol <- 3; p
 ```
 
-We can easily view the number and fraction of cells selected in each step of the above gating scheme:
+## Example 2: Coloring by variables
 
-```{r}
-gate_md <- int_metadata(sce)$gates
-names(gate_ids) <- gate_ids <- names(gate_md)
-sapply(gate_ids, function(u) {
-    sub <- sce[[u]]
-    c(table(sub), "%" = 100*mean(sub))
-})
+```{r plotScatter-3, message = FALSE, fig.width = 6, fig.height = 3}
+sce <- prepData(sample_ff)
+sce <- assignPrelim(sce, sample_key)
+# downsample channels & barcode populations
+chs <- sample(rownames(sce), 4)
+ids <- sample(rownames(sample_key), 3)
+sce <- sce[chs, sce$bc_id %in% ids]
+
+# color by factor variable
+plotScatter(sce, chs, color_by = "bc_id")
+
+# color by continuous variable
+plotScatter(sce, chs, color_by = "delta")
 ```
 
-### Example 2: Partly specific elliptical gates
+## Example 3: Facetting by variables
 
-Gating parameters can be applied in a group-specific manner. In the example below, we first gate for cells with respect to their DNA expression applying a 95%-quantile (argument `q`) elliptical gate separately for each sample. Secondly, we loosen the gate for one sample and tighten it for the other.
+```{r plotScatter-4, message = FALSE, fig.width = 6, fig.height = 4}
+# sample some random group labels
+sce$group_id <- sample(c("groupA", "groupB"), ncol(sce), TRUE)
 
-There are a view ways in which quantiles can be specified, and `gateCytof` will handel them as follows (the same applies to arguments `k`, and `i` and `s` for live gates): 
-
-* By default, `q = 0.95` and this value will be recycled for each group (when `group_on` is specified).
-* Group-specific `q`s can be passed as a named vector.
-* When only some group-specific values are provided, at most one unnamed entry will be used for the remainder of samples; when no element is unnamed, the default of 0.95 will be used for all unspecified groups.
-
-```{r gateCytof-elip, message = FALSE, fig.width = 6, fig.height = 3}
-# load example data containing 2 samples
-raw <- fcs2sce(x = raw_data, file_no = TRUE)
-
-# same stringency for both samples 
-# (defaulting to 95%-quantile)
-raw <- gateCytof(raw,
-    type = "elip",
-    gate_id = "cells1",
-    group_by = "file_name",
-    chs = c("Ir191Di", "Ir193Di"))
-
-# be less stringent on sample 1, 
-# but more stringent on sample 2
-raw <- gateCytof(raw,
-    type = "elip",
-    gate_id = "cells2",
-    group_by = "file_name",
-    chs = c("Ir191Di", "Ir193Di"), 
-    q = c(0.99, raw_data_2.fcs = 0.8))
-
-# visualize gates with & without 
-# group-specific gating parameters
-plot_grid(
-    plotScatter(raw, gate_id = "cells1"),
-    plotScatter(raw, gate_id = "cells2"))
+# selected pair of channels; split by barcode & group ID
+plotScatter(sce, sample(chs, 2), 
+  color_by = "bc_id",
+  facet_by = c("bc_id", "group_id"))
 ```
 
-### Example 3: Sample-specific polygon gates
-
-```{r gateCytof-live, fig.width = 6, fig.height = 4}
-# randomly group cells 
-sids <- sample(seq_len(4), ncol(raw), TRUE)
-raw$sample_id <- paste0("sample", sids)
-
-# vary intercepts for each sample
-raw <- gateCytof(raw,
-    type = "live",
-    gate_id = "live1",
-    group_by = "sample_id",
-    chs = c("Ir191Di", "Pt194Di"),
-    i = c(sample1 = 0, sample2 = 0.5, sample3 = 1, sample4 = 2))
-
-# vary slopes for each sample
-raw <- gateCytof(raw,
-    type = "live",
-    gate_id = "live2",
-    group_by = "sample_id",
-    chs = c("Ir191Di", "Pt194Di"),
-    s = c(sample1 = 2, sample2 = 1, sample3 = 0.5, sample4 = 0))
-
-plot_grid(
-    plotScatter(raw, gate_id = "live1"),
-    plotScatter(raw, gate_id = "live2"))
+```{r plotScatter-5, message = FALSE, fig.width = 6, fig.height = 6}
+# selected CD-channels; split by sample
+plotScatter(sce, chs, bins = 50, facet_by = "bc_id")
 ```
 
-## `plotScatter`: Bivariate scatter plot visualization
+# Conversion to other data structures
 
-Pair-wise scatter plots can be generated with `plotScatter`. By default (`color_by = NULL`), bins will be colored by density. Alternatively, `color_by` can be any non-numeric `(int_)colData` column (containing, for example, cluster, sample or group IDs). In this case, the rendered `ggplot` will use `geom_point` rather than `geom_hex`:
+While the `SingleCellExperiment` class provides many advantages in terms of compactness, interactability and robustness, it can be desirous to write out intermediate files at each preprocessing stage, or to use other packages currently build around `flowCore` infrastructure (`flowFrame` and `flowSet` classes), or classes derived thereof (e.g., `r Biocpkg("flowWorkspace")`'s `GatingSet`). This section demonstrates how to safely convert between these data structures.
 
-```{r plotScatter1, fig.width = 4, fig.height = 3}
-plotScatter(raw, 
-    chs = c("Pt194Di", "Pt195Di"), 
-    color_by = "file_name")
+## Writing FCS files
+
+Conversion from SCE to `flowFrame`s/`flowSet`, which in turn can be writting to FCS files using `r Biocpkg("flowCore")`'s `write.FCS` function, is not straightforward. It is not recommended to directly write FCS via `write.FCS(flowFrame(t(assay(sce))))`, as this can lead to invalid FCS files or the data being shown on an inappropriate scale in e.g. Cytobank. Instead, `CATALYST` provides the `sce2fcs` function to facilitate correct back-conversion.
+
+`sce2fcs` allows specification of a variable to split the SCE by (argument `split_by`), e.g., to split the data by sample after debarcoding; whether to keep or drop any cell metadata (argument `keep_cd`) and dimension reductions (argument `keep_dr`) available within the object; and which assay data to use (argument `assay`)[^1]: 
+
+[^1]: Only count-like data should be written to FCS files and is guaranteed to show with approporiate scale in Cytobank!
+
+```{r sce2fcs-split, message = FALSE}
+# run debarcoding
+sce <- prepData(sample_ff)
+sce <- assignPrelim(sce, sample_key)
+sce <- applyCutoffs(estCutoffs(sce))
+# exclude unassigned events
+sce <- sce[, sce$bc_id != 0]
+# convert to 'flowSet' with one frame per sample
+(fs <- sce2fcs(sce, split_by = "bc_id"))
+# split check: number of cells per barcode ID
+# equals number of cells in each 'flowFrame'
+all(c(fsApply(fs, nrow)) == table(sce$bc_id))
 ```
 
-As already demonstrated above, argument `chs` specifying the channels to plot needn't be specified if a `gate_id` is provided, in which case `plotScatter` will default to using the channels used by that gate:
+Having converted out SCE to a `flowSet`, we can write out each of its `flowFrame`s to an FCS file with a meaningul filename that retains the sample of origin:
 
-```{r plotScatter2, eval = FALSE}
-# the following default to using
-# 'int_metadata(sce)$gates$cells1$chs'
-plotScatter(raw, gate_id = "cells1")
-
-# which is equivalent to explicitly specifying 
-# the same channels used to generate this gate
-plotScatter(raw, gate_id = "cells1",
-    chs = c("Ir191Di", "Ir193Di"))
+```{r sce2fcs-write, eval = FALSE}
+# get sample identifiers
+ids <- fsApply(fs, identifier)
+for (id in ids) {
+    ff <- fs[[id]]                     # subset 'flowFrame'
+    fn <- sprintf("sample_%s.fcs", id) # specify output name that includes ID
+    fn <- file.path("...", fn)         # construct output path
+    write.FCS(ff, fn)                  # write frame to FCS
+}
 ```
 
-When a `gate_id` is specified, `plotScatter` will default to including the gate's boundaries (only if the same pair of channels is plotted as was used for the gate) as well as the percentage of gated cells in the visualization. This can be ommited by setting `show_gate` and/or `show_perc` to `FALSE`:
+## Gating & visualization
 
-```{r plotScatter3, fig.width = 5, fig.height = 3}
-plot_grid(
-    # visualize gate with cells colored by density
-    # including boundaries & percentage of selected cells
-    plotScatter(sce, gate_id = "T cells"),
-    plotScatter(sce, 
-        # omit extra geoms & color by selection
-        gate_id = "T cells", color_by = "T cells",
-        show_gate = FALSE, show_perc = FALSE))
+Besides writing out FCS files, conversion to `flowFrame`s/`flowSet` also enables leveraging the existing infrastructure for these classes such as `r Biocpkg("ggcyto")` for visualization and `r Biocpkg("openCyto")` for gating:
+
+```{r sce2fcs-gating, message = FALSE, fig.small = TRUE, fig.height = 2.5}
+# load required packages
+library(ggcyto)      
+library(openCyto)     
+library(flowWorkspace) 
+
+# construct 'GatingSet'
+sce <- prepData(raw_data) 
+ff <- sce2fcs(sce, assay = "exprs")   
+gs <- GatingSet(flowSet(ff))
+
+# specify DNA channels
+dna_chs <- c("Ir191Di", "Ir193Di")
+
+# apply elliptical gate
+gs_add_gating_method(
+    gs, alias = "cells", 
+    pop = "+", parent = "root",
+    dims = paste(dna_chs, collapse = ","),
+    gating_method = "flowClust.2d", 
+    gating_args = "K=1,q=0.9")
+
+# plot scatter of DNA channels including elliptical gate
+ggcyto(gs, 
+    aes_string(dna_chs[1], dna_chs[2])) + 
+    geom_hex(bins = 128) + 
+    geom_gate(data = "cells") +
+    facet_null() + ggtitle(NULL) +
+    theme(aspect.ratio = 1, 
+        panel.grid.minor = element_blank())
 ```
 
 # Session information
