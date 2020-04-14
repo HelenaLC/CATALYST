@@ -1,5 +1,3 @@
-context("differential")
-
 library(scater)
 library(SingleCellExperiment)
 
@@ -28,11 +26,11 @@ test_that("runDR() - use type/state features only", {
         # run using 'scater' as reference
         cs <- sample(seq_len(ncol(x)), 100)
         expect_equal(
-            reducedDim(runDR(x[i, cs], "MDS")),
+            reducedDim(runDR(x[i, cs], "MDS", features = NULL)),
             reducedDim(runMDS(x[i, cs], exprs_values = "exprs")))
         dr <- reducedDim(runMDS(x[, cs], subset_row = i, exprs_values = "exprs"))
         o <- order(rowVars(assay(x[i, cs])), decreasing = TRUE)
-        expect_equal(reducedDim(runDR(x[i[o], cs], "MDS")), dr)
+        expect_equal(reducedDim(runDR(x[i[o], cs], "MDS", features = NULL)), dr)
         expect_equal(reducedDim(runDR(x[, cs], "MDS", features = i)), dr)
     }
 })

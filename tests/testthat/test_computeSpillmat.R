@@ -1,5 +1,3 @@
-context("compensation")
-
 library(flowCore)
 
 test_that("computeSpillmat()", {
@@ -34,7 +32,7 @@ test_that("computeSpillmat()", {
     mat_sm <- mat %*% sm
 
     # construct SCE & debarcode
-    sce <- fcs2sce(flowFrame(mat_sm), by_time = FALSE)
+    sce <- prepData(flowFrame(mat_sm), by_time = FALSE)
     sce <- assignPrelim(sce, sm_ms, verbose = FALSE)
     # set barcode IDs to constructed IDs
     sce$bc_id <- rep(as.character(sm_ms), n_cells)
@@ -46,7 +44,7 @@ test_that("computeSpillmat()", {
         "from simulated single cells without noise."))
 
     # repeat with a constant amount of background
-    sce <- fcs2sce(flowFrame(mat_sm + 20), by_time = FALSE)
+    sce <- prepData(flowFrame(mat_sm + 20), by_time = FALSE)
     sce <- assignPrelim(sce, sm_ms, verbose = FALSE)
     sce$bc_id <- rep(as.character(sm_ms), n_cells)
     sce <- computeSpillmat(sce)
@@ -56,7 +54,7 @@ test_that("computeSpillmat()", {
         "from simulated single cells without noise but with background."))
 
     noise <- rnorm(n_chs * n_cells, 5, 1)
-    sce <- fcs2sce(flowFrame(mat_sm * noise), by_time = FALSE)
+    sce <- prepData(flowFrame(mat_sm * noise), by_time = FALSE)
     sce <- assignPrelim(sce, sm_ms, verbose = FALSE)
     sce$bc_id <- rep(as.character(sm_ms), n_cells)
     sce <- computeSpillmat(sce)

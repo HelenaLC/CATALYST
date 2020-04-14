@@ -1,14 +1,13 @@
-context("debarcoding")
 data(sample_ff, sample_key)
 n_ids <- length(ids <- rownames(sample_key))
-x <- fcs2sce(sample_ff, by_time = FALSE)
+x <- prepData(sample_ff, by_time = FALSE)
 x <- assignPrelim(x, sample_key, "counts", FALSE)
 
 test_that("assignPrelim(); single-positive populations", {
     n_chs <- 10; n_cells <- 100
     x <- do.call(rbind, replicate(n_cells, diag(n_chs), simplify = FALSE))
     colnames(x) <- paste0("ch", seq_len(n_chs))
-    x <- fcs2sce(flowFrame(x), by_time = FALSE)
+    x <- prepData(flowFrame(x), by_time = FALSE)
     x <- assignPrelim(x, seq_len(n_chs), "counts")
     expect_true(all(x$delta == 1))
     expect_true(all(table(x$bc_id) == n_cells))

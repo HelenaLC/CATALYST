@@ -1,4 +1,3 @@
-context("differential")
 data(PBMC_fs, PBMC_panel, PBMC_md)
 x <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 x <- x[, sample(ncol(x), 500)]

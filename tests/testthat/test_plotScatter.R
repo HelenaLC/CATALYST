@@ -1,42 +1,39 @@
-context("gating")
 data(sample_ff, sample_key)
-x <- fcs2sce(sample_ff)
+x <- prepData(sample_ff)
 # sample only a couple IDs for testing
 ids <- sample(rownames(sample_key), 3)
 x <- assignPrelim(x, sample_key[ids, ], verbose = FALSE)
-
-# subset 2 channels & 'ids'
-chs <- sample(rownames(x), 2)
 x <- x[, x$bc_id %in% ids]
-es <- t(assay(x[chs, ], "exprs"))
-es <- data.frame(es, check.names = FALSE)
 
-args <- list(
-    list(type = "rect", geom = "GeomRect", xy = list(c(5,6), c(7,7))),
-    list(type = "elip", geom = "GeomPath", xy = c(6,6)))
-test_that("plotScatter() - gates with grouping", {
-    for (i in args) {
-        # apply gate
-        y <- gateCytof(x, chs, group_by = "bc_id",
-            k = 1, type = i$type, xy = i$xy)
-        # scatter without gate
-        p <- plotScatter(y, chs)
+test_that("plotScatter() - labels", {
+    chs <- rowData(x)$channel_name
+    expect_error(plotScatter(x, sample(chs, 2), label = "x"))
+    args <- eval(formals("plotScatter")$label)
+    for (l in args) {
+        ls <- switch(l, 
+            antigen = rownames(x), channel = chs, 
+            paste(chs, rownames(x), sep = "-"))
+        i <- sample(nrow(x), 2)
+        p <- plotScatter(x, rownames(x)[i], label = l)
         expect_is(p, "ggplot")
-        expect_identical(p$data[, chs], es)
-        expect_true(length(p$facet$params) == 0)
-        # scatter with facetting but without gate
-        p <- plotScatter(y, chs, gate_id = "gate1", show_gate = FALSE)
-        expect_is(p, "ggplot")
-        expect_true(names(p$facet$params$facets) == "bc_id")
-        ns <- vapply(split(p$data, p$data$bc_id), nrow, numeric(1))
-        expect_equivalent(ns, c(table(x$bc_id)))
-        # scatter with facetting & gate
-        p <- plotScatter(y, chs, gate_id = "gate1", show_gate = TRUE)
-        expect_is(p, "ggplot")
-        expect_true(names(p$facet$params$facets) == "bc_id")
-        ns <- vapply(split(p$data, p$data$bc_id), nrow, numeric(1))
-        expect_equivalent(ns, c(table(x$bc_id)))
-        expect_is(p$layers[[2]]$geom, i$geom)
-        expect_identical(p$layers[[2]]$data, int_metadata(y)$gates$gate$data)
+        expect_identical(unname(unlist(p$labels[c("x", "y")])), ls[i])
     }
+})
+
+test_that("plotScatter() - facetting", {
+    chs <- sample(rownames(x), 3)
+    p <- plotScatter(x, chs, label = "antigen")
+    expect_is(p, "ggplot")
+    expect_true(p$labels$x == chs[1])
+    expect_identical(levels(p$data$variable), chs[-1])
+})
+
+test_that("plotScatter() - color_by", {
+    chs <- sample(rownames(x), 2)
+    p <- plotScatter(x, chs, color_by = "delta")
+    expect_is(p, "ggplot")
+    expect_is(p$scales$scales[[1]], "ScaleContinuous")    
+    p <- plotScatter(x, chs, color_by = "bc_id")
+    expect_is(p, "ggplot")
+    expect_is(p$guides$colour, "guide")
 })

@@ -1,11 +1,10 @@
-context("differential")
-
-library(purrr)
-library(dplyr)
-library(diffcyt)
-library(data.table)
-library(reshape2)
-library(SingleCellExperiment)
+suppressPackageStartupMessages({
+    library(purrr)
+    library(dplyr)
+    library(diffcyt)
+    library(data.table)
+    library(reshape2)
+})
 
 data(PBMC_fs, PBMC_panel, PBMC_md)
 x <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
@@ -22,45 +21,27 @@ ds <- diffcyt(x, clustering_to_use = k, design = design, contrast = contrast,
     analysis_type = "DS", method_DS = "diffcyt-DS-limma", verbose = FALSE)
 
 test_that("plotDiffHeatmap() - DA results", {
-    foo <- capture.output({
-        pdf(NULL)
-        p <- plotDiffHeatmap(x, da, top_n = (n <- 10), normalize = FALSE)
-        dev.off()
-    })
+    p <- plotDiffHeatmap(x, da, order = FALSE, all = TRUE, normalize = FALSE)
     expect_is(p, "HeatmapList")
     y <- p@ht_list[[2]]@matrix
-    o <- order(rowData(da$res)$p_adj)[seq_len(n)]
-    expect_gte(min(y), 0); expect_lte(max(y), 1)
-    expect_equal(dim(y), c(n, nlevels(x$sample_id)))
-    expect_identical(rownames(y), levels(kids)[o])
+    expect_gte(min(y), 0)
+    expect_lte(max(y), 1)
+    expect_equivalent(rowSums(y), rep(1, nrow(y)))
+    expect_equal(dim(y), c(nlevels(kids), nlevels(x$sample_id)))
+    expect_identical(rownames(y), levels(kids))
     expect_identical(colnames(y), levels(x$sample_id))
-    expect_identical(c(prop.table(table(kids, x$sample_id), 2)[o, ]), c(y))
+    expect_identical(c(prop.table(table(kids, x$sample_id), 1)), c(y))
 })
 
 test_that("plotDiffHeatmap() - DS results", {
-    foo <- capture.output({
-        pdf(NULL)
-        p <- plotDiffHeatmap(x, ds, top_n = (n <- 10), normalize = FALSE)
-        dev.off()
-    })
+    p <- plotDiffHeatmap(x, ds, top_n = (n <- 10), 
+        order = TRUE, row_anno = FALSE)
     expect_is(p, "HeatmapList")
     df <- data.frame(rowData(ds$res))
     df <- mutate_if(df, is.factor, as.character)
+    df <- df[order(df$p_adj)[seq_len(n)], ]
     y <- p@ht_list[[2]]@matrix
-    o <- order(df$p_adj)[seq_len(n)]
     expect_equal(dim(y), c(n, nlevels(x$sample_id)))
-    expect_identical(rownames(y), as.character(rowData(ds$res)$marker_id[o]))
+    expect_identical(rownames(y), df$marker_id)
     expect_identical(colnames(y), levels(x$sample_id))
-    cs <- data.table(i = seq_len(ncol(x)), 
-        data.frame(colData(x))) %>% 
-        do({.$cluster_id = kids; .}) %>% 
-        split(by = c("cluster_id", "sample_id"), 
-            sorted = TRUE, flatten = FALSE) %>% 
-        map_depth(2, "i")
-    ms <- apply(df[o, ], 1, function(u) {
-        k <- as.character(u[["cluster_id"]])
-        m <- as.character(u[["marker_id"]])
-        sapply(cs[[k]], function(i) median(assay(x)[m, i]))
-    })
-    expect_identical(c(t(ms)), c(y))
 })

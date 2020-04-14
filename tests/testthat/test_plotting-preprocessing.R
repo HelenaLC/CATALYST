@@ -1,7 +1,6 @@
-context("debarcoding")
 data(sample_ff, sample_key)
 n_ids <- length(ids <- rownames(sample_key))
-x <- fcs2sce(sample_ff, by_time = FALSE)
+x <- prepData(sample_ff, by_time = FALSE)
 x <- assignPrelim(x, sample_key, verbose = FALSE)
 
 test_that("plotYields()", {
@@ -103,8 +102,8 @@ test_that("plotMahal()", {
 test_that("plotSpillmat()", {
     data(ss_exp)
     bc_ms <- c(139, 141:156, 158:176)
-    x <- fcs2sce(ss_exp, by_time = FALSE)
-    x <- assignPrelim(x, bc_ms, verbose = FALSE)
+    x <- prepData(ss_exp)
+    x <- assignPrelim(x, bc_ms)
     x <- applyCutoffs(estCutoffs(x))
     x <- computeSpillmat(x)
     sm <- metadata(x)$spillover_matrix

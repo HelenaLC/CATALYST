@@ -1,7 +1,9 @@
-context("differential")
-library(dplyr)
-library(reshape2)
-library(SingleCellExperiment)
+suppressPackageStartupMessages({
+    library(dplyr)
+    library(reshape2)
+    library(RColorBrewer)
+})
+
 data(PBMC_fs, PBMC_panel, PBMC_md)
 x <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 
@@ -14,8 +16,36 @@ x <- cluster(x, verbose = FALSE)
 kids <- names(codes <- cluster_codes(x))
 k <- sample(kids, 1)
 m <- sample(setdiff(kids, k), 1)
-df <- data.frame(t(assay(x)), colData(x)) 
+df <- data.frame(t(assay(x, "exprs")), colData(x)) 
 df$cluster_id <- kids <- cluster_ids(x, k)
+
+test_that(".check_args_plotClusterHeatmap()", {
+    u <- as.list(formals("plotClusterHeatmap"))
+    u$x <- x
+    u$fun <- eval(u$fun)[1]
+    u$k_pal <- u$m_pal <- eval(u$k_pal)
+    u$hm1_pal <- u$hm2_pal <- eval(u$hm1_pal)
+    expect_silent(.check_args_plotClusterHeatmap(u))
+    args <- list(
+        k = "x", k = c("meta2", "meta3"), m = "x", 
+        hm2 = "x", hm2 = c("x", "state"),
+        fun = "x", fun = c("sum", "mean"),
+        assay = "x", assay = rep("counts", 2))
+    for (arg in c("scale", "row_anno", "row_dend", "col_dend", "draw_freqs")) {
+        l <- list("x", 2, c(TRUE, FALSE))
+        names(l) <- rep(arg, length(l))
+        args <- c(args, l)
+    }
+    for (arg in c("hm1_pal", "hm2_pal", "k_pal", "m_pal")) {
+        l <- list("black", c("x", "y"), sample(10))
+        names(l) <- rep(arg, length(l))
+        args <- c(args, l)
+    }
+    for (i in seq_along(args)) {
+        v <- u; v[[names(args)[i]]] <- args[[i]]
+        expect_error(.check_args_plotClusterHeatmap(v))
+    }
+})
 
 test_that("plotClusterHeatmap() - hm2 = 'abundances'", {
     p <- plotClusterHeatmap(x, hm2 = "abundances", k = k)
@@ -25,9 +55,9 @@ test_that("plotClusterHeatmap() - hm2 = 'abundances'", {
     expect_equal(c(y), c(prop.table(table(kids, x$sample_id), 1)))
 })
 
-test_that("plotClusterHeatmap() - hm2 = 'state_markers'", {
-    p <- plotClusterHeatmap(x, hm2 = "state_markers", k = k, scale = FALSE)
-    y <- p@ht_list[[3]]@matrix
+test_that("plotClusterHeatmap() - hm2 = 'state'", {
+    p <- plotClusterHeatmap(x, hm2 = "state", k = k, scale = FALSE)
+    y <- p@ht_list[[2]]@matrix
     expect_is(p, "HeatmapList")
     # check dimension names
     expect_identical(dim(y), c(nlevels(kids), length(state_markers(x))))
@@ -45,44 +75,20 @@ test_that("plotClusterHeatmap() - hm2 = specific state markers", {
     expect_error(plotClusterHeatmap(x, hm2 = c(ms, "x"), k = k))
     p <- plotClusterHeatmap(x, hm2 = ms, k = k, scale = FALSE)
     expect_is(p, "HeatmapList")
-    expect_true(length(p@ht_list) == n+2)
+    expect_true(length(p@ht_list) == n+1)
     meds <- group_by(df, cluster_id, sample_id, 
         .drop = FALSE) %>% summarize_at(ms, median) %>% 
         replace(., is.na(.), 0) %>% {( lapply(ms, function(m) 
             acast(., cluster_id~sample_id, value.var = m)) )}
     for (i in seq_along(ms)) {
-        expect_identical(p@ht_list[[i+2]]@column_title, ms[i])
-        expect_identical(p@ht_list[[i+2]]@matrix, meds[[i]])
+        expect_identical(p@ht_list[[i+1]]@column_title, ms[i])
+        expect_identical(p@ht_list[[i+1]]@matrix, meds[[i]])
     }
 })
 
 test_that("plotClusterHeatmap() - split by patient ID", {
     p <- plotClusterHeatmap(x, k = k, split_by = "patient_id")
     expect_is(p, "list")
-    expect_true(all(sapply(p, is, "HeatmapList")))
+    expect_true(all(sapply(p, is, "Heatmap")))
     expect_identical(length(p), nlevels(x$patient_id))
-})
-
-test_that("plotClusterHeatmap() - with all row annotations", {
-    p <- plotClusterHeatmap(x, k = k, m = m, draw_freqs = TRUE, scale = FALSE)
-    expect_is(p, "HeatmapList")
-    y <- p@ht_list$expression@matrix
-    # check dimension names
-    expect_identical(dim(y), c(nlevels(kids), length(type_markers(x))))
-    expect_identical(rownames(y), levels(kids))
-    expect_identical(colnames(y), type_markers(x))
-    # check 1st heatmap data
-    ms <- group_by(df, cluster_id) %>% 
-        summarize_at(type_markers(x), median) %>% 
-        do(.[, type_markers(x)]) %>% do.call(what = cbind)
-    expect_identical(c(y), c(ms))
-    # check left row annotations of cluster & merging IDs
-    expect_identical(c(p@ht_list$cluster_id@matrix), levels(kids))
-    expect_identical(c(p@ht_list$merging_id@matrix), 
-        as.character(codes[match(levels(kids), codes[[k]]), m]))
-    # check right row annotation of frequency histograms
-    u <- p@ht_list[[4]]@anno_list[[1]]@fun@data_scale
-    expect_gte(min(u), 0); expect_equal(max(u),
-        max(table(kids)/ncol(x))*105, tol = 1e-3)
-    expect_equal(p@ht_list[[5]]@anno_list[[1]]@fun@data_scale, c(0, 1))
 })
