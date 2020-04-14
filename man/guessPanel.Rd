@@ -4,10 +4,17 @@
 \alias{guessPanel}
 \title{Guess parameter panel}
 \usage{
-guessPanel(x)
+guessPanel(x, sep = "_")
 }
 \arguments{
-\item{x}{a \code{\link[flowCore]{flowSet}}.}
+\item{x}{a \code{\link[flowCore]{flowFrame}}.}
+
+\item{sep}{character string specifying how channel descriptions 
+should be parsed. E.g., if \code{pData(x)$desc} contains both 
+channel and antigens formatted as, \code{155Gd_CD73}, 
+descriptions will be split according to \code{sep} and 
+everything after the first \code{sep} will be used as 
+the antigen name (here, CD73).}
 }
 \value{
 a \code{data.frame} with the following columns:

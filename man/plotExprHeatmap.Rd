@@ -6,51 +6,73 @@
 \usage{
 plotExprHeatmap(
   x,
-  bin_anno = TRUE,
-  row_anno = TRUE,
-  palette = brewer.pal(n = 8, name = "YlGnBu"),
   scale = TRUE,
+  row_anno = TRUE,
+  row_clust = TRUE,
+  col_clust = TRUE,
+  row_dend = TRUE,
+  col_dend = TRUE,
   draw_freqs = FALSE,
-  clustering_distance = "euclidean",
-  clustering_linkage = "average"
+  bin_anno = FALSE,
+  hm_pal = brewer.pal(9, "YlGnBu"),
+  distance = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"),
+  linkage = c("average", "ward.D", "single", "complete", "mcquitty", "median",
+    "centroid", "ward.D2")
 )
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
+\item{scale}{logical specifying whether expressions should be scaled
+using lower (1\%) and upper (99\%) quantiles as boundaries;
+hierarchical clustering is performed on unscaled data, 
+regardless of whether \code{scale = TRUE} or \code{FALSE}.}
+
+\item{row_anno}{logical. Should row annotations for 
+each non-numeric cell metadata factor be included?}
+
+\item{row_clust, col_clust}{logical specifying 
+whether rows/columns (samples/features) should be 
+hierarchically clustered and re-ordered accordingly.}
+
+\item{row_dend, col_dend}{logical specifying whether to include the
+row/column dendrogram for the hierarchical clustering of samples/markers.}
+
+\item{draw_freqs}{logical specifying whether to display
+a barplot of cell counts labeled with proportions 
+for each sample as a right-hand side row annotation.}
+
 \item{bin_anno}{logical. Specifies whether to display values inside bins.}
 
-\item{row_anno}{logical. Should row annotations for each factor 
-in \code{metadata(x)$experiment_info} be included?}
+\item{hm_pal}{character vector of colors to interpolate for the heatmap.}
 
-\item{palette}{character vector of colors to interpolate.}
+\item{distance}{character string specifying the distance metric 
+to use in \code{\link[stats]{dist}} for hierarchical clustering.}
 
-\item{scale}{logical. Should scaled values be displayed? (see details)}
-
-\item{draw_freqs}{logical. Should cell counts and proportions be displayed?}
-
-\item{clustering_distance}{character string that specifies 
-the metric to use in \code{\link[stats]{dist}} for clustering.}
-
-\item{clustering_linkage}{character string that specifies 
-the linkage to use in \code{\link[stats]{hclust}} for clustering.}
+\item{linkage}{character string specifying the agglomeration method 
+to use in \code{\link[stats]{hclust}} for hierarchical clustering.}
 }
 \value{
-a \code{\link{HeatmapList-class}} object.
+a \code{\link[ComplexHeatmap]{Heatmap-class}} object.
 }
 \description{
-Plots median marker expressions across samples 
-computed on arcsinh-transformed intensities.
-}
-\details{
-Scaled values corresponds to cofactor arcsinh-transformed 
-expression values scaled between 0 and 1 using 1% and 99% percentiles as 
-boundaries. Hierarchical clustering is performed on the unscaled data.
+Heatmap of median marker expressions by sample, include annotation 
+of cell metadata factors as well as relative and absolute cell counts.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-plotExprHeatmap(sce, draw_freqs=TRUE)
+
+# turn everything on
+plotExprHeatmap(sce, 
+  bin_anno = TRUE,
+  draw_freqs = TRUE)
+  
+# turn everything off
+plotExprHeatmap(sce,
+  row_anno = FALSE,
+  row_dend = FALSE,
+  col_dend = FALSE)
 
 }
 \references{

@@ -47,8 +47,8 @@ to remove such populations or reconsider their separation cutoffs.
 }
 \examples{
 data(sample_ff, sample_key)
-sce <- fcs2sce(sample_ff, by_time = FALSE)
-sce <- assignPrelim(x = sce, bc_key = sample_key)
+sce <- prepData(sample_ff, by_time = FALSE)
+sce <- assignPrelim(sce, sample_key)
 plotEvents(sce, which = "D1")
 
 }

@@ -6,15 +6,16 @@
 \usage{
 prepData(
   x,
-  panel,
-  md,
+  panel = NULL,
+  md = NULL,
   features = NULL,
   transform = TRUE,
   cofactor = 5,
   panel_cols = list(channel = "fcs_colname", antigen = "antigen", class =
     "marker_class"),
   md_cols = list(file = "file_name", id = "sample_id", factors = c("condition",
-    "patient_id"))
+    "patient_id")),
+  by_time = TRUE
 )
 }
 \arguments{
@@ -23,7 +24,9 @@ or a path to a set of FCS files.}
 
 \item{panel}{a data.frame containing, for each channel, 
 its column name in the input data, targeted protein marker,
-and (optionally) class ("type", "state", or "none").}
+and (optionally) class ("type", "state", or "none").
+If `panel` is unspecified, it will be constructed 
+from the first input sample via \code{\link{guessPanel}}.}
 
 \item{md}{a table with column describing the experiment.
 An exemplary metadata table could look as follows: \itemize{
@@ -31,7 +34,10 @@ An exemplary metadata table could look as follows: \itemize{
 \item\code{sample_id}: a unique sample identifier
 \item\code{patient_id}: the patient ID
 \item\code{condition}: brief sample description 
-  (e.g. reference/stimulated, healthy/diseased)}}
+  (e.g. reference/stimulated, healthy/diseased)}
+If `md` is unspecified, the \code{flowFrame/Set} 
+\code{\link[flowCore]{identifier}}(s) will be used
+as sample IDs with no additional metadata factors.}
 
 \item{features}{a logical vector, numeric vector of column indices,
 or character vector of channel names. Specified which column to keep 
@@ -41,26 +47,79 @@ from the input data. Defaults to the channels listed in the input panel.}
 cofactor cofactor should be performed, in which case expression values 
 (transformed counts) will be stored in assay(x, "exprs").}
 
-\item{cofactor}{numeric cofactor to use for optional 
-arcsinh-transformation when \code{transform = TRUE}.}
+\item{cofactor}{numeric cofactor(s) to use for optional 
+arcsinh-transformation when \code{transform = TRUE};
+single value or a vector with channels as names.}
 
 \item{panel_cols}{a names list specifying the column names of \code{panel}
 that contain the channel names, targeted protein markers, and (optionally) 
-marker classes.}
+marker classes. When only some `panel_cols` deviate from the defaults,
+specifying only these is sufficient.}
 
 \item{md_cols}{a named list specifying the column names of \code{md}
 that contain the FCS file names, sample IDs, and factors of interest
-(batch, condition, treatment etc.).}
+(batch, condition, treatment etc.). When only some `md_cols` deviate 
+from the defaults, specifying only these is sufficient.}
+
+\item{by_time}{logical; should samples be ordered by acquisition time? 
+Ignored if \code{!is.null(md)} in which case samples will be ordered 
+as they are listed in \code{md[[md_cols$file]]}. (see details)}
 }
 \value{
-an object of class \code{daFrame}.
+a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 }
 \description{
 Data preparation
 }
+\details{
+By default, non-mass channels (e.g., time, event lengths) will be removed 
+from the output SCE's assay data and instead stored in the object's internal 
+cell metadata (\code{int_colData}) to assure these data are not subject to 
+transformationsor other computations applied to the assay data.
+
+For more than 1 sample, \code{prepData} will concatenate cells into a single 
+\code{SingleCellExperiment} object. Note that cells will hereby be order by 
+\code{"Time"}, regardless of whether \code{by_time = TRUE} or \code{FALSE}. 
+Instead, \code{by_time} determines the sample (not cell!) order; 
+i.e., whether samples should be kept in their original order, 
+or should be re-ordered according to their acquision time 
+stored in \code{keyword(flowSet, "$BTIM")}.
+
+When a metadata table is specified (i.e. \code{!is.null(md)}), 
+argument \code{by_time} will be ignored and sample ordering 
+is instead determined by \code{md[[md_cols$file]]}.
+}
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 prepData(PBMC_fs, PBMC_panel, PBMC_md)
+
+# channel-specific transformation
+cf <- sample(seq_len(10)[-1], nrow(PBMC_panel), TRUE)
+names(cf) <- PBMC_panel$fcs_colname
+sce <- prepData(PBMC_fs, cofactor = cf)
+int_metadata(sce)$cofactor
+
+# input has different name for "condition"
+md <- PBMC_md
+m <- match("condition", names(md))
+colnames(md)[m] <- "treatment"
+
+# add additional factor variable batch ID
+md$batch_id <- sample(c("A", "B"), nrow(md), TRUE)
+
+# specify 'md_cols' that differ from defaults
+factors <- list(factors = c("treatment", "batch_id"))
+ei(prepData(PBMC_fs, PBMC_panel, md, md_cols = factors))
+
+# without panel & metadata tables
+sce <- prepData(raw_data)
+
+# 'flowFrame' identifiers are used as sample IDs
+levels(sce$sample_id)
+
+# panel was guess with 'guessPanel';
+# non-mass channels are set to marker class "none"
+rowData(sce)
 
 }
 \author{

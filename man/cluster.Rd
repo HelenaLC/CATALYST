@@ -2,7 +2,8 @@
 % Please edit documentation in R/cluster.R
 \name{cluster}
 \alias{cluster}
-\title{FlowSOM clustering & ConsensusClusterPlus metaclustering}
+\title{\code{FlowSOM} clustering & 
+\code{ConsensusClusterPlus} metaclustering}
 \usage{
 cluster(
   x,
@@ -17,36 +18,39 @@ cluster(
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{features}{a character vector specifying which antigens 
-to use for clustering; valid values are \code{"type"/"state"} 
-for \code{type/state_markers(x)} (if \code{rowData(x)$marker_class} 
-have been specified) or a subset of \code{rownames(x)}.}
+\item{features}{a character vector specifying 
+which features to use for clustering; valid values are
+\code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
 
-\item{xdim, ydim}{numeric. Specify the grid size of the self-orginizing map. 
+\item{xdim, ydim}{numeric specifying the grid size of the 
+self-orginizing map; passed to \code{\link[FlowSOM]{BuildSOM}}. 
 The default 10x10 grid will yield 100 clusters.}
 
-\item{maxK}{numeric. Specifies the maximum number of clusters to evaluate
-in the metaclustering. For \code{maxK = 20}, for example, 
-metaclustering will be performed for 2 through 20 clusters.}
+\item{maxK}{numeric specifying the maximum number of 
+clusters to evaluate in the metaclustering; passed to 
+\code{\link[ConsensusClusterPlus]{ConsensusClusterPlus}}.
+The default (\code{maxK = 20}) will yield 2 through 20 metaclusters.}
 
 \item{verbose}{logical. Should information on progress be reported?}
 
-\item{seed}{numeric. Sets random seed in \code{ConsensusClusterPlus()}.}
+\item{seed}{numeric. Sets the random seed for reproducible results 
+in \code{\link[ConsensusClusterPlus]{ConsensusClusterPlus}}.}
 }
 \value{
-The function will add information to the following slots 
-of the input \code{daFrame} (and return it):
+a \code{SingleCellEcperiment} with the following newly added data:
 \itemize{
-\item{\code{rowData}\itemize{
+\item{\code{colData}\itemize{
 \item{\code{cluster_id}:
   each cell's cluster ID as inferred by \code{FlowSOM}. 
   One of 1, ..., \code{xdim}x\code{ydim}.}
 }}
-\item{\code{colData}\itemize{
-\item{\code{marker_class}: 
-  \code{"type"} or \code{"state"}. 
-  Specifies whether an antigen has been used for clustering 
-  or not, respectively.}
+\item{\code{rowData}\itemize{
+\item{\code{marker_class}: added when previosly unspecified. \code{"type"}
+  when an antigen has been used for clustering, otherwise \code{"state"}.}
+\item{\code{used_for_clustering}: logical indicating 
+  whether an antigen has been used for clustering.}
 }}
 \item{\code{metadata}\itemize{
 \item{\code{SOM_codes}:
@@ -56,17 +60,14 @@ of the input \code{daFrame} (and return it):
   a table with dimensions K x (\code{maxK} + 1). 
   Contains the cluster codes for all metaclustering.}
 \item{\code{delta_area}: 
-  a \code{\link{ggplot}} object. See above for details.}
+  a \code{\link{ggplot}} object (see details).}
 }}
 }
 }
 \description{
 \code{cluster} will first group cells into \code{xdim}x\code{ydim} 
 clusters using \pkg{FlowSOM}, and subsequently perform metaclustering 
-with \pkg{ConsensusClusterPlus} into 2 through \code{maxK} clusters. 
-In the returned \code{daFrame}, those antigens used for clustering will be 
-labelled as '\code{type}' markers, and the remainder of antigens as 
-'\code{state}' markers.
+with \pkg{ConsensusClusterPlus} into 2 through \code{maxK} clusters.
 }
 \details{
 The delta area represents the amount of extra cluster stability gained when 
@@ -83,6 +84,15 @@ sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 
 # run clustering
 (sce <- cluster(sce))
+
+# view all available clustering
+names(cluster_codes(sce))
+
+# access specific clustering resolution
+table(cluster_ids(sce, "meta8"))
+
+# view delta area plot
+delta_area(sce)
 
 }
 \references{

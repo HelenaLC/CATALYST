@@ -9,23 +9,32 @@ plotAbundances(
   k = "meta20",
   by = c("sample_id", "cluster_id"),
   group_by = NULL,
-  shape_by = NULL
+  shape_by = NULL,
+  k_pal = CATALYST:::.cluster_cols
 )
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{k}{character string. Specifies which clustering to use.}
+\item{k}{character string specifying which clustering to use;
+valid values are \code{names(cluster_codes(x))}.}
 
-\item{by}{a character string specifying whether to plot 
-frequencies by samples or clusters.}
+\item{by}{a character string specifying whether 
+to plot frequencies by samples or clusters.}
 
-\item{group_by}{a character string. Should corresponds to a column name of 
-\code{rowData(x)} other than "sample_id" and "cluster_id". 
-The default NULL will use the first factor available.}
+\item{group_by}{character string specifying a non-numeric
+cell metadata columnd to group by (determines the color coding);
+valid values are \code{names(colData(x))} other than "sample_id"
+and "cluster_id"; NULL will use the first factor available.}
 
-\item{shape_by}{a character string. Should correspond to a column name of
-\code{rowData(x)} other than "sample_id" and "cluster_id".}
+\item{shape_by}{character string specifying a non-numeric
+cell metadata columnd to shape by; valid values are 
+\code{names(colData(x))} other than "sample_id" and "cluster_id".}
+
+\item{k_pal}{character string specifying the cluster 
+color palette; ignored when \code{by = "cluster_id"}. 
+If less than \code{nlevels(cluster_ids(x, k))} are supplied, 
+colors will be interpolated via \code{\link[grDevices]{colorRampPalette}}.}
 }
 \value{
 a \code{ggplot} object.
@@ -40,8 +49,13 @@ sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- cluster(sce)
 
 # plot relative population abundances 
-plotAbundances(sce, k="meta12")                 # ...by sample 
-plotAbundances(sce, k="meta8", by="cluster_id") # ...by cluster
+# by sample & cluster, respectively
+plotAbundances(sce, k = "meta12")                  
+plotAbundances(sce, k = "meta8", by = "cluster_id") 
+
+# use custom cluster color palette
+plotAbundances(sce, k = "meta10", 
+  k_pal = c("lightgrey", "cornflowerblue", "navy"))
 
 }
 \references{

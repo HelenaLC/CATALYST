@@ -47,8 +47,8 @@ Assigns a preliminary barcode ID to each event.
 }
 \examples{
 data(sample_ff, sample_key)
-sce <- fcs2sce(sample_ff)
-sce <- assignPrelim(x = sce, bc_key = sample_key)
+sce <- prepData(sample_ff)
+sce <- assignPrelim(sce, sample_key)
 table(sce$bc_id)
 
 }

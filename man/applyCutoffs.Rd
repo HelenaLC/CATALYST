@@ -10,17 +10,17 @@ applyCutoffs(x, assay = "exprs", mhl_cutoff = 30, sep_cutoffs = NULL)
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
 \item{assay}{character string specifying which assay data to use.
-Should be one of \code{assayNames(x)}.}
+Should be one of \code{assayNames(x)} and 
+correspond to expression-like not count data.}
 
-\item{mhl_cutoff}{mahalanobis distance threshold above which events should be unassigned. 
-This argument will be ignored if the \code{mhl_cutoff} slot of the input 
-\code{dbFrame} is specified.}
+\item{mhl_cutoff}{numeric mahalanobis distance threshold above which events 
+should be unassigned; ignored if \code{metadata(x)$mhl_cutoff} exists.}
 
-\item{sep_cutoffs}{non-negative numeric of length one or of same length as the number of rows 
-in the \code{bc_key(x)}. Specifies the distance separation cutoffs between 
-positive and negative barcode populations below which events should be 
-unassigned. If \code{NULL} (default), \code{applyCutoffs} will try to 
-access the \code{sep_cutoffs} slot of the input \code{dbFrame}.}
+\item{sep_cutoffs}{non-negative numeric of length one or of same length 
+as the number of rows in the \code{bc_key(x)}. Specifies the distance 
+separation cutoffs between positive and negative barcode populations 
+below which events should be unassigned. If \code{NULL} (default), 
+\code{applyCutoffs} will try to access \code{metadata(x)$sep_cutoffs}.}
 }
 \value{
 the input \code{SingleCellExperiment} \code{x} is returned with 
@@ -36,7 +36,7 @@ library(SingleCellExperiment)
 
 # construct SCE
 data(sample_ff, sample_key)
-sce <- fcs2sce(sample_ff)
+sce <- prepData(sample_ff)
     
 # assign preliminary barcode IDs
 # & estimate separation cutoffs

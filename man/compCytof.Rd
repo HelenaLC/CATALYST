@@ -9,6 +9,7 @@ compCytof(
   sm = NULL,
   method = c("nnls", "flow"),
   assay = "counts",
+  overwrite = TRUE,
   transform = TRUE,
   cofactor = NULL,
   isotope_list = CATALYST::isotope_list
@@ -23,16 +24,25 @@ FCS files that should be compensates.}
 
 \item{method}{\code{"flow"} or \code{"nnls"}.}
 
-\item{assay}{character string specifying which assay to use. Should 
-correspond to count-like data, as linearity-assumptions underlying 
-spillover estimation won't hold for non-linearly transformed data.}
+\item{assay}{character string specifying which assay data to use; 
+should be one of \code{assayNames(x)} and correspond to count-like data, 
+as linearity assumptions underlying compensation won't hold otherwise.}
 
-\item{transform}{logical specifying whether compensated data 
-should be arcsinh-transformed in which case an additional
-assay \code{"exprs_comped"} will be added to the output SCE.}
+\item{overwrite}{logical; should the specified \code{assay} slot 
+(and \code{exprs}, when \code{transform = TRUE}) be overwritten 
+with the compensated data? If \code{FALSE}, compensated counts 
+(and expressions, if \code{transform = TRUE}) will be stored in 
+assay(s) \code{compcounts/exprs}, respectively.}
 
-\item{cofactor}{cofactor to use for optional arcsinh-transformation.
-If NULL, \code{compCytof} will try and access \code{metadata(x)$cofactor}.}
+\item{transform}{logical; should normalized counts be 
+arcsinh-transformed with the specified \code{cofactor}(s)?}
+
+\item{cofactor}{numeric cofactor(s) to use for optional 
+arcsinh-transformation when \code{transform = TRUE};
+single value or a vector with channels as names.
+If NULL, \code{compCytof} will try and access the cofactor(s)
+stored in \code{int_metadata(x)}, thus re-using the same 
+transformation applied previously.}
 
 \item{isotope_list}{named list. Used to validate the input spillover matrix.
 Names should be metals; list elements numeric vectors of their isotopes.
@@ -64,20 +74,25 @@ been missed and may lead to faulty compensation}}
 \examples{
 # deconvolute single-stained control samples
 data(ss_exp)
-sce <- fcs2sce(ss_exp, by_time = FALSE)
+sce <- prepData(ss_exp)
 bc_ms <- c(139, 141:156, 158:176)
-sce <- assignPrelim(x = sce, bc_key = bc_ms)
-sce <- estCutoffs(x = sce)
-sce <- applyCutoffs(x = sce)
-sce <- computeSpillmat(x = sce)
-(sce <- compCytof(x = sce))
+sce <- assignPrelim(sce, bc_ms)
+sce <- applyCutoffs(estCutoffs(sce))
 
-library(SingleCellExperiment)
-i <- "Dy162Di"; j <- "Dy163Di"
+# estimate spillover matrix 
+sce <- computeSpillmat(sce)
+
+# compensate & store compensated data in separate assays
+sce <- compCytof(sce, overwrite = FALSE)
+assayNames(sce)
+
+# biscatter before vs. after compensation
 par(mfrow = c(1, 2))
-for (a in c("exprs", "exprs.nnlscomped"))
-  plot(main = a, xlab = i, ylab = j,
-    assay(sce[i, ], a), assay(sce[j, ], a))
+i <- "Dy162Di"; j <- "Dy163Di"
+for (a in c("exprs", "compexprs")) {
+  es <- assay(sce, a)
+  plot(es[i, ], es[j, ], main = a, xlab = i, ylab = j, cex = 0.2, pch = 19)
+}
 
 }
 \author{

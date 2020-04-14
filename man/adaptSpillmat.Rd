@@ -42,9 +42,9 @@ are explained in \code{\link{compCytof}}.
 # estimate spillover matrix from 
 # single-stained control samples
 data(ss_exp)
-sce <- fcs2sce(ss_exp)
+sce <- prepData(ss_exp)
 bc_ms <- c(139, 141:156, 158:176)
-sce <- assignPrelim(sce, bc_key = bc_ms, verbose = FALSE)
+sce <- assignPrelim(sce, bc_ms, verbose = FALSE)
 sce <- applyCutoffs(estCutoffs(sce))
 sce <- computeSpillmat(sce)
 

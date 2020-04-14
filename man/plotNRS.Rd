@@ -9,18 +9,21 @@ plotNRS(x, features = NULL, color_by = "condition")
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{features}{character string specifying which features to include. Defaults to NULL 
-(= all features). Alternatively, if the \code{rowData(x)$marker_class} 
-column is specified, can be one of "type", "state", or "none".}
+\item{features}{a character vector specifying 
+which antigens to use for clustering; valid values are
+\code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
 
-\item{color_by}{character string. Has to appeara as a column name of \code{colData(x)}.
-Specifies the color coding.}
+\item{color_by}{character string specifying the color coding;
+valid values are \code{namescolData(x))}.}
 }
 \value{
 a \code{ggplot} object.
 }
 \description{
-Plots non-redundancy scores (NRS) by features in decreasing order.
+Plots non-redundancy scores (NRS) by feature 
+in decreasing order of average NRS across samples.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)

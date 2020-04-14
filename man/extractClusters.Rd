@@ -2,7 +2,7 @@
 % Please edit documentation in R/extractClusters.R
 \name{extractClusters}
 \alias{extractClusters}
-\title{Extract clusters from a \code{daFrame}}
+\title{Extract clusters from a \code{SingleCellExperiment}}
 \usage{
 extractClusters(
   x,
@@ -39,9 +39,9 @@ Should information on progress be reported?}
 a \code{flowSet} or character vector of the output file names.
 }
 \description{
-Extracts clusters from a \code{daFrame}. Populations will be 
-either returned as a \code{flowSet} or written to FCS files,
-depending on argument \code{as}.
+Extracts clusters from a \code{SingleCellExperiment}. 
+Populations will be either returned as a \code{flowSet} 
+or written to FCS files, depending on argument \code{as}.
 }
 \examples{
 # construct SCE & run clustering

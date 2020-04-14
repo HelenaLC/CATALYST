@@ -4,7 +4,7 @@
 \alias{sce2fcs}
 \title{SCE to \code{flowFrame/Set}}
 \usage{
-sce2fcs(x, split_by = NULL, assay = "exprs", keep_cd = FALSE, keep_dr = FALSE)
+sce2fcs(x, split_by = NULL, keep_cd = FALSE, keep_dr = FALSE, assay = "counts")
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -12,13 +12,14 @@ sce2fcs(x, split_by = NULL, assay = "exprs", keep_cd = FALSE, keep_dr = FALSE)
 \item{split_by}{NULL or a character string 
 specifying a \code{colData(x)} column to split by.}
 
-\item{assay}{a character string specifying which assay data to use.
-Valid values are \code{assayNames(x)}.}
-
 \item{keep_cd, keep_dr}{logials specifying whether cell metadata 
 (stored in \code{colData(x)}) and dimension reductions 
 (stored in \code{reducedDims(x)}), respectively,
 should be kept or dropped.}
+
+\item{assay}{a character string specifying 
+which assay data to use; valid values are \code{assayNames(x)}. 
+When writing out FCS files, this should correspond to count-like data!}
 }
 \value{
 a \code{\link[flowCore]{flowFrame}} if \code{split_by = NULL};
@@ -33,11 +34,11 @@ If \code{split_by = NULL}, the input SCE is converted to a
 \examples{
 # PREPROCESSING
 data(sample_ff, sample_key)
-sce <- fcs2sce(sample_ff, by_time = FALSE)
+sce <- prepData(sample_ff, by_time = FALSE)
 sce <- assignPrelim(sce, sample_key, verbose = FALSE)
 
 # split SCE by barcode population
-fs <- sce2fcs(sce, split_by = "bc_id", assay = "exprs")
+fs <- sce2fcs(sce, split_by = "bc_id")
 
 # do some spot checks
 library(flowCore)

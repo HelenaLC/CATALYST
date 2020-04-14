@@ -4,17 +4,16 @@
 \alias{plotCodes}
 \title{tSNE and PCA on SOM codes}
 \usage{
-plotCodes(x, k = "meta20", out_path = NULL, verbose = TRUE)
+plotCodes(x, k = "meta20", k_pal = CATALYST:::.cluster_cols)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
 \item{k}{character string. Specifies the clustering to use for color coding.}
 
-\item{out_path}{character string. If specified, 
-output will be generated in this location.}
-
-\item{verbose}{logical. Should information on progress be reported?}
+\item{k_pal}{character string specifying the cluster color palette;
+If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors 
+will be interpolated via \code{\link[grDevices]{colorRampPalette}}.}
 }
 \value{
 a \code{ggplot} object.
@@ -32,6 +31,10 @@ sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- cluster(sce)
 
 plotCodes(sce, k = "meta14")
+
+# use custom cluster color palette
+plotCodes(sce, k = "meta12",
+  k_pal = c("lightgrey", "cornflowerblue", "navy"))
 
 }
 \references{

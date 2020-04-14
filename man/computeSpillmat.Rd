@@ -16,10 +16,9 @@ computeSpillmat(
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{assay}{character string specifying which assay to use.
-Note that this should correspond to count-like data,
-as linearity assumptions underlying spillover estimation
-won't hold for non-linearly transformed data.}
+\item{assay}{character string specifying which assay to use; should be one
+of \code{assayNames(x)} and correspond to count-like data, as linearity 
+assumptions underlying spillover estimation won't hold otherwise.}
 
 \item{interactions}{\code{"default"} or \code{"all"}. Specifies which interactions spillover
 should be estimated for. The default exclusively takes into consideration
@@ -68,18 +67,18 @@ interactions, where n denotes the number of single-color controls
 \examples{
 # construct SCE from single-stained control samples
 data(ss_exp)
-sce <- fcs2sce(ss_exp, by_time = FALSE)
+sce <- prepData(ss_exp)
 
 # specify mass channels stained for
 bc_ms <- c(139, 141:156, 158:176)
 
 # debarcode single-positive populations
-sce <- assignPrelim(x = sce, bc_key = bc_ms)
-sce <- estCutoffs(x = sce)
-sce <- applyCutoffs(x = sce)
+sce <- assignPrelim(sce, bc_ms)
+sce <- estCutoffs(sce)
+sce <- applyCutoffs(sce)
 
 # estimate & extract spillover matrix 
-sce <- computeSpillmat(x = sce)
+sce <- computeSpillmat(sce)
 
 library(SingleCellExperiment)
 head(metadata(sce)$spillover_matrix)

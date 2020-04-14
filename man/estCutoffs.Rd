@@ -10,10 +10,8 @@ estCutoffs(x)
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 }
 \value{
-the input \code{SingleCellExperiment} \code{x} is returned
-with an additional \code{int_metadata} slot \code{sep_cutoffs}
-stored in \code{altExp(x, altExp)}. If \code{altExp} is NULL, 
-\code{sep_cutoffs} are stored in the \code{int_metadata} of \code{x}.
+the input \code{SingleCellExperiment} is returned
+with an additional \code{metadata} slot \code{sep_cutoffs}.
 }
 \description{
 For each sample, estimates a cutoff parameter for 
@@ -51,15 +49,22 @@ library(SingleCellExperiment)
 
 # construct SCE
 data(sample_ff, sample_key)
-sce <- fcs2sce(sample_ff)
+sce <- prepData(sample_ff)
     
 # assign preliminary barcode IDs
 # & estimate separation cutoffs
-sce <- assignPrelim(x = sce, bc_key = sample_key)
+sce <- assignPrelim(sce, sample_key)
 sce <- estCutoffs(sce)
 
 # access separation cutoff estimates
-metadata(sce)$sep_cutoffs
+(seps <- metadata(sce)$sep_cutoffs)
+
+# compute population yields
+cs <- split(seq_len(ncol(sce)), sce$bc_id)
+sapply(names(cs), function(id) {
+  sub <- sce[, cs[[id]]]
+  mean(sub$delta > seps[id])
+})
 
 # view yield plots including current cutoff
 plotYields(sce, which = "A1")

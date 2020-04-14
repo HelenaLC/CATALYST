@@ -7,11 +7,14 @@
 normCytof(
   x,
   beads,
-  assay = "exprs",
   k = 500,
   trim = 5,
   remove_beads = TRUE,
   norm_to = NULL,
+  assays = c("counts", "exprs"),
+  overwrite = TRUE,
+  transform = TRUE,
+  cofactor = NULL,
   plot = TRUE,
   verbose = TRUE
 )
@@ -22,9 +25,6 @@ normCytof(
 \item{beads}{\code{"dvs"} (for bead masses 140, 151, 153 ,165, 175) or 
 \code{"beta"} (for bead masses 139, 141, 159, 169, 175) or 
 a numeric vector of masses.}
-
-\item{assay}{character string specifying which assay data to use.
-Should be one of \code{assayNames(x)}.}
 
 \item{k}{integer width of the median window used 
 for bead smoothing (affects visualizations only!).}
@@ -41,19 +41,44 @@ the input \code{SingleCellExperiment} and returned as a separate object?}
 an FCS file from which to compute baseline bead intensities,
 and to which the input data should be normalized to.}
 
-\item{plot}{logical. Should bead vs. DNA scatters and smoothed bead 
+\item{assays}{lnegth 2 character string specifying 
+which assay data to use; both should be in \code{assayNames(x)} 
+and correspond to count- and expression-like data, respectively.}
+
+\item{overwrite}{logical; should the specified \code{assays}
+(both, when \code{transform = TRUE}) be overwritten 
+with the normalized data? If \code{FALSE}, normalized counts 
+(and expressions, if \code{transform = TRUE}) will be stored in 
+assay(s) \code{normcounts/exprs}, respectively.}
+
+\item{transform}{logical; should normalized counts be 
+arcsinh-transformed with the specified \code{cofactor}(s)?}
+
+\item{cofactor}{numeric cofactor(s) to use for optional 
+arcsinh-transformation when \code{transform = TRUE};
+single value or a vector with channels as names.
+If NULL, \code{normCytof} will try and access the cofactor(s)
+stored in \code{int_metadata(x)}, thus re-using the same 
+transformation applied previsouly.}
+
+\item{plot}{logical; should bead vs. DNA scatters and smoothed bead 
 intensities before vs. after normalization be included in the output?}
 
-\item{verbose}{logical. Should extra information on progress be reported?}
+\item{verbose}{logical; should extra information on progress be reported?}
 }
 \value{
 a list of the following \code{SingleCellExperiment}... 
 \itemize{
-\item{\code{data}: SCE with additional assay slot \code{normed} containing 
-  normalized (and optionally filtered, if \code{remove_beads = TRUE}) data}
-\item{\code{beads}, \code{removed}: SCEs containing subsets of events 
-  identified as beads and that were removed, respectively. 
-  The latter includes bead-cell and cell-cell doublets)}
+\item{\code{data}: 
+  The filtered input SCE (when \code{remove_beads = TRUE}); 
+  otherwise, \code{colData} columns \code{is_bead} and \code{remove} 
+  indicate whether an event as been identified as a bead or doublet.
+  If \code{overwrite = FALSE}, assays \code{normcounts/exprs} are added;
+  otherwise, the specified \code{counts/exprs} assays are overwritten.}
+\item{\code{beads}, \code{removed}: 
+  SCEs containing subsets of events identified as beads 
+  and that were removed, respectively. The latter includes 
+  bead-cell and cell-cell doublets)}
 } ...and \code{ggplot} objects:
 \itemize{
 \item{\code{scatter}: scatter plot of DNA vs. bead 
@@ -68,14 +93,20 @@ using bead standards with automated bead gating.
 }
 \examples{
 data(raw_data)
-sce <- fcs2sce(raw_data)
-res <- normCytof(sce, beads = "dvs", k = 80)
+sce <- prepData(raw_data)
+
+# apply normalization & write normalized data to separate assays
+res <- normCytof(sce, beads = "dvs", k = 80, overwrite = FALSE) 
 
 ncol(res$beads)   # no. of bead events
 ncol(res$removed) # no. of events removed
 
 res$scatter # plot DNA vs. bead intensities including applied gates
 res$lines   # plot smoothed bead intensities before vs. after normalization
+
+# filtered SCE now additionally includes 
+# normalized count & expression data
+assayNames(res$data)
 
 }
 \references{

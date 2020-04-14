@@ -6,41 +6,43 @@
 \usage{
 plotScatter(
   x,
-  chs = NULL,
-  gate_id = NULL,
-  show_gate = TRUE,
-  show_perc = TRUE,
-  assay = "exprs",
+  chs,
   color_by = NULL,
-  bins = 100
+  facet_by = NULL,
+  bins = 100,
+  assay = "exprs",
+  label = c("antigen", "channel", "both"),
+  zeros = FALSE
 )
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{chs}{character string of length 2 specifying which channels to plot.
-Should be one of \code{rownames(x)} or \code{names([int_]colData(x))},
-and correspond to a numeric or logical variable.}
+\item{chs}{character string pecifying which channels to plot.
+Valid values are antigens: \code{rownames(x)}, 
+channel names: \code{rowData(x)$channel_name} or 
+other channels stored in \code{names([int_]colData(x))},
+and should correspond to numeric variables.}
 
-\item{gate_id}{a character vector specifying 
-a gate added via \code{\link{gateCytof}}.}
+\item{color_by}{character string specifying a non-numeric
+cell metadata column to color by; valid values are 
+\code{names(colData(x))}; or NULL to color by density.}
 
-\item{show_gate}{logical. If \code{gate_id} is specified, specifies 
-whether the boundary of the specified gate should be visualized.
-Ignored if `chs` don't correspond to those used by the gate.}
+\item{facet_by}{character string specifying a non-numeric
+cell metadata column to facet by; valid values are 
+\code{names(colData(x))}. When \code{length(chs) == 1}, 
+2 facetting variables may be provided, otherwise 1 only.}
 
-\item{show_perc}{logical. If \code{gate_id} is specified, specifies 
-whether the percentage of gated cells should be included.}
+\item{bins}{numeric of length 1 giving the number of bins 
+for \code{\link[ggplot2]{geom_hex}} when coloring by density.}
 
 \item{assay}{character string specifying which assay data to use.
 Should be one of \code{assayNames(x)}.}
 
-\item{color_by}{specifies the color coding. If \code{gate_id} is specified, 
-\code{color_by = "selection"} will color cells in a binary fashion, 
-i.e., whether cells fall within the gate's boundary or not.}
+\item{label}{character string specifying axis labels should include
+antigen, channel names, or a concatenation of both.}
 
-\item{bins}{numeric of length 1 giving the number of bins 
-for \code{\link[ggplot2]{geom_hex}} when coloring by density.}
+\item{zeros}{logical specifying whether to include 0 values.}
 }
 \value{
 a \code{ggplot} object.
@@ -51,18 +53,23 @@ Bivariate scatter plots including visualization of
 }
 \examples{
 data(raw_data)
-sce <- fcs2sce(raw_data)
+sce <- prepData(raw_data)
 
-# apply file-specific eliptical gate
-sce <- gateCytof(sce, 
-  chs = c("Ir191Di", "Ir193Di"),
-  gate_id = "cells",
-  group_by = "file_name",
-  type = "elip", 
-  xy = c(4, 4))
+dna_chs <- c("DNA1", "DNA2")
+plotScatter(sce, dna_chs, label = "both")
 
-# visualize gates on scatter plots
-plotScatter(sce, gate_id = "cells")
+plotScatter(sce, 
+  chs = sample(rownames(sce), 4), 
+  color_by = "sample_id")
+  
+sce <- prepData(sample_ff)  
+ids <- sample(rownames(sample_key), 3)
+sce <- assignPrelim(sce, sample_key[ids, ])
+sce <- sce[, sce$bc_id \%in\% ids]
+
+chs <- sample(rownames(sce), 5)
+plotScatter(sce, chs, color_by = "bc_id")
+plotScatter(sce, chs, color_by = "delta")
 
 }
 \author{

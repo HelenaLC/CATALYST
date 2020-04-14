@@ -4,19 +4,29 @@
 \alias{pbMDS}
 \title{Pseudobulk-level MDS plot}
 \usage{
-pbMDS(x, color_by = "condition")
+pbMDS(x, color_by = "condition", label_by = "sample_id", shape_by = NULL)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{color_by}{character string corresponding to a
-\code{colData(x)} column. Specifies the color coding.}
+\item{color_by}{character string specifying a 
+non-numeric cell metadata column to color by; 
+valid values are \code{names(colData(x))}.}
+
+\item{label_by}{character string specifying a 
+non-numeric cell metadata column to label by; 
+valid values are \code{names(colData(x))}.}
+
+\item{shape_by}{character string specifying a 
+non-numeric cell metadata column to shape by; 
+valid values are \code{names(colData(x))}.}
 }
 \value{
 a \code{ggplot} object.
 }
 \description{
-Multi-dimensional scaling (MDS) plot on median marker expressions.
+Pseudobulk-level Multi-Dimensional Scaling (MDS) 
+plot computed on median marker expressions in each sample.
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)

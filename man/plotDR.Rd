@@ -4,7 +4,14 @@
 \alias{plotDR}
 \title{Plot reduced dimensions}
 \usage{
-plotDR(x, dr = NULL, color_by = "condition")
+plotDR(
+  x,
+  dr = NULL,
+  color_by = "condition",
+  facet_by = NULL,
+  k_pal = CATALYST:::.cluster_cols,
+  scale = TRUE
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -14,6 +21,19 @@ Should be one of \code{reducedDimNames(x)}; default to the 1st available.}
 
 \item{color_by}{character string corresponding to a
 \code{colData(x)} column. Specifies the color coding.}
+
+\item{facet_by}{character string specifying a
+non-numeric cell metadata column to facet by; 
+valid values are \code{names(colData(x))}.}
+
+\item{k_pal}{character string specifying the cluster color palette; 
+ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
+If less than \code{nlevels(cluster_ids(x, k))} are supplied, 
+colors will be interpolated via \code{\link[grDevices]{colorRampPalette}}.}
+
+\item{scale}{logical specifying whether expression should be scaled
+between 0 and 1 using lower (1\%) and upper (99\%) expression quantiles;
+ignored if \code{!all(color_by \%in\% rownames(x))}.}
 }
 \value{
 a \code{ggplot} object.
@@ -26,18 +46,25 @@ by expression, cluster, sample or group ID.
 # construct SCE & run clustering
 data(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
+
+# run clustering & dimension reduction
 sce <- cluster(sce)
+sce <- runDR(sce, dr = "UMAP", cells = 100)
 
-library(scater)
-sce <- runUMAP(sce, exprs_values = "exprs")
+# color by scaled expression for 
+# set of markers, split by condition
+plotDR(sce, 
+  scale = TRUE, 
+  facet_by = "condition",
+  color_by = sample(rownames(sce), 4))
 
-# color by pS6 expression, split by group
-plotDR(sce, color_by = "pS6") +
-  facet_wrap("condition")
-
-# color by 8 metaclusters, split by sample
-plotDR(sce, color_by = "meta8") + 
-  facet_wrap("sample_id", ncol = 4)
+# color by 8 metaclusters using custom 
+# cluster color palette, split by sample
+p <- plotDR(sce, 
+  color_by = "meta8", 
+  facet_by = "sample_id", 
+  k_pal = c("lightgrey", "cornflowerblue", "navy")) 
+p$facet$params$ncol <- 4; p
 
 }
 \references{

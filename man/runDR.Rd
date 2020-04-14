@@ -8,7 +8,7 @@ runDR(
   x,
   dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"),
   cells = NULL,
-  features = NULL,
+  features = "type",
   assay = "exprs",
   ...
 )
@@ -21,18 +21,19 @@ runDR(
 \item{cells}{single numeric specifying the maximal number of cells
 per sample to use for dimension reduction; NULL for all cells.}
 
-\item{features}{specifies the features to use for dimension reduction. 
-Either a character string specifying a subset of features,
-or NULL for all features. When \code{rowData(x)$marker_class} 
-is specified, can be one of "type", "state", or "none".}
+\item{features}{a character vector specifying which 
+antigens to use for dimension reduction; valid values are
+\code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
 
-\item{assay}{character string specifying 
-which assay of \code{x} conatins expression values.}
+\item{assay}{character string specifying which assay data to use
+for dimension reduction; valid values are \code{assayNames(x)}.}
 
 \item{...}{optional arguments for dimension reduction; passed to 
 \code{\link[scater]{runUMAP}}, \code{\link[scater]{runTSNE}}, 
-\code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}} and
-\code{\link[scater]{runDiffusionMap}}, respecttively.
+\code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}}
+and \code{\link[scater]{runDiffusionMap}}, respecttively.
 See \code{?"scater-red-dim-args"} for details.}
 }
 \value{
@@ -40,7 +41,7 @@ a \code{ggplot} object.
 }
 \description{
 Wrapper around dimension reduction methods available 
-through \code{scater}, with optional cell subsampling.
+through \code{scater}, with optional subsampling of cells per each sample.
 }
 \examples{
 # construct SCE

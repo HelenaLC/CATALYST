@@ -4,23 +4,25 @@
 \alias{plotClusterExprs}
 \title{Plot expression distributions by cluster}
 \usage{
-plotClusterExprs(x, k = "meta20", features = NULL)
+plotClusterExprs(x, k = "meta20", features = "type")
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{k}{character string. Specifies the clustering to use.}
+\item{k}{character string specifying which clustering to use;
+valid values are \code{names(cluster_codes(x))}.}
 
-\item{features}{character string specifying which features to include. Defaults to NULL 
-(= all features). Alternatively, if the \code{colData(x)$marker_class} 
-column is specified, can be one of "type", "state", or "none".}
+\item{features}{a character vector specifying 
+which antigens to include; valid values are
+\code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
 }
 \value{
 a \code{\link{ggplot}} object.
 }
 \description{
-Plots smoothed densities of arcsinh-transformed 
-marker intensities by cluster.
+Plots smoothed densities of marker intensities by cluster.
 }
 \examples{
 # construct SCE & run clustering
@@ -28,7 +30,7 @@ data(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- cluster(sce)
 
-plotClusterExprs(sce)
+plotClusterExprs(sce, k = "meta8")
 
 }
 \references{

@@ -12,9 +12,13 @@ plotDiffHeatmap(
   order = TRUE,
   th = 0.1,
   hm1 = TRUE,
+  fun = c("median", "mean"),
+  scale = TRUE,
   normalize = TRUE,
   row_anno = TRUE,
-  col_anno = TRUE
+  col_anno = TRUE,
+  hm1_pal = rev(brewer.pal(11, "RdBu")),
+  hm2_pal = rev(brewer.pal(11, "PuOr"))
 )
 }
 \arguments{
@@ -39,6 +43,12 @@ or cluster-marker combinations (DS) should be considered significant.}
 
 \item{hm1}{logical. Specifies whether the left-hand side heatmap should be plotted.}
 
+\item{fun}{character string specifying the function to use 
+as summary statistic for aggregation of expression values.}
+
+\item{scale}{logical specifying whether expression values should be scaled
+between 0 and 1 using lower (1\%) and upper (99\%) quantiles as boundaries.}
+
 \item{normalize}{logical. Specifies whether Z-score normalized values should be plotted 
 in the right-hand side heatmap. If \code{y} contains DA analysis results, 
 relative population abundances will be arcsine-square-root scaled 
@@ -50,6 +60,9 @@ as well as adjusted p-values be included?}
 
 \item{col_anno}{logical. Should column annotations for each factor 
 in \code{metadata(x)} be included?}
+
+\item{hm1_pal, hm2_pal}{character vector of 
+colors to interpolate for each heatmap(s).}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.

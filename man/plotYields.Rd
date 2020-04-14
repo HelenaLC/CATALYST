@@ -39,17 +39,17 @@ it appropriately balances confidence in barcode assignment and cell yield.
 \examples{
 # construct SCE & apply arcsinh-transformation
 data(sample_ff, sample_key)
-sce <- fcs2sce(x = sample_ff)
+sce <- prepData(sample_ff)
 
 # deconvolute samples & estimate separation cutoffs
-sce <- assignPrelim(x = sce, bc_key = sample_key)
-sce <- estCutoffs(x = sce)
+sce <- assignPrelim(sce, sample_key)
+sce <- estCutoffs(sce)
 
 # plot for specific sample
-plotYields(x = sce, which = "C1")
+plotYields(sce, which = "C1")
 
 # all barcodes summary plot
-plotYields(x = sce, which = 0, plotly = TRUE)
+plotYields(sce, which = 0, plotly = TRUE)
 
 }
 \references{
