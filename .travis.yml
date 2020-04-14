@@ -1,6 +1,5 @@
 language: r
 sudo: required
-cache: packages
 
 r: bioc-devel
 bioc_check: true
