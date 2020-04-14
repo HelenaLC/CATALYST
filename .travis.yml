@@ -1,4 +1,13 @@
 language: r
-r: bioc-devel
-sudo: false
+sudo: required
 cache: packages
+
+r: bioc-devel
+bioc_check: true
+env:
+  - _R_CHECK_LENGTH_1_LOGIC2_=true _R_CHECK_LENGTH_1_CONDITION=true
+
+r_binary_packages:
+  - covr
+after_success:
+  - Rscript -e 'covr::codecov()'
