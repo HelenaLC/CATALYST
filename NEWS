@@ -1,7 +1,5 @@
 ------------------------------------ 1.10.4 ------------------- Bioc 3.11, R 4.0
 
-PREPROCESSING
-
 o The daFrame class been removed and the preprocessing pipeline 
   rewritten to use the SingleCellExperiment class instead. 
   This greatly improves runtimes of debarcoding and normalization,
@@ -61,6 +59,7 @@ o The vignette has been extended to include sections on how
 ------------------------------------ 1.10.3 ------------------------------------
 
 o filterSCE() now drops non-existent levels in metadata()$experiment_info
+
   
 o plotNRS() no-longer fails when samples have an insufficient number of cells;
   added check.names = FALSE in data.frame() to prevent renaming of antigens
