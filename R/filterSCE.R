@@ -38,9 +38,6 @@ filterSCE <- function(x, ..., k = NULL) {
     
     # check validity of input arguments
     stopifnot(is(x, "SingleCellExperiment"))
-    if (is.null(k)) 
-        k <- names(cluster_codes(x))[1] 
-    k <- .check_validity_of_k(x, k)  
     
     # construct data.frames of cell & feature metadata
     rd <- vapply(rowData(x), as.character, character(nrow(x)))
@@ -50,10 +47,11 @@ filterSCE <- function(x, ..., k = NULL) {
     cd <- data.frame(i = seq_len(ncol(x)), cd, 
         check.names = FALSE, stringsAsFactors = FALSE)
     
-    # get cluster IDs for specified clustering
-    if (!is.null(cluster_codes(x))) {
-        if (is.null(k)) 
-            k <- names(cluster_codes(x))[1]
+    # get specified clustering IDs
+    if (!is.null(k)) {
+        stopifnot(
+            !is.null(x$cluster_id),
+            !is.null(cluster_codes(x)))
         k <- .check_k(x, k)   
         cd$cluster_id <- cluster_ids(x, k)
     }
