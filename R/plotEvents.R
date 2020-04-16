@@ -71,7 +71,7 @@ plotEvents <- function(x, which = "all", assay = "scaled",
     labs <- paste(ids, labs, sep = ": ")
     names(labs) <- ids
     labs["0"] <- "unassigned"
-   
+    
     if (isTRUE(which == "all")) which <- ids
     m <- match(c("0", rownames(bc_key)), which, nomatch = 0)
     names(which) <- which <- which[m]
