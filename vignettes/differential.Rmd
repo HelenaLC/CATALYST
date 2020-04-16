@@ -28,7 +28,7 @@ knitr::opts_chunk$set(cache = TRUE)
 
 ---
 
-<span style="color:firebrick">**Most of the pipeline and visualizations presented herein have been adapted from @Nowicka2019-F1000's *"CyTOF workflow: differential discovery in high-throughput high-dimensional cytometry datasets"*. For the complete workflow, go [here](https://f1000research.com/articles/6-748/v4).**</span>
+<span style="color:firebrick">**Most of the pipeline and visualizations presented herein have been adapted from @Nowicka2019-F1000's *"CyTOF workflow: differential discovery in high-throughput high-dimensional cytometry datasets"* available [here](https://f1000research.com/articles/6-748/v4).**</span>
 
 ```{r warning = FALSE, message = FALSE}
 # load required packages
@@ -50,7 +50,7 @@ a data.frame containing each marker's column name in the FCS file (`fcs_colname`
 - `PBMC_md`:  
 a data.frame where rows correspond to samples, and columns specify each sample's `file_name`, `sample_id`, `condition`, and `patient_id`.
 
-```{r}
+```{r load-data}
 # load example data
 data(PBMC_fs, PBMC_panel, PBMC_md)
 PBMC_fs
@@ -82,7 +82,7 @@ Data used and returned throughout differential analysis are held in objects of t
 
 Optionally, `features` will specify which columns (channels) to keep from the input data. Here, we keep all measurement parameters (default value `features = NULL`). 
 
-```{r}
+```{r prepData}
 (sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md))
 ```
 
@@ -132,7 +132,7 @@ plotCounts(sce,
 
 A multi-dimensional scaling (MDS) plot on median expresion values may be rendered with `plotMDS`. Such a plot will give a sense of similarities between samples in an unsupervised way and of key difference in expression before conducting any formal testing. In our example, we can see a clear separation between reference (REF) and stimulation condition (BCRXL).
 
-```{r fig.width = 5}
+```{r pbMDS, fig.width = 5}
 pbMDS(sce, 
     color_by = "condition", 
     label_by = "sample_id",
@@ -143,7 +143,7 @@ pbMDS(sce,
 
 `plotExprHeatmap` will show a heatmap on median marker intensities with hierarchically clustered rows (samples) and columns (markers). This plot should give an idea of which markers will drive sample clustering, and how similiar samples are in their expression profile. We specify `bin_anno = TRUE` to display expression values inside each bin, and `row_anno = TRUE` to include row annotations for each factor in `metadata(daf)`. 
 
-```{r fig.width = 10, fig.height = 4}
+```{r plotExprHeatmap, fig.width = 10, fig.height = 4}
 plotExprHeatmap(sce, row_anno = TRUE, bin_anno = FALSE)
 ```
 
@@ -153,7 +153,7 @@ plotExprHeatmap(sce, row_anno = TRUE, bin_anno = FALSE)
 
 `r BiocStyle::Biocpkg("CATALYST")` provides a simple wrapper to perform high resolution `FlowSOM` clustering and lower resolution `ConsensusClusterPlus` metaclustering. By default, the data will be initially clustered into `xdim = 10` x `ydim = 10` = 100 groups. Secondly, the function will metacluster populations into 2 through `maxK` (default 20) clusters. To make analyses reproducible, the random seed may be set via `seed`. By default, if the `colData(sce)$marker_class` column is specified, the set of markers with marker class `"type"` will be used for clustering (argument `features = "type"`). Alternatively, the markers that should be used for clustering can be specified manually.
 
-```{r}
+```{r cluster}
 sce <- cluster(sce, features = "type", 
     xdim = 10, ydim = 10, maxK = 20, 
     verbose = FALSE, seed = 1)       
@@ -174,7 +174,7 @@ Let K = `xdim` x `ydim` be the number of `r BiocStyle::Biocpkg("FlowSOM")` clust
 
 The delta area represents the amount of extra cluster stability gained when clustering into k groups as compared to k-1 groups. It can be expected that high stability of clusters can be reached when clustering into the number of groups that best fits the data. The "natural" number of clusters present in the data should thus corresponds to the value of k where there is no longer a considerable increase in stability (pleateau onset). For more details, the user can refer to the original description of the consensus clustering method [@Monti2003-ConsensusClusterPlus].
 
-```{r fig.width=5, fig.height=3}
+```{r delta-area, fig.width = 5, fig.height = 2.5}
 # access & render delta area plot
 # (equivalent to metadata(sce)$delta_area)
 delta_area(sce)
@@ -186,14 +186,14 @@ A combined boxplot and jitter of median marker intensitied can be generated via 
 
 In order to compare medians for each cluster, and potentially identify changes across conditions early on, we specify `facet = "cluster_id"`: 
 
-```{r fig.width = 12, fig.height = 5}
+```{r plotMedExprs-1, fig.width = 12, fig.height = 5}
 p <- plotMedExprs(sce, facet = "cluster_id", k = "meta8")
 p$facet$params$ncol <- 4; p
 ```
 
 Alternatively, we can facet the above plot by `antigen` in order to compare marker expressions calculated over all cells across conditions:
 
-```{r fig.width = 12, fig.height = 4}
+```{r plotMedExprs-2, fig.width = 12, fig.height = 4}
 p <- plotMedExprs(sce, facet = "antigen")
 p$facet$params$ncol <- 7; p
 ```
@@ -202,7 +202,7 @@ p$facet$params$ncol <- 7; p
 
 Distributions of marker intensities (arcsinh-transformed) across cell populations of interest can be plotted with `plotClusterExprs`. We specify `features = "type"` (equivalent to `type_markers(sce)`), to include type-markers only. Here, blue densities (top row) are calculated over all cells and serve as a reference.
 
-```{r message = FALSE, fig.width = 12, fig.height = 8}
+```{r plotClusterExprs, message = FALSE, fig.width = 12, fig.height = 8}
 plotClusterExprs(sce, k = "meta8", features = "type")
 ```
 
@@ -230,12 +230,12 @@ median marker expressions by sample.
 Argument `scale` (default `TRUE`) specifies whether scaled values should be plotted. These correspond to arcsinh-transformed expression values scaled between 0 and 1 using low (1%) and high (99%) percentiles as boundaries. Note that, in any case, hierarchical clustering is performed on the unscaled data.  
 While it is only used here for visualization, this additional transformation of the arcsinh-transformed data can sometimes give a better representation of relative differences in marker expression between cell populations.
 
-```{r fig.width=8, fig.height=6}
+```{r plotClusterHeatmap-1, fig.width = 8, fig.height = 6}
 # median pS6 expression by sample as 2nd heatmap
 plotClusterHeatmap(sce, hm2 = "pS6", k = "meta12", m = "meta6")
 ```
 
-```{r fig.width=10, fig.height=6}
+```{r plotClusterHeatmap-2, fig.width = 10, fig.height = 6}
 # population frequencies by sample as 2nd heatmap
 plotClusterHeatmap(sce, hm2 = "abundances", 
     draw_freqs = TRUE, row_anno = FALSE)
@@ -256,10 +256,21 @@ plotAbundances(sce, k = "merging1", by = "cluster_id",
 
 # Dimensionality reduction
 
-Dimension reductions (DRs) can be computed using one of `r BiocStyle::Biocpkg("scater")`'s `runX` functions (`X = "TSNE", "UMAP", ...`). Note that, by default, `scater` expects expression values to be stored in the `logcounts` assay of the SCE; specification of `exprs_values = "exprs"` is thus required. To make results reproducible, the random seed should be set via `set.seed` *prior* to computing reduced dimensions.
+The number of cells in cytometry data is typically large, and for visualization of cells in a two-dimensional space it is often sufficient to run dimension reductions on a subset of the data. Thus, `CATALYST` provides the wrapper function `runDR` to apply any of the dimension reductions available from `BiocStyle::Biocpkg("scater")` using
 
-```{r run-umap}
+1. the subset of features specified via argument `features`; either a subset of `rownames(.)` or, e.g., `"type"` for `type_markers(.)` (if `marker_classes(.)` have been specified).
+2. the subset of cells specified via argument `cells`; either `NULL` for all cells, or `n` to sample a random subset of n cells per sample.
+
+To make results reproducible, the random seed should be set via `set.seed` *prior* to computing reduced dimensions:
+
+```{r runDR}
 set.seed(1601)
+sce <- runDR(sce, dr = "UMAP", cells = 500, features = "type")
+```
+
+Alternatively, dimension reductions can be computed using one of `r BiocStyle::Biocpkg("scater")`'s `runX` functions (`X = "TSNE", "UMAP", ...`). Note that, by default, `scater` expects expression values to be stored in the `logcounts` assay of the SCE; specification of `exprs_values = "exprs"` is thus required:
+
+```{r runUMAP-scater, eval = FALSE}
 sce <- runUMAP(sce, exprs_values = "exprs")
 ```
 
@@ -304,7 +315,7 @@ plot_grid(
 `r BiocStyle::Biocpkg("CATALYST")` has been designed to be compatible with the `r BiocStyle::Biocpkg("diffcyt")` package [@Weber2019-diffcyt], which implements statistical methods for differential discovery in high-dimensional cytometry (including flow cytometry, mass cytometry or CyTOF, and oligonucleotide-tagged cytometry) using high-resolution clustering and moderated tests. The input to the `r BiocStyle::Biocpkg("diffcyt")` pipeline can either be raw data, or a `SingleCellExperiment` object. We give an exmaple of the latter below.  
 Please refer to the `r BiocStyle::Biocpkg("diffcyt")` [vignette](https://bioconductor.org/packages/3.7/bioc/vignettes/diffcyt/inst/doc/diffcyt_workflow.html) and R documentation (`??diffcyt`) for more detailed information.
 
-```{r diffcyt, message = FALSE, warning = FALSE, fig.show = 'hide'}
+```{r diffcyt, message = FALSE, warning = FALSE, fig.show = "hide"}
 # create design & constrast matrix
 design <- createDesignMatrix(ei(sce), cols_design = "condition")
 contrast <- createContrast(c(0, 1))
@@ -336,45 +347,45 @@ For differential state (DS) tests, `plotDiffHeatmap` will display
 
 Clusters (DA) and cluster-marker combinations (DS), respectively, will be marked as *significant* if their adjusted p-value falls below the threshold value specified with `th` (default 0.1), and will be ordered by significance if `order = TRUE` (the default). The number of top findings to display can be specified with `top_n` (default 20). When `normalize = TRUE`, the right-hand side heatmap will display Z-score normalized values. For DA, cluster frequencies will be arcsine-square-root scaled prior to normalization.
 
-```{r plotDiffHeatmap-da, fig.width = 10, fig.height = 5}
+```{r plotDiffHeatmap-da, fig.width = 8, fig.height = 4}
 plotDiffHeatmap(sce, res_DA, all = TRUE, th = 0.05)
 ```
 
-```{r plotDiffHeatmap-ds, fig.width = 5, fig.height = 5}
-plotDiffHeatmap(sce, res_DS, hm1 = FALSE, top_n = 20)
+```{r plotDiffHeatmap-ds, fig.width = 7, fig.height = 5}
+plotDiffHeatmap(sce, res_DS, hm1 = FALSE, top_n = 15)
 ```
 
 # More
 
 ## Using other clustering algorithms
 
-While `r BiocStyle::Biocpkg("FlowSOM")` has proven to perform well in systematic comparisons of clustering algorithms for CyTOF data [@Weber2016-clustering; @Freytag2018-clustering], it is not the only method out there. Here we demonstrate how clustering assignments from, for example, `r Githubpkg("JinmiaoChenLab", "Rphenograph")` could be incorporated into the SCE to make use of the visualizations available in `CATALYST`. Analogous to the example below, virtually any clustering algorithm could be applied, however, with the following limitation:  
+While `r BiocStyle::Biocpkg("FlowSOM")` has proven to perform well in systematic comparisons of clustering algorithms for CyTOF data [@Weber2016-clustering; @Freytag2018-clustering], it is not the only method out there. Here we demonstrate how clustering assignments from another clustering method, say, `r Githubpkg("JinmiaoChenLab", "Rphenograph")`, could be incorporated into the SCE to make use of the visualizations available in `CATALYST`. Analogous to the example below, virtually any clustering algorithm could be applied, however, with the following limitation:  
 The `ConsensusClusterPlus` metaclusterings applied to the initial `FlowSOM` clustering by `CATALYST`'s `cluster` function have a hierarchical cluster structure. Thus, clustering IDs can be matched from a higher resolution (e.g. 100 SOM clusters) to any lower resolution (e.g., 2 through 20 metaclusters). This is not guaranteed for other clustering algorithms. Thus, we store only a single resolution in the cell metadata column `cluster_id`, and a single column under `metadata` slot `cluster_codes` containing the unique cluster IDs. Adding additional resolutions to the `cluster_codes` will fail if cluster IDs can not be matched uniquely across conditions, which will be the case for any non-hierarchical clustering method.
 
-```{r phenograph, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 4}
-library(Rphenograph)
-
+```{r other-clusterings, message = FALSE, warning = FALSE, fig.width = 5, fig.height = 2.5}
 # subset type-marker expression matrix
 es <- assay(sce, "exprs")
 es <- es[type_markers(sce), ]
 
-# run phenograph clustering
-ph <- Rphenograph(t(es), k = 30)
-
-# extract cluster assignments
-kids <- membership(ph[[2]])
-kids <- factor(kids, levels = sort(unique(kids)))
+# run clustering method X
+# (here, we just split the cells into 
+# equal chunks according to CD33 expression)
+cs <- split(seq_len(ncol(sce)), cut(es["CD33", ], nk <- 10))
+kids <- lapply(seq_len(nk), function(i) {
+    rep(i, length(cs[[i]]))
+})
+kids <- factor(unlist(kids))
 
 # store cluster IDs in cell metadata & codes in metadata
 foo <- sce
-foo$cluster_id <- kids
+foo$cluster_id[unlist(cs)] <- unlist(kids)
 metadata(foo)$cluster_codes <- data.frame(
-    pheno_k30 = factor(levels(kids), levels = levels(kids)))
+    custom = factor(levels(kids), levels = levels(kids)))
 
 # tabulate cluster assignments
-table(cluster_ids(foo, "pheno_k30"))
+table(cluster_ids(foo, "custom"))
 # plot relative cluster abundances by sample
-plotClusterHeatmap(foo, k = "pheno_k30")
+plotClusterHeatmap(foo, k = "custom")
 ```
 
 ## Customizing visualizations
