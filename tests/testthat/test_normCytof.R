@@ -25,7 +25,7 @@ test_that("normCytof()", {
     # signal descreasing over time
     set.seed(42)
     x <- prepData(raw_data)
-    chs <- rowData(x)$channel_name
+    chs <- channels(x)
     bead_chs <- sample(chs, (n_beads <- 3))
     bead_ms <- .get_ms_from_chs(bead_chs)
     # amount time-drift (slope) & time points
@@ -41,7 +41,7 @@ test_that("normCytof()", {
     z[cbind(i, j)] <- 0
     # set colnames to beads, dna, random channels
     dna <- c("Ir191Di", "Ir193Di")
-    chs <- rowData(x)$channel_name
+    chs <- channels(x)
     chs <- sample(setdiff(chs, c(bead_chs, dna)), n_chs)
     colnames(z) <- c(bead_chs, "time", dna, chs) 
     # consruct SCE & apply normalization
@@ -77,7 +77,7 @@ test_that("normCytof() - overwrite = TRUE", {
 
 test_that("normCytof() - cofactor = NULL", {
     cfs <- sample(10, nrow(x), TRUE)
-    names(cfs) <- rowData(x)$channel_name
+    names(cfs) <- channels(x)
     x <- prepData(raw_data[[1]], cofactor = cfs)
     i <- sample(ncol(x), 1e3)
     y <- normCytof(x[, i], beads = "dvs", k = 21, cofactor = NULL)

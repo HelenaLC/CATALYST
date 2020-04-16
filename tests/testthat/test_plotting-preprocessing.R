@@ -42,11 +42,6 @@ test_that("plotYields()", {
     cuts <- vapply(p[which], function(u) 
         as.numeric(u$layer[[4]]$data), numeric(1))
     expect_identical(cuts, metadata(y)$sep_cutoffs[which])
-    # interactive plot 
-    p <- plotYields(x, c("A1", "A2"), plotly = TRUE)
-    expect_true(all(sapply(p, is, "plotly")))
-    p <- plotYields(y, c("A1", "A2"), plotly = TRUE)
-    expect_true(all(sapply(p, is, "plotly")))
 })
 
 test_that("plotEvents()", {

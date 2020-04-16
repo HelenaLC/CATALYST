@@ -6,23 +6,24 @@ x <- assignPrelim(x, sample_key[ids, ], verbose = FALSE)
 x <- x[, x$bc_id %in% ids]
 
 test_that("plotScatter() - labels", {
-    chs <- rowData(x)$channel_name
+    chs <- channels(x)
     expect_error(plotScatter(x, sample(chs, 2), label = "x"))
     args <- eval(formals("plotScatter")$label)
     for (l in args) {
         ls <- switch(l, 
-            antigen = rownames(x), channel = chs, 
+            target = rownames(x), channel = chs, 
             paste(chs, rownames(x), sep = "-"))
         i <- sample(nrow(x), 2)
         p <- plotScatter(x, rownames(x)[i], label = l)
         expect_is(p, "ggplot")
-        expect_identical(unname(unlist(p$labels[c("x", "y")])), ls[i])
+        labs <- unlist(p$labels[c("x", "y")])
+        expect_equivalent(labs, ls[i])
     }
 })
 
 test_that("plotScatter() - facetting", {
     chs <- sample(rownames(x), 3)
-    p <- plotScatter(x, chs, label = "antigen")
+    p <- plotScatter(x, chs, label = "target")
     expect_is(p, "ggplot")
     expect_true(p$labels$x == chs[1])
     expect_identical(levels(p$data$variable), chs[-1])

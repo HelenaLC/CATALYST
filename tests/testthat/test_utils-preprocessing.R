@@ -43,7 +43,7 @@ test_that(".read_fs() - FCS files as input", {
 
 test_that(".transform() - input arguments", {
     cfs <- seq_len(nrow(sce))
-    names(cfs) <- rowData(sce)$channel_name
+    names(cfs) <- channels(sce)
     cfs1 <- unname(cfs)
     cfs2 <- cfs
     names(cfs2)[1] <- "x"
@@ -53,7 +53,7 @@ test_that(".transform() - input arguments", {
 test_that(".transform() - single cofactor", {
     cf <- sample(10, 1)
     cfs <- rep(cf, nrow(sce))
-    names(cfs) <- rowData(sce)$channel_name
+    names(cfs) <- channels(sce)
     x <- .transform(sce, cf)
     y <- .transform(sce, cfs)
     int_metadata(x)$cofactor <- NULL
@@ -62,7 +62,7 @@ test_that(".transform() - single cofactor", {
 })
 test_that(".transform() - channel-specific cofactors", {
     cfs <- seq_len(nrow(sce))
-    names(cfs) <- rowData(sce)$channel_name
+    names(cfs) <- channels(sce)
     expect_identical(
         .transform(sce, cfs),
         .transform(sce, sample(cfs)))

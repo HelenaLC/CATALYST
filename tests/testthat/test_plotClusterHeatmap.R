@@ -22,14 +22,12 @@ df$cluster_id <- kids <- cluster_ids(x, k)
 test_that(".check_args_plotClusterHeatmap()", {
     u <- as.list(formals("plotClusterHeatmap"))
     u$x <- x
-    u$fun <- eval(u$fun)[1]
     u$k_pal <- u$m_pal <- eval(u$k_pal)
     u$hm1_pal <- u$hm2_pal <- eval(u$hm1_pal)
     expect_silent(.check_args_plotClusterHeatmap(u))
     args <- list(
         k = "x", k = c("meta2", "meta3"), m = "x", 
         hm2 = "x", hm2 = c("x", "state"),
-        fun = "x", fun = c("sum", "mean"),
         assay = "x", assay = rep("counts", 2))
     for (arg in c("scale", "row_anno", "row_dend", "col_dend", "draw_freqs")) {
         l <- list("x", 2, c(TRUE, FALSE))

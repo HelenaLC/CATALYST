@@ -169,10 +169,10 @@ test_that("plotCodes()", {
 
 test_that("plotDR()", {
     dr <- reducedDim(x <- runDR(x, "UMAP", cells = (n <- 10)))
-    expect_error(plotDR(x, dr = "PCA"))
-    expect_error(plotDR(x, color_by = "y"))
+    expect_error(plotDR(x, dr = "x"))
+    expect_error(plotDR(x, color_by = "x"))
     # colored by condition
-    expect_is((p <- plotDR(x)), "ggplot")
+    expect_is(p <- plotDR(x), "ggplot")
     expect_true(!any(is.na(p$data[c("X1", "X2")])))
     expect_true(nrow(p$data) == n*nlevels(x$sample_id))
     expect_true(all(table(p$data$sample_id) == n))

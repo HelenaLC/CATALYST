@@ -23,12 +23,12 @@ test_that("compCytof() - method = 'flow'/'nnls'", {
     expect_equal(unname(ref), unname(comped), tolerance = 10^-10)
     # test 'flow' method including comparison to 'flowCore' compensation
     comped_fC <- t(exprs(compensate(ss_spill, sm)))
-    expect_equal(ref, comped, tolerance = 10^-10)
-    expect_equal(ref, comped_fC, tolerance = 10^-10)
+    expect_equivalent(ref, comped, tolerance = 10^-10)
+    expect_equivalent(ref, comped_fC, tolerance = 10^-10)
     # test 'nnls' method
     y <- compCytof(x, sm, method = "nnls", overwrite = TRUE)
     comped_nnls <- assay(y, "counts")
-    expect_equal(ref, comped_nnls, tolerance = 10^-10)
+    expect_equivalent(ref, comped_nnls, tolerance = 10^-10)
 })
 
 test_that("compCytof() - overwrite = TRUE", {

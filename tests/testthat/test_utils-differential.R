@@ -3,25 +3,8 @@ suppressPackageStartupMessages({
     library(SingleCellExperiment)
 })
 
-sce <- .toySCE()
-y <- assay(sce, "exprs")
-
-# accessors --------------------------------------------------------------------
-
-test_that("n_cells()", {
-    ns <- n_cells(sce)
-    expect_identical(sum(ns), ncol(sce))
-    expect_identical(c(unname(ns)), tabulate(sce$sample_id))
-    sids <- sample(levels(sce$sample_id), 3)
-    cs <- sce$sample_id %in% sids
-    sce <- sce[, cs]
-    ns <- n_cells(sce)
-    expect_true(sum(ns) == sum(cs))
-    expect_identical(names(ns), sort(sids))
-    sce$sample_id <- NULL
-    expect_silent(ns <- n_cells(sce))
-    expect_true(is.null(ns))
-})
+x <- .toySCE()
+es <- assay(x, "exprs")
 
 test_that(".check_colors()", {  
     expect_error(.check_colors("blue")) 
@@ -79,7 +62,7 @@ test_that(".agg() by 1 factor", {
             replicate(10, {
                 i <- sample(seq_len(nrow(x)), 1)
                 j <- sample(levels(x[[by]]), 1)
-                expect_equal(pb[i, j], get(fun)(y[i, x[[by]] == j]))
+                expect_equal(pb[i, j], get(fun)(es[i, x[[by]] == j]))
             })
         }
     }
@@ -90,7 +73,7 @@ test_that(".agg() by 2 factors", {
         c("sample_id", "cluster_id"), 
         c("cluster_id", "sample_id"))) {
         for (fun in c("sum", "mean", "median")) {
-            pb <- .agg(x, by, fun)
+            pb <- .agg(x, by, fun, "exprs")
             expect_identical(names(pb), levels(x[[by[1]]]))
             expect_true(all(vapply(pb, function(u) 
                 identical(colnames(u), levels(x[[by[2]]])), 
@@ -98,9 +81,9 @@ test_that(".agg() by 2 factors", {
             replicate(10, {
                 a <- sample(levels(x[[by[1]]]), 1)
                 b <- sample(levels(x[[by[2]]]), 1)
-                i <- sample(seq_len(nrow(x)), 1)
+                i <- sample(nrow(x), 1)
                 j <- x[[by[1]]] == a & x[[by[2]]] == b
-                expect_equal(pb[[a]][i, b], get(fun)(y[i, j]))
+                expect_equal(pb[[a]][i, b], get(fun)(es[i, j]))
             })
         }
     }
