@@ -2,6 +2,7 @@
 % Please edit documentation in R/AllMethods.R
 \name{SCE-accessors}
 \alias{SCE-accessors}
+\alias{channels}
 \alias{marker_classes}
 \alias{type_markers}
 \alias{state_markers}
@@ -13,6 +14,7 @@
 \alias{delta_area}
 \alias{ei,SingleCellExperiment-method}
 \alias{n_cells,SingleCellExperiment-method}
+\alias{channels,SingleCellExperiment-method}
 \alias{marker_classes,SingleCellExperiment-method}
 \alias{type_markers,SingleCellExperiment-method}
 \alias{state_markers,SingleCellExperiment-method}
@@ -26,6 +28,8 @@
 \S4method{ei}{SingleCellExperiment}(x)
 
 \S4method{n_cells}{SingleCellExperiment}(x)
+
+\S4method{channels}{SingleCellExperiment}(x)
 
 \S4method{marker_classes}{SingleCellExperiment}(x)
 
@@ -55,6 +59,8 @@ Valid values are \code{names(cluster_codes(x))}.}
 extracts the experimental design table.}
 \item{\code{n_cells}}{
 extracts the number of events measured per sample.}
+\item{\code{channels}}{
+extracts the original FCS file's channel names.}
 \item{\code{marker_classes}}{
 extracts marker class assignments ("type", "state", "none").}
 \item{\code{type_markers}}{
@@ -98,6 +104,7 @@ plot(table(cluster_ids(sce)))
 table(cluster_ids(sce, k = "meta8"))
 
 # access marker information
+channels(sce)
 marker_classes(sce)
 type_markers(sce)
 state_markers(sce)
