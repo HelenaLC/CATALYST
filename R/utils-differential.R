@@ -9,40 +9,25 @@
     "#aa8282", "#d4b7b7", "#8600bf", "#ba5ce3", "#808000",
     "#aeae5c", "#1e90ff", "#00bfff", "#56ff0d", "#ffff00")
 
-.get_features <- function(x, features) {
-    if (is.null(features)) {
-        features <- rownames(x)
-    } else if (length(features) > 1) {
-        stopifnot(features %in% rownames(x))
-    } else {
-        stopifnot(!is.null(marker_classes(x)))
-        features <- match.arg(features, c("type", "state"))
-        features <- get(paste0(features, "_markers"))(x)
-        if (length(features) == 0)
-            stop("No features matched the specified marker class.")
-    }
-    return(features)
-}
-
 # ==============================================================================
 # helper to get & check features for plotting; should be either
 # - a character string specifiying a subset of features to include
 # - one of "type", "state", "none" if 'rowData(x)$marker_class' exists
 # ------------------------------------------------------------------------------
 .get_features <- function(x, fs) {
-    if (!is.null(fs)) {
+    if (is.null(fs)) {
+        fs <- rownames(x)
+    } else {
         stopifnot(is.character(fs))
-        if (length(fs) == 1) {
+        if (length(fs) > 1) {
+            stopifnot(fs %in% rownames(x))
+        } else {
             fs <- match.arg(fs, c("type", "state", "none")) 
             stopifnot(!is.null(marker_classes(x)))
             fs <- rownames(x)[marker_classes(x) == fs]
             if (length(fs) == 0)
                 stop("No features matched the specified marker class.")
-        } else {
-            stopifnot(fs %in% rownames(x))
         }
-    } else {
-        fs <- rownames(x)
     }
     return(fs)
 }
@@ -61,7 +46,7 @@
     } else if (n > 6) {
         more_shapes <- setdiff(c(seq_len(16)-1, 18), shapes)
         shapes <- c(shapes, more_shapes[seq_len(n-length(shapes))])
-    }
+    } else shapes <- shapes[seq_len(n)]
     return(shapes)
 }
 
@@ -113,8 +98,8 @@
     df <- data.frame(cluster_id = kids)
     col <- list(cluster_id = k_pal)
     if (!is.null(m)) {
-        i <- match(seq_len(nk), cluster_codes(x)[, k])
-        mids <- cluster_codes(x)[, m][i]
+        i <- match(kids, cluster_codes(x)[, k])
+        mids <- droplevels(cluster_codes(x)[, m][i])
         nm <- nlevels(mids)
         if (nm > length(m_pal))
             m_pal <- colorRampPalette(m_pal)(nk)
@@ -200,15 +185,15 @@
 # ------------------------------------------------------------------------------
 .get_dt_type <- function(x) {
     # check correctness of column names
-    da_edgeR <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
     da_GLMM <- c("cluster_id", "p_val", "p_adj")
+    da_edgeR <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
     da_voom <- c("cluster_id", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
     
+    ds_LMM <- c("cluster_id", "marker_id", "p_val", "p_adj")
     ds_limma <- c("cluster_id", "marker_id", 
         "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
-    ds_LMM <- c("cluster_id", "marker_id", "p_val", "p_adj")
     
-    res_nms <- list(da_edgeR, da_GLMM, da_voom, ds_limma, ds_LMM)
+    res_nms <- list(da_GLMM, da_edgeR, da_voom, ds_LMM, ds_limma)
     names(res_nms) <- c(rep("da", 3), rep("ds", 2))
     
     test <- vapply(res_nms, identical, y = names(x), logical(1))
@@ -219,12 +204,13 @@
     
     # get no. of clusters
     k <- length(unique(x$cluster_id))
+    m <- length(unique(x$marker_id))
     
     if (type == "da" && nrow(x) == k) {
         return("DA")
-    } else if (type == "ds" && nrow(x) == (k * nlevels(x$marker_id))) {
+    } else if (type == "ds" && nrow(x) == (k * m)) {
         return("DS")
-    } else if (type == "none") {
+    } else {
         stop(deparse(substitute(x)), " does not seem to be ", 
             "a valid differential test result.\n",
             "Should be a 'SummarizedExperiment' as returned by ", 

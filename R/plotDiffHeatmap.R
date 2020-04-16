@@ -107,7 +107,7 @@
 #' 
 #' @import ComplexHeatmap
 #' @importFrom data.table data.table
-#' @importFrom dplyr mutate_if
+#' @importFrom dplyr mutate_at mutate_if
 #' @importFrom grid unit.c
 #' @importFrom methods is
 #' @importFrom purrr map_depth
@@ -137,8 +137,15 @@ plotDiffHeatmap <- function(x, y,
     type <- .get_dt_type(y)
     
     # subset results in case input SCE has been filtered
-    y <- y[y$cluster_id %in% levels(x$cluster_id), , drop = FALSE]
+    i <- y$cluster_id %in% levels(x$cluster_id)
+    if (type == "DS") 
+        i <- i & y$marker_id %in% rownames(x)
+    y <- y[i, , drop = FALSE]
 
+    if (nrow(y) == 0)
+        stop("No results remaining;",
+            " perhaps 'x' has been filtered?")
+    
     # get clusters/cluster-marker combinations to plot
     if (order) y <- y[order(y$p_adj), , drop = FALSE]
     if (all || top_n > nrow(y)) top_n <- nrow(y)
@@ -150,7 +157,7 @@ plotDiffHeatmap <- function(x, y,
         es <- assay(x, "exprs")
         if (scale) es <- .scale_exprs(es, 1)
         z <- x; assay(z, "exprs") <- es
-        z <- z[type_markers(x), ]
+        z <- z[type_markers(x), , drop = FALSE]
         z <- .agg(z, "cluster_id", fun)
         z <- t(z)[top$cluster_id, ]
         if (type == "DS" && row_anno)
@@ -168,8 +175,6 @@ plotDiffHeatmap <- function(x, y,
             column_title_side = "bottom",
             clustering_distance_rows = "euclidean",
             clustering_method_rows = "median",
-            #row_names_gp = gpar(fontsize = 8),
-            #column_names_gp = gpar(fontsize = 8),
             rect_gp = gpar(col = "white"))
     } else hm1 <- NULL
     
@@ -194,7 +199,7 @@ plotDiffHeatmap <- function(x, y,
         right_anno <- rowAnnotation(
             df = data.frame(significant = s),
             col = list(significant = c(no = "lightgrey", yes = "lightgreen")),
-            "foo" = row_anno_text(txt),#, gp = gpar(fontsize = 6)),
+            "foo" = row_anno_text(txt),
             gp = gpar(col = "white"),
             show_annotation_name = FALSE,
             annotation_width = unit.c(unit(2, "mm"), max_text_width(txt)))
@@ -216,14 +221,12 @@ plotDiffHeatmap <- function(x, y,
                 col = hm2_pal,
                 row_title = "cluster_id",
                 column_title = "sample_id",
-                cluster_rows = !order, 
+                cluster_rows = FALSE, 
                 cluster_columns = FALSE,
                 show_row_names = is.null(hm1), 
                 row_names_side = "left",
                 column_title_side = "bottom",
                 top_annotation = col_anno,
-                #row_names_gp = gpar(fontsize = 8),
-                #column_names_gp = gpar(fontsize = 8),
                 rect_gp = gpar(col = "white"),
                 right_annotation = right_anno)
         },
@@ -260,10 +263,8 @@ plotDiffHeatmap <- function(x, y,
                 row_names_side = ifelse(is.null(hm1), "left", "right"),
                 clustering_distance_rows = "euclidean",
                 clustering_method_rows = "median",
-                #row_names_gp = gpar(fontsize = 8),
-                #column_names_gp = gpar(fontsize = 8),
                 rect_gp = gpar(col = "white"),
                 right_annotation = right_anno)
         })
-    hm1 + hm2
+    if (is.null(hm1)) hm2 else hm1+hm2
 }
