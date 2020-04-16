@@ -4,7 +4,7 @@
 \alias{plotYields}
 \title{Yield plot}
 \usage{
-plotYields(x, which = 0, out_path = NULL, name_ext = NULL, plotly = FALSE)
+plotYields(x, which = 0, out_path = NULL, name_ext = NULL)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -16,8 +16,6 @@ Valid values are IDs that occur as row names of \code{bc_key(x)};
 \item{out_path}{character string. If specified, outputs will be generated here.}
 
 \item{name_ext}{character string. If specified, will be appended to the plot's name.}
-
-\item{plotly}{logical. Should an interactive plot be rendered?}
 }
 \value{
 plots the distribution of barcode separations and yields upon 
@@ -45,11 +43,11 @@ sce <- prepData(sample_ff)
 sce <- assignPrelim(sce, sample_key)
 sce <- estCutoffs(sce)
 
+# all barcodes summary plot
+plotYields(sce, which = 0)
+
 # plot for specific sample
 plotYields(sce, which = "C1")
-
-# all barcodes summary plot
-plotYields(sce, which = 0, plotly = TRUE)
 
 }
 \references{

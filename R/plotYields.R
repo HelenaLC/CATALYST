@@ -8,8 +8,7 @@
 #'   Valid values are IDs that occur as row names of \code{bc_key(x)}; 
 #'   0 (the default) will generate a summary plot with all barcodes.
 #' @param out_path character string. If specified, outputs will be generated here.
-#' @param name_ext character string. If specified, will be appended to the plot's name. 
-#' @param plotly logical. Should an interactive plot be rendered?
+#' @param name_ext character string. If specified, will be appended to the plot's name.
 #' 
 #' @return plots the distribution of barcode separations and yields upon 
 #' debarcoding as a function of separation cutoffs. If available, currently 
@@ -32,11 +31,11 @@
 #' sce <- assignPrelim(sce, sample_key)
 #' sce <- estCutoffs(sce)
 #' 
+#' # all barcodes summary plot
+#' plotYields(sce, which = 0)
+#' 
 #' # plot for specific sample
 #' plotYields(sce, which = "C1")
-#' 
-#' # all barcodes summary plot
-#' plotYields(sce, which = 0, plotly = TRUE)
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #'
@@ -48,10 +47,8 @@
 #' 
 #' @import ggplot2
 #' @importFrom grDevices pdf dev.off
-#' @importFrom htmltools save_html
 #' @importFrom methods is
 #' @importFrom matrixStats rowMaxs
-#' @importFrom plotly config ggplotly hide_legend
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom reshape2 melt
 #' @importFrom scales scientific
@@ -59,15 +56,14 @@
 #' @export
 
 plotYields <- function(x, which = 0, 
-    out_path = NULL, name_ext = NULL, plotly = FALSE) {
+    out_path = NULL, name_ext = NULL) {
     # check validity of input arguments
     stopifnot(is(x, "SingleCellExperiment"),
         !is.null(x$bc_id), !is.null(x$delta),
         !is.null(metadata(x)$bc_key),
         is.null(out_path) || (is.character(out_path) 
             & length(out_path) == 1 & dir.exists(out_path)),
-        is.null(name_ext) || (is.character(name_ext) & length(name_ext) == 1),
-        is.logical(plotly), length(plotly) == 1)
+        is.null(name_ext) || (is.character(name_ext) & length(name_ext) == 1))
     n_bcs <- length(ids <- rownames(bc_key <- metadata(x)$bc_key))
     which <- .check_which(which, ids, "yields")
     m <- match(c("0", rownames(bc_key)), which, nomatch = 0)
@@ -156,34 +152,11 @@ plotYields <- function(x, which = 0,
         }
     })
     
-    if (plotly) {
-        # remove geom_label as it has not
-        # been implemented in plotly yet
-        ps <- lapply(ps, function(p) {
-            geoms <- vapply(p$layers, function(u) 
-                class(u$geom)[1], character(1))
-            is_geom_label <- grep("label", geoms, ignore.case = TRUE)
-            p$layers[is_geom_label] <- NULL
-            return(p)
-        })
-        ps <- lapply(which, function(id) {
-            p <- switch(as.character(id), 
-                "0" = hide_legend(ggplotly(ps[[id]], tooltip = "text")),
-                ggplotly(ps[[id]], tooltip = c("cutoff", "yield", "count")))
-            config(p, displayModeBar = FALSE)
-        })
-    }
-    
     if (!is.null(out_path)) {
-        ext <- ifelse(plotly, ".html", ".pdf")
-        fn <- paste0("yield_plot", name_ext, ext)
+        fn <- paste0("yield_plot", name_ext, ".pdf")
         fn <- file.path(out_path, fn)
-        if (plotly) {
-            save_html(ps, fn)
-        } else {
-            pdf(fn, width = 7, height = 3.5)
-            lapply(ps, print); dev.off()
-        }
+        pdf(fn, width = 7, height = 3.5)
+        lapply(ps, print); dev.off()
     } else {
         if (length(ps) == 1) ps[[1]] else ps
     }

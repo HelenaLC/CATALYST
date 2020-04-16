@@ -7,11 +7,8 @@
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param sm spillover matrix to visualize. If NULL, \code{plotSpillmat} 
 #'   will try and access \code{metadata(x)$spillover_matrix}.
-#' @param out_path character string. If specified, outputs will be generated here.
-#' @param name_ext character string. If specified, will be appended to the plot's name. 
 #' @param anno logical. If TRUE (default), spill percentages are shown inside 
 #'   bins and rows are annotated with the total amount of spill received.
-#' @param plotly logical. Should an interactive plot be rendered?
 #' @param isotope_list named list. Used to validate the input spillover matrix.
 #'   Names should be metals; list elements numeric vectors of their isotopes.
 #'   See \code{\link{isotope_list}} for the list of isotopes used by default.
@@ -39,31 +36,25 @@
 #' plotSpillmat(sce)
 #'
 #' @import ggplot2 
-#' @importFrom htmltools save_html
 #' @importFrom methods is
-#' @importFrom plotly ggplotly layout
 #' @importFrom reshape2 melt
 #' @importFrom S4Vectors metadata
 #' @export
 
-plotSpillmat <- function(x, sm = NULL, out_path = NULL, name_ext = NULL,
-    anno = TRUE, plotly = FALSE, isotope_list = CATALYST::isotope_list,
+plotSpillmat <- function(x, sm = NULL, anno = TRUE, 
+    isotope_list = CATALYST::isotope_list,
     hm_pal = c("white", "lightcoral", "red2", "darkred"), anno_col = "black") {
     
     # check validity of input arguments
-    .check_colors(hm_pal)
-    .check_colors(anno_col, n = 1)
     stopifnot(is(x, "SingleCellExperiment"),
-        !is.null(sm) || !is.null(sm <- metadata(x)$spillover_matrix),
-        is.null(name_ext) || is.character(name_ext) && length(name_ext) == 1,
-        is.null(out_path) || dir.exists(out_path),
         is.logical(anno), length(anno) == 1,
-        is.logical(plotly), length(plotly) == 1)
+        !is.null(sm) || !is.null(sm <- metadata(x)$spillover_matrix),
+        .check_colors(hm_pal), .check_colors(anno_col, n = 1))
 
     # check validity of input spillover matrix
     sm <- .check_sm(sm, isotope_list)
-    ms <- .get_ms_from_chs(chs <- colnames(sm))
-    chs <- rowData(x)$channel_name
+    chs <- colnames(sm)
+    ms <- .get_ms_from_chs(chs)
     bc_chs <- chs[rowData(x)$is_bc]
     bc_idx <- which(bc_chs %in% colnames(sm))
     bc_rng <- seq(min(bc_idx), max(bc_idx))
@@ -100,23 +91,8 @@ plotSpillmat <- function(x, sm = NULL, out_path = NULL, name_ext = NULL,
         anno <- sprintf("%.1f", df$spill)
         anno[df$spill == 0 | df$spill == 100] <- ""
         p <- p + geom_text(
-            aes_string(label = "anno"), col = anno_col,
-            size = ifelse(is.null(out_path), 2, 3))
+            aes_string(label = "anno"), 
+            col = anno_col, size = 2)
     }
-    if (plotly)
-        p <- ggplotly(p, width = 720, height = 720,
-            tooltip = c("emitting", "receiving", "spillover"))
-    
-    if (is.null(out_path)) {
-        p 
-    } else {
-        ext <- ifelse(plotly, ".html", ".pdf")
-        fn <- paste0("spillover_matrix", name_ext, ext)
-        fn <- file.path(out_path, fn) 
-        if (is(p, "plotly")) {
-            save_html(p, fn)
-        } else {
-            ggsave(fn, p, width = 7, height = 7)
-        }
-    } 
+    return(p)
 }

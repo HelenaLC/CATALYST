@@ -7,10 +7,7 @@
 plotSpillmat(
   x,
   sm = NULL,
-  out_path = NULL,
-  name_ext = NULL,
   anno = TRUE,
-  plotly = FALSE,
   isotope_list = CATALYST::isotope_list,
   hm_pal = c("white", "lightcoral", "red2", "darkred"),
   anno_col = "black"
@@ -22,14 +19,8 @@ plotSpillmat(
 \item{sm}{spillover matrix to visualize. If NULL, \code{plotSpillmat} 
 will try and access \code{metadata(x)$spillover_matrix}.}
 
-\item{out_path}{character string. If specified, outputs will be generated here.}
-
-\item{name_ext}{character string. If specified, will be appended to the plot's name.}
-
 \item{anno}{logical. If TRUE (default), spill percentages are shown inside 
 bins and rows are annotated with the total amount of spill received.}
-
-\item{plotly}{logical. Should an interactive plot be rendered?}
 
 \item{isotope_list}{named list. Used to validate the input spillover matrix.
 Names should be metals; list elements numeric vectors of their isotopes.
