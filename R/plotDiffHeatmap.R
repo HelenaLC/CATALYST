@@ -153,15 +153,6 @@ plotDiffHeatmap <- function(x, y,
         z <- z[type_markers(x), ]
         z <- .agg(z, "cluster_id", fun)
         z <- t(z)[top$cluster_id, ]
-        #hm1_pal <- colorRampPalette(hm1_pal)(100)
-        # qs <- quantile(z, probs = c(0.01, 0.5, 0.99), na.rm = TRUE)
-        # if (length(hm1_pal) %% 2 == 0)
-        #     hm1_pal <- colorRampPalette(hm1_pal)(length(hm1_pal)+1)  
-        # mid <- ceiling(length(hm1_pal)/2)
-        # qs1 <- seq(qs[1], qs[2], l = mid)
-        # qs2 <- seq(qs[2], qs[3], l = mid)
-        # qs <- c(qs1[-mid], qs2)
-        #hm1_pal <- colorRamp2(qs, hm1_pal)
         if (type == "DS" && row_anno)
             rownames(z) <- sprintf("%s(%s)", 
                 top$marker_id, top$cluster_id)
@@ -177,7 +168,8 @@ plotDiffHeatmap <- function(x, y,
             column_title_side = "bottom",
             clustering_distance_rows = "euclidean",
             clustering_method_rows = "median",
-            column_names_gp = gpar(fontsize = 8),
+            #row_names_gp = gpar(fontsize = 8),
+            #column_names_gp = gpar(fontsize = 8),
             rect_gp = gpar(col = "white"))
     } else hm1 <- NULL
     
@@ -202,7 +194,7 @@ plotDiffHeatmap <- function(x, y,
         right_anno <- rowAnnotation(
             df = data.frame(significant = s),
             col = list(significant = c(no = "lightgrey", yes = "lightgreen")),
-            "foo" = row_anno_text(txt, gp = gpar(fontsize = 8)),
+            "foo" = row_anno_text(txt),#, gp = gpar(fontsize = 6)),
             gp = gpar(col = "white"),
             show_annotation_name = FALSE,
             annotation_width = unit.c(unit(2, "mm"), max_text_width(txt)))
@@ -216,17 +208,8 @@ plotDiffHeatmap <- function(x, y,
             fq <- prop.table(ns, 1)
             fq <- fq[top$cluster_id, ]
             fq <- as.matrix(unclass(fq))
-            if (normalize) {
+            if (normalize)
                 fq <- .z_normalize(asin(sqrt(fq)))
-                at <- seq(-2.5, 2.5, 0.5)
-                labels <- at
-                labels[-seq(2, length(at), 2)] <- ""
-            } else {
-                min <- floor(min(fq)/0.1)*0.1
-                max <- ceiling(max(fq)/0.1)*0.1
-                at <- seq(min, max, 0.1)
-                labels <- at
-            }
             Heatmap(
                 matrix = fq,
                 name = paste0("normalized\n"[normalize], "frequency"),
@@ -235,14 +218,14 @@ plotDiffHeatmap <- function(x, y,
                 column_title = "sample_id",
                 cluster_rows = !order, 
                 cluster_columns = FALSE,
-                show_row_names = !is.null(hm1), 
+                show_row_names = is.null(hm1), 
                 row_names_side = "left",
                 column_title_side = "bottom",
                 top_annotation = col_anno,
-                column_names_gp = gpar(fontsize = 8),
+                #row_names_gp = gpar(fontsize = 8),
+                #column_names_gp = gpar(fontsize = 8),
                 rect_gp = gpar(col = "white"),
-                right_annotation = right_anno,
-                heatmap_legend_param = list(at = at, labels = labels))
+                right_annotation = right_anno)
         },
         DS = {
             # median state-marker expression by sample
@@ -273,11 +256,12 @@ plotDiffHeatmap <- function(x, y,
                 cluster_columns = FALSE,
                 top_annotation = col_anno,
                 column_title_side = "bottom",
-                show_row_names = is.null(right_anno),
-                row_names_side = "right",
+                show_row_names = is.null(hm1) || is.null(right_anno),
+                row_names_side = ifelse(is.null(hm1), "left", "right"),
                 clustering_distance_rows = "euclidean",
                 clustering_method_rows = "median",
-                column_names_gp = gpar(fontsize = 8),
+                #row_names_gp = gpar(fontsize = 8),
+                #column_names_gp = gpar(fontsize = 8),
                 rect_gp = gpar(col = "white"),
                 right_annotation = right_anno)
         })
