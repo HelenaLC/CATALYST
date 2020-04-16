@@ -109,7 +109,7 @@ sce2fcs <- function(x, split_by = NULL,
         ps <- parameters(ff)
         rs <- 2^(ceiling(log2(colMaxs(z))))
         m <- match(rownames(x), colnames(z), nomatch = 0)
-        ps$name[m] <- rowData(x)$channel_name
+        ps$name[m] <- channels(x)
         ps$desc[-m] <- NA
         ps$range <- rs
         ps$minRange <- 0
