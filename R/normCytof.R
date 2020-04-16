@@ -104,7 +104,7 @@ normCytof <- function(x, beads, k = 500, trim = 5,
 
     # get times, DNA & bead channels
     icd <- int_colData(x)
-    chs <- rowData(x)$channel_name
+    chs <- channels(x)
     chs0 <- rownames(x)
     rownames(x) <- chs
     stopifnot(
@@ -127,26 +127,27 @@ normCytof <- function(x, beads, k = 500, trim = 5,
     is_bead <- .get_bead_inds(x, key, assays[2])
     
     # subset specified assay
-    y <- assay(x, "counts")
+    cs <- assay(x, assays[1])
+    es <- assay(x, assays[2])
     
     # get all events that should be removed later
     # including bead-bead and cell-bead doublets
-    ths <- rowMins(y[bead_chs, is_bead])
-    rmv <- colSums(y[bead_chs, ] > ths) == n_beads
+    ths <- rowMins(es[bead_chs, is_bead])
+    rmv <- colSums(es[bead_chs, ] > ths) == n_beads
     x$remove <- rmv
     
     # trim tails
-    z <- y[bead_chs, is_bead]
-    meds <- rowMedians(z)
-    mads <- rowMads(z) * trim
-    diff <- abs(z - meds)
+    y <- es[bead_chs, is_bead]
+    meds <- rowMedians(y)
+    mads <- rowMads(y) * trim
+    diff <- abs(y - meds)
     ex <- colAnys(diff > mads)
     is_bead[which(is_bead)[ex]] <- FALSE
     x$is_bead <- is_bead
     
     # get baselines (global mean)
     if (is.null(norm_to)) {
-        bl <- rowMeans(y[bead_chs, is_bead])
+        bl <- rowMeans(cs[bead_chs, is_bead])
     } else {
         if (is.character(norm_to)) {
             ref <- read.FCS(norm_to, 
@@ -163,7 +164,7 @@ normCytof <- function(x, beads, k = 500, trim = 5,
     
     # assure width of median window is odd 
     if (k %% 2 == 0) k <- k + 1
-    smooth0 <- t(apply(y[bead_chs, is_bead], 1, runmed, k, "constant"))
+    smooth0 <- t(apply(cs[bead_chs, is_bead], 1, runmed, k, "constant"))
     
     # compute slopes (baseline versus smoothed bead intensitites)
     # & linearly interpolate slopes at non-bead events
@@ -171,13 +172,13 @@ normCytof <- function(x, beads, k = 500, trim = 5,
     slopes <- approx(ts[is_bead], slopes, ts, rule = 2)$y
     
     # normalize raw bead intensities via multiplication with slopes
-    y <- sweep(y, 2, slopes, "*")
+    cs <- sweep(cs, 2, slopes, "*")
     c <- ifelse(overwrite, assays[1], "normcounts")
-    assay(x, c, FALSE) <- y
+    assay(x, c, FALSE) <- cs
     
     # smooth normalized beads
-    z <- y[bead_chs, is_bead]
-    smooth <- t(apply(z, 1, runmed, k, "constant"))
+    y <- cs[bead_chs, is_bead]
+    smooth <- t(apply(y, 1, runmed, k, "constant"))
     
     ps <- NULL
     if (plot) {
