@@ -100,7 +100,7 @@ computeSpillmat <- function(x, assay = "counts",
             " from non single-staining experiment.")
 
     # get channel masses & metals
-    chs <- rowData(x)$channel_name
+    chs <- channels(x)
     ms <- .get_ms_from_chs(chs)
     mets <- .get_mets_from_chs(chs)
     

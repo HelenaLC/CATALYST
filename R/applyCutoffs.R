@@ -60,7 +60,7 @@ applyCutoffs <- function(x, assay = "exprs",
     args <- as.list(environment())
     .check_args_applyCutoffs(args)
     
-    chs <- rowData(x)$channel_name
+    chs <- channels(x)
     ms <- .get_ms_from_chs(chs)
     bc_key <- metadata(x)$bc_key
     bc_cols <- match(colnames(bc_key), ms)
