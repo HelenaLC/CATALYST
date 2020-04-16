@@ -5,14 +5,15 @@
 #' (group-specific) gates, their boundaries and percentage of selected cells.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
-#' @param chs character string pecifying which channels to plot.
+#' @param chs character string pecifying which channels to plot. 
 #'   Valid values are antigens: \code{rownames(x)}, 
-#'   channel names: \code{rowData(x)$channel_name} or 
-#'   other channels stored in \code{names([int_]colData(x))},
+#'   channel names: \code{channels(x)} or non-mass
+#'   channels stored in \code{names([int_]colData(x))}, 
 #'   and should correspond to numeric variables.
-#' @param color_by character string specifying a non-numeric
+#' @param color_by character string specifying a 
 #'   cell metadata column to color by; valid values are 
-#'   \code{names(colData(x))}; or NULL to color by density.
+#'   \code{names(colData(x))}, \code{names(int_colData(x))}; 
+#'   or NULL to color by density.
 #' @param facet_by character string specifying a non-numeric
 #'   cell metadata column to facet by; valid values are 
 #'   \code{names(colData(x))}. When \code{length(chs) == 1}, 
@@ -22,7 +23,7 @@
 #' @param assay character string specifying which assay data to use.
 #'   Should be one of \code{assayNames(x)}.
 #' @param label character string specifying axis labels should include
-#'   antigen, channel names, or a concatenation of both.
+#'   antigen targets, channel names, or a concatenation of both.
 #' @param zeros logical specifying whether to include 0 values.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
@@ -60,26 +61,29 @@
 
 plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
     bins = 100, assay = "exprs", 
-    label = c("antigen", "channel", "both"),
+    label = c("target", "channel", "both"),
     zeros = FALSE) {
     # check validity of input arguments
-    stopifnot(is.null(color_by) || is.character(color_by) && length(color_by == 1))
-    #args <- as.list(environment())
-    #.check_args_plotScatter(args)
-   
-    # subset features to speed up matrix transpose & 
-    x <- x[match(chs, rownames(x), nomatch = 0), ]
-    y <- assay(x, assay)[, , drop = FALSE]
+    label <- match.arg(label)
+    args <- as.list(environment())
+    .check_args_plotScatter(args)
+    
+    # subset features to speed up matrix transpose  
+    m <- rownames(x)
+    c <- channels(x)
+    i <- lapply(list(m, c), function(u) {
+        i <- match(chs, u, nomatch = 0)
+        if (all(i == 0)) NULL else i
+    }) 
+    i <- unlist(i)
+    y <- x[i, , drop = FALSE]
+    y <- assay(y, assay)
     
     # rename features for visualization to
     # include both channel name & description
-    rd <- rowData(x)
-    m <- rd$marker_name
-    c <- rd$channel_name
-    nms <- switch(match.arg(label), antigen = m, channel = c,
+    nms <- switch(label, target = m, channel = c,
         both = ifelse(c == m, c, paste(c, m, sep = "-")))
-    rename <- chs %in% rownames(x)
-    chs[rename] <- rownames(y) <- nms
+    chs[i != 0] <- rownames(y) <- nms[i]
     
     # construct data.frame of specified assay data & all cell metadata
     cd <- cbind(colData(x), int_colData(x))
@@ -91,7 +95,7 @@ plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
     
     # initialize facetting & (optionally) melt data.frame 
     if (length(chs) > 2) {
-        df <- melt(df, id.vars = c(chs[1], cd_vars))
+        df <- melt(df, id.vars = unique(c(chs[1], cd_vars)))
         facet <- "variable"
         ylab <- ylab(NULL)
         chs[2] <- "value"

@@ -11,22 +11,23 @@ plotScatter(
   facet_by = NULL,
   bins = 100,
   assay = "exprs",
-  label = c("antigen", "channel", "both"),
+  label = c("target", "channel", "both"),
   zeros = FALSE
 )
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{chs}{character string pecifying which channels to plot.
+\item{chs}{character string pecifying which channels to plot. 
 Valid values are antigens: \code{rownames(x)}, 
-channel names: \code{rowData(x)$channel_name} or 
-other channels stored in \code{names([int_]colData(x))},
+channel names: \code{channels(x)} or non-mass
+channels stored in \code{names([int_]colData(x))}, 
 and should correspond to numeric variables.}
 
-\item{color_by}{character string specifying a non-numeric
+\item{color_by}{character string specifying a 
 cell metadata column to color by; valid values are 
-\code{names(colData(x))}; or NULL to color by density.}
+\code{names(colData(x))}, \code{names(int_colData(x))}; 
+or NULL to color by density.}
 
 \item{facet_by}{character string specifying a non-numeric
 cell metadata column to facet by; valid values are 
@@ -40,7 +41,7 @@ for \code{\link[ggplot2]{geom_hex}} when coloring by density.}
 Should be one of \code{assayNames(x)}.}
 
 \item{label}{character string specifying axis labels should include
-antigen, channel names, or a concatenation of both.}
+antigen targets, channel names, or a concatenation of both.}
 
 \item{zeros}{logical specifying whether to include 0 values.}
 }
