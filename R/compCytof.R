@@ -67,11 +67,16 @@
 #' assayNames(sce)
 #' 
 #' # biscatter before vs. after compensation
+#' chs <- c("Dy162Di", "Dy163Di")
+#' m <- match(chs, channels(sce))
+#' i <- rownames(sce)[m][1]
+#' j <- rownames(sce)[m][2]
+#' 
 #' par(mfrow = c(1, 2))
-#' i <- "Dy162Di"; j <- "Dy163Di"
 #' for (a in c("exprs", "compexprs")) {
 #'   es <- assay(sce, a)
-#'   plot(es[i, ], es[j, ], main = a, xlab = i, ylab = j, cex = 0.2, pch = 19)
+#'   plot(es[i, ], es[j, ], cex = 0.2, pch = 19,
+#'        main = a, xlab = i, ylab = j)
 #' }
 #'
 #' @importFrom nnls nnls
@@ -91,7 +96,8 @@ compCytof <- function(x, sm = NULL, method = c("nnls", "flow"),
     if (is.null(cofactor))
         cofactor <- int_metadata(x)$cofactor
     
-    rownames(x) <- rowData(x)$channel_name
+    chs0 <- rownames(x)
+    rownames(x) <- channels(x)
     if (is.null(sm)) sm <- metadata(x)$spillover_matrix
     if (!is.matrix(sm)) sm <- as.matrix(sm)
     suppressMessages(sm <- adaptSpillmat(sm, rownames(x), isotope_list))
@@ -114,5 +120,6 @@ compCytof <- function(x, sm = NULL, method = c("nnls", "flow"),
         e <- ifelse(overwrite, "exprs", "compexprs")
         x <- .transform(x, cofactor, ain = c, aout = e)
     }
+    rownames(x) <- chs0
     return(x)
 }

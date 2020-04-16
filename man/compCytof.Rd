@@ -87,11 +87,16 @@ sce <- compCytof(sce, overwrite = FALSE)
 assayNames(sce)
 
 # biscatter before vs. after compensation
+chs <- c("Dy162Di", "Dy163Di")
+m <- match(chs, channels(sce))
+i <- rownames(sce)[m][1]
+j <- rownames(sce)[m][2]
+
 par(mfrow = c(1, 2))
-i <- "Dy162Di"; j <- "Dy163Di"
 for (a in c("exprs", "compexprs")) {
   es <- assay(sce, a)
-  plot(es[i, ], es[j, ], main = a, xlab = i, ylab = j, cex = 0.2, pch = 19)
+  plot(es[i, ], es[j, ], cex = 0.2, pch = 19,
+       main = a, xlab = i, ylab = j)
 }
 
 }
