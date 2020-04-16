@@ -198,7 +198,7 @@ prepData <- function(x, panel = NULL, md = NULL,
         # reorder 'flowSet' frames according to metadata table
         fs <- fs[match(md[[md_cols$file]], ids)]
     }
- 
+    
     # assure correctness of formats
     k <- c(md_cols$id, md_cols$factors)
     md <- md[, k, drop = FALSE] %>% 
