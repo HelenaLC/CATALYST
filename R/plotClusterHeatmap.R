@@ -167,7 +167,6 @@ plotClusterHeatmap <- function(x, hm2 = NULL,
             col = hm1_pal, 
             name = paste0("scaled\n"[scale], 
                 ifelse(assay == "exprs", "expression", assay)), 
-            #column_names_gp = gpar(fontsize = 8),
             rect_gp = gpar(col='white'), 
             na_col="lightgrey", 
             cluster_rows = row_clustering, 
@@ -191,7 +190,6 @@ plotClusterHeatmap <- function(x, hm2 = NULL,
                     na_col="lightgrey", 
                     rect_gp = gpar(col="white"), 
                     show_row_names = FALSE, 
-                    #column_names_gp = gpar(fontsize = 8), 
                     cluster_rows = row_clustering, 
                     cluster_columns = FALSE)
             } else if (isTRUE(hm2 == "state")) {
@@ -204,7 +202,6 @@ plotClusterHeatmap <- function(x, hm2 = NULL,
                     show_heatmap_legend = FALSE, 
                     cluster_rows = row_clustering, 
                     cluster_columns = FALSE)
-                    #column_names_gp = gpar(fontsize = 8))
             } else {
                 for (ch in hm2) {
                 # aggregated marker expression by samples & clusters
@@ -223,7 +220,6 @@ plotClusterHeatmap <- function(x, hm2 = NULL,
                     column_title = ch, 
                     show_heatmap_legend = FALSE, 
                     rect_gp = gpar(col = "white"))
-                    #column_names_gp = gpar(fontsize = 8))
                 }
             }
         }
