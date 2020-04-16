@@ -11,27 +11,16 @@ after_success:
   - R -e "covr::codecov()"
 
 r_binary_packages:
-  - BiocStyle
   - covr
-  - diffcyt
-  - flowWorkspace
-  - ggcyto
   - knitr
-  - openCyto
   - rmarkdown
-  - ComplexHeatmap
-  - ConsensusClusterPlus
   - cowplot
   - data.table
-  - dyplr
+  - dplyr
   - ggplot2
   - ggrepel
   - ggridges
-  - graphics
-  - grDevices
-  - grid
   - gridExtra
-  - limma
   - magrittr
   - Matrix
   - matrixStats
@@ -41,9 +30,4 @@ r_binary_packages:
   - RColorBrewer
   - reshape2
   - Rtsne
-  - SingleCellExperiment
-  - SummarizedExperiment
-  - S4Vectors
   - scales
-  - scater
-  - stats
