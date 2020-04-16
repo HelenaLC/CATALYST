@@ -75,7 +75,7 @@ estCutoffs <- function(x) {
     # check validity of input arguments
     args <- as.list(environment())
     .check_args_estCutoffs(args)
-    
+
     ids <- rownames(bc_key <- metadata(x)$bc_key)
     n_seps <- length(names(seps) <- seps <- seq(0, 1, 0.01))
     
@@ -107,7 +107,7 @@ estCutoffs <- function(x) {
         w <- rss_ll / (rss_ll + rss_lm)
         w * est_lm + (1 - w) * est_ll
     }, numeric(1))
-    
+
     # store estimates in metadata & return SCE
     metadata(x)$sep_cutoffs <- ests
     return(x)
