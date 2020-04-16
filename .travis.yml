@@ -24,7 +24,6 @@ r_binary_packages:
   - magrittr
   - Matrix
   - matrixStats
-  - methods
   - nnls
   - purrr
   - RColorBrewer
