@@ -1,10 +1,37 @@
 suppressPackageStartupMessages({
+    library(diffcyt)
     library(flowCore)
     library(SingleCellExperiment)
 })
 
 x <- .toySCE()
 es <- assay(x, "exprs")
+
+test_that(".get_features()", {
+    expect_error(.get_features(x, "x"))
+    expect_error(.get_features(x, c("x", rownames(x))))
+    expect_identical(.get_features(x, NULL), rownames(x))
+    valid <- c("type", "state", "none")
+    classes <- sample(valid, nrow(x), TRUE)
+    rowData(x)$marker_class <- classes
+    for (c in valid) 
+        expect_equivalent(
+            .get_features(x, c), 
+            rownames(x)[classes == c])
+    c <- sample(valid, 1)
+    rowData(x)$marker_class <- c
+    expect_error(.get_features(x, setdiff(valid, c)))
+})
+
+test_that(".get_shapes()", {
+    for (cd_var in names(colData(x))) {
+        shapes <- .get_shapes(x, cd_var)
+        expect_true(length(shapes) == nlevels(x[[cd_var]]))
+    }
+    y <- x; y$foo <- factor(seq_len(100))
+    expect_message(shapes <- .get_shapes(y, "foo"))
+    expect_true(is.null(shapes))
+})
 
 test_that(".check_colors()", {  
     expect_error(.check_colors("blue")) 
@@ -85,6 +112,44 @@ test_that(".agg() by 2 factors", {
                 j <- x[[by[1]]] == a & x[[by[2]]] == b
                 expect_equal(pb[[a]][i, b], get(fun)(es[i, j]))
             })
+        }
+    }
+})
+
+.diffcyt <- function(type = c("DA", "DS"), n = 20, m = 10, ns = 4) {
+    data(PBMC_fs, PBMC_panel, PBMC_md)
+    x <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
+    
+    ps <- sample(levels(x$patient_id), 2)
+    x <- filterSCE(x, patient_id != ps)
+    
+    design <- createDesignMatrix(ei(x), cols_design = 2)
+    contrast <- createContrast(c(0, 1))
+    
+    kids <- sample(c("a", "b"), ncol(x), TRUE)
+    x$cluster_id <- factor(kids)
+    metadata(x)$cluster_codes <- "foo"
+    
+    l <- switch(type, 
+        DA = diffcyt(x, 
+            design = design, contrast = contrast, verbose = FALSE,
+            analysis_type = "DA", method_DA = "diffcyt-DA-edgeR"),
+        DS = diffcyt(x, 
+            design = design, contrast = contrast, verbose = FALSE,
+            analysis_type = "DS", method_DS = "diffcyt-DS-limma"))
+    
+    return(rowData(l$res))
+}
+
+test_that("get_dt_type()", {
+    for (type in c("DA", "DS")) {
+        x <- .diffcyt(type)
+        expect_identical(.get_dt_type(x), type)
+        y <- x; colnames(y)[1] <- "x"
+        expect_error(.get_dt_type(y))
+        if (type == "DS") {
+            y <- x; y <- y[-1, ]
+            expect_error(.get_dt_type(y))
         }
     }
 })

@@ -162,6 +162,28 @@ test_that("plotAbundances()", {
     }
 })
 
+test_that("plotAbundances() - filtering", {
+    # exclude random subset of clusters
+    k <- sample(names(codes)[-1], 1)
+    kids <- levels(cluster_ids(x, k))
+    ns <- sample(length(kids), 3)
+    for (ks in lapply(ns, sample, x = kids)) {
+        y <- filterSCE(x, !cluster_id %in% ks, k = k)
+        p <- plotAbundances(y, k, by = "sample_id")
+        expect_is(p, "ggplot")
+        expect_true(setequal(p$data$cluster_id, setdiff(kids, ks)))
+    }
+    # exclude random subset of samples
+    sids <- levels(x$sample_id)
+    ns <- sample(length(sids)-1, 3)
+    for (ss in lapply(ns, sample, x = sids)) {
+        y <- filterSCE(x, !sample_id %in% ss, k = k)
+        p <- plotAbundances(y, k, by = "sample_id")
+        expect_is(p, "ggplot")
+        expect_identical(levels(p$data$sample_id), setdiff(sids, ss))
+    }
+})
+
 test_that("plotCodes()", {
     kids <- cluster_ids(x, k <- sample(names(codes), 1))
     expect_is(p <- plotCodes(x, k), "ggplot")

@@ -90,3 +90,23 @@ test_that("plotClusterHeatmap() - split by patient ID", {
     expect_true(all(sapply(p, is, "Heatmap")))
     expect_identical(length(p), nlevels(x$patient_id))
 })
+
+test_that("plotClusterHeatmap() - filtering", {
+    y <- mergeClusters(x, k <- "meta20", merging_table, m <- "mm")
+    kids <- levels(cluster_ids(x, k))
+    for (rmv in lapply(seq_len(3), sample, x = kids)) {
+        fil <- filterSCE(y, !cluster_id %in% rmv, k = m)
+        p <- plotClusterHeatmap(fil, k = k, m = m)
+        expect_is(p, "Heatmap")
+        anno <- p@left_annotation@anno_list
+        expect_identical(
+            rownames(p@matrix), 
+            levels(cluster_ids(fil, k)))
+        expect_identical(
+            anno$cluster_id@color_mapping@levels,
+            levels(cluster_ids(fil, k)))
+        expect_equivalent(
+            sort(anno$merging_id@color_mapping@levels),
+            levels(cluster_ids(fil, m)))
+    }
+})
