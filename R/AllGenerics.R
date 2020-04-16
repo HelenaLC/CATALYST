@@ -7,6 +7,10 @@ setGeneric("n_cells",
     function(x) standardGeneric("n_cells"))
 
 #' @export
+setGeneric("channels", 
+    function(x) standardGeneric("channels"))
+
+#' @export
 setGeneric("marker_classes", 
     function(x) standardGeneric("marker_classes"))
 

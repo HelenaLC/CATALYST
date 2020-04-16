@@ -3,8 +3,8 @@
 #' @title \code{\link{SingleCellExperiment}} accessors
 #' 
 #' @aliases 
-#' marker_classes type_markers state_markers ei n_cells 
-#' sample_ids cluster_ids cluster_codes delta_area
+#' channels marker_classes type_markers state_markers 
+#' ei n_cells sample_ids cluster_ids cluster_codes delta_area
 #' 
 #' @description 
 #' Various wrappers to conviniently access slots
@@ -18,6 +18,8 @@
 #' extracts the experimental design table.}
 #' \item{\code{n_cells}}{
 #' extracts the number of events measured per sample.}
+#' \item{\code{channels}}{
+#' extracts the original FCS file's channel names.}
 #' \item{\code{marker_classes}}{
 #' extracts marker class assignments ("type", "state", "none").}
 #' \item{\code{type_markers}}{
@@ -61,6 +63,7 @@
 #' table(cluster_ids(sce, k = "meta8"))
 #' 
 #' # access marker information
+#' channels(sce)
 #' marker_classes(sce)
 #' type_markers(sce)
 #' state_markers(sce)
@@ -91,6 +94,16 @@ setMethod("n_cells", "SingleCellExperiment",
     })
 
 #' @rdname SCE-accessors
+#' @importFrom SummarizedExperiment rowData
+setMethod("channels", "SingleCellExperiment",
+    function(x) {
+        chs <- rowData(x)$channel_name
+        if (is.null(chs)) return(NULL)
+        names(chs) <- rownames(x); chs
+    })
+
+#' @rdname SCE-accessors
+#' @importFrom SummarizedExperiment rowData
 setMethod("marker_classes", "SingleCellExperiment",
     function(x) {
         mcs <- rowData(x)$marker_class
@@ -99,6 +112,7 @@ setMethod("marker_classes", "SingleCellExperiment",
     })
 
 #' @rdname SCE-accessors
+#' @importFrom SummarizedExperiment rowData
 setMethod("type_markers", "SingleCellExperiment",
     function(x) {
         mcs <- rowData(x)$marker_class
@@ -107,6 +121,7 @@ setMethod("type_markers", "SingleCellExperiment",
     })
 
 #' @rdname SCE-accessors
+#' @importFrom SummarizedExperiment rowData
 setMethod("state_markers", "SingleCellExperiment",
     function(x) {
         mcs <- rowData(x)$marker_class
@@ -122,10 +137,6 @@ setMethod("sample_ids", "SingleCellExperiment",
 setMethod("cluster_ids", 
     c("SingleCellExperiment", "missing"),
     function(x, k = NULL) {
-        # stopifnot(!is.null(cluster_codes(x)), !is.null(x$cluster_id))
-        # if (is.null(k)) return(x$cluster_id)
-        # i <- as.numeric(as.character(x$cluster_id))
-        # droplevels(cluster_codes(x)[i, k])
         stopifnot(!is.null(x$cluster_id))
         return(x$cluster_id)
     })
@@ -141,9 +152,11 @@ setMethod("cluster_ids",
     })
 
 #' @rdname SCE-accessors
+#' @importFrom S4Vectors metadata
 setMethod("cluster_codes", "SingleCellExperiment", 
     function(x) metadata(x)$cluster_codes)
 
 #' @rdname SCE-accessors
+#' @importFrom S4Vectors metadata
 setMethod("delta_area", "SingleCellExperiment",
     function(x) metadata(x)$delta_area)
