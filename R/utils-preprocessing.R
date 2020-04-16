@@ -40,7 +40,7 @@
     ain = "counts", aout = "exprs",
     dir = c("forwards", "backwards")) {
     dir <- match.arg(dir)
-    chs <- rowData(x)$channel_name
+    chs <- channels(x)
     stopifnot(is.numeric(cf), cf > 0)
     if (length(cf) == 1) {
         int_metadata(x)$cofactor <- cf
