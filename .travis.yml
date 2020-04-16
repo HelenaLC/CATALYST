@@ -6,18 +6,13 @@ r: bioc-devel
 bioc_check: true
 env:
   - _R_CHECK_LENGTH_1_LOGIC2_=true _R_CHECK_LENGTH_1_CONDITION=true
-
-install:
-  - Rscript -e "if (!require('devtools')) install.packages('devtools')"
-  - Rscript -e "devtools::install_github('JinmiaoChenLab/Rphenograph')"
-  - Rscript -e "devtools::install_github('jimhester/covr')"
-  - Rscript -e "devtools::install_deps(dep = TRUE)"
-
+  
 after_success:
   - R -e "covr::codecov()"
 
 r_binary_packages:
   - BiocStyle
+  - covr
   - diffcyt
   - flowWorkspace
   - ggcyto
@@ -36,14 +31,12 @@ r_binary_packages:
   - grDevices
   - grid
   - gridExtra
-  - htmltools
   - limma
   - magrittr
   - Matrix
   - matrixStats
   - methods
   - nnls
-  - plotly
   - purrr
   - RColorBrewer
   - reshape2
