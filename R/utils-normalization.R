@@ -44,7 +44,7 @@
     p$layers[[1]]$aes_params$size <- 0.1
     # get bead intensity boundaries
     y <- t(assay(x, assay))[x$is_bead, ]
-    colnames(y) <- rowData(x)$channel_name
+    colnames(y) <- channels(x)
     gate <- data.frame(
         variable = factor(bead_chs),
         xmin = min(y[, dna_chs[1]]),
