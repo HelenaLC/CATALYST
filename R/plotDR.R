@@ -71,7 +71,7 @@ plotDR <- function(x, dr = NULL,
         length(reducedDims(x)) != 0,
         is.logical(scale), length(scale) == 1)
     .check_cd_factor(x, facet_by)
-   
+    
     if (!all(color_by %in% rownames(x))) {
         stopifnot(length(color_by) == 1)
         if (color_by %in% names(colData(x))) {
