@@ -91,20 +91,27 @@
 # plotting ---------------------------------------------------------------------
 
 #' @importFrom methods is
+#' @importFrom SummarizedExperiment colData rowData
+#' @importFrom SingleCellExperiment int_colData
 .check_args_plotScatter <- function(u) {
+    stopifnot(is(u$x, "SingleCellExperiment"))
+    cd_vars <- c(names(colData(u$x)), names(int_colData(u$x)))
+    rd_vars <- unlist(rowData(u$x)[c("channel_name", "marker_name")])
     stopifnot(
-        is(u$x, "SingleCellExperiment"),
-        .check_assay(u$x, u$assay),
-        is.null(u$chs) && !is.null(u$gate_id) || (
-            is.character(u$chs) && all(u$chs %in% c(rownames(u$x),
-                c(names(colData(u$x)), names(int_colData(u$x)))))
-        ),
-        is.null(u$gate_id) || (
-            is.character(u$gate_id) && length(u$gate_id) == 1 
-            && !is.null(int_metadata(u$x)$gates[[u$gate_id]])
-        ),
-        is.logical(u$show_gate), length(u$show_gate) == 1,
-        is.logical(u$show_perc), length(u$show_perc) == 1)
+        .check_assay(u$x, u$assay), 
+        length(u$facet_by) <= 2,
+        is.character(u$chs), 
+        length(u$chs) >= 2, 
+        u$chs %in% c(cd_vars, rd_vars),
+        is.logical(u$zeros), 
+        length(u$zeros) == 1)
+    for (i in seq_along(u$facet_by))
+        .check_cd_factor(u$x, u$facet_by[i])
+    if (!is.null(u$color_by)) 
+        stopifnot(
+            is.character(u$color_by), 
+            length(u$color_by) == 1, 
+            u$color_by %in% cd_vars)
 }
 
 # ==============================================================================
@@ -201,10 +208,11 @@
 #' @importFrom SummarizedExperiment colData
 .check_cd_factor <- function(x, y) {
     if (is.null(y))
-        return(NULL)
+        return(TRUE)
     stopifnot(
         is.character(y), length(y) == 1, 
         !is.null(x[[y]]), !is.numeric(x[[y]]))
+    return(TRUE)
 }
 
 # plotting ---------------------------------------------------------------------
@@ -212,7 +220,7 @@
 #' @importFrom grDevices col2rgb
 .check_colors <- function(x, n = 2) {
     if (is.null(x)) 
-        return(NULL)
+        return(TRUE)
     stopifnot(
         length(x) >= n,
         is.character(x))
@@ -222,21 +230,18 @@
         arg_nm <- deparse(substitute(x))
         stop(sprintf("'%s' is invalid.", arg_nm))
     }
+    return(TRUE)
 }
 
 .check_args_plotClusterHeatmap <- function(u) {
     .check_sce(u$x, TRUE)
     .check_k(u$x, u$k)
     .check_k(u$x, u$m)
-    match.arg(u$fun, eval(formals(
-        "plotClusterHeatmap")$fun))
-    .check_cd_factor(u$x, u$split_by)
-    .check_colors(u$k_pal)
-    .check_colors(u$m_pal)
-    .check_colors(u$hm1_pal)
-    .check_colors(u$hm2_pal)
-    .check_assay(u$x, u$assay)
     stopifnot(
+        .check_assay(u$x, u$assay),
+        .check_cd_factor(u$x, u$split_by),
+        .check_colors(u$k_pal), .check_colors(u$m_pal),
+        .check_colors(u$hm1_pal), .check_colors(u$hm2_pal),
         is.logical(u$scale), length(u$scale) == 1,
         is.logical(u$row_anno), length(u$row_anno) == 1,
         is.logical(u$row_dend), length(u$row_dend) == 1,
@@ -250,10 +255,8 @@
 
 .check_args_plotDiffHeatmap <- function(u) {
     .check_sce(u$x)
-    .check_colors(u$hm1_pal)
-    .check_colors(u$hm2_pal)
-    match.arg(u$fun, eval(formals("plotDiffHeatmap")$fun))
     stopifnot(
+        .check_colors(u$hm1_pal), .check_colors(u$hm2_pal),
         is.numeric(u$top_n), length(u$top_n) == 1, u$top_n > 1,
         is.logical(u$order), length(u$order) == 1,
         is.numeric(u$th), length(u$th) == 1, 
