@@ -29,7 +29,7 @@ test_that("n_cells()", {
     x <- x[, cs]
     ns <- n_cells(x)
     expect_true(sum(ns) == sum(cs))
-    expect_identical(names(ns), sort(sids))
+    expect_true(setequal(names(ns), sids))
     x$sample_id <- NULL
     expect_silent(ns <- n_cells(x))
     expect_true(is.null(ns))

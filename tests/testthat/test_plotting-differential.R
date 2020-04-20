@@ -120,21 +120,6 @@ test_that("plotMedExprs()", {
     expect_equivalent(levels(p$data$antigen), state_markers(x))
 })
 
-test_that("plotExprHeatmap()", {
-    # with 0-1 scaling
-    expect_is(p <- plotExprHeatmap(x, scale = TRUE), "Heatmap")
-    expect_is(m <- p@matrix, "matrix")
-    expect_gte(min(m), 0); expect_lte(max(m), 1)
-    # without scaling & all row annotations
-    p <- plotExprHeatmap(x, scale = FALSE, draw_freqs = TRUE)
-    expect_is(p, "Heatmap")
-    expect_is(m <- p@matrix, "matrix")
-    df <- data.frame(t(es), sample_id = x$sample_id)
-    ms <- group_map(group_by(df, sample_id), ~colMedians(as.matrix(.x)))
-    ms <- do.call(rbind, ms)
-    expect_identical(c(m), c(ms))
-})
-
 test_that("plotClusterExprs()", {
     expect_error(plotClusterExprs(x0))
     expect_error(plotClusterExprs(x, k = "x"))

@@ -33,11 +33,11 @@ test_that(".get_shapes()", {
     expect_true(is.null(shapes))
 })
 
-test_that(".check_colors()", {  
-    expect_error(.check_colors("blue")) 
-    expect_error(.check_colors(letters))
-    expect_silent(.check_colors(colors()))
-    expect_error(.check_colors(c("x", colors())))
+test_that(".check_pal()", {  
+    expect_error(.check_pal("blue")) 
+    expect_error(.check_pal(letters))
+    expect_silent(.check_pal(colors()))
+    expect_error(.check_pal(c("x", colors())))
 })
 
 test_that("guessPanel()", {
