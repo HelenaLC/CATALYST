@@ -206,19 +206,22 @@
 #' @importFrom methods is
 #' @importFrom S4Vectors metadata
 #' @importFrom SummarizedExperiment colData
-.check_cd_factor <- function(x, y) {
+.check_cd_factor <- function(x, y, n = 1) {
     if (is.null(y))
         return(TRUE)
+    if (!is.null(n))
+        stopifnot(length(y) == n)
     stopifnot(
-        is.character(y), length(y) == 1, 
-        !is.null(x[[y]]), !is.numeric(x[[y]]))
+        is.character(y), 
+        all(y %in% names(colData(x))),
+        !vapply(colData(x)[y], is.numeric, logical(1)))
     return(TRUE)
 }
 
 # plotting ---------------------------------------------------------------------
 
 #' @importFrom grDevices col2rgb
-.check_colors <- function(x, n = 2) {
+.check_pal <- function(x, n = 2) {
     if (is.null(x)) 
         return(TRUE)
     stopifnot(
@@ -233,35 +236,68 @@
     return(TRUE)
 }
 
-.check_args_plotClusterHeatmap <- function(u) {
+#' @importFrom SummarizedExperiment colData
+.check_args_plotExprHeatmap <- function(u) {
+    if (u$by[1] == "sample_id") {
+        .check_sce(u$x, FALSE)
+        stopifnot(
+            is.logical(u$row_anno) && length(u$row_anno) == 1
+            || .check_cd_factor(u$x, u$row_anno, NULL)) 
+    } else {
+        .check_sce(u$x, TRUE)
+        .check_k(u$x, u$k)
+        .check_k(u$x, u$m)
+        .check_pal(u$k_pal)
+        .check_pal(u$m_pal)
+        stopifnot(
+            is.logical(u$col_anno) && length(u$col_anno) == 1
+            || .check_cd_factor(u$x, u$col_anno, NULL))
+    }
+    if (isTRUE(u$by == "both"))
+        stopifnot(length(.get_features(u$x, u$features)) == 1)
+    .check_pal(u$hm_pal)
+    .check_assay(u$x, u$assay)
+    stopifnot(
+        is.numeric(u$q), length(u$q) == 1, u$q >= 0, u$q < 0.5,
+        is.logical(u$row_dend), length(u$row_dend) == 1,
+        is.logical(u$col_dend), length(u$col_dend) == 1,
+        is.logical(u$row_clust), length(u$row_clust) == 1,
+        is.logical(u$col_clust), length(u$col_clust) == 1,
+        is.logical(u$bin_anno), length(u$bin_anno) == 1,
+        is.logical(u$bars), length(u$bars) == 1,
+        is.logical(u$perc), length(u$perc) == 1)
+}
+
+#' @importFrom SummarizedExperiment colData
+.check_args_plotFreqHeatmap <- function(u) {
     .check_sce(u$x, TRUE)
     .check_k(u$x, u$k)
     .check_k(u$x, u$m)
+    .check_pal(u$hm_pal)
+    .check_pal(u$k_pal)
+    .check_pal(u$m_pal)
     stopifnot(
-        .check_assay(u$x, u$assay),
-        .check_cd_factor(u$x, u$split_by),
-        .check_colors(u$k_pal), .check_colors(u$m_pal),
-        .check_colors(u$hm1_pal), .check_colors(u$hm2_pal),
-        is.logical(u$scale), length(u$scale) == 1,
-        is.logical(u$row_anno), length(u$row_anno) == 1,
+        is.logical(u$normalize), length(u$normalize) == 1,
+        is.logical(u$row_clust), length(u$row_clust) == 1,
+        is.logical(u$col_clust), length(u$col_clust) == 1,
         is.logical(u$row_dend), length(u$row_dend) == 1,
         is.logical(u$col_dend), length(u$col_dend) == 1,
-        is.logical(u$draw_freqs), length(u$draw_freqs) == 1)
-    if (!is.null(u$hm2))
-        stopifnot(
-            is.character(u$hm2), all(u$hm2 %in% rownames(u$x)) 
-            || length(u$hm2) == 1 && u$hm2 %in% c("abundances", "state"))
+        is.logical(u$bars), length(u$bars) == 1,
+        is.logical(u$perc), length(u$perc) == 1,
+        is.logical(u$col_anno) && length(u$col_anno) == 1 
+        || .check_cd_factor(u$x, u$col_anno, NULL))
 }
 
+#' @importFrom SummarizedExperiment colData
 .check_args_plotDiffHeatmap <- function(u) {
-    .check_sce(u$x)
+    .check_sce(u$x, TRUE)
+    .check_pal(u$hm_pal)
     stopifnot(
-        .check_colors(u$hm1_pal), .check_colors(u$hm2_pal),
         is.numeric(u$top_n), length(u$top_n) == 1, u$top_n > 1,
         is.logical(u$order), length(u$order) == 1,
         is.numeric(u$th), length(u$th) == 1, 
-        is.logical(u$hm1), length(u$hm1) == 1,
         is.logical(u$normalize), length(u$normalize) == 1,
         is.logical(u$row_anno), length(u$row_anno) == 1,
-        is.logical(u$col_anno), length(u$col_anno) == 1)
+        is.logical(u$col_anno) && length(u$col_anno) == 1
+        || .check_cd_factor(u$x, u$col_anno, NULL))
 }
