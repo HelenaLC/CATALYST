@@ -36,8 +36,8 @@ An exemplary metadata table could look as follows: \itemize{
 \item\code{condition}: brief sample description 
   (e.g. reference/stimulated, healthy/diseased)}
 If `md` is unspecified, the \code{flowFrame/Set} 
-\code{\link[flowCore]{identifier}}(s) will be used
-as sample IDs with no additional metadata factors.}
+\code{\link[flowCore:identifier-methods]{identifier}}(s) 
+will be used as sample IDs with no additional metadata factors.}
 
 \item{features}{a logical vector, numeric vector of column indices,
 or character vector of channel names. Specified which column to keep 
@@ -51,14 +51,15 @@ cofactor cofactor should be performed, in which case expression values
 arcsinh-transformation when \code{transform = TRUE};
 single value or a vector with channels as names.}
 
-\item{panel_cols}{a names list specifying the column names of \code{panel}
-that contain the channel names, targeted protein markers, and (optionally) 
-marker classes. When only some `panel_cols` deviate from the defaults,
+\item{panel_cols}{a names list specifying 
+the \code{panel} column names that contain channel names, 
+targeted protein markers, and (optionally) marker classes. 
+When only some \code{panel_cols} deviate from the defaults,
 specifying only these is sufficient.}
 
 \item{md_cols}{a named list specifying the column names of \code{md}
 that contain the FCS file names, sample IDs, and factors of interest
-(batch, condition, treatment etc.). When only some `md_cols` deviate 
+(batch, condition, treatment etc.). When only some \code{md_cols} deviate 
 from the defaults, specifying only these is sufficient.}
 
 \item{by_time}{logical; should samples be ordered by acquisition time? 

@@ -12,8 +12,8 @@ plotCodes(x, k = "meta20", k_pal = CATALYST:::.cluster_cols)
 \item{k}{character string. Specifies the clustering to use for color coding.}
 
 \item{k_pal}{character string specifying the cluster color palette;
-If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors 
-will be interpolated via \code{\link[grDevices]{colorRampPalette}}.}
+If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
+be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.}
 }
 \value{
 a \code{ggplot} object.

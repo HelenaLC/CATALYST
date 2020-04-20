@@ -33,8 +33,9 @@ cell metadata columnd to shape by; valid values are
 
 \item{k_pal}{character string specifying the cluster 
 color palette; ignored when \code{by = "cluster_id"}. 
-If less than \code{nlevels(cluster_ids(x, k))} are supplied, 
-colors will be interpolated via \code{\link[grDevices]{colorRampPalette}}.}
+If less than \code{nlevels(cluster_ids(x, k))} 
+are supplied, colors will be interpolated via 
+\code{\link[grDevices:colorRamp]{colorRampPalette}}.}
 }
 \value{
 a \code{ggplot} object.

@@ -10,7 +10,8 @@ plotDR(
   color_by = "condition",
   facet_by = NULL,
   k_pal = CATALYST:::.cluster_cols,
-  scale = TRUE
+  scale = TRUE,
+  q = 0.01
 )
 }
 \arguments{
@@ -28,12 +29,15 @@ valid values are \code{names(colData(x))}.}
 
 \item{k_pal}{character string specifying the cluster color palette; 
 ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
-If less than \code{nlevels(cluster_ids(x, k))} are supplied, 
-colors will be interpolated via \code{\link[grDevices]{colorRampPalette}}.}
+If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
+be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.}
 
 \item{scale}{logical specifying whether expression should be scaled
 between 0 and 1 using lower (1\%) and upper (99\%) expression quantiles;
 ignored if \code{!all(color_by \%in\% rownames(x))}.}
+
+\item{q}{single numeric in [0,0.5) determining the 
+quantiles to trim when \code{scale = TRUE}.}
 }
 \value{
 a \code{ggplot} object.

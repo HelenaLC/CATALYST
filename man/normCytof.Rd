@@ -37,8 +37,8 @@ low signal beads prior to estimating normalization factors.}
 \item{remove_beads}{logical. If TRUE, bead events will be removed from
 the input \code{SingleCellExperiment} and returned as a separate object?}
 
-\item{norm_to}{a \code{\link[flowCore]{flowFrame}} or path to
-an FCS file from which to compute baseline bead intensities,
+\item{norm_to}{a \code{\link[flowCore:flowFrame-class]{flowFrame}} or character string
+specifying an FCS file from which to compute baseline bead intensities,
 and to which the input data should be normalized to.}
 
 \item{assays}{lnegth 2 character string specifying 

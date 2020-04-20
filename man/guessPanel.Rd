@@ -7,7 +7,7 @@
 guessPanel(x, sep = "_")
 }
 \arguments{
-\item{x}{a \code{\link[flowCore]{flowFrame}}.}
+\item{x}{a \code{\link[flowCore:flowFrame-class]{flowFrame}}.}
 
 \item{sep}{character string specifying how channel descriptions 
 should be parsed. E.g., if \code{pData(x)$desc} contains both 

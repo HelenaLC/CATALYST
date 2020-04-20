@@ -7,15 +7,25 @@
 plotExprHeatmap(
   x,
   features = NULL,
-  scale = TRUE,
+  by = c("sample_id", "cluster_id", "both"),
+  k = "meta20",
+  m = NULL,
+  assay = "exprs",
+  fun = c("median", "mean", "sum"),
+  scale = c("first", "last", "never"),
+  q = 0.01,
   row_anno = TRUE,
+  col_anno = TRUE,
   row_clust = TRUE,
   col_clust = TRUE,
   row_dend = TRUE,
   col_dend = TRUE,
-  draw_freqs = FALSE,
+  bars = FALSE,
+  perc = FALSE,
   bin_anno = FALSE,
-  hm_pal = brewer.pal(9, "YlGnBu"),
+  hm_pal = rev(brewer.pal(11, "RdYlBu")),
+  k_pal = CATALYST:::.cluster_cols,
+  m_pal = k_pal,
   distance = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"),
   linkage = c("average", "ward.D", "single", "complete", "mcquitty", "median",
     "centroid", "ward.D2")
@@ -27,30 +37,60 @@ plotExprHeatmap(
 \item{features}{character string specifying which features to include;
 valid values are \code{"type"/"state"} for \code{type/state_markers(x)} 
 if \code{rowData(x)$marker_class} have been specified; 
-a subset of \code{rownames(x)}; NULL to use all features.}
+a subset of \code{rownames(x)}; NULL to use all features.
+When \code{by = "both"}, only 1 feature is allowed.}
 
-\item{scale}{logical specifying whether expressions should be scaled
-using lower (1\%) and upper (99\%) quantiles as boundaries;
-hierarchical clustering is performed on unscaled data, 
-regardless of whether \code{scale = TRUE} or \code{FALSE}.}
+\item{by}{character string specifying 
+whether to aggregate by sample, cluster, both.}
 
-\item{row_anno}{logical. Should row annotations for 
-each non-numeric cell metadata factor be included?}
+\item{k}{character string specifying which 
+clustering to use when \code{by != "sample_id"};
+\code{assay} data will be aggregated across these cluster IDs.}
 
-\item{row_clust, col_clust}{logical specifying 
-whether rows/columns (samples/features) should be 
-hierarchically clustered and re-ordered accordingly.}
+\item{m}{character string specifying a metaclustering to include as an 
+annotation when \code{by != "sample_id"} and \code{row_anno = TRUE}.}
 
-\item{row_dend, col_dend}{logical specifying whether to include the
-row/column dendrogram for the hierarchical clustering of samples/markers.}
+\item{assay}{character string specifying which assay 
+data to use; valid values are \code{assayNames(x)}.}
 
-\item{draw_freqs}{logical specifying whether to display
-a barplot of cell counts labeled with proportions 
-for each sample as a right-hand side row annotation.}
+\item{fun}{character string specifying 
+the function to use as summary statistic.}
 
-\item{bin_anno}{logical. Specifies whether to display values inside bins.}
+\item{scale}{character string specifying the scaling strategy:
+\itemize{
+  \item{\code{"first"}: scale & trim then aggregate}
+  \item{\code{"last"}: aggregate then scale & trim}
+  \item{\code{"never"}: aggregate only}
+} If \code{scale != "never"}, data will be scaled using lower 
+  (\code{q}\%) and upper (\code{1-q}\%) quantiles as boundaries;
+  hierarchical clustering is performed on unscaled data regardless!}
+
+\item{q}{single numeric in [0,0.5) determining the 
+quantiles to trim when \code{scale != "never"}.}
+
+\item{row_anno, col_anno}{logical specifying whether to include row/column 
+annotations (see details); when one axis corresponds to samples 
+(\code{by != "cluster_id"}), this can be a character vector specifying 
+a subset of \code{names(colData(x))} to be included as annotations.}
+
+\item{row_clust, col_clust}{logical specifying whether rows/columns 
+should be hierarchically clustered and re-ordered accordingly.}
+
+\item{row_dend, col_dend}{logical specifying 
+whether to include the row/column dendrograms.}
+
+\item{bars}{logical specifying whether to include a barplot 
+of cell counts per cluster as a right-hand side row annotation.}
+
+\item{perc}{logical specifying whether to display 
+percentage labels next to bars when \code{bars = TRUE}.}
+
+\item{bin_anno}{logical specifying whether to display values inside bins.}
 
 \item{hm_pal}{character vector of colors to interpolate for the heatmap.}
+
+\item{k_pal, m_pal}{character vector of colors to interpolate 
+for cluster annotations when \code{by != "sample_id"}.}
 
 \item{distance}{character string specifying the distance metric 
 to use in \code{\link[stats]{dist}} for hierarchical clustering.}
@@ -62,23 +102,60 @@ to use in \code{\link[stats]{hclust}} for hierarchical clustering.}
 a \code{\link[ComplexHeatmap]{Heatmap-class}} object.
 }
 \description{
-Heatmap of median marker expressions by sample, include annotation 
-of cell metadata factors as well as relative and absolute cell counts.
+Heatmap of marker expressions aggregated by sample, cluster, or both;
+with options to include annotation of cell metadata factors, clustering(s),
+as well as relative and absolute cell counts.
+}
+\details{
+By default (\code{row/col_anno = TRUE}), for axes corresponding to samples 
+  (y-axis for \code{by = "sample_id"} and x-axis for \code{by = "both"}), 
+  annotations will be drawn for all non-numeric cell metadata variables.
+  Alternatively, a specific subset of annotations can be included
+  for only a subset of variables by specifying \code{row/col_anno} 
+  to be a character vector in \code{names(colData(x))} (see examples).  
+  
+  For axes corresponding to clusters (y-axis for \code{by = "cluster_id"} 
+  and \code{"both"}), annotations will be drawn for the specified 
+  clustering(s) (arguments \code{k} and \code{m}).
 }
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
+sce <- cluster(sce) 
 
-# turn everything on
+# median scaled & trimmed expression by cluster
 plotExprHeatmap(sce, 
-  bin_anno = TRUE,
-  draw_freqs = TRUE)
-  
-# turn everything off
+  by = "cluster_id", k = "meta8",
+  scale = "first", q = 0.05, bars = FALSE)
+
+# scale each marker between 0 and 1 
+# after aggregation (without trimming)
+plotExprHeatmap(sce, 
+  scale = "last", q = 0,
+  bars = TRUE, perc = TRUE,
+  hm_pal = hcl.colors(10, "YlGnBu", rev = TRUE))
+
+# raw (un-scaled) median expression by cluster-sample
 plotExprHeatmap(sce,
-  row_anno = FALSE,
-  row_dend = FALSE,
-  col_dend = FALSE)
+  features = "pp38", by = "both", k = "meta10", 
+  scale = "never", row_anno = FALSE, bars = FALSE)
+  
+# include only subset of samples
+sub <- filterSCE(sce, 
+  patient_id != "Patient",
+  sample_id != "Ref3")
+ 
+# includes specific annotations &
+# split into CDx & all other markers
+is_cd <- grepl("CD", rownames(sce))
+plotExprHeatmap(sub, 
+  rownames(sce)[is_cd], 
+  row_anno = "condition", 
+  bars = FALSE)
+plotExprHeatmap(sub, 
+  rownames(sce)[!is_cd], 
+  row_anno = "patient_id",
+  bars = FALSE)
 
 }
 \references{
@@ -86,6 +163,11 @@ Nowicka M, Krieg C, Crowell HL, Weber LM et al.
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
+}
+\seealso{
+\code{\link{plotMedExprs}}, 
+\code{\link{plotFreqHeatmap}}, 
+\code{\link{plotClusterHeatmap}}
 }
 \author{
 Helena L Crowell \email{helena.crowell@uzh.ch}

@@ -11,14 +11,13 @@ plotDiffHeatmap(
   all = FALSE,
   order = TRUE,
   th = 0.1,
-  hm1 = TRUE,
-  fun = c("median", "mean"),
+  assay = "exprs",
+  fun = c("median", "mean", "sum"),
   scale = TRUE,
   normalize = TRUE,
-  row_anno = TRUE,
   col_anno = TRUE,
-  hm1_pal = rev(brewer.pal(11, "RdBu")),
-  hm2_pal = rev(brewer.pal(11, "PuOr"))
+  row_anno = TRUE,
+  hm_pal = rev(brewer.pal(9, ifelse(is.null(assayNames(y$res)), "RdYlBu", "PuOr")))
 )
 }
 \arguments{
@@ -41,8 +40,6 @@ should be displayed. If \code{TRUE}, \code{top_n} will be ignored.}
 \item{th}{numeric. Threshold on adjusted p-values below which clusters (DA) 
 or cluster-marker combinations (DS) should be considered significant.}
 
-\item{hm1}{logical. Specifies whether the left-hand side heatmap should be plotted.}
-
 \item{fun}{character string specifying the function to use 
 as summary statistic for aggregation of expression values.}
 
@@ -54,12 +51,16 @@ in the right-hand side heatmap. If \code{y} contains DA analysis results,
 relative population abundances will be arcsine-square-root scaled 
 prior to normalization.}
 
-\item{row_anno}{logical. Should a row annotation indicating whether cluster (DA) 
-or cluster-marker combinations (DS) are significant, 
-as well as adjusted p-values be included?}
+\item{col_anno}{logical specifying whether to include column annotations 
+for all non-numeric cell metadata variables; or a character vector 
+in \code{names(colData(x))} to include only a subset of annotations.
+(Only variables that map uniquely to each sample will be included)}
 
-\item{col_anno}{logical. Should column annotations for each factor 
-in \code{metadata(x)} be included?}
+\item{row_anno}{logical specifying whether to invlude a row annotation 
+indicating whether cluster (DA) or cluster-marker combinations (DS) 
+are significant, labeled with adjusted p-values.}
+
+\item{hm1}{logical. Specifies whether the left-hand side heatmap should be plotted.}
 
 \item{hm1_pal, hm2_pal}{character vector of 
 colors to interpolate for each heatmap(s).}
@@ -117,13 +118,18 @@ ds <- diffcyt(sce, design = design, contrast = contrast,
     
 # display test results for
 # - top DA clusters
-# - top DS cluster-marker combintations
+# - top DS cluster-marker combinations
 plotDiffHeatmap(sce, da)
 plotDiffHeatmap(sce, ds)
 
 # visualize results for subset of clusters
 sub <- filterSCE(sce, k = "meta20", cluster_id \%in\% seq_len(5))
-plotDiffHeatmap(sub, da)
+plotDiffHeatmap(sub, da, order = FALSE)
+
+# visualize results for selected feature
+# & include only selected annotation
+plotDiffHeatmap(sce["pS6", ], ds, 
+  col_anno = "condition", all = TRUE)
 
 }
 \author{

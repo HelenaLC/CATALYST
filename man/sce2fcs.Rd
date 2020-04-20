@@ -22,14 +22,17 @@ which assay data to use; valid values are \code{assayNames(x)}.
 When writing out FCS files, this should correspond to count-like data!}
 }
 \value{
-a \code{\link[flowCore]{flowFrame}} if \code{split_by = NULL};
-a \code{\link[flowCore]{flowSet}}, if \code{split_by} corresponds to a
-\code{colData} column of \code{x}.
+a \code{\link[flowCore:flowFrame-class]{flowFrame}} 
+if \code{split_by = NULL}; otherwise a 
+\code{\link[flowCore:flowSet-class]{flowSet}}.
 }
 \description{
 If \code{split_by = NULL}, the input SCE is converted to a 
-\code{\link[flowCore]{flowFrame}}. Otherwise, the SCE is split into a 
-\code{\link[flowCore]{flowSet}} by the specified \code{colData} column.
+\code{\link[flowCore:flowFrame-class]{flowFrame}}. Otherwise, 
+it is split into a \code{\link[flowCore:flowSet-class]{flowSet}} 
+by the specified \code{colData} column. 
+Any cell metadata (\code{colData}) and dimension reductions 
+available in the SCE may be dropped or propagated to the output.
 }
 \examples{
 # PREPROCESSING
