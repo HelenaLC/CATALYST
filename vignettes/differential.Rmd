@@ -139,14 +139,6 @@ pbMDS(sce,
     shape_by = "patient_id")
 ```
 
-## `plotExprHeatmap`: Heatmap of (scaled) median marker expressions
-
-`plotExprHeatmap` will show a heatmap on median marker intensities with hierarchically clustered rows (samples) and columns (markers). This plot should give an idea of which markers will drive sample clustering, and how similiar samples are in their expression profile. We specify `bin_anno = TRUE` to display expression values inside each bin, and `row_anno = TRUE` to include row annotations for each factor in `metadata(daf)`. 
-
-```{r plotExprHeatmap, fig.width = 10, fig.height = 4}
-plotExprHeatmap(sce, row_anno = TRUE, bin_anno = FALSE)
-```
-
 # Clustering
 
 ## `cluster`: *FlowSOM* clustering & *ConsensusClusterPlus* metaclustering
@@ -174,10 +166,75 @@ Let K = `xdim` x `ydim` be the number of `r BiocStyle::Biocpkg("FlowSOM")` clust
 
 The delta area represents the amount of extra cluster stability gained when clustering into k groups as compared to k-1 groups. It can be expected that high stability of clusters can be reached when clustering into the number of groups that best fits the data. The "natural" number of clusters present in the data should thus corresponds to the value of k where there is no longer a considerable increase in stability (pleateau onset). For more details, the user can refer to the original description of the consensus clustering method [@Monti2003-ConsensusClusterPlus].
 
-```{r delta-area, fig.width = 5, fig.height = 2.5}
+```{r delta-area, fig.width = 5, fig.height = 3}
 # access & render delta area plot
 # (equivalent to metadata(sce)$delta_area)
 delta_area(sce)
+```
+
+## `mergeClusters`: Manual cluster merging
+
+Provided with a 2 column data.frame containing `old_cluster` and `new_cluster` IDs, `mergeClusters` allows for manual cluster merging of any clustering available within the input `SingleCellExperiment` (i.e. the `xdim` x `ydim` `r BiocStyle::Biocpkg("FlowSOM")` clusters, and any of the 2-`maxK` `r BiocStyle::Biocpkg("ConsensusClusterPlus")` metaclusters). For latter accession (visualization, differential testing), the function will assign a unique ID (specified with `id`) to each merging, and add a column to the `cluster_codes` inside the `metadata` slot of the input `SingleCellExperiment`. 
+
+```{r mergeClusters}
+data(merging_table)
+head(merging_table)
+sce <- mergeClusters(sce, k = "meta20", table = merging_table, id = "merging1")
+head(cluster_codes(sce))[, seq_len(10)]
+```
+
+## `plotExprHeatmap`: Heatmap of aggregated marker expressions {#plotExprHeatmap}
+
+`plotExprHeatmap` allows generating heatmaps of aggregated (pseudobulk) marker expressions. Argument `assay` (default `"exprs"`) and `fun` (default `"median"`) control the aggregation. Depending on argument `by`, aggregation will be performed by `"sample_id"`, `"cluster"`, or `"both"`.
+
+**Scaling**  
+`plotExprHeatmap` supports various scaling strategies that are controlled by arguments `scale` and `q`, and will greatly alter the visualization and its interpretation[^1]: 
+
+[^1]: Regardless of the chosen scaling strategy, row and column clusterings will be performed on unscaled data.
+
+- When `scale = "first"`, the specified assay data will be scaled between 0 and 1 using lower (`q`) and upper (`1-q`) quantiles as boundaries, where `q = 0.01` by default. This way, while losing information on absolut expression values, marker expressions will stay comparable, and visualization is improved in cases where the expression range varies greatly between markers. 
+
+- When `scale = "last"`, assay data will be aggregated first and scaled subsequently. Thus, each marker's value range will be [0,1]. While all comparability between markers is lost, such scaling will improve seeing differences across, e.g., samples or clusters.
+
+- When `scale = "never"`, no scaling (and quantile trimming) is applied. The resulting heatmap will thus display *raw* pseudobulk data (e.g., median expression values).
+
+**Hierarchical clustering**  
+Various arguments control whether rows/columns should be hierarchically clustered (and re-ordered) accordingly (`row/col_clust`), and whether to include the resulting dendrograms in the heatmap (`row/col_dend`). Here, clustering is performed using `dist` followed by `hclust` on the assay data matrix with the specified `method` as distance metric (default `euclidean`) and `linkage` for agglomeration (default `average`).
+
+**Cell count annotation**  
+Optionally, argument `bars` specifies whether to include a barplot of cell counts, which can further be annotated with relative abundances (%) via `perc = TRUE`. These will correspong to cell counts by cluster (when `by != "sample_id"`), and by sample otherwise.
+
+**Sample and cluster annotations**  
+By default (`row/col_anno = TRUE`), for axes corresponding to samples (y-axis for `by = "sample_id"` and x-axis for `by = "both"`), annotations will be drawn for all non-numeric cell metadata variables. Alternatively, a specific subset of annotations can be included for only a subset of variables by specifying `row/col_anno` to be a character vector in \code{names(colData(x))} (see examples).  
+For axes corresponding to clusters (y-axis for `by = "cluster_id"` and `"both"`), annotations will be drawn for the specified clustering(s) (arguments `k` and `m`).
+
+The following examples shall cover the 3 different modes of `plotExprHeatmap`:
+
+```{r plotExprHeatmap-sample, fig.width = 6.5, fig.height = 3.5}
+# scale each marker between 0 and 1 
+# (after aggregation & without trimming)
+plotExprHeatmap(sce, features = "state", 
+    scale = "last", q = 0, bars = FALSE)
+```
+
+When `by != "sample_id"`, the clustering to use for aggregation is specified via `k`, and an additional metaclusting may be included as an annotation (argument `m`):
+
+```{r plotExprHeatmap-cluster, fig.width = 6, fig.height = 3.5}
+# medians of scaled & trimmed type-marker expressions by cluster
+plotExprHeatmap(sce, features = "type",
+    by = "cluster_id", k = "meta12", m = "meta8",
+    scale = "first", q = 0.01, perc = TRUE, col_dend = FALSE)
+```
+
+Finally, we can visualize the aggregated expression of specific markers by cluster *and* sample via `by = "both"`[^2]:
+
+[^2]: In this case, only a single features is allowed as input.
+
+```{r plotExprHeatmap-both, fig.width = 4, fig.height = 3.5}
+# raw (not scaled, not trimmed) 
+# median expression by cluster-sample
+plotExprHeatmap(sce, features = "pS6", by = "both", k = "meta8", 
+    scale = "never", col_clust = FALSE, row_anno = FALSE, bars = FALSE)
 ```
 
 ## `plotMedExprs`: Median marker-expressions by cluster
@@ -206,41 +263,6 @@ Distributions of marker intensities (arcsinh-transformed) across cell population
 plotClusterExprs(sce, k = "meta8", features = "type")
 ```
 
-## `mergeClusters`: Manual cluster merging
-
-Provided with a 2 column data.frame containing `old_cluster` and `new_cluster` IDs, `mergeClusters` allows for manual cluster merging of any clustering available within the input `SingleCellExperiment` (i.e. the `xdim` x `ydim` `r BiocStyle::Biocpkg("FlowSOM")` clusters, and any of the 2-`maxK` `r BiocStyle::Biocpkg("ConsensusClusterPlus")` metaclusters). For latter accession (visualization, differential testing), the function will assign a unique ID (specified with `id`) to each merging, and add a column to the `cluster_codes` inside the `metadata` slot of the input `SingleCellExperiment`. 
-
-```{r mergeClusters}
-data(merging_table)
-head(merging_table)
-sce <- mergeClusters(sce, k = "meta20", table = merging_table, id = "merging1")
-head(cluster_codes(sce))[, seq_len(10)]
-```
-
-## `plotClusterHeatmap`: Heatmap of (meta)clustering results
-
-Clusterings and metaclusters maybe be viewing with the `plotClusterHeatmap`. In its 1st panel, the function will display median (arcsinh-transformed and *optionally* scaled) cell-type marker expressions (across all samples). Depending on argument `hm2`, the 2nd panel will vary as follows:
-
-- `"abundances"`: cluster frequencies by sample;
-- `"state"`: median cell state marker expressions across clusters  
-(analogous to the left-hand side heatmap);
-- a character string/vector corresponding to one/multiple marker(s):  
-median marker expressions by sample.
-
-Argument `scale` (default `TRUE`) specifies whether scaled values should be plotted. These correspond to arcsinh-transformed expression values scaled between 0 and 1 using low (1%) and high (99%) percentiles as boundaries. Note that, in any case, hierarchical clustering is performed on the unscaled data.  
-While it is only used here for visualization, this additional transformation of the arcsinh-transformed data can sometimes give a better representation of relative differences in marker expression between cell populations.
-
-```{r plotClusterHeatmap-1, fig.width = 8, fig.height = 6}
-# median pS6 expression by sample as 2nd heatmap
-plotClusterHeatmap(sce, hm2 = "pS6", k = "meta12", m = "meta6")
-```
-
-```{r plotClusterHeatmap-2, fig.width = 10, fig.height = 6}
-# population frequencies by sample as 2nd heatmap
-plotClusterHeatmap(sce, hm2 = "abundances", 
-    draw_freqs = TRUE, row_anno = FALSE)
-```
-
 ## `plotAbundances`: Relative population abundances
 
 Relative population abundances for any clustering of interest can be plotted with `plotAbundances`. Argument `by` will specify whether to plot proportions for each sample or cluster; `group_by` determines the grouping within each panel as well ascolor coding.
@@ -248,10 +270,97 @@ Relative population abundances for any clustering of interest can be plotted wit
 - If `by = "sample_id"`, the function displays each sample's cell type composition, and the size of a given stripe reflects the proportion of the corresponding cell type the given sample. Argument `group_by` then specifies the facetting.
 - If `by = "cluster_id"`, argument `group_by` then specifies the grouping and color coding. 
 
-```{r plotAbundances, fig.width = 6, fig.height = 4}
+```{r plotAbundances-1, fig.width = 5, fig.height = 3.5}
 plotAbundances(sce, k = "meta12", by = "sample_id", group_by = "condition")
-plotAbundances(sce, k = "merging1", by = "cluster_id", 
+```
+
+```{r plotAbundances-2, fig.width = 6, fig.height = 4}
+plotAbundances(sce, k = "meta8", by = "cluster_id", 
     group_by = "condition", shape_by = "patient_id")
+```
+
+## `plotFreqHeatmap`: Heatmap of cluster fequencies
+
+Complementary to `plotAbundances`, a heatmap of relative cluster abundances by cluster can be generated with `plotFreqHeatmap`. By default (`normalize = TRUE`), frequencies will we standarized for each cluster, across samples. Analogous to `plotExprHeatmap` (Sec. \@ref(plotExprHeatmap)), arguments `row/col_clust/dend` control hierarchical clustering or rows (clusters) and columns (samples), and whether the resulting dendrograms should be display; `k` specifies the clustering across which to compute abundances, and `m` a secondary clustering for display. Again, `bars` and `perc` can be used to include a labelled cell count barplot.
+
+```{r plotFreqHeatmap-complete, fig.width = 6.5, fig.height = 4.5}
+# complete example
+plotFreqHeatmap(sce, 
+    k = "meta8", m = "meta5",
+    hm_pal = rev(hcl.colors(10, "RdBu")),
+    k_pal = hcl.colors(7, "Zissou 1"),
+    m_pal = hcl.colors(4, "Temps"),
+    bars = TRUE, perc = TRUE)
+```
+
+```{r plotFreqHeatmap-minimal, fig.width = 3.5, fig.height = 4}
+# minimal example
+plotFreqHeatmap(sce, k = "meta10", 
+    normalize = FALSE, bars = FALSE,
+    row_anno = FALSE, col_anno = FALSE,
+    row_clust = FALSE, col_clust = FALSE,
+    hm_pal = c("grey95", "black"))
+```
+
+## `plotClusterHeatmap`: Multi-panel Heatmaps
+
+`plotClusterHeatmap` provides flexible options to combine expression and cluster frequency heatmaps generated with `plotExprHeatmap` (Sec. \@ref(plotExprHeatmap)) and `plotFreqHeatmap` (Sec. \@ref(plotFreqHeatmap)), respectively, with arguments `hm1` and `hm2` controlling the panel contents.
+
+**Panel contents**  
+In its 1st panel, `plotClusterHeatmap` will display pseudobulks by cluster. Here, `hm1` may be used to specify a set of markers (subset of `rownames(sce)`), or `"type"/"state"` for `type/state_markers(sce)` when `marker_classes(sce)` have been specified. The 1st heatmap can be turned off altogether by setting `hm1 = FALSE`.  
+Anologously, for `hm2 = "type"/"state"`, an expression heatmap of type-/state-markers will be displayed as 2nd heatmap (see Sec. \@ref(plotClusterHeatmap-example1)). `hm2 = "abundances"` will render cluster frequencies by sample (see Sec. \@ref(plotClusterHeatmap-example2)). As opposed to argument `hm1`, however, when `hm2` specifies one or multiple marker(s), a separate heatmap of pseudobulks by cluster-sample will be drawn for each marker (see Sec. \@ref(plotClusterHeatmap-example3)). 
+
+**Row and column annotations**  
+The clustering to aggregate by is specified with argument `k`. Optionally, a metaclustering of interest may be provided via `m`; here, clustering `m` is merely included as an additional annotation (and not used for any computation). Thus, `m` serves to visually inspect the quality a lower-resolution clustering or manual merging.  
+When an x-axis corresponds to samples, `plotClusterHeatmap` will include column annotations for cell metadata variables (columns in `colData`) that map uniquely to each sample (e.g., condition, patient ID). These annotations can be omitted via `col_anno = FALSE`, or reduced (e.g., `col_anno = "condition"` to include only a single annotation); by default (`col_anno = TRUE`), all available metadata is included.
+
+**Argument handling**  
+Most of `plotClusterHeatmap`'s arguments take a single value as input. For example, row annotations and dendrograms are automatically removed for all but the 1st panel. Nevertheless, a subset of arguments may be set uniquely for each heatmap; these are:
+
+- `scale` and `q` controlling the scaling strategy for expression heatmaps
+- `col_clust/dend` specifying whether or not to column-cluster each heatmap and draw the resulting dendrograms
+
+When any of these arguments is of length one, the specified value will be recycled for both heatmaps. E.g., setting `scale = "never"` will have all expression heatmaps show unscaled data.
+
+### Example 1: Type- & state-markers {#plotClusterHeatmap-example1}
+
+To demonstrate `plotClusterHeatmap`'s basic functionality and handling of arguments, we plot expression heatmaps for both type- (`hm1 = "type"`) and state-markers (`hm2 = "state"`), and choose to include a column dendrogram for the 2nd heatmap only: 
+
+```{r plotClusterHeatmap-1, fig.width = 7.5, fig.height = 4}
+# both, median type- & state-marker expressions
+plotClusterHeatmap(sce, 
+    hm1 = "type", hm2 = "state", 
+    k = "meta12", m = "meta8",
+    col_dend = c(FALSE, TRUE))
+```
+
+### Example 2: CDx markers & cluster frequencies {#plotClusterHeatmap-example2}
+
+As a second example, we plot an expession heatmap for a selection of markers (here, those starting with "CD": `hm1 = c("CDx", "CDy", ...`)[^3] next to the relative cluster abundances across samples (`hm2 = "abundances"`). We also add a barplot for the cell counts in each cluster (`bars = TRUE`) along with labels for their relative abundance (`perc = TRUE`):
+
+[^3]: `hm1 = NULL` would include *all* markers.
+
+```{r plotClusterHeatmap-2, fig.width = 7.5, fig.height = 3}
+# 1st: CDx markers by cluster; 
+# 2nd: population frequencies by sample
+cdx <- grep("CD", rownames(sce), value = TRUE)
+plotClusterHeatmap(sce, k = "meta6",
+    hm1 = cdx, hm2 = "abundances", 
+    bars = TRUE, perc = TRUE, row_anno = FALSE)
+```
+
+### Example 3: Selected markers {#plotClusterHeatmap-example3}
+
+In this final example, we view a selection of markers side-by-side, and omit the 1st panel (`hm1 = FALSE`). We also retain the ordering of samples (column order) across panels (`col_clust = FALSE`). In this case, `plotClusterHeatmap` will drop column names (sample IDs) for all but the first panel to avoid repeating these labels and overcrowding the plot. Lastly, we set `scale = "never"` to visualize *raw* (unscaled) pseudobulks (= median expressions by cluster-sample):
+
+```{r plotClusterHeatmap-3, fig.width = 9, fig.height = 4}
+# plot selected markers side-by-side;
+# omit left-hand side heatmap
+plotClusterHeatmap(sce, 
+    k = "meta8", scale = "never",
+    hm1 = FALSE, hm2 = c("pS6", "pp38", "pBtk"),
+    row_anno = FALSE, col_clust = FALSE,
+    hm2_pal = c("grey95", "black"))
 ```
 
 # Dimensionality reduction
@@ -347,22 +456,37 @@ For differential state (DS) tests, `plotDiffHeatmap` will display
 
 Clusters (DA) and cluster-marker combinations (DS), respectively, will be marked as *significant* if their adjusted p-value falls below the threshold value specified with `th` (default 0.1), and will be ordered by significance if `order = TRUE` (the default). The number of top findings to display can be specified with `top_n` (default 20). When `normalize = TRUE`, the right-hand side heatmap will display Z-score normalized values. For DA, cluster frequencies will be arcsine-square-root scaled prior to normalization.
 
-```{r plotDiffHeatmap-da, fig.width = 8, fig.height = 4}
+```{r plotDiffHeatmap-da, fig.width = 5, fig.height = 4}
 plotDiffHeatmap(sce, res_DA, all = TRUE, th = 0.05)
 ```
 
-```{r plotDiffHeatmap-ds, fig.width = 7, fig.height = 5}
-plotDiffHeatmap(sce, res_DS, hm1 = FALSE, top_n = 15)
+```{r plotDiffHeatmap-ds, fig.width = 5.5, fig.height = 5}
+plotDiffHeatmap(sce, res_DS, top_n = 15)
+```
+
+As an alternative to leaving the selection of markers and clusters to their ordering (significance), we can visualize a specific subset of results (e.g., a selected marker or cluster) using `filterSCE`:
+
+```{r plotDiffHeatmap-filter-1, fig.width = 5.5, fig.height = 4}
+# include all results for selected marker
+plotDiffHeatmap(sce["pp38", ], res_DS, all = TRUE, col_anno = "condition")
+```
+
+```{r plotDiffHeatmap-filter-2, fig.width = 5.5, fig.height = 5}
+# include all results for selected cluster
+k <- metadata(res_DS$res)$clustering_name
+sub <- filterSCE(sce, cluster_id == 8, k = k)
+plotDiffHeatmap(sub, res_DS, normalize = FALSE, col_anno = "condition")
 ```
 
 # More
 
 ## Using other clustering algorithms
 
-While `r BiocStyle::Biocpkg("FlowSOM")` has proven to perform well in systematic comparisons of clustering algorithms for CyTOF data [@Weber2016-clustering; @Freytag2018-clustering], it is not the only method out there. Here we demonstrate how clustering assignments from another clustering method, say, `r Githubpkg("JinmiaoChenLab", "Rphenograph")`, could be incorporated into the SCE to make use of the visualizations available in `CATALYST`. Analogous to the example below, virtually any clustering algorithm could be applied, however, with the following limitation:  
+While `r BiocStyle::Biocpkg("FlowSOM")` has proven to perform well in systematic comparisons of clustering algorithms for CyTOF data [@Weber2016-clustering; @Freytag2018-clustering], it is not the only method out there. Here we demonstrate how clustering assignments from another clustering method, say, `r Githubpkg("JinmiaoChenLab", "Rphenograph")`, could be incorporated into the SCE to make use of the visualizations available in `CATALYST`. Analogous to the example below, virtually any clustering algorithm could be applied, however, with the following **limitation**:
+
 The `ConsensusClusterPlus` metaclusterings applied to the initial `FlowSOM` clustering by `CATALYST`'s `cluster` function have a hierarchical cluster structure. Thus, clustering IDs can be matched from a higher resolution (e.g. 100 SOM clusters) to any lower resolution (e.g., 2 through 20 metaclusters). This is not guaranteed for other clustering algorithms. Thus, we store only a single resolution in the cell metadata column `cluster_id`, and a single column under `metadata` slot `cluster_codes` containing the unique cluster IDs. Adding additional resolutions to the `cluster_codes` will fail if cluster IDs can not be matched uniquely across conditions, which will be the case for any non-hierarchical clustering method.
 
-```{r other-clusterings, message = FALSE, warning = FALSE, fig.width = 5, fig.height = 2.5}
+```{r other-clusterings, message = FALSE, warning = FALSE}
 # subset type-marker expression matrix
 es <- assay(sce, "exprs")
 es <- es[type_markers(sce), ]
@@ -384,8 +508,6 @@ metadata(foo)$cluster_codes <- data.frame(
 
 # tabulate cluster assignments
 table(cluster_ids(foo, "custom"))
-# plot relative cluster abundances by sample
-plotClusterHeatmap(foo, k = "custom")
 ```
 
 ## Customizing visualizations
@@ -417,9 +539,11 @@ plotClusterHeatmap(sce,
     k = "meta8", 
     m = "meta4",
     hm2 = "abundances",
-    # include dendrograms
+    # include all dendrograms
     row_dend = TRUE, 
     col_dend = TRUE, 
+    # exclude sample annotations
+    col_anno = FALSE,
     # primary & merging cluster palettes
     k_pal = hcl.colors(8, "Vik"),     
     m_pal = hcl.colors(4, "Tropic"), 
@@ -434,9 +558,10 @@ plotExprHeatmap(sce,
     row_anno = FALSE,   # don't annotate samples
     row_clust = FALSE,  # keep samples in original order
     col_clust = FALSE,  # keep markers in original order
-    draw_freqs = FALSE, # don't include sample sizes
     bin_anno = FALSE,   # don't annotate bins
-    hm_pal = c("grey95", "navy"))
+    bars = FALSE,       # don't include sample sizes
+    scale = "last",     # aggregate, then scale
+    hm_pal = hcl.colors(10, "YlGnBu", rev = TRUE))
 ```
 
 ```{r plotExprHeatmap-complete, fig.width = 12, fig.height = 4}
@@ -444,8 +569,8 @@ plotExprHeatmap(sce,
 plotExprHeatmap(sce, row_anno = TRUE,   # annotate samples
     row_clust = TRUE, col_clust = TRUE, # cluster samples/markers
     row_dend = TRUE, col_dend = TRUE,   # include dendrograms
-    draw_freqs = TRUE, # include barplot of sample sizes
-    bin_anno = TRUE,   # annotate bins with value
+    bin_anno = TRUE,          # annotate bins with value
+    bars = TRUE, perc = TRUE, # include barplot of sample sizes
     hm_pal = c("grey95", "orange"))
 ```
 
