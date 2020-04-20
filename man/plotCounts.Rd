@@ -31,15 +31,24 @@ Barplot of the number of cells measured for each sample.
 data(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 
-# plot number of cells from each condition by patient
-plotCounts(
-  sce, prop = FALSE,
+# plot number of cells per sample, colored by condition
+plotCounts(sce, 
   group_by = "sample_id", 
   color_by = "condition")
+  
+# same as above, but order by patient  
+plotCounts(sce, 
+  group_by = "patient_id", 
+  color_by = "condition")
+
+# total number of cell per patient
+plotCounts(sce, 
+  group_by = "patient_id", 
+  color_by = NULL)
 
 # plot proportion of cells from each patient by condition
-plotCounts(
-  sce, prop = TRUE, 
+plotCounts(sce, 
+  prop = TRUE, 
   group_by = "condition", 
   color_by = "patient_id")
 
