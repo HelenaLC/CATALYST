@@ -4,7 +4,7 @@
 #' @description Helper function to parse information from the 
 #'   \code{parameters} slot of a \code{flowFrame}/\code{flowSet}.
 #'
-#' @param x a \code{\link[flowCore]{flowFrame}}.
+#' @param x a \code{\link[flowCore:flowFrame-class]{flowFrame}}.
 #' @param sep character string specifying how channel descriptions 
 #'   should be parsed. E.g., if \code{pData(x)$desc} contains both 
 #'   channel and antigens formatted as, \code{155Gd_CD73}, 

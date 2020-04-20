@@ -14,11 +14,13 @@
 #'   valid values are \code{names(colData(x))}.
 #' @param k_pal character string specifying the cluster color palette; 
 #'   ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
-#'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, 
-#'   colors will be interpolated via \code{\link[grDevices]{colorRampPalette}}.
+#'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
+#'   be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.
 #' @param scale logical specifying whether expression should be scaled
 #'   between 0 and 1 using lower (1\%) and upper (99\%) expression quantiles;
 #'   ignored if \code{!all(color_by \%in\% rownames(x))}.
+#' @param q single numeric in [0,0.5) determining the 
+#'   quantiles to trim when \code{scale = TRUE}.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -63,13 +65,14 @@
 
 plotDR <- function(x, dr = NULL, 
     color_by = "condition", facet_by = NULL,
-    k_pal = CATALYST:::.cluster_cols, scale = TRUE) {
+    k_pal = CATALYST:::.cluster_cols, scale = TRUE, q = 0.01) {
     
     # check validity of input arguments
     stopifnot(
         is(x, "SingleCellExperiment"),
         length(reducedDims(x)) != 0,
-        is.logical(scale), length(scale) == 1)
+        is.logical(scale), length(scale) == 1,
+        is.numeric(q), length(q) == 1, q >= 0, q < 0.5)
     .check_cd_factor(x, facet_by)
     
     if (!all(color_by %in% rownames(x))) {
@@ -78,7 +81,7 @@ plotDR <- function(x, dr = NULL,
             .check_cd_factor(x, color_by)
         } else {
             .check_sce(x, TRUE)
-            .check_colors(k_pal)
+            .check_pal(k_pal)
             .check_k(x, color_by)
             kids <- cluster_ids(x, color_by)
             nk <- nlevels(kids)
@@ -101,7 +104,7 @@ plotDR <- function(x, dr = NULL,
         es <- assay(x, "exprs")
         es <- es[color_by, , drop = FALSE]
         if (scale) 
-            es <- .scale_exprs(es)
+            es <- .scale_exprs(es, 1, q)
         df <- melt(
             cbind(df, t(es)), 
             id.vars = colnames(df))

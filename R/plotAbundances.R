@@ -21,8 +21,9 @@
 #'   \code{names(colData(x))} other than "sample_id" and "cluster_id".
 #' @param k_pal character string specifying the cluster 
 #'   color palette; ignored when \code{by = "cluster_id"}. 
-#'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, 
-#'   colors will be interpolated via \code{\link[grDevices]{colorRampPalette}}.
+#'   If less than \code{nlevels(cluster_ids(x, k))} 
+#'   are supplied, colors will be interpolated via 
+#'   \code{\link[grDevices:colorRamp]{colorRampPalette}}.
 #'   
 #' @return a \code{ggplot} object.
 #' 
@@ -66,7 +67,7 @@ plotAbundances <- function(x, k = "meta20",
     k <- .check_k(x, k)
     .check_cd_factor(x, group_by)
     .check_cd_factor(x, shape_by)
-    .check_colors(k_pal)
+    .check_pal(k_pal)
     
     shapes <- .get_shapes(x, shape_by)
     if (is.null(shapes)) shape_by <- NULL

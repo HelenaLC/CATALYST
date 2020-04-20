@@ -9,8 +9,8 @@
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param k character string. Specifies the clustering to use for color coding.
 #' @param k_pal character string specifying the cluster color palette;
-#'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors 
-#'   will be interpolated via \code{\link[grDevices]{colorRampPalette}}.
+#'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
+#'   be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -46,7 +46,7 @@ plotCodes <- function(x, k = "meta20",
     # check validity of input arguments
     .check_sce(x, TRUE)
     k <- .check_k(x, k)
-    .check_colors(k_pal)
+    .check_pal(k_pal)
     
     # ramp cluster color palette
     nk <- nlevels(cluster_ids(x, k))

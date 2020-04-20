@@ -19,15 +19,16 @@
         fs <- rownames(x)
     } else {
         stopifnot(is.character(fs))
-        if (length(fs) > 1) {
-            stopifnot(fs %in% rownames(x))
-        } else {
-            fs <- match.arg(fs, c("type", "state", "none")) 
+        foo <- tryCatch(
+            error = function(e) e,
+            match.arg(fs, c("type", "state", "none")))
+        if (!inherits(foo, "error")) {
+            fs <- foo
             stopifnot(!is.null(marker_classes(x)))
             fs <- rownames(x)[marker_classes(x) == fs]
             if (length(fs) == 0)
                 stop("No features matched the specified marker class.")
-        }
+        } else stopifnot(fs %in% rownames(x))
     }
     return(fs)
 }
@@ -56,10 +57,10 @@
 # ------------------------------------------------------------------------------
 #' @importFrom matrixStats rowQuantiles
 #' @importFrom methods is
-.scale_exprs <- function(x, margin = 1) {
+.scale_exprs <- function(x, margin = 1, q = 0.01) {
     if (!is(x, "matrix")) x <- as.matrix(x)
     qs <- c(rowQuantiles, colQuantiles)[[margin]]
-    qs <- qs(x, probs = c(.01, .99))
+    qs <- qs(x, probs = c(q, 1-q))
     qs <- matrix(qs, ncol = 2)
     x <- switch(margin,
         "1" = (x - qs[, 1]) / (qs[, 2] - qs[, 1]),
@@ -88,8 +89,8 @@
 #' @importFrom dplyr mutate_all
 #' @importFrom grDevices colorRampPalette
 #' @importFrom grid gpar unit
-.get_row_anno <- function(x, k, m, k_pal, m_pal) {
-    kids <- levels(cluster_ids(x, k))
+.anno_clusters <- function(x, k, m, k_pal, m_pal) {
+    kids <- levels(x$cluster_id)
     nk <- length(kids)
     if (nk > length(k_pal))
         k_pal <- colorRampPalette(k_pal)(nk)
@@ -102,37 +103,79 @@
         mids <- droplevels(cluster_codes(x)[, m][i])
         nm <- nlevels(mids)
         if (nm > length(m_pal))
-            m_pal <- colorRampPalette(m_pal)(nk)
+            m_pal <- colorRampPalette(m_pal)(nm)
         m_pal <- m_pal[seq_len(nm)]
         names(m_pal) <- levels(mids)
         df$merging_id <- mids
         col$merging_id <- m_pal
     }
-    df <- mutate_all(df, function(u)
-        factor(u, unique(u)))
-    rowAnnotation(
-        df = df, col = col,
-        width = unit(4, "mm"),
-        gp = gpar(col = "white"))
+    df <- mutate_all(df, function(u) factor(u, unique(u)))
+    rowAnnotation(df = df, col = col, gp = gpar(col = "white"))
 }
 
-#' @importFrom ComplexHeatmap columnAnnotation rowAnnotation
-#' @importFrom grid gpar
-#' @importFrom methods is
-#' @importFrom scales hue_pal
-.anno_factors <- function(df, type = c("row", "column")) {
-    # check that all data.frame columns are factors
-    stopifnot(is(df, "data.frame"))
-    stopifnot(all(vapply(as.list(df), is.factor, logical(1))))
-    # for ea. factor, extract levels & nb. of levels
+#' @importFrom ComplexHeatmap HeatmapAnnotation
+#' @importFrom dplyr mutate_all select_if summarize_all %>%
+#' @importFrom grid gpar unit
+#' @importFrom grDevices colorRampPalette
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom SummarizedExperiment colData
+.anno_factors <- function(x, ids, which, type = c("row", "column")) {
+    type <- match.arg(type)
+    # get non-numeric cell metadata variables
+    cd <- colData(x)
+    df <- data.frame(cd, check.names = FALSE)
+    df <- select_if(df, ~!is.numeric(.))
+    df <- mutate_all(df, ~droplevels(factor(.x)))
+    
+    # store sample matching
+    m <- match(ids, df$sample_id)
+    
+    # get number of matches per variable
+    ns <- split(df, df$sample_id) %>% 
+      lapply(mutate_all, droplevels) %>% 
+      lapply(summarize_all, nlevels) %>% 
+      do.call(what = "rbind")
+    
+    # keep only uniquely mapable factors included in 'which'
+    keep <- names(which(colMeans(ns) == 1))
+    keep <- setdiff(keep, c("sample_id", "cluster_id"))
+    if (is.character(which))
+        keep <- intersect(keep, which)
+    if (length(keep) == 0) return(NULL)
+    df <- df[m, keep, drop = FALSE]
+  
+    # get list of colors for each annotation
     lvls <- lapply(as.list(df), levels)
     nlvls <- vapply(lvls, length, numeric(1))
-    cols <- hue_pal()(sum(nlvls))
-    names(cols) <- unlist(lvls)
-    cols <- split(cols, rep.int(seq_len(ncol(df)), nlvls))
-    names(cols) <- names(df)
-    HeatmapAnnotation(which = match.arg(type),
-        df = df, col = cols, gp = gpar(col = "white"))
+    pal <- brewer.pal(8, "Set3")[-2]
+    if (any(nlvls > length(pal)))
+        pal <- colorRampPalette(pal)(max(nlvls))
+    names(is) <- is <- colnames(df)
+    cols <- lapply(is, function(i) {
+        u <- pal[seq_len(nlvls[i])]
+        names(u) <- lvls[[i]]; u
+    })
+
+    HeatmapAnnotation(which = type, df = df, 
+        col = cols, gp = gpar(col = "white"))
+}
+
+.anno_counts <- function(x, perc) {
+    ns <- table(x)
+    fq <- round(ns/sum(ns)*100, 2)
+    if (perc) {
+        txt <- sprintf("%s%%(%s)", fq, names(fq))
+        foo <- row_anno_text(txt, 
+            just = "center", 
+            gp = gpar(fontsize = 8),  
+            location = unit(0.5, "npc"))
+    } else foo <- NULL
+    rowAnnotation(
+        "n_cells" = row_anno_barplot(
+            x = as.matrix(ns), width = unit(2, "cm"),
+            gp = gpar(fill = "grey", col = "white"),
+            border = FALSE, axis = TRUE, bar_width = 0.8),
+        "foo" = foo)
 }
 
 # ==============================================================================

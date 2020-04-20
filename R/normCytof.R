@@ -14,8 +14,9 @@
 #'   and correspond to count- and expression-like data, respectively.
 #' @param remove_beads logical. If TRUE, bead events will be removed from
 #'   the input \code{SingleCellExperiment} and returned as a separate object?
-#' @param norm_to a \code{\link[flowCore]{flowFrame}} or path to
-#'   an FCS file from which to compute baseline bead intensities,
+#' @param norm_to 
+#'   a \code{\link[flowCore:flowFrame-class]{flowFrame}} or character string
+#'   specifying an FCS file from which to compute baseline bead intensities,
 #'   and to which the input data should be normalized to.
 #' @param k integer width of the median window used 
 #'   for bead smoothing (affects visualizations only!).

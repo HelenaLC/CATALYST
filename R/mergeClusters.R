@@ -48,7 +48,11 @@
 #' table(cluster_ids(sce, k = "merging"))
 #' 
 #' # visualize median type-marker expression
-#' plotClusterHeatmap(sce, k = "merging")
+#' plotExprHeatmap(sce, 
+#'   features = "type", 
+#'   by = "cluster_id", 
+#'   k = "merging",
+#'   bars = TRUE)
 #' 
 #' @importFrom methods is
 #' @importFrom SingleCellExperiment colData

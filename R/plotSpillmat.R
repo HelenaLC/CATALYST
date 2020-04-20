@@ -49,7 +49,7 @@ plotSpillmat <- function(x, sm = NULL, anno = TRUE,
     stopifnot(is(x, "SingleCellExperiment"),
         is.logical(anno), length(anno) == 1,
         !is.null(sm) || !is.null(sm <- metadata(x)$spillover_matrix),
-        .check_colors(hm_pal), .check_colors(anno_col, n = 1))
+        .check_pal(hm_pal), .check_pal(anno_col, n = 1))
 
     # check validity of input spillover matrix
     sm <- .check_sm(sm, isotope_list)
