@@ -52,7 +52,7 @@ runDR <- function(x,
     .check_sce(x)
     dr <- match.arg(dr)
     .check_assay(x, assay)
-    features <- .get_features(x, features)
+    fs <- .get_features(x, features)
     
     if (is.null(cells)) {
         # use all cells
@@ -70,7 +70,7 @@ runDR <- function(x,
     
     # run dimension reduction
     fun <- get(paste0("run", dr))
-    y <- fun(x[, cs], subset_row = features, exprs_values = assay, ...)
+    y <- fun(x[, cs], subset_row = fs, exprs_values = assay, ...)
 
     # return SCE when no cell subsetting has been done
     if (is.null(cells)) return(y)
