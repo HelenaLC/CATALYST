@@ -130,7 +130,7 @@ plotClusterHeatmap <- function(x,
     col_clust = c(TRUE, hm2 == "state"),
     row_dend = TRUE, 
     col_dend = c(TRUE, hm2 == "state"),
-    bars = FALSE, perc = FALSE, bin_anno = FALSE,
+    bars = FALSE, perc = FALSE,
     hm1_pal = rev(brewer.pal(11, "RdYlBu")), 
     hm2_pal = if (isTRUE(hm2 == "abundances")) 
         rev(brewer.pal(11, "PuOr")) else hm1_pal,

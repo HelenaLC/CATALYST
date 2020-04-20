@@ -26,9 +26,18 @@ plotFreqHeatmap(
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
 \item{k}{character string specifying the clustering to use;
-valid values are \code{names(cluster_codes(x))}.}
+valid values are \code{names(cluster_codes(x))}.
+Cell counts will be computed across these cluster IDs.}
+
+\item{m}{character string specifying a metaclustering 
+to include as an annotation when \code{row_anno = TRUE}.}
 
 \item{normalize}{logical specifying whether to Z-score normalize.}
+
+\item{row_anno, col_anno}{logical specifying whether to 
+include row/column annotations for clusters/samples; 
+for \code{col_anno}, this can be a character vector specifying 
+a subset of \code{names(colData(x))} to be included.}
 
 \item{row_clust, col_clust}{logical specifying 
 whether rows/columns (clusters/samples) should be 
@@ -71,9 +80,10 @@ plotFreqHeatmap(sce, k = "meta10",
   row_anno = FALSE, col_anno = FALSE,
   row_clust = FALSE, col_clust = FALSE)
   
-# customize colors
+# customize colors & annotations
 plotFreqHeatmap(sce, 
   k = "meta7", m = "meta4",
+  col_anno = "condition",
   hm_pal = c("navy", "grey95", "gold"),
   k_pal = hcl.colors(7, "Set 2"),
   m_pal = hcl.colors(4, "Dark 3"))

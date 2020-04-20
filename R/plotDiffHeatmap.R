@@ -25,8 +25,8 @@
 #' @param th 
 #'   numeric. Threshold on adjusted p-values below which clusters (DA) 
 #'   or cluster-marker combinations (DS) should be considered significant.
-#' @param hm1 
-#'   logical. Specifies whether the left-hand side heatmap should be plotted.
+#' @param assay character string specifying which assay 
+#'   data to use; valid values are \code{assayNames(x)}.
 #' @param fun character string specifying the function to use 
 #'   as summary statistic for aggregation of expression values.
 #' @param scale logical specifying whether expression values should be scaled
@@ -43,8 +43,7 @@
 #'   for all non-numeric cell metadata variables; or a character vector 
 #'   in \code{names(colData(x))} to include only a subset of annotations.
 #'   (Only variables that map uniquely to each sample will be included)
-#' @param hm1_pal,hm2_pal character vector of 
-#'   colors to interpolate for each heatmap(s).  
+#' @param hm_pal character vector of colors to interpolate for the heatmap. 
 #' 
 #' @details 
 #' For DA tests, \code{plotDiffHeatmap} will display

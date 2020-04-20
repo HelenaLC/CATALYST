@@ -40,6 +40,9 @@ should be displayed. If \code{TRUE}, \code{top_n} will be ignored.}
 \item{th}{numeric. Threshold on adjusted p-values below which clusters (DA) 
 or cluster-marker combinations (DS) should be considered significant.}
 
+\item{assay}{character string specifying which assay 
+data to use; valid values are \code{assayNames(x)}.}
+
 \item{fun}{character string specifying the function to use 
 as summary statistic for aggregation of expression values.}
 
@@ -60,10 +63,7 @@ in \code{names(colData(x))} to include only a subset of annotations.
 indicating whether cluster (DA) or cluster-marker combinations (DS) 
 are significant, labeled with adjusted p-values.}
 
-\item{hm1}{logical. Specifies whether the left-hand side heatmap should be plotted.}
-
-\item{hm1_pal, hm2_pal}{character vector of 
-colors to interpolate for each heatmap(s).}
+\item{hm_pal}{character vector of colors to interpolate for the heatmap.}
 }
 \value{
 a \code{\link{HeatmapList-class}} object.
