@@ -208,8 +208,6 @@ prepData <- function(x, panel = NULL, md = NULL,
     
     # replace problematic characters
     as <- panel[[panel_cols$antigen]]
-    as <- gsub("-", "_", as)
-    as <- gsub(":", ".", as)
     as[is.na(as)] <- panel$fcs_colname[is.na(as)]
     
     # column & panel subsetting
