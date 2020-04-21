@@ -51,8 +51,11 @@ guessPanel <- function(x, sep = "_") {
     check <- map(lapply(ms1[!is.na(ms1)], grep, x = ms2), 1)
     if (length(unlist(check)) == sum(!is.na(ms1))) {
         # make some guesses of how to parse / what columns to use
-        if (any(grepl("_", ps$desc))) {
+        if (any(grepl(sep, ps$desc))) {
+            # split on 1st occurange of 'sep'
             ss <- strsplit(ps$desc, sep)
+            ss <- lapply(ss, function(u) if (length(u) > 2) 
+                c(u[1], paste(u[-1], collapse = sep)) else u)
             ps <- rename(ps, desc0 = "desc")
             ps$desc <- map(ss, 1)
             ps$antigen <- map(ss, function(u)
