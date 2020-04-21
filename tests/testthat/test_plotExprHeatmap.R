@@ -42,6 +42,19 @@ test_that("plotExprHeatmap() - scale = 'last'", {
     expect_identical(t(p@matrix), y)
 })
 
+test_that("plotExprHeatmap() - row/col_clust", {
+    # no clustering should retain original ordering
+    p <- plotExprHeatmap(x, row_clust = FALSE, col_clust = FALSE)
+    expect_identical(rownames(p@matrix), levels(x$sample_id))
+    expect_identical(colnames(p@matrix), rownames(x))
+    # row/column clustering should be independent of 'scale'
+    p1 <- plotExprHeatmap(x, scale = "first")
+    p2 <- plotExprHeatmap(x, scale = "last")
+    p3 <- plotExprHeatmap(x, scale = "never")
+    expect_identical(p1@row_dend_param, p2@row_dend_param)
+    expect_identical(p1@row_dend_param, p3@row_dend_param)
+})
+
 test_that("plotExprHeatmap()", {
     # without scaling & annotations
     p <- plotExprHeatmap(x, scale = "never", bars = FALSE)
