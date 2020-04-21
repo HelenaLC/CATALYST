@@ -190,6 +190,21 @@ plotExprHeatmap <- function(x, features = NULL,
         } else .scale_exprs(z, 1, q)
     }
     
+    # do row/column clustering on unscaled data
+    if (row_clust || col_clust) {
+        z0 <- .do_agg()
+        if (length(by) == 1)
+            z0 <- t(z0)
+        if (row_clust) {
+            d <- dist(z0, method = distance)
+            row_clust <- hclust(d, method = linkage) 
+        } else row_clust <- FALSE
+        if (col_clust) {
+            d <- dist(t(z0), method = distance)
+            col_clust <- hclust(d, method = linkage) 
+        } else col_clust <- FALSE
+    }
+    
     # apply one of...
     # - scale & trim then aggregate
     # - aggregate then scale & trim
@@ -197,21 +212,10 @@ plotExprHeatmap <- function(x, features = NULL,
     z <- switch(scale,
         first = { x <- .do_scale(); .do_agg() },
         last =  { z <- .do_agg(); .do_scale() },
-        never = { .do_agg() })
-    if (length(by) == 1) z <- t(z)
-    
-    # do row clustering on unscaled data
-    if (row_clust) {
-        if (scale != "never") {
-            z0 <- .do_agg()
-            if (length(by) == 1) 
-                z0 <- t(z0)
-        } else z0 <- z
-        d <- dist(z0, method = distance)
-        row_clust <- hclust(d, method = linkage) 
-    } else row_clust
+        never = { if (exists("z0")) z0 else .do_agg() })
+    if (length(by) == 1 && scale != "never") z <- t(z)
 
-    if (scale != "never") {
+    if (scale != "never" && !(assay == "counts" && fun == "sum")) {
         qs <- round(quantile(z, c(0.01, 0.99))*5)/5
         lgd_aes <- list(at = seq(qs[1], qs[2], 0.2))
     } else lgd_aes <- list()
