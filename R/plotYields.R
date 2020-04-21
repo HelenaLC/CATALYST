@@ -1,19 +1,22 @@
 #' @rdname plotYields
 #' @title Yield plot
-#' @description Distribution of barcode separations 
-#' and yields as a function of separation cutoffs.
+#' @description 
+#' Plots the distribution of barcode separations and yields upon debarcoding 
+#' as a function of separation cutoffs. If available, currently used separation 
+#' cutoffs as well as their resulting yields will be indicated in the plot.
 #' 
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param which 0, numeric or character. Specifies which barcode(s) to plot. 
 #'   Valid values are IDs that occur as row names of \code{bc_key(x)}; 
 #'   0 (the default) will generate a summary plot with all barcodes.
-#' @param out_path character string. If specified, outputs will be generated here.
-#' @param name_ext character string. If specified, will be appended to the plot's name.
+#' @param out_path character string. If specified, 
+#'   yields plots for all barcodes specified via \code{which} 
+#'   will be written to a single PDF file in this location.
+#' @param out_name character strings specifying 
+#'   the output's file name when \code{!is.null(out_path)}; 
+#'   should be provided without(!) file type extension.
 #' 
-#' @return plots the distribution of barcode separations and yields upon 
-#' debarcoding as a function of separation cutoffs. If available, currently 
-#' used separation cutoffs as well as their resulting yields will be indicated 
-#' in the plot`s main title.
+#' @return a list of \code{ggplot} objects.
 #' 
 #' @details
 #' The overall yield that will be achieved upon application of the specified 
@@ -56,14 +59,16 @@
 #' @export
 
 plotYields <- function(x, which = 0, 
-    out_path = NULL, name_ext = NULL) {
+    out_path = NULL, out_name = "yield_plot") {
     # check validity of input arguments
     stopifnot(is(x, "SingleCellExperiment"),
         !is.null(x$bc_id), !is.null(x$delta),
-        !is.null(metadata(x)$bc_key),
-        is.null(out_path) || (is.character(out_path) 
-            & length(out_path) == 1 & dir.exists(out_path)),
-        is.null(name_ext) || (is.character(name_ext) & length(name_ext) == 1))
+        !is.null(metadata(x)$bc_key))
+    if (!is.null(out_path)) 
+        stopifnot(
+            is.character(out_path), length(out_path) == 1, dir.exists(out_path),
+            is.character(out_name), length(out_name) == 1)
+    
     n_bcs <- length(ids <- rownames(bc_key <- metadata(x)$bc_key))
     which <- .check_which(which, ids, "yields")
     m <- match(c("0", rownames(bc_key)), which, nomatch = 0)
@@ -153,7 +158,7 @@ plotYields <- function(x, which = 0,
     })
     
     if (!is.null(out_path)) {
-        fn <- paste0("yield_plot", name_ext, ".pdf")
+        fn <- paste0(out_name, ".pdf")
         fn <- file.path(out_path, fn)
         pdf(fn, width = 7, height = 3.5)
         lapply(ps, print); dev.off()

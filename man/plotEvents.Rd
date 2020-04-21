@@ -10,7 +10,7 @@ plotEvents(
   assay = "scaled",
   n = 1000,
   out_path = NULL,
-  name_ext = NULL
+  out_name = "event_plot"
 )
 }
 \arguments{
@@ -25,11 +25,13 @@ assay data slot to use. One of \code{assayNames(x)}.}
 
 \item{n}{single numeric specifying the number of events to plot.}
 
-\item{out_path}{character string. 
-If specified, outputs will be generated here.}
+\item{out_path}{character string. If specified, 
+events plots for all barcodes specified via \code{which} 
+will be written to a single PDF file in this location.}
 
-\item{name_ext}{character string. 
-If specified, will be appended to the file name.}
+\item{out_name}{character strings specifying 
+the output's file name when \code{!is.null(out_path)}; 
+should be provided without(!) file type extension.}
 }
 \value{
 a list of \code{ggplot} objects.
@@ -42,7 +44,7 @@ Plots intensities normalized by population for each barcode specified
 by \code{which}: Each event corresponds to the intensities plotted on a 
 vertical line at a given point along the x-axis. Events are scaled to the 
 95\% quantile of the population it has been assigned to. Barcodes with 
-less than 50 event assignments will be skipped; it is strongly recoomended
+less than 50 event assignments will be skipped; it is strongly recommended
 to remove such populations or reconsider their separation cutoffs.
 }
 \examples{

@@ -4,7 +4,7 @@
 \alias{plotYields}
 \title{Yield plot}
 \usage{
-plotYields(x, which = 0, out_path = NULL, name_ext = NULL)
+plotYields(x, which = 0, out_path = NULL, out_name = "yield_plot")
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -13,19 +13,21 @@ plotYields(x, which = 0, out_path = NULL, name_ext = NULL)
 Valid values are IDs that occur as row names of \code{bc_key(x)}; 
 0 (the default) will generate a summary plot with all barcodes.}
 
-\item{out_path}{character string. If specified, outputs will be generated here.}
+\item{out_path}{character string. If specified, 
+yields plots for all barcodes specified via \code{which} 
+will be written to a single PDF file in this location.}
 
-\item{name_ext}{character string. If specified, will be appended to the plot's name.}
+\item{out_name}{character strings specifying 
+the output's file name when \code{!is.null(out_path)}; 
+should be provided without(!) file type extension.}
 }
 \value{
-plots the distribution of barcode separations and yields upon 
-debarcoding as a function of separation cutoffs. If available, currently 
-used separation cutoffs as well as their resulting yields will be indicated 
-in the plot`s main title.
+a list of \code{ggplot} objects.
 }
 \description{
-Distribution of barcode separations 
-and yields as a function of separation cutoffs.
+Plots the distribution of barcode separations and yields upon debarcoding 
+as a function of separation cutoffs. If available, currently used separation 
+cutoffs as well as their resulting yields will be indicated in the plot.
 }
 \details{
 The overall yield that will be achieved upon application of the specified 

@@ -42,6 +42,11 @@ test_that("plotYields()", {
     cuts <- vapply(p[which], function(u) 
         as.numeric(u$layer[[4]]$data), numeric(1))
     expect_identical(cuts, metadata(y)$sep_cutoffs[which])
+    # save output to .pdf
+    foo <- plotYields(x, ids[1], 
+        out_path = (dir <- tempdir()),
+        out_name = (fn <- "foo"))
+    expect_true(paste0(fn, ".pdf") %in% list.files(dir))
 })
 
 test_that("plotEvents()", {
@@ -82,8 +87,8 @@ test_that("plotEvents()", {
     # save output to .pdf
     foo <- plotEvents(x, ids[1], n = n, 
         out_path = (dir <- tempdir()),
-        name_ext = (ext <- "-foo"))
-    expect_true(sprintf("event_plot%s.pdf", ext) %in% list.files(dir))
+        out_name = (fn <- "foo"))
+    expect_true(paste0(fn, ".pdf") %in% list.files(dir))
 })
 
 test_that("plotMahal()", {

@@ -10,10 +10,12 @@
 #' @param assay character string specifying which 
 #'   assay data slot to use. One of \code{assayNames(x)}.
 #' @param n single numeric specifying the number of events to plot.
-#' @param out_path character string. 
-#'   If specified, outputs will be generated here.
-#' @param name_ext character string. 
-#'   If specified, will be appended to the file name. 
+#' @param out_path character string. If specified, 
+#'   events plots for all barcodes specified via \code{which} 
+#'   will be written to a single PDF file in this location.
+#' @param out_name character strings specifying 
+#'   the output's file name when \code{!is.null(out_path)}; 
+#'   should be provided without(!) file type extension.
 #' 
 #' @return a list of \code{ggplot} objects.
 #' 
@@ -22,7 +24,7 @@
 #' by \code{which}: Each event corresponds to the intensities plotted on a 
 #' vertical line at a given point along the x-axis. Events are scaled to the 
 #' 95\% quantile of the population it has been assigned to. Barcodes with 
-#' less than 50 event assignments will be skipped; it is strongly recoomended
+#' less than 50 event assignments will be skipped; it is strongly recommended
 #' to remove such populations or reconsider their separation cutoffs.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
@@ -50,13 +52,15 @@
 #' @export
 
 plotEvents <- function(x, which = "all", assay = "scaled", 
-    n = 1e3, out_path = NULL, name_ext = NULL) {
+    n = 1e3, out_path = NULL, out_name = "event_plot") {
     
     stopifnot(is(x, "SingleCellExperiment"),
         is.character(assay), length(assay) == 1, assay %in% assayNames(x),
-        is.numeric(n), length(n) == 1, n > 0, n == as.integer(n),
-        is.null(out_path) || dir.exists(out_path),
-        is.null(name_ext) || is.character(name_ext) & length(name_ext) == 1)
+        is.numeric(n), length(n) == 1, n > 0, n %% 1 == 0)
+    if (!is.null(out_path)) 
+        stopifnot(
+            is.character(out_path), length(out_path) == 1, dir.exists(out_path),
+            is.character(out_name), length(out_name) == 1)
     
     # retreive IDs to include & barcode channels
     n_bcs <- ncol(bc_key <- metadata(x)$bc_key)
@@ -111,11 +115,10 @@ plotEvents <- function(x, which = "all", assay = "scaled",
         stop("No or insufficient number of events",
             " assigned to the specified barcode population(s).")
     if (!is.null(out_path)) {
-        fn <- paste0("event_plot", name_ext, ".pdf")
+        fn <- paste0(out_name, ".pdf")
         fn <- file.path(out_path, fn)
         pdf(fn, width = 8, height = 4)
-        lapply(ps, plot)
-        dev.off()
+        lapply(ps, plot); dev.off()
     } else {
         if (length(ps) == 1) ps[[1]] else ps
     }
