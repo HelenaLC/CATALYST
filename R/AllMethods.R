@@ -147,8 +147,9 @@ setMethod("cluster_ids",
     function(x, k = NULL) {
         stopifnot(!is.null(cluster_codes(x)), !is.null(x$cluster_id))
         k <- .check_k(x, k)
-        i <- as.numeric(as.character(x$cluster_id))
-        droplevels(cluster_codes(x)[i, k])
+        codes <- cluster_codes(x)
+        m <- match(x$cluster_id, codes[, 1])
+        droplevels(codes[m, k])
     })
 
 #' @rdname SCE-accessors
