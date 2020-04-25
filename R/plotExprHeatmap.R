@@ -29,8 +29,7 @@
 #'   \item{\code{"last"}: aggregate then scale & trim}
 #'   \item{\code{"never"}: aggregate only}
 #' } If \code{scale != "never"}, data will be scaled using lower 
-#'   (\code{q}\%) and upper (\code{1-q}\%) quantiles as boundaries;
-#'   hierarchical clustering is performed on unscaled data regardless!
+#'   (\code{q}\%) and upper (\code{1-q}\%) quantiles as boundaries.
 #' @param q single numeric in [0,0.5) determining the 
 #'   quantiles to trim when \code{scale != "never"}.
 #' @param row_anno,col_anno logical specifying whether to include row/column 
@@ -50,9 +49,11 @@
 #' @param k_pal,m_pal character vector of colors to interpolate 
 #'   for cluster annotations when \code{by != "sample_id"}.
 #' @param distance character string specifying the distance metric 
-#'   to use in \code{\link[stats]{dist}} for hierarchical clustering. 
+#'  to use for both row and column hierarchical clustering; 
+#'  passed to \code{\link[ComplexHeatmap]{Heatmap}} 
 #' @param linkage character string specifying the agglomeration method 
-#'   to use in \code{\link[stats]{hclust}} for hierarchical clustering. 
+#'  to use for both row and column hierarchical clustering; 
+#'  passed to \code{\link[ComplexHeatmap]{Heatmap}} 
 #' 
 #' @return a \code{\link[ComplexHeatmap]{Heatmap-class}} object.
 #' 
@@ -79,7 +80,7 @@
 #' @seealso 
 #' \code{\link{plotMedExprs}}, 
 #' \code{\link{plotFreqHeatmap}}, 
-#' \code{\link{plotClusterHeatmap}}
+#' \code{\link{plotMultiHeatmap}}
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -190,21 +191,6 @@ plotExprHeatmap <- function(x, features = NULL,
         } else .scale_exprs(z, 1, q)
     }
     
-    # do row/column clustering on unscaled data
-    if (row_clust || col_clust) {
-        z0 <- .do_agg()
-        if (length(by) == 1)
-            z0 <- t(z0)
-        if (row_clust) {
-            d <- dist(z0, method = distance)
-            row_clust <- hclust(d, method = linkage) 
-        } else row_clust <- FALSE
-        if (col_clust) {
-            d <- dist(t(z0), method = distance)
-            col_clust <- hclust(d, method = linkage) 
-        } else col_clust <- FALSE
-    }
-    
     # apply one of...
     # - scale & trim then aggregate
     # - aggregate then scale & trim
@@ -212,9 +198,9 @@ plotExprHeatmap <- function(x, features = NULL,
     z <- switch(scale,
         first = { x <- .do_scale(); .do_agg() },
         last =  { z <- .do_agg(); .do_scale() },
-        never = { if (exists("z0")) z0 else .do_agg() })
-    if (length(by) == 1 && scale != "never") z <- t(z)
-
+        never = { .do_agg() })
+    if (length(by) == 1) z <- t(z)
+    
     if (scale != "never" && !(assay == "counts" && fun == "sum")) {
         qs <- round(quantile(z, c(0.01, 0.99))*5)/5
         lgd_aes <- list(at = seq(qs[1], qs[2], 0.2))
@@ -275,6 +261,10 @@ plotExprHeatmap <- function(x, features = NULL,
         cluster_columns = col_clust,
         show_row_dend = row_dend,
         show_column_dend = col_dend,
+        clustering_distance_rows = distance,
+        clustering_method_rows = linkage,
+        clustering_distance_columns = distance,
+        clustering_method_columns = linkage,
         show_row_names = (
             is.null(left_anno) 
             || isTRUE(by == "sample_id")) && !perc,
