@@ -62,8 +62,7 @@ the function to use as summary statistic.}
   \item{\code{"last"}: aggregate then scale & trim}
   \item{\code{"never"}: aggregate only}
 } If \code{scale != "never"}, data will be scaled using lower 
-  (\code{q}\%) and upper (\code{1-q}\%) quantiles as boundaries;
-  hierarchical clustering is performed on unscaled data regardless!}
+  (\code{q}\%) and upper (\code{1-q}\%) quantiles as boundaries.}
 
 \item{q}{single numeric in [0,0.5) determining the 
 quantiles to trim when \code{scale != "never"}.}
@@ -93,10 +92,12 @@ percentage labels next to bars when \code{bars = TRUE}.}
 for cluster annotations when \code{by != "sample_id"}.}
 
 \item{distance}{character string specifying the distance metric 
-to use in \code{\link[stats]{dist}} for hierarchical clustering.}
+to use for both row and column hierarchical clustering; 
+passed to \code{\link[ComplexHeatmap]{Heatmap}}}
 
 \item{linkage}{character string specifying the agglomeration method 
-to use in \code{\link[stats]{hclust}} for hierarchical clustering.}
+to use for both row and column hierarchical clustering; 
+passed to \code{\link[ComplexHeatmap]{Heatmap}}}
 }
 \value{
 a \code{\link[ComplexHeatmap]{Heatmap-class}} object.
@@ -167,7 +168,7 @@ high-throughput high-dimensional cytometry datasets.
 \seealso{
 \code{\link{plotMedExprs}}, 
 \code{\link{plotFreqHeatmap}}, 
-\code{\link{plotClusterHeatmap}}
+\code{\link{plotMultiHeatmap}}
 }
 \author{
 Helena L Crowell \email{helena.crowell@uzh.ch}

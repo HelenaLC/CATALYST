@@ -6,160 +6,80 @@
 \usage{
 plotClusterHeatmap(
   x,
-  hm1 = "type",
-  hm2 = "abundances",
+  hm2 = NULL,
   k = "meta20",
   m = NULL,
-  assay = "exprs",
-  fun = c("median", "mean", "sum"),
-  scale = c("first", ifelse(hm2 == "state", "first", "last")),
-  q = c(0.01, ifelse(hm2 == "state", 0.01, 0)),
-  normalize = TRUE,
-  row_anno = TRUE,
-  col_anno = TRUE,
-  row_clust = TRUE,
-  col_clust = c(TRUE, hm2 == "state"),
-  row_dend = TRUE,
-  col_dend = c(TRUE, hm2 == "state"),
-  bars = FALSE,
-  perc = FALSE,
-  hm1_pal = rev(brewer.pal(11, "RdYlBu")),
-  hm2_pal = if (isTRUE(hm2 == "abundances")) rev(brewer.pal(11, "PuOr")) else hm1_pal,
-  k_pal = CATALYST:::.cluster_cols,
-  m_pal = k_pal,
-  distance = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"),
-  linkage = c("average", "ward.D", "single", "complete", "mcquitty", "median",
-    "centroid", "ward.D2")
+  fun = c("median", "mean"),
+  cluster_anno = TRUE,
+  split_by = NULL,
+  scale = TRUE,
+  draw_dend = TRUE,
+  draw_freqs = FALSE,
+  palette = rev(brewer.pal(11, "RdYlBu"))
 )
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
 
-\item{hm1}{character string specifying 
-which features to include in the 1st heatmap;
-valid values are \code{"type"/"state"} for \code{type/state_markers(x)} 
-if \code{rowData(x)$marker_class} have been specified; 
-a subset of \code{rownames(x)}; NULL to use all features;
-and FALSE to omit the 1st heatmap altogether.}
-
 \item{hm2}{character string. Specifies the right-hand side heatmap. 
 One of: \itemize{
 \item{\code{"abundances"}: cluster frequencies across samples}
-\item{\code{"state"}: median state-marker expressions 
+\item{\code{"state"}: median cell state marker expressions 
   across clusters (analogous to the left-hand side heatmap)}
 \item{a character string/vector corresponding to one/multiple marker(s): 
-  median marker expressions across samples and clusters}}}
+  aggregated marker expressions across samples and clusters}}}
 
-\item{k}{character string specifying which;
-valid values are \code{names(cluster_codes(x))}.}
+\item{k}{character string specifying the clustering 
+across which median marker expressions should be computed.}
 
-\item{m}{character string specifying a metaclustering 
-to include as an annotation when \code{row_anno = TRUE}.}
-
-\item{assay}{character string specifying which assay 
-data to use; valid values are \code{assayNames(x)}.}
+\item{m}{character string specifying the metaclustering to be shown. 
+(This is for display only and will not effect any computations!)}
 
 \item{fun}{character string specifying 
 the function to use as summary statistic.}
 
-\item{scale}{character string specifying the scaling strategy; 
-for expression heatmaps (see \code{\link{plotExprHeatmap}}).}
+\item{cluster_anno}{logical specifying if clusters should be annotated.}
 
-\item{q}{single numeric in [0,1) determining the 
-quantiles to trim when \code{scale != "never"}.}
+\item{split_by}{deprecated.}
 
-\item{normalize}{logical specifying whether to Z-score normalize 
-cluster frequencies across samples; see \code{\link{plotFreqHeatmap}}.}
+\item{scale}{logical specifying whether scaled values should be plotted.}
 
-\item{row_anno, col_anno}{logical specifying whether to include 
-row/column annotations for cell metadata variables and clustering(s); 
-see \code{\link{plotExprHeatmap}} and \code{\link{plotFreqHeatmap}}.}
+\item{draw_dend}{logical specifying if the row dendrogram should be drawn.}
 
-\item{row_clust, col_clust}{logical specifying whether rows/columns 
-should be hierarchically clustered and re-ordered accordingly.}
+\item{draw_freqs}{logical specifying 
+whether to display cell counts and proportions.}
 
-\item{row_dend, col_dend}{logical specifying 
-whether to include the row/column dendrograms.}
-
-\item{bars}{logical specifying whether to include a barplot 
-of cell counts per cluster as a right-hand side row annotation.}
-
-\item{perc}{logical specifying whether to display 
-percentage labels next to bars when \code{bars = TRUE}.}
-
-\item{hm1_pal, hm2_pal}{character vector of colors 
-to interpolate for each heatmap.}
-
-\item{k_pal, m_pal}{character vector of colors
-to use for cluster and merging row annotations.
-If less than \code{nlevels(cluster_ids(x, k/m))} 
-values are supplied, colors will be interpolated 
-via \code{\link[grDevices:colorRamp]{colorRampPalette}}.}
-
-\item{distance}{character string specifying the distance metric 
-to use in \code{\link[stats]{dist}} for hierarchical clustering.}
-
-\item{linkage}{character string specifying the agglomeration method 
-to use in \code{\link[stats]{hclust}} for hierarchical clustering.}
+\item{palette}{character vector of colors to interpolate.}
 }
 \value{
-a \code{\link[ComplexHeatmap]{HeatmapList-class}} object.
+a \code{\link{HeatmapList-class}} object.
 }
 \description{
-Combines expression and frequency heatmaps from 
-\code{\link{plotExprHeatmap}} and \code{\link{plotFreqHeatmap}}, 
-respectively, into a \code{\link[ComplexHeatmap]{HeatmapList}}.
+Plots expression & relative cluster abundances 
+heatmaps summarizing a clustering and/or metaclustering.
 }
 \details{
-In its 1st panel, \code{plotClusterHeatmap} will display (scaled) 
-type-marker expressions aggregated by cluster (across all samples).
+Scaled values corresponds to cofactor arcsinh-transformed 
+expression values scaled between 0 and 1 using 1% and 99% percentiles as 
+boundaries. Hierarchical clustering is performed on the unscaled data.
+
+In its 1st panel, \code{plotClusterHeatmap} will display
+median (scaled, arcsinh-transformed) cell-type marker expressions (across all samples).
 Depending on argument \code{hm2}, the 2nd panel will contain one of:
-\describe{
-\item{\code{hm2 = "abundances"}}{
-  relataive cluster abundances by cluster & sample}
-\item{\code{hm2 = "state"}}{
-  aggregated (scaled) state-marker expressions by 
-  cluster (across all samples; analogous to panel 1)}
-\item{\code{hm2 \%in\% rownames(x)}}{
-  aggregated (scaled) marker expressions by cluster & sample}
+\itemize{
+\item{relataive cluster abundances by sample}
+\item{median (scaled, arcsinh-transformed) 
+  cell-state marker expressions (across all samples)}
+\item{median (scaled, arcsinh-transformed) 
+  cell-state marker expressions by sample}
 }
-}
-\examples{
-# construct SCE & run clustering
-data(PBMC_fs, PBMC_panel, PBMC_md)
-sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-sce <- cluster(sce)
-
-# state-markers + cluster frequencies
-plotClusterHeatmap(sce, 
-  hm1 = "state", hm2 = "abundances", 
-  bars = TRUE, perc = TRUE)
-
-# type-markers + marker of interest
-plotClusterHeatmap(sce, hm2 = "pp38", k = "meta12", m = "meta8")
-
-# both, type- & state-markers
-plotClusterHeatmap(sce, hm2 = "state")
-
-# plot markers of interest side-by-side 
-# without left-hand side heatmap
-plotClusterHeatmap(sce, k = "meta10", 
-  hm1 = NULL, hm2 = c("pS6", "pNFkB", "pBtk"), 
-  row_anno = FALSE, hm2_pal = c("white", "black"))
-
 }
 \references{
-Nowicka M, Krieg C, Crowell HL, Weber LM et al. 
+Nowicka M, Krieg C, Weber LM et al. 
 CyTOF workflow: Differential discovery in 
 high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
-\seealso{
-\code{\link{plotMedExprs}}, 
-\code{\link{plotAbundances}}, 
-\code{\link{plotExprHeatmap}}, 
-\code{\link{plotFreqHeatmap}}
-}
 \author{
-Helena L Crowell \email{helena.crowell@uzh.ch}
+Helena Lucia Crowell \email{helena.crowell@uzh.ch}
 }

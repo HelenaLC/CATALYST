@@ -63,13 +63,11 @@ plotEvents <- function(x, which = "all", assay = "scaled",
             is.character(out_name), length(out_name) == 1)
     
     # retreive IDs to include & barcode channels
+    rownames(x) <- chs <- channels(x)
     n_bcs <- ncol(bc_key <- metadata(x)$bc_key)
     .check_which(which, rownames(bc_key), "events")
     names(ids) <- ids <- unique(x$bc_id)
-    ms <- .get_ms_from_chs(rownames(x))
-    bc_ms <- as.numeric(colnames(bc_key))
-    m <- match(ms, bc_ms, nomatch = 0)
-    bc_chs <- rownames(x)[m]
+    bc_chs <- chs[rowData(x)$is_bc]
 
     labs <- apply(bc_key[ids, ], 1, paste, collapse = "")
     labs <- paste(ids, labs, sep = ": ")
@@ -80,8 +78,6 @@ plotEvents <- function(x, which = "all", assay = "scaled",
     m <- match(c("0", rownames(bc_key)), which, nomatch = 0)
     names(which) <- which <- which[m]
     
-    cs <- split(seq_len(ncol(x)), x$bc_id)
-    ns <- vapply(cs, length, numeric(1))
     pal <- brewer.pal(11, "Spectral")
     if (n_bcs > 11) {
         pal <- colorRampPalette(pal)(n_bcs)
@@ -90,12 +86,13 @@ plotEvents <- function(x, which = "all", assay = "scaled",
         pal <- pal[ceiling(idx)]
     }
     
+    bc_es <- assay(x, assay)[bc_chs, ]
+    cs <- split(seq_len(ncol(x)), x$bc_id)
+    ns <- vapply(cs, length, numeric(1))
+    cs <- lapply(cs, function(u) sample(u, min(length(u), n)))
     ps <- lapply(which, function(id) {
-        if (is.na(ns[id]) || ns[id] == 0) return(NULL)
-        if (ns[id] > n) cs[[id]] <- sample(cs[[id]], n)
-        df <- data.frame(
-            t(assay(x, assay)[bc_chs, cs[[id]]]), 
-            check.names = FALSE)
+        if (length(cs[[id]]) == 0) return(NULL)
+        df <- data.frame(t(bc_es[, cs[[id]]]), check.names = FALSE)
         df$i <- seq_len(nrow(df))
         gg_df <- melt(df, id.vars = "i")
         ggplot(gg_df, aes_string(x = "i", y = "value", col = "variable")) +
@@ -106,8 +103,8 @@ plotEvents <- function(x, which = "all", assay = "scaled",
                 panel.grid.minor = element_blank(),
                 panel.grid.major.x = element_blank(),
                 axis.text = element_text(color = "black"),
-                axis.ticks.x=element_blank(),
-                axis.text.x=element_blank(),
+                axis.text.x = element_blank(),
+                axis.ticks.x = element_blank(),
                 legend.key.height = unit(2, "mm"))
     })
     ps <- ps[!vapply(ps, is.null, logical(1))]

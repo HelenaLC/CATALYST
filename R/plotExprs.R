@@ -56,7 +56,7 @@ plotExprs <- function(x, features = NULL, color_by = "condition") {
         aes_string(
             x = "expression", y = "..ndensity..",
             col = color_by, group = "sample_id")) + 
-        facet_wrap(~ antigen, scales = "free") +
+        facet_wrap(~ antigen, scales = "free_x") +
         geom_density() + 
         ylab("normalized density") +
         theme_classic() + theme(

@@ -17,7 +17,7 @@ plotFreqHeatmap(
   col_dend = TRUE,
   bars = TRUE,
   perc = FALSE,
-  hm_pal = rev(brewer.pal(11, "PuOr")),
+  hm_pal = rev(brewer.pal(11, "RdBu")),
   k_pal = CATALYST:::.cluster_cols,
   m_pal = k_pal
 )
@@ -92,7 +92,7 @@ plotFreqHeatmap(sce,
 \seealso{
 \code{\link{plotAbundances}}, 
 \code{\link{plotExprHeatmap}}, 
-\code{\link{plotClusterHeatmap}},
+\code{\link{plotMultiHeatmap}},
 }
 \author{
 Helena L Crowell \email{helena.crowell@uzh.ch}

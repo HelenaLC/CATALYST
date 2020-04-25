@@ -34,7 +34,7 @@ in the following code snippets,
 \itemize{
 \item{merging codes are accesible through \code{cluster_codes(x)$id}}
 \item{all functions that ask for specification of a clustering 
-  (e.g. \code{\link{plotAbundances}}, \code{\link{plotClusterHeatmap}})
+  (e.g. \code{\link{plotAbundances}}, \code{\link{plotMultiHeatmap}})
   take the merging ID as a valid input argument.}}
 }
 \examples{

@@ -17,7 +17,7 @@ plotDiffHeatmap(
   normalize = TRUE,
   col_anno = TRUE,
   row_anno = TRUE,
-  hm_pal = rev(brewer.pal(9, ifelse(is.null(assayNames(y$res)), "RdYlBu", "PuOr")))
+  hm_pal = rev(brewer.pal(11, ifelse(is.null(assayNames(y$res)), "RdYlBu", "RdBu")))
 )
 }
 \arguments{

@@ -39,7 +39,7 @@
 #' @seealso 
 #' \code{\link{plotAbundances}}, 
 #' \code{\link{plotExprHeatmap}}, 
-#' \code{\link{plotClusterHeatmap}},
+#' \code{\link{plotMultiHeatmap}},
 #' 
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -74,7 +74,7 @@ plotFreqHeatmap <- function(x,
     row_clust = TRUE, col_clust = TRUE, 
     row_dend = TRUE, col_dend = TRUE,
     bars = TRUE, perc = FALSE,
-    hm_pal = rev(brewer.pal(11, "PuOr")),
+    hm_pal = rev(brewer.pal(11, "RdBu")),
     k_pal = CATALYST:::.cluster_cols, m_pal = k_pal) {
     
     # check validity of input arguments
