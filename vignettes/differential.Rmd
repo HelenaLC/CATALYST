@@ -302,61 +302,61 @@ plotFreqHeatmap(sce, k = "meta10",
     hm_pal = c("grey95", "black"))
 ```
 
-## `plotClusterHeatmap`: Multi-panel Heatmaps
+## `plotMultiHeatmap`: Multi-panel Heatmaps
 
-`plotClusterHeatmap` provides flexible options to combine expression and cluster frequency heatmaps generated with `plotExprHeatmap` (Sec. \@ref(plotExprHeatmap)) and `plotFreqHeatmap` (Sec. \@ref(plotFreqHeatmap)), respectively, with arguments `hm1` and `hm2` controlling the panel contents.
+`plotMultiHeatmap` provides flexible options to combine expression and cluster frequency heatmaps generated with `plotExprHeatmap` (Sec. \@ref(plotExprHeatmap)) and `plotFreqHeatmap` (Sec. \@ref(plotFreqHeatmap)), respectively, with arguments `hm1` and `hm2` controlling the panel contents.
 
 **Panel contents**  
-In its 1st panel, `plotClusterHeatmap` will display pseudobulks by cluster. Here, `hm1` may be used to specify a set of markers (subset of `rownames(sce)`), or `"type"/"state"` for `type/state_markers(sce)` when `marker_classes(sce)` have been specified. The 1st heatmap can be turned off altogether by setting `hm1 = FALSE`.  
-Anologously, for `hm2 = "type"/"state"`, an expression heatmap of type-/state-markers will be displayed as 2nd heatmap (see Sec. \@ref(plotClusterHeatmap-example1)). `hm2 = "abundances"` will render cluster frequencies by sample (see Sec. \@ref(plotClusterHeatmap-example2)). As opposed to argument `hm1`, however, when `hm2` specifies one or multiple marker(s), a separate heatmap of pseudobulks by cluster-sample will be drawn for each marker (see Sec. \@ref(plotClusterHeatmap-example3)). 
+In its 1st panel, `plotMultiHeatmap` will display pseudobulks by cluster. Here, `hm1` may be used to specify a set of markers (subset of `rownames(sce)`), or `"type"/"state"` for `type/state_markers(sce)` when `marker_classes(sce)` have been specified. The 1st heatmap can be turned off altogether by setting `hm1 = FALSE`.  
+Anologously, for `hm2 = "type"/"state"`, an expression heatmap of type-/state-markers will be displayed as 2nd heatmap (see Sec. \@ref(plotMultiHeatmap-example1)). `hm2 = "abundances"` will render cluster frequencies by sample (see Sec. \@ref(plotMultiHeatmap-example2)). As opposed to argument `hm1`, however, when `hm2` specifies one or multiple marker(s), a separate heatmap of pseudobulks by cluster-sample will be drawn for each marker (see Sec. \@ref(plotMultiHeatmap-example3)). 
 
 **Row and column annotations**  
 The clustering to aggregate by is specified with argument `k`. Optionally, a metaclustering of interest may be provided via `m`; here, clustering `m` is merely included as an additional annotation (and not used for any computation). Thus, `m` serves to visually inspect the quality a lower-resolution clustering or manual merging.  
-When an x-axis corresponds to samples, `plotClusterHeatmap` will include column annotations for cell metadata variables (columns in `colData`) that map uniquely to each sample (e.g., condition, patient ID). These annotations can be omitted via `col_anno = FALSE`, or reduced (e.g., `col_anno = "condition"` to include only a single annotation); by default (`col_anno = TRUE`), all available metadata is included.
+When an x-axis corresponds to samples, `plotMultiHeatmap` will include column annotations for cell metadata variables (columns in `colData`) that map uniquely to each sample (e.g., condition, patient ID). These annotations can be omitted via `col_anno = FALSE`, or reduced (e.g., `col_anno = "condition"` to include only a single annotation); by default (`col_anno = TRUE`), all available metadata is included.
 
 **Argument handling**  
-Most of `plotClusterHeatmap`'s arguments take a single value as input. For example, row annotations and dendrograms are automatically removed for all but the 1st panel. Nevertheless, a subset of arguments may be set uniquely for each heatmap; these are:
+Most of `plotMultiHeatmap`'s arguments take a single value as input. For example, row annotations and dendrograms are automatically removed for all but the 1st panel. Nevertheless, a subset of arguments may be set uniquely for each heatmap; these are:
 
 - `scale` and `q` controlling the scaling strategy for expression heatmaps
 - `col_clust/dend` specifying whether or not to column-cluster each heatmap and draw the resulting dendrograms
 
 When any of these arguments is of length one, the specified value will be recycled for both heatmaps. E.g., setting `scale = "never"` will have all expression heatmaps show unscaled data.
 
-### Example 1: Type- & state-markers {#plotClusterHeatmap-example1}
+### Example 1: Type- & state-markers {#plotMultiHeatmap-example1}
 
-To demonstrate `plotClusterHeatmap`'s basic functionality and handling of arguments, we plot expression heatmaps for both type- (`hm1 = "type"`) and state-markers (`hm2 = "state"`), and choose to include a column dendrogram for the 2nd heatmap only: 
+To demonstrate `plotMultiHeatmap`'s basic functionality and handling of arguments, we plot expression heatmaps for both type- (`hm1 = "type"`) and state-markers (`hm2 = "state"`), and choose to include a column dendrogram for the 2nd heatmap only: 
 
-```{r plotClusterHeatmap-1, fig.width = 7.5, fig.height = 4}
+```{r plotMultiHeatmap-1, fig.width = 7.5, fig.height = 4}
 # both, median type- & state-marker expressions
-plotClusterHeatmap(sce, 
+plotMultiHeatmap(sce, 
     hm1 = "type", hm2 = "state", 
     k = "meta12", m = "meta8",
     col_dend = c(FALSE, TRUE))
 ```
 
-### Example 2: CDx markers & cluster frequencies {#plotClusterHeatmap-example2}
+### Example 2: CDx markers & cluster frequencies {#plotMultiHeatmap-example2}
 
 As a second example, we plot an expession heatmap for a selection of markers (here, those starting with "CD": `hm1 = c("CDx", "CDy", ...`)[^3] next to the relative cluster abundances across samples (`hm2 = "abundances"`). We also add a barplot for the cell counts in each cluster (`bars = TRUE`) along with labels for their relative abundance (`perc = TRUE`):
 
 [^3]: `hm1 = NULL` would include *all* markers.
 
-```{r plotClusterHeatmap-2, fig.width = 7.5, fig.height = 3}
+```{r plotMultiHeatmap-2, fig.width = 7.5, fig.height = 3}
 # 1st: CDx markers by cluster; 
 # 2nd: population frequencies by sample
 cdx <- grep("CD", rownames(sce), value = TRUE)
-plotClusterHeatmap(sce, k = "meta6",
+plotMultiHeatmap(sce, k = "meta6",
     hm1 = cdx, hm2 = "abundances", 
     bars = TRUE, perc = TRUE, row_anno = FALSE)
 ```
 
-### Example 3: Selected markers {#plotClusterHeatmap-example3}
+### Example 3: Selected markers {#plotMultiHeatmap-example3}
 
-In this final example, we view a selection of markers side-by-side, and omit the 1st panel (`hm1 = FALSE`). We also retain the ordering of samples (column order) across panels (`col_clust = FALSE`). In this case, `plotClusterHeatmap` will drop column names (sample IDs) for all but the first panel to avoid repeating these labels and overcrowding the plot. Lastly, we set `scale = "never"` to visualize *raw* (unscaled) pseudobulks (= median expressions by cluster-sample):
+In this final example, we view a selection of markers side-by-side, and omit the 1st panel (`hm1 = FALSE`). We also retain the ordering of samples (column order) across panels (`col_clust = FALSE`). In this case, `plotMultiHeatmap` will drop column names (sample IDs) for all but the first panel to avoid repeating these labels and overcrowding the plot. Lastly, we set `scale = "never"` to visualize *raw* (unscaled) pseudobulks (= median expressions by cluster-sample):
 
-```{r plotClusterHeatmap-3, fig.width = 9, fig.height = 4}
+```{r plotMultiHeatmap-3, fig.width = 9, fig.height = 4}
 # plot selected markers side-by-side;
 # omit left-hand side heatmap
-plotClusterHeatmap(sce, 
+plotMultiHeatmap(sce, 
     k = "meta8", scale = "never",
     hm1 = FALSE, hm2 = c("pS6", "pp38", "pBtk"),
     row_anno = FALSE, col_clust = FALSE,
@@ -393,12 +393,12 @@ head(reducedDim(sce, "UMAP"))
 
 While `r BiocStyle::Biocpkg("scater")`'s `plotReducedDim` function can be used to visualize DRs, `CATALYST` provides the `plotDR` wrapper, specifically to allow for coloring cells by the various clusterings available, and to support facetting by metadata factors (e.g., experimental condition, sample IDs):
 
-```{r plotDR-1, fig.width = 8, height = 6}
+```{r plotDR-1, fig.height = 5}
 # color by marker expression & split by condition
 plotDR(sce, color_by = c("pS6", "pNFkB"), facet_by = "condition")
 ```
 
-```{r plotDR-2, fig.width = 8, fig.height = 5}
+```{r plotDR-2, fig.height = 5}
 # color by 8 metaclusters & split by sample ID
 p <- plotDR(sce, color_by = "meta8", facet_by = "sample_id")
 p$facet$params$ncol <- 4; p
@@ -408,7 +408,7 @@ p$facet$params$ncol <- 4; p
 
 SCEs constructed with `prepData` can be filtered using the `filterSCE` function, which allows for filtering of both cells and markers according to conditional statements in `dplyr`-style. When filtering on `cluster_id`s, argument `k` specifies which clustering to use (the default `NULL` uses `colData` column `"cluster_id"`). Two examples are given below:
 
-```{r filterSCE, fig.width = 8, fig.height = 3}
+```{r filterSCE, fig.height = 3}
 u <- filterSCE(sce, patient_id == "Patient1")
 table(u$sample_id)
 
@@ -514,7 +514,7 @@ table(cluster_ids(foo, "custom"))
 
 Most of `CATALYST`'s plotting functions return `ggplot` objects whose aesthetics can (in general) be modified easily. However, while e.g. theme aesthetics and color scales can simply be added to the plot, certain modifications can be achieved only through overwriting elements stored in the object, and thus require a decent understanding of its structure.
 
-Other functions (`plotExprHeatmap`, `plotClusterHeatmap` and `plotDiffHeatmap`) generate objects of the `Heatmap` of `HeatmapList` class from the `r BiocStyle::Biocpkg("ComplexHeatmap")` package, and are harder to modify once created. Therefore, `CATALYST` tries to expose a reasonable amount of arguments to the user that control key aesthetics such as the palettes used for coloring clusters and heatmaps.
+Other functions (`plotExprHeatmap`, `plotMultiHeatmap` and `plotDiffHeatmap`) generate objects of the `Heatmap` of `HeatmapList` class from the `r BiocStyle::Biocpkg("ComplexHeatmap")` package, and are harder to modify once created. Therefore, `CATALYST` tries to expose a reasonable amount of arguments to the user that control key aesthetics such as the palettes used for coloring clusters and heatmaps.
 
 The examples below serve to illustrate how some less exposed `ggplot` aesthetics can be modified in retrospect, and the effects of different arguments that control visualization of `r BiocStyle::Biocpkg("ComplexHeatmap")` outputs.
 
@@ -534,8 +534,8 @@ p <- p + scale_color_manual(values = c("royalblue", "orange"))
 
 ### Modifying `ComplexHeatmap`s
 
-```{r plotClusterHeatmap-custom, fig.width = 6, fig.height = 3}
-plotClusterHeatmap(sce,
+```{r plotMultiHeatmap-custom, fig.width = 6, fig.height = 3}
+plotMultiHeatmap(sce,
     k = "meta8", 
     m = "meta4",
     hm2 = "abundances",
@@ -572,6 +572,75 @@ plotExprHeatmap(sce, row_anno = TRUE,   # annotate samples
     bin_anno = TRUE,          # annotate bins with value
     bars = TRUE, perc = TRUE, # include barplot of sample sizes
     hm_pal = c("grey95", "orange"))
+```
+
+## Combining `ComplexHeatmap`s
+
+While `plotMultiHeatmap` provides a convenient way to combine pseudoublk expression heatmaps across clusters or cluster-sample combinations with heatmaps of relative cluster abundances, `Heatmap` objects can be, in principle, combined arbitrarily with a few notes of caution:
+
+1. each `Heatmap` should use the same clustering for aggregation (argument `k`).
+1. each `Heatmap` should have unique identifier (slot `@name`); otherwise, a warning is given. 
+1. each `Heatmap`'s legend should have a unique title (slot `@matrix_color_mapping@name`);  
+otherwise, legends with a title that is already in use will be dropped.
+
+### Example 1
+
+```{r combine-heatmaps-1, fig.width = 14, fig.height = 4.8}
+# specify clustering to aggregate by
+k <- "meta11"
+
+# median type-marker expression by cluster
+p1 <- plotExprHeatmap(sce, features = "type",
+    by = "cluster_id", k = k, m = "meta7")
+
+# median state-marker expression by cluster
+p2 <- plotExprHeatmap(sce, features = "state",
+    by = "cluster_id", k = k, row_anno = FALSE)
+
+# relative cluster abundances by sample
+p3 <- plotFreqHeatmap(sce, k = k, perc = TRUE,
+    row_anno = FALSE, col_clust = FALSE)
+
+# make legend titles unique
+p1@name <- p1@matrix_color_mapping@name <- "type"
+p2@name <- p2@matrix_color_mapping@name <- "state"
+
+p1 + p2 + p3
+```
+
+### Example 2
+
+```{r combine-heatmaps-2, fig.width = 14, fig.height = 4}
+# specify clustering to aggregate by
+k <- "meta9"
+
+# relative cluster abundances by sample
+p <- plotFreqHeatmap(sce, k = k, 
+    bars = FALSE, hm_pal = c("white", "black"),
+    row_anno = FALSE, col_clust = FALSE, col_anno = FALSE)
+
+# specify unique coloring
+cs <- c(pp38 = "maroon", pBtk = "green4")
+
+# median expression of selected markers by cluster-sample
+for (f in names(cs)) {
+    q <- plotExprHeatmap(sce, features = f, 
+        by = "both", k = k, scale = "never",
+        row_anno = FALSE, col_clust = FALSE, 
+        hm_pal = c("white", cs[f]))
+    # make identifier & legend title unique
+    q@name <- q@matrix_color_mapping@name <- f
+    # remove column annotation names
+    for (i in seq_along(q@top_annotation@anno_list))
+        q@top_annotation@anno_list[[i]]@label <- NULL
+    # remove redundant sample names
+    q@column_names_param$show <- FALSE
+    p <- p + q
+}
+
+# add heatmap of median expression across all features
+p + plotExprHeatmap(sce, features = NULL,
+    by = "cluster_id", k = k, row_anno = FALSE)
 ```
 
 # Session information
