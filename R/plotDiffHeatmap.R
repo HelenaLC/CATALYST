@@ -123,8 +123,8 @@ plotDiffHeatmap <- function(x, y,
     assay = "exprs", fun = c("median", "mean", "sum"), 
     scale = TRUE, normalize = TRUE,
     col_anno = TRUE, row_anno = TRUE,
-    hm_pal = rev(brewer.pal(9, ifelse(
-        is.null(assayNames(y$res)), "RdYlBu", "PuOr")))) {
+    hm_pal = rev(brewer.pal(11, ifelse(
+        is.null(assayNames(y$res)), "RdYlBu", "RdBu")))) {
     
     # check validity of input arguments
     fun <- match.arg(fun)
@@ -180,11 +180,12 @@ plotDiffHeatmap <- function(x, y,
         # relative cluster abundances by sample
         DA = {
             ns <- table(x$cluster_id, x$sample_id)
-            fq <- prop.table(ns, 1)
+            fq <- prop.table(ns, 2)
+            fq <- fq[top$cluster_id, ]
             y <- as.matrix(unclass(fq))
             if (normalize) y <- .z_normalize(asin(sqrt(y)))
             Heatmap(
-                matrix = y[top$cluster_id, ], 
+                matrix = y, 
                 name = paste0("normalized\n"[normalize], "frequency"),
                 col = hm_pal,
                 na_col = "lightgrey", 
