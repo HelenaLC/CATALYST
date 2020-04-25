@@ -21,6 +21,7 @@
 #'   ignored if \code{!all(color_by \%in\% rownames(x))}.
 #' @param q single numeric in [0,0.5) determining the 
 #'   quantiles to trim when \code{scale = TRUE}.
+#' @param dims length 2 numeric specifying which dimensions to plot.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -65,7 +66,8 @@
 
 plotDR <- function(x, dr = NULL, 
     color_by = "condition", facet_by = NULL,
-    k_pal = CATALYST:::.cluster_cols, scale = TRUE, q = 0.01) {
+    k_pal = CATALYST:::.cluster_cols, 
+    scale = TRUE, q = 0.01, dims = c(1, 2)) {
     
     # check validity of input arguments
     stopifnot(
@@ -75,10 +77,21 @@ plotDR <- function(x, dr = NULL,
         is.numeric(q), length(q) == 1, q >= 0, q < 0.5)
     .check_cd_factor(x, facet_by)
     
+    if (is.null(dr)) {
+        dr <- reducedDimNames(x)[1]
+    } else {
+        stopifnot(
+            is.character(dr), length(dr) == 1, 
+            dr %in% reducedDimNames(x))
+    }
+    stopifnot(is.numeric(dims), length(dims) == 2, 
+        dims %in% seq_len(ncol(reducedDim(x, dr))))
+        
     if (!all(color_by %in% rownames(x))) {
         stopifnot(length(color_by) == 1)
         if (color_by %in% names(colData(x))) {
             .check_cd_factor(x, color_by)
+            kids <- NULL
         } else {
             .check_sce(x, TRUE)
             .check_pal(k_pal)
@@ -89,19 +102,13 @@ plotDR <- function(x, dr = NULL,
                 k_pal <- colorRampPalette(k_pal)(nk)
         }
     }
-
-    if (is.null(dr)) {
-        dr <- reducedDimNames(x)[1]
-    } else {
-        stopifnot(
-            is.character(dr), length(dr) == 1, 
-            dr %in% reducedDimNames(x))
-    }
     
     # construct data.frame of reduced dimensions & relevant cell metadata
-    df <- data.frame(colData(x), reducedDim(x, dr))
+    xy <- reducedDim(x, dr)[, dims]
+    colnames(xy) <- c("x", "y")
+    df <- data.frame(colData(x), xy)
     if (all(color_by %in% rownames(x))) {
-        es <- assay(x, "exprs")
+        es <- as.matrix(assay(x, "exprs"))
         es <- es[color_by, , drop = FALSE]
         if (scale) 
             es <- .scale_exprs(es, 1, q)
@@ -113,39 +120,41 @@ plotDR <- function(x, dr = NULL,
         thm <- guide <- NULL
         color_by <- "value"
         facet <- facet_wrap("variable")
-        
     } else {
         facet <- NULL
-        if (exists("kids")) {
+        if (!is.null(kids)) {
             df[[color_by]] <- kids
             scale <- scale_color_manual(values = k_pal)
         } else scale <- NULL
+        n <- nlevels(droplevels(factor(df[[color_by]])))
         guide <- guides(col = guide_legend(
+            ncol = ifelse(n > 12, 2, 1),
             override.aes = list(alpha = 1, size = 3))) 
-        thm <- theme(legend.key.height  =  unit(0.8, "lines"))
+        thm <- theme(legend.key.height = unit(0.8, "lines"))
     }
     
     # set axes equal for linear dimension reductions
     if (dr %in% c("PCA", "MDS")) {
         asp <- coord_equal()
-    } else asp <- theme(aspect.ratio = 1)
+    } else asp <- NULL
     
     # get axes labels
     if (dr == "PCA") {
-        labs <- paste(c("1st", "2nd"), "PC")
-    } else labs <- paste(dr, "dim.", c(1, 2))
+        labs <- paste0("PC", dims)
+    } else labs <- paste(dr, "dim.", dims)
         
     # remove cells for which no reduced dimensions are available
-    df <- df[!(is.na(df$X1) | is.na(df$X2)), ]
+    df <- df[!(is.na(df$x) | is.na(df$y)), ]
     
-    p <- ggplot(df, aes_string("X1", "X2", col = color_by)) +
+    p <- ggplot(df, aes_string("x", "y", col = color_by)) +
         geom_point(size = 0.4, alpha = 0.8) + 
         labs(x = labs[1], y = labs[2]) +
         facet + scale + guide + asp + 
         theme_minimal() + thm + theme(
             panel.grid.minor = element_blank(),
             strip.text = element_text(face = "bold"),
-            axis.text = element_text(color = "black"))
+            axis.text = element_text(color = "black"),
+            aspect.ratio = if (is.null(asp)) 1 else NULL)
     
     if (is.null(facet_by)) 
         return(p)

@@ -11,7 +11,8 @@ plotDR(
   facet_by = NULL,
   k_pal = CATALYST:::.cluster_cols,
   scale = TRUE,
-  q = 0.01
+  q = 0.01,
+  dims = c(1, 2)
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ ignored if \code{!all(color_by \%in\% rownames(x))}.}
 
 \item{q}{single numeric in [0,0.5) determining the 
 quantiles to trim when \code{scale = TRUE}.}
+
+\item{dims}{length 2 numeric specifying which dimensions to plot.}
 }
 \value{
 a \code{ggplot} object.
