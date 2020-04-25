@@ -195,8 +195,6 @@
     if (y) 
         stopifnot(
             !is.null(x$cluster_id),
-            !is.null(metadata(x)$SOM_codes),
-            !is.null(metadata(x)$delta_area),
             !is.null(metadata(x)$cluster_codes))
 }
 
