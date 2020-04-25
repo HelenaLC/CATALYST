@@ -1,5 +1,7 @@
 ------------------------------------ 1.10.4 ------------------- Bioc 3.11, R 4.0
 
+PREPROCESSING
+
 o The daFrame class been removed and the preprocessing pipeline 
   rewritten to use the SingleCellExperiment class instead. 
   This greatly improves runtimes of debarcoding and normalization,
@@ -32,6 +34,12 @@ o plotScatter() has been added to support basic visualization of biscatters,
     - one channel against a set of others
     - a pair of channels split by two variables
     - one channel against others split by one variable
+    
+o plotYields() & plotSpillmat no-longer support interactive plotting with 
+  'plotly'; this did not seem necessary and avoids additional dependencies
+  
+o plotEvents() & plotYields() now support specification of both,
+  output directory and file name, via arguments 'out_path/name'
 
 DIFFERENTIAL ANALYSIS
 
@@ -39,28 +47,48 @@ o The metadata()$experiment_info slot is constructed by prepData() and
   subsetted by filterSCE() as before. However, it is no longer required 
   for any of the plotting functions associate with differential analysis. 
   Instead, these rely only on the existence of the colData()$sample_id
-  (and, for some, colData()$cluster_id) slot(s).
+  (and, for some, colData()$cluster_id) slot(s)
   
-o added options for customizing visualizations, e.g., providing custom 
-  color palettes for heatmaps and clusters, turning on/off row/column
-  clustering and dendrograms in heatmaps etc.
+o Throughout all plotting functions, options for customizing visualizations 
+  (e.g., providing custom color palettes for heatmaps and clusters, 
+  turning on/off row/column clustering and dendrograms in heatmaps etc.)
+  have been added
   
 o plotCounts() previously only supported plotting absolute cell counts by 
   sample and now allows to i) plot relative abundances (frequencies) instead;
   and, ii) group cell counts/frequencies by an addition cell metadata variable 
   (e.g., to plot abundances split by both sample and patient ID)
+
+o plotMDS() has been replaced by pbMDS() to avoid 
+  Namespace clash with scater::plotMDS()
+  
+o plotDR() failed to visualize PCA results; this has been fixed
+
+o plotDR() now allows to visualize dimension reductions 
+  colored by an arbitrary number of markers with a single command
+  
+o plotClusterHeatmap() has been deprecated and replaced by 
+  - plotExprHeatmap() for pseudobulk expression heatmaps 
+    (by sample, cluster, cluster-sample)
+  - plotFreqHeatmap() for relative cluster abundance heatmaps
+  - plotMultiHeatmap() to combine pseudobulk expression 
+    & cluster frequency heatmaps side-by-side
   
 o The vignette has been extended to include sections on how
   - ggplot2 & ComplexHeatmap visualizations 
     can be customized or modified in retrospect
   - any clustering algorithms other than FlowSOM can be applied and 
     incorporated to make use of the visualizations available in CATALYST
+  - arbitrary ComplexHeatmap outputs from plotExprs/FreqHeatmap() 
+    can be combined manually, when not plotMultiHeatmap()
+    
+o An additional vignette has been added demonstrating how CATALYST's 
+  visualizations can be used with other data types from, e.g., scRNA-seq
   
 ------------------------------------ 1.10.3 ------------------------------------
 
 o filterSCE() now drops non-existent levels in metadata()$experiment_info
 
-  
 o plotNRS() no-longer fails when samples have an insufficient number of cells;
   added check.names = FALSE in data.frame() to prevent renaming of antigens
 
