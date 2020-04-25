@@ -27,11 +27,11 @@ test_that("plotDiffHeatmap() - DA", {
     y <- p@matrix
     expect_gte(min(y), 0)
     expect_lte(max(y), 1)
-    expect_equivalent(rowSums(y), rep(1, nrow(y)))
+    expect_true(all(colSums(y) == 1))
     expect_equal(dim(y), c(nlevels(kids), nlevels(x$sample_id)))
     expect_identical(rownames(y), levels(kids))
     expect_identical(colnames(y), levels(x$sample_id))
-    expect_identical(c(prop.table(table(kids, x$sample_id), 1)), c(y))
+    expect_identical(c(prop.table(table(kids, x$sample_id), 2)), c(y))
 })
 
 test_that("plotDiffHeatmap() - DS", {
@@ -54,7 +54,7 @@ test_that("plotDiffHeatmap() - DS", {
     })
 })
 
-test_that("plotClusterHeatmap() - DA; filtering", {
+test_that("plotMultiHeatmap() - DA; filtering", {
     for (ks in lapply(c(1, 5, 10), sample, x = levels(kids))) {
         y <- filterSCE(x, !cluster_id %in% ks, k = k)
         p <- plotDiffHeatmap(y, da, all = TRUE, order = FALSE)
@@ -63,7 +63,7 @@ test_that("plotClusterHeatmap() - DA; filtering", {
     }
 })
 
-test_that("plotClusterHeatmap() - DS; filtering", {
+test_that("plotMultiHeatmap() - DS; filtering", {
     for (ks in lapply(c(1, 3, 5), sample, x = levels(kids))) {
         y <- filterSCE(x, !cluster_id %in% ks, k = k)
         nk <- nlevels(cluster_ids(y, k))

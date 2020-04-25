@@ -57,7 +57,7 @@ test_that("plotEvents()", {
     expect_is(p, "ggplot")
     expect_true(nrow(p$data) == n * ncol(sample_key))
     expect_true(all(table(p$data$variable) == n))
-    expect_identical(levels(p$data$variable), rownames(x)[rowData(x)$is_bc])
+    expect_equivalent(levels(p$data$variable), channels(x)[rowData(x)$is_bc])
     # multiple IDs
     n_in <- sample(seq_len(n_ids)[-1], 1)
     which <- sample(ids, n_in)
