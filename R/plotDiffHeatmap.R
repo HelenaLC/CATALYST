@@ -16,7 +16,8 @@
 #'   Alternatively, a list as returned by \code{\link[diffcyt]{diffcyt}}.
 #' @param k character string specifying 
 #'   the clustering in \code{x} from which \code{y} was obtained.
-#'   If NULL, \code{plotDiffHeatmap} will try and guess it.
+#'   If NULL, \code{plotDiffHeatmap} will try and guess it,
+#'   which will be inaccurate if multiple clusterings share the same levels.
 #' @param top_n numeric. Number of top clusters (if \code{type = "DA"})
 #'   or cluster-marker combinations (if \code{type = "DS"}) to display.
 #' @param fdr numeric threshold on adjusted p-values below which 
@@ -119,12 +120,14 @@ plotDiffHeatmap <- function(x, y, k = NULL,
     lfc_pal = c("blue3", "white", "red3")) {
     
     # check validity of input arguments
-    fun <- match.arg(fun)
-    sort_by <- match.arg(sort_by)
     args <- as.list(environment())
     .check_args_plotDiffHeatmap(args)
+    fun <- match.arg(fun)
     y_cols <- as.list(y_cols)
-    
+    sort_by <- match.arg(sort_by)
+    stopifnot(y_cols[[sort_by]] %in% names(y))
+    y_cols <- y_cols[y_cols %in% names(y)]
+
     # guess clustering to use
     if (is.null(k)) {
         kids <- levels(y$cluster_id)
@@ -133,7 +136,7 @@ plotDiffHeatmap <- function(x, y, k = NULL,
         if (!any(same)) 
             stop("Couldn't match any clustering",
                 " in input data 'x' with results in 'y'.")
-        k <- names(cluster_codes(x))[same]
+        k <- names(cluster_codes(x))[same][1]
     } else {
         k <- .check_k(x, k)
     }
@@ -156,8 +159,11 @@ plotDiffHeatmap <- function(x, y, k = NULL,
     i <- !is.na(y$padj) & y$cluster_id %in% levels(x$cluster_id)
     if (type == "ds") 
         i <- i & y$target %in% rownames(x)
-    if (!all) 
-        i <- i & y$padj < fdr & abs(y$lfc) > lfc
+    if (!all) {
+        i <- i & y$padj < fdr
+        if (!is.null(y$lfc))
+            i <- i & abs(y$lfc) > lfc
+    }
     y <- y[i, , drop = FALSE]
 
     if (nrow(y) == 0)
@@ -185,26 +191,32 @@ plotDiffHeatmap <- function(x, y, k = NULL,
     
     # row annotation: significant = (adj. p-values <= th)
     if (row_anno) {
-        lfc_lims <- range(top$lfc, na.rm = TRUE)
-        if (all(lfc_lims > 0)) {
-            lfc_brks <- c(0, lfc_lims[2])
-            lfc_pal <- lfc_pal[-1]
-        } else if (all(lfc_lims < 0)) {
-            lfc_brks <- c(lfc_lims[1], 0)
-            lfc_pal <- lfc_pal[-3]
-        } else lfc_brks <- c(lfc_lims[1], 0, lfc_lims[2])
         s <- factor(
             ifelse(top$padj < fdr, "yes", "no"), 
             levels = c("no", "yes"))
+        if (!is.null(top$lfc)) {
+            lfc_lims <- range(top$lfc, na.rm = TRUE)
+            if (all(lfc_lims > 0)) {
+                lfc_brks <- c(0, lfc_lims[2])
+                lfc_pal <- lfc_pal[-1]
+            } else if (all(lfc_lims < 0)) {
+                lfc_brks <- c(lfc_lims[1], 0)
+                lfc_pal <- lfc_pal[-3]
+            } else lfc_brks <- c(lfc_lims[1], 0, lfc_lims[2])
+            lfc_anno <- top$lfc
+            anno_cols <- list(logFC = colorRamp2(lfc_brks, lfc_pal))
+        } else {
+            lfc_anno <- NULL
+            anno_cols <- list()
+        }
+        anno_cols$significant <- setNames(fdr_pal, levels(s))
         right_anno <- rowAnnotation(
-            logFC = top$lfc,
+            logFC = lfc_anno,
             significant = s,
             "foo" = row_anno_text(
                 scientific(top$padj, 2),
                 gp = gpar(fontsize = 8)),
-            col = list(
-                logFC = colorRamp2(lfc_brks, lfc_pal),
-                significant = c(setNames(fdr_pal, levels(s)))),
+            col = anno_cols,
             gp = gpar(col = "white"),
             show_annotation_name = FALSE,
             simple_anno_size = unit(4, "mm"))
