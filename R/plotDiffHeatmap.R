@@ -28,7 +28,11 @@
 #' @param sort_by character string specifying the \code{y} column to sort by; 
 #'   \code{"none"} to retain original ordering. Adj. p-values will increase, 
 #'   logFCs will decreasing from top to bottom.
-#' @param y_cols length 2 
+#' @param y_cols named list specifying columns in \code{y} that contain
+#'   adjusted p-values (\code{padj}), logFCs (\code{lfc}) and, 
+#'   for DS results, feature names (\code{target}).
+#'   When only some \code{y_cols} differ from the defaults,
+#'   specifying only these is sufficient.
 #' @param assay character string specifying which assay 
 #'   data to use; valid values are \code{assayNames(x)}.
 #' @param fun character string specifying the function to use 
@@ -91,13 +95,12 @@
 #' plotDiffHeatmap(sce, ds)
 #' 
 #' # visualize results for subset of clusters
-#' sub <- filterSCE(sce, k = "meta20", cluster_id %in% seq_len(5))
+#' sub <- filterSCE(sce, cluster_id %in% seq_len(5), k = "meta20")
 #' plotDiffHeatmap(sub, da, all = TRUE, sort_by = "none")
 #' 
 #' # visualize results for selected feature
 #' # & include only selected annotation
-#' plotDiffHeatmap(sce["pp38", ], ds, 
-#'   col_anno = "condition", all = TRUE)
+#' plotDiffHeatmap(sce["pp38", ], ds, col_anno = "condition", all = TRUE)
 #' 
 #' @importFrom ComplexHeatmap rowAnnotation row_anno_text Heatmap
 #' @importFrom circlize colorRamp2
@@ -112,7 +115,7 @@
 plotDiffHeatmap <- function(x, y, k = NULL,
     top_n = 20, fdr = 0.05, lfc = 1, all = FALSE,
     sort_by = c("padj", "lfc", "none"), 
-    y_cols = c(padj = "p_adj", lfc = "logFC"),
+    y_cols = list(padj = "p_adj", lfc = "logFC", target = "marker_id"),
     assay = "exprs", fun = c("median", "mean", "sum"), 
     normalize = TRUE, col_anno = TRUE, row_anno = TRUE,
     hm_pal = NULL, 
@@ -120,14 +123,19 @@ plotDiffHeatmap <- function(x, y, k = NULL,
     lfc_pal = c("blue3", "white", "red3")) {
     
     # check validity of input arguments
-    args <- as.list(environment())
-    .check_args_plotDiffHeatmap(args)
     fun <- match.arg(fun)
-    y_cols <- as.list(y_cols)
     sort_by <- match.arg(sort_by)
+    args <- as.list(environment())
+    
+    defs <- as.list(formals("plotDiffHeatmap")$y_cols[-1])
+    miss <- !names(defs) %in% names(args$y_cols)
+    if (any(miss)) y_cols <- args$y_cols <- 
+        c(args$y_cols, defs[miss])[names(defs)]
+    
+    .check_args_plotDiffHeatmap(args)
     stopifnot(y_cols[[sort_by]] %in% names(y))
     y_cols <- y_cols[y_cols %in% names(y)]
-
+    
     # guess clustering to use
     if (is.null(k)) {
         kids <- levels(y$cluster_id)
@@ -141,24 +149,30 @@ plotDiffHeatmap <- function(x, y, k = NULL,
         k <- .check_k(x, k)
     }
     x$cluster_id <- cluster_ids(x, k)
-    nk <- length(unique(x$cluster_id))
     
+    # get feature column
     y <- data.frame(y, check.names = FALSE)
     y <- mutate_if(y, is.factor, as.character)
-    u <- apply(y, 2, function(u) any(rownames(x) %in% u))
-    if (any(u)) {
-        y_cols$target <- names(which(u))[1]
+    if (any(rownames(x) %in% unlist(y))) {
+        features <- intersect(rownames(x), y[[y_cols$target]])
+        if (length(features) == 0)
+            stop("Couldn't match features between",
+                " results 'y' and input data 'x'.")
+        i <- y[[y_cols$target]] %in% rownames(x)
         type <- "ds"
-    } else type <- "da"
+    } else {
+        i <- TRUE
+        type <- "da"
+    }
     
     # rename relevant result variables
-    y <- rename(y, target = y_cols$target,
-        padj = y_cols$padj, lfc = y_cols$lfc)
+    y <- rename(y, 
+        target = y_cols$target,
+        padj = y_cols$padj, 
+        lfc = y_cols$lfc)
     
-    # subset results in case input SCE has been filtered
-    i <- !is.na(y$padj) & y$cluster_id %in% levels(x$cluster_id)
-    if (type == "ds") 
-        i <- i & y$target %in% rownames(x)
+    # filter results
+    i <- i & !is.na(y$padj) & y$cluster_id %in% levels(x$cluster_id)
     if (!all) {
         i <- i & y$padj < fdr
         if (!is.null(y$lfc))
@@ -209,7 +223,8 @@ plotDiffHeatmap <- function(x, y, k = NULL,
             lfc_anno <- NULL
             anno_cols <- list()
         }
-        anno_cols$significant <- setNames(fdr_pal, levels(s))
+        names(fdr_pal) <- levels(s)
+        anno_cols$significant <- fdr_pal
         right_anno <- rowAnnotation(
             logFC = lfc_anno,
             significant = s,

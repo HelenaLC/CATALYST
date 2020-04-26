@@ -13,7 +13,7 @@ plotDiffHeatmap(
   lfc = 1,
   all = FALSE,
   sort_by = c("padj", "lfc", "none"),
-  y_cols = c(padj = "p_adj", lfc = "logFC"),
+  y_cols = list(padj = "p_adj", lfc = "logFC", target = "marker_id"),
   assay = "exprs",
   fun = c("median", "mean", "sum"),
   normalize = TRUE,
@@ -35,7 +35,8 @@ Alternatively, a list as returned by \code{\link[diffcyt]{diffcyt}}.}
 
 \item{k}{character string specifying 
 the clustering in \code{x} from which \code{y} was obtained.
-If NULL, \code{plotDiffHeatmap} will try and guess it.}
+If NULL, \code{plotDiffHeatmap} will try and guess it,
+which will be inaccurate if multiple clusterings share the same levels.}
 
 \item{top_n}{numeric. Number of top clusters (if \code{type = "DA"})
 or cluster-marker combinations (if \code{type = "DS"}) to display.}
@@ -52,7 +53,11 @@ be displayed. If \code{TRUE}, \code{fdr,lfc} filtering is skipped.}
 \code{"none"} to retain original ordering. Adj. p-values will increase, 
 logFCs will decreasing from top to bottom.}
 
-\item{y_cols}{length 2}
+\item{y_cols}{named list specifying columns in \code{y} that contain
+adjusted p-values (\code{padj}), logFCs (\code{lfc}) and, 
+for DS results, feature names (\code{target}).
+When only some \code{y_cols} differ from the defaults,
+specifying only these is sufficient.}
 
 \item{assay}{character string specifying which assay 
 data to use; valid values are \code{assayNames(x)}.}
@@ -125,13 +130,12 @@ plotDiffHeatmap(sce, da)
 plotDiffHeatmap(sce, ds)
 
 # visualize results for subset of clusters
-sub <- filterSCE(sce, k = "meta20", cluster_id \%in\% seq_len(5))
+sub <- filterSCE(sce, cluster_id \%in\% seq_len(5), k = "meta20")
 plotDiffHeatmap(sub, da, all = TRUE, sort_by = "none")
 
 # visualize results for selected feature
 # & include only selected annotation
-plotDiffHeatmap(sce["pp38", ], ds, 
-  col_anno = "condition", all = TRUE)
+plotDiffHeatmap(sce["pp38", ], ds, col_anno = "condition", all = TRUE)
 
 }
 \author{
