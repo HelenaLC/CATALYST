@@ -223,45 +223,6 @@
 }
 
 # ==============================================================================
-# get differential analysis type from differential test result 
-# as returned by 'diffcyt::testDA_*()' & 'diffcyt::testDS_*()'
-# ------------------------------------------------------------------------------
-.get_dt_type <- function(x) {
-    # check correctness of column names
-    da_GLMM <- c("cluster_id", "p_val", "p_adj")
-    da_edgeR <- c("cluster_id", "logFC", "logCPM", "LR", "p_val", "p_adj")
-    da_voom <- c("cluster_id", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
-    
-    ds_LMM <- c("cluster_id", "marker_id", "p_val", "p_adj")
-    ds_limma <- c("cluster_id", "marker_id", 
-        "ID", "logFC", "AveExpr", "t", "p_val", "p_adj", "B")
-    
-    res_nms <- list(da_GLMM, da_edgeR, da_voom, ds_LMM, ds_limma)
-    names(res_nms) <- c(rep("da", 3), rep("ds", 2))
-    
-    test <- vapply(res_nms, identical, y = names(x), logical(1))
-    test <- vapply(test, isTRUE, logical(1))
-    type <- names(test)[test]
-    if (length(type) == 0) 
-        type <- "none"
-    
-    # get no. of clusters
-    k <- length(unique(x$cluster_id))
-    m <- length(unique(x$marker_id))
-    
-    if (type == "da" && nrow(x) == k) {
-        return("DA")
-    } else if (type == "ds" && nrow(x) == (k * m)) {
-        return("DS")
-    } else {
-        stop(deparse(substitute(x)), " does not seem to be ", 
-            "a valid differential test result.\n",
-            "Should be a 'SummarizedExperiment' as returned by ", 
-            "'diffcyt::testDA_*()' or 'diffcyt::testDS_*()'.")
-    }
-}
-
-# ==============================================================================
 # wrapper for Z-score normalization
 # ------------------------------------------------------------------------------
 .z_normalize <- function(es, th=2.5) {
