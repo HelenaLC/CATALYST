@@ -70,8 +70,7 @@ filterSCE <- function(x, ..., k = NULL) {
     
     # update experimental design table
     md <- metadata(x)
-    if (nrow(cdf) != ncol(x)) {
-        ei <- metadata(x)$experiment_info
+    if (nrow(cdf) != ncol(x) && !is.null(ei <- ei(x))) {
         cols <- intersect(colnames(cdf), colnames(ei))
         keep <- vapply(cols, function(u) 
             ei[, u] %in% levels(cdf[, u]), 
