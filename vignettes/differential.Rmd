@@ -322,7 +322,7 @@ Most of `plotMultiHeatmap`'s arguments take a single value as input. For example
 
 When any of these arguments is of length one, the specified value will be recycled for both heatmaps. E.g., setting `scale = "never"` will have all expression heatmaps show unscaled data.
 
-### Example 1: Type- & state-markers {#plotMultiHeatmap-example1}
+### Ex. 1: Type- & state-markers {#plotMultiHeatmap-example1}
 
 To demonstrate `plotMultiHeatmap`'s basic functionality and handling of arguments, we plot expression heatmaps for both type- (`hm1 = "type"`) and state-markers (`hm2 = "state"`), and choose to include a column dendrogram for the 2nd heatmap only: 
 
@@ -334,7 +334,7 @@ plotMultiHeatmap(sce,
     col_dend = c(FALSE, TRUE))
 ```
 
-### Example 2: CDx markers & cluster frequencies {#plotMultiHeatmap-example2}
+### Ex. 2: CDx markers & cluster frequencies {#plotMultiHeatmap-example2}
 
 As a second example, we plot an expession heatmap for a selection of markers (here, those starting with "CD": `hm1 = c("CDx", "CDy", ...`)[^3] next to the relative cluster abundances across samples (`hm2 = "abundances"`). We also add a barplot for the cell counts in each cluster (`bars = TRUE`) along with labels for their relative abundance (`perc = TRUE`):
 
@@ -349,7 +349,7 @@ plotMultiHeatmap(sce, k = "meta6",
     bars = TRUE, perc = TRUE, row_anno = FALSE)
 ```
 
-### Example 3: Selected markers {#plotMultiHeatmap-example3}
+### Ex. 3: Selected markers {#plotMultiHeatmap-example3}
 
 In this final example, we view a selection of markers side-by-side, and omit the 1st panel (`hm1 = FALSE`). We also retain the ordering of samples (column order) across panels (`col_clust = FALSE`). In this case, `plotMultiHeatmap` will drop column names (sample IDs) for all but the first panel to avoid repeating these labels and overcrowding the plot. Lastly, we set `scale = "never"` to visualize *raw* (unscaled) pseudobulks (= median expressions by cluster-sample):
 
@@ -438,44 +438,76 @@ res_DA <- diffcyt(sce, clustering_to_use = "meta10",
 res_DS <- diffcyt(sce, clustering_to_use = "meta10",
     analysis_type = "DS", method_DS = "diffcyt-DS-limma",
     design = design, contrast = contrast, verbose = FALSE)
+
+# extract result tables
+tbl_DA <- rowData(res_DA$res)
+tbl_DS <- rowData(res_DS$res)
 ```
 
 ## `plotDiffHeatmap`: Heatmap of differential testing results
 
 Differential testing results returned by `r BiocStyle::Biocpkg("diffcyt")` can be displayed with the `plotDiffHeatmap` function.
 
-For differential abundance (DA) tests, `plotDiffHeatmap` will display
+For differential abundance (DA) tests, `plotDiffHeatmap` will display relative cluster abundances by samples; for differential state (DS) tests, `plotDiffHeatmap` will display aggregated marker expressions by sample.
 
-- median (arcsinh-transformed) cell-type marker expressions (across all samples), and
-- relative cluster abundances by samples
+**Filtering**  
+The results to retain for visualization can be filtered via 
 
-For differential state (DS) tests, `plotDiffHeatmap` will display
+- `fdr`: threshold on adjusted p-values *below* which to keep a result
+- `lfc`: thershold on absolute logFCs *above* which to keep a result
 
-- median (arcsinh-transformed) cell-type marker expressions (across all samples)
-- median (arcsinh-transformed) cell-state marker expressions by sample
+The number of top findings to display can be specified with `top_n` (default 20). When `all = TRUE`, significance and logFC filtering will be skipped, and all `top_n` results are shown.
 
-Clusters (DA) and cluster-marker combinations (DS), respectively, will be marked as *significant* if their adjusted p-value falls below the threshold value specified with `th` (default 0.1), and will be ordered by significance if `order = TRUE` (the default). The number of top findings to display can be specified with `top_n` (default 20). When `normalize = TRUE`, the right-hand side heatmap will display Z-score normalized values. For DA, cluster frequencies will be arcsine-square-root scaled prior to normalization.
+**Annotations**  
+Analogous to `plotFreq/Expr/MuliHeatmap`, when `col_anno = TRUE`, `plotDiffHeatmap` will include column annotations for cell metadata variables (columns in `colData`) that map uniquely to each sample (e.g., condition, patient ID). These annotations can be omitted via `col_anno = FALSE`, or reduced (e.g., `col_anno = "condition"` to include only a single annotation).  
+When `row_anno = TRUE`, cluster (DA) and cluster-marker instances (DS) will be marked as *significant* if their adjusted p-value falls below the threshold value specified with `fdr`. A second annotation will be drawn for the logFCs.
+
+**Normalization**  
+When `normalize = TRUE`, the heatmap will display Z-score normalized values. For DA, cluster frequencies will be arcsine-square-root scaled prior to normalization. While losing information on absolution frequency/expression values, this option will make differences across samples and conditions more notable. 
+
+## Ex. 1: DA testing results
+
+We here set `all = TRUE` to display top-20 DA analysis results, without filtering on adjusted p-values and logFCs. Since differential testing was performed on 10 clusters only, this will simply include all available results.  
+By setting `fdr = 0.05` despite not filtering on significance, we can control the right-hand side annotation:
 
 ```{r plotDiffHeatmap-da, fig.width = 5, fig.height = 4}
-plotDiffHeatmap(sce, res_DA, all = TRUE, th = 0.05)
+plotDiffHeatmap(sce, tbl_DA, all = TRUE, fdr = 0.05)
 ```
 
-```{r plotDiffHeatmap-ds, fig.width = 5.5, fig.height = 5}
-plotDiffHeatmap(sce, res_DS, top_n = 15)
+## Ex. 2: DS testing results
+
+Via setting `fdr = 0.05`, we here display the top DS analysis results in terms of significance. Alternative to the example above, we sort these according their logFCs (`sort_by = "lfc"`), and include only a selected sample annotation (`col_anno = "condition"`): 
+
+```{r plotDiffHeatmap-ds, fig.width = 5, fig.height = 4}
+plotDiffHeatmap(sce, tbl_DS, fdr = 0.05, 
+    sort_by = "lfc", col_anno = "condition")
 ```
+
+## Ex. 3: Filtering results
 
 As an alternative to leaving the selection of markers and clusters to their ordering (significance), we can visualize a specific subset of results (e.g., a selected marker or cluster) using `filterSCE`:
 
-```{r plotDiffHeatmap-filter-1, fig.width = 5.5, fig.height = 4}
+```{r plotDiffHeatmap-filter-1, fig.width = 4.5, fig.height = 3.25}
 # include all results for selected marker
-plotDiffHeatmap(sce["pp38", ], res_DS, all = TRUE, col_anno = "condition")
+plotDiffHeatmap(sce["pp38", ], tbl_DS, all = TRUE, col_anno = FALSE)
 ```
 
-```{r plotDiffHeatmap-filter-2, fig.width = 5.5, fig.height = 5}
+```{r plotDiffHeatmap-filter-2, fig.width = 5, fig.height = 4.25}
 # include all results for selected cluster
 k <- metadata(res_DS$res)$clustering_name
 sub <- filterSCE(sce, cluster_id == 8, k = k)
-plotDiffHeatmap(sub, res_DS, normalize = FALSE, col_anno = "condition")
+plotDiffHeatmap(sub, tbl_DS, all = TRUE, normalize = FALSE)
+```
+
+## Ex. 4: Customizing appearance
+
+Heatmap and annotation colors are controlled via arguments `hm_pal` and `fdr/lfc_pal`, respectively. Here's an example how these can be modified: 
+
+```{r plotDiffHeatmap-pals, fig.width = 4, fig.height = 3.5}
+plotDiffHeatmap(sce, tbl_DA, all = TRUE, col_anno = FALSE,
+    hm_pal = c("gold", "white", "navy"),
+    fdr_pal = c("grey90", "grey50"),
+    lfc_pal = c("red3", "grey90", "green3"))
 ```
 
 # More
@@ -583,7 +615,7 @@ While `plotMultiHeatmap` provides a convenient way to combine pseudoublk express
 1. each `Heatmap`'s legend should have a unique title (slot `@matrix_color_mapping@name`);  
 otherwise, legends with a title that is already in use will be dropped.
 
-### Example 1
+### Ex. 1: type- & state-markers + cluster frequencies
 
 ```{r combine-heatmaps-1, fig.width = 14, fig.height = 4.8}
 # specify clustering to aggregate by
@@ -608,7 +640,7 @@ p2@name <- p2@matrix_color_mapping@name <- "state"
 p1 + p2 + p3
 ```
 
-### Example 2
+### Ex. 2: frequencies + selected markers + all markers
 
 ```{r combine-heatmaps-2, fig.width = 14, fig.height = 4}
 # specify clustering to aggregate by
@@ -632,7 +664,7 @@ for (f in names(cs)) {
     q@name <- q@matrix_color_mapping@name <- f
     # remove column annotation names
     for (i in seq_along(q@top_annotation@anno_list))
-        q@top_annotation@anno_list[[i]]@label <- NULL
+        q@top_annotation@anno_list[[i]]@name_param$show <- FALSE
     # remove redundant sample names
     q@column_names_param$show <- FALSE
     p <- p + q
