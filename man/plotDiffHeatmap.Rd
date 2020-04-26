@@ -7,17 +7,21 @@
 plotDiffHeatmap(
   x,
   y,
+  k = NULL,
   top_n = 20,
+  fdr = 0.05,
+  lfc = 1,
   all = FALSE,
-  order = TRUE,
-  th = 0.1,
+  sort_by = c("padj", "lfc", "none"),
+  y_cols = c(padj = "p_adj", lfc = "logFC"),
   assay = "exprs",
   fun = c("median", "mean", "sum"),
-  scale = TRUE,
   normalize = TRUE,
   col_anno = TRUE,
   row_anno = TRUE,
-  hm_pal = rev(brewer.pal(11, ifelse(is.null(assayNames(y$res)), "RdYlBu", "RdBu")))
+  hm_pal = NULL,
+  fdr_pal = c("lightgrey", "lightgreen"),
+  lfc_pal = c("blue3", "white", "red3")
 )
 }
 \arguments{
@@ -29,67 +33,61 @@ results as returned by one of \code{\link[diffcyt]{testDA_edgeR}},
 \code{\link[diffcyt]{testDS_limma}}, or \code{\link[diffcyt]{testDS_LMM}}.
 Alternatively, a list as returned by \code{\link[diffcyt]{diffcyt}}.}
 
-\item{top_n}{numeric. Number of top clusters (if \code{type = "DA"}) or
-cluster-marker combinations (if \code{type = "DS"}) to display.}
+\item{k}{character string specifying 
+the clustering in \code{x} from which \code{y} was obtained.
+If NULL, \code{plotDiffHeatmap} will try and guess it.}
 
-\item{all}{logical. Specifies whether all clusters or cluster-marker combinations 
-should be displayed. If \code{TRUE}, \code{top_n} will be ignored.}
+\item{top_n}{numeric. Number of top clusters (if \code{type = "DA"})
+or cluster-marker combinations (if \code{type = "DS"}) to display.}
 
-\item{order}{logical. Should results be ordered by significance?}
+\item{fdr}{numeric threshold on adjusted p-values below which 
+results should be retained and considered to be significant.}
 
-\item{th}{numeric. Threshold on adjusted p-values below which clusters (DA) 
-or cluster-marker combinations (DS) should be considered significant.}
+\item{lfc}{numeric threshold on logFCs above which to retain results.}
+
+\item{all}{logical specifying whether all \code{top_n} results should 
+be displayed. If \code{TRUE}, \code{fdr,lfc} filtering is skipped.}
+
+\item{sort_by}{character string specifying the \code{y} column to sort by; 
+\code{"none"} to retain original ordering. Adj. p-values will increase, 
+logFCs will decreasing from top to bottom.}
+
+\item{y_cols}{length 2}
 
 \item{assay}{character string specifying which assay 
 data to use; valid values are \code{assayNames(x)}.}
 
 \item{fun}{character string specifying the function to use 
-as summary statistic for aggregation of expression values.}
+as summary statistic for aggregation of \code{assay} data.}
 
-\item{scale}{logical specifying whether expression values should be scaled
-between 0 and 1 using lower (1\%) and upper (99\%) quantiles as boundaries.}
-
-\item{normalize}{logical. Specifies whether Z-score normalized values should be plotted 
-in the right-hand side heatmap. If \code{y} contains DA analysis results, 
-relative population abundances will be arcsine-square-root scaled 
-prior to normalization.}
+\item{normalize}{logical specifying whether Z-score normalized values 
+should be plotted. If \code{y} contains DA analysis results, 
+frequencies will be arcsine-square-root scaled prior to normalization.}
 
 \item{col_anno}{logical specifying whether to include column annotations 
 for all non-numeric cell metadata variables; or a character vector 
 in \code{names(colData(x))} to include only a subset of annotations.
 (Only variables that map uniquely to each sample will be included)}
 
-\item{row_anno}{logical specifying whether to invlude a row annotation 
+\item{row_anno}{logical specifying whether to include a row annotation 
 indicating whether cluster (DA) or cluster-marker combinations (DS) 
-are significant, labeled with adjusted p-values.}
+are significant, labeled with adjusted p-values, as well as logFCs.}
 
-\item{hm_pal}{character vector of colors to interpolate for the heatmap.}
+\item{hm_pal}{character vector of colors to interpolate for the heatmap.
+Defaults to \code{\link[RColorBrewer:RColorBrewer]{brewer.pal}}'s
+\code{"RdYlBu"} for DS, \code{"RdBu"} for DA results heatmaps.}
+
+\item{fdr_pal, lfc_pal}{character vector of colors to use for row annotations
+\itemize{
+\item{\code{fdr_pal}}{length 2 for (non-)significant at given \code{fdr}}
+\item{\code{lfc_pal}}{length 3 for negative, zero and positive}}}
 }
 \value{
-a \code{\link{HeatmapList-class}} object.
+a \code{\link[ComplexHeatmap]{Heatmap-class}} object.
 }
 \description{
 Heatmaps summarizing differental abundance 
 & differential state testing results.
-}
-\details{
-For DA tests, \code{plotDiffHeatmap} will display
-\itemize{
-  \item{median (arcsinh-transformed) 
-    cell-type marker expressions (across all samples)}
-  \item{cluster abundances by samples}
-  \item{row annotations indicating if detected clusteres
-    are significant (i.e. adj. p-value >= \code{th})}
-}
-For DS tests, \code{plotDiffHeatmap} will display
-  \itemize{
-  \item{median (arcsinh-transformed) 
-    cell-type marker expressions (across all samples)}
-  \item{median (arcsinh-transformed) 
-    cell-state marker expressions by sample}
-  \item{row annotations indicating if detected cluster-marker combinations
-    are significant (i.e. adj. p-value >= \code{th})}
-}
 }
 \examples{
 # construct SCE & run clustering
@@ -116,6 +114,10 @@ ds <- diffcyt(sce, design = design, contrast = contrast,
     analysis_type = "DS", method_DS = "diffcyt-DS-limma",
     clustering_to_use = "meta20")
     
+# extract result tables
+da <- rowData(da$res)
+ds <- rowData(ds$res)
+    
 # display test results for
 # - top DA clusters
 # - top DS cluster-marker combinations
@@ -124,15 +126,14 @@ plotDiffHeatmap(sce, ds)
 
 # visualize results for subset of clusters
 sub <- filterSCE(sce, k = "meta20", cluster_id \%in\% seq_len(5))
-plotDiffHeatmap(sub, da, order = FALSE)
+plotDiffHeatmap(sub, da, all = TRUE, sort_by = "none")
 
 # visualize results for selected feature
 # & include only selected annotation
-plotDiffHeatmap(sce["pS6", ], ds, 
+plotDiffHeatmap(sce["pp38", ], ds, 
   col_anno = "condition", all = TRUE)
 
 }
 \author{
-Lukas M Weber & 
-Helena L Crowell \email{helena.crowell@uzh.ch}
+Lukas M Weber & Helena L Crowell \email{helena.crowell@uzh.ch}
 }
