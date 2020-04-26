@@ -140,16 +140,3 @@ test_that(".agg() by 2 factors", {
     
     return(rowData(l$res))
 }
-
-test_that("get_dt_type()", {
-    for (type in c("DA", "DS")) {
-        x <- .diffcyt(type)
-        expect_identical(.get_dt_type(x), type)
-        y <- x; colnames(y)[1] <- "x"
-        expect_error(.get_dt_type(y))
-        if (type == "DS") {
-            y <- x; y <- y[-1, ]
-            expect_error(.get_dt_type(y))
-        }
-    }
-})

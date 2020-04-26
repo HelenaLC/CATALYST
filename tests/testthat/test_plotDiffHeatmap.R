@@ -1,9 +1,7 @@
 suppressPackageStartupMessages({
-    library(purrr)
     library(dplyr)
     library(diffcyt)
-    library(data.table)
-    library(reshape2)
+    library(SummarizedExperiment)
 })
 
 data(PBMC_fs, PBMC_panel, PBMC_md)
@@ -21,8 +19,11 @@ da <- diffcyt(x, clustering_to_use = k, design = design, contrast = contrast,
 ds <- diffcyt(x, clustering_to_use = k, design = design, contrast = contrast,
     analysis_type = "DS", method_DS = "diffcyt-DS-limma", verbose = FALSE)
 
+da <- rowData(da$res)
+ds <- rowData(ds$res)
+
 test_that("plotDiffHeatmap() - DA", {
-    p <- plotDiffHeatmap(x, da, order = FALSE, all = TRUE, normalize = FALSE)
+    p <- plotDiffHeatmap(x, da, all = TRUE, sort_by = "none", normalize = FALSE)
     expect_is(p, "Heatmap")
     y <- p@matrix
     expect_gte(min(y), 0)
@@ -35,11 +36,10 @@ test_that("plotDiffHeatmap() - DA", {
 })
 
 test_that("plotDiffHeatmap() - DS", {
-    p <- plotDiffHeatmap(x, ds, top_n = (n <- 10),
-        order = TRUE, row_anno = FALSE, normalize = FALSE)
+    p <- plotDiffHeatmap(x, ds, top_n = (n <- 10), 
+        sort_by = "padj", lfc = 0, normalize = FALSE)
     expect_is(p, "Heatmap")
-    df <- data.frame(rowData(ds$res))
-    df <- mutate_if(df, is.factor, as.character)
+    df <- mutate_if(data.frame(ds), is.factor, as.character)
     df <- df[order(df$p_adj)[seq_len(n)], ]
     y <- p@matrix
     expect_equal(dim(y), c(n, nlevels(x$sample_id)))
@@ -54,34 +54,33 @@ test_that("plotDiffHeatmap() - DS", {
     })
 })
 
-test_that("plotMultiHeatmap() - DA; filtering", {
+test_that("plotDiffHeatmap() - DA; cluster filtering", {
     for (ks in lapply(c(1, 5, 10), sample, x = levels(kids))) {
         y <- filterSCE(x, !cluster_id %in% ks, k = k)
-        p <- plotDiffHeatmap(y, da, all = TRUE, order = FALSE)
+        p <- plotDiffHeatmap(y, da, all = TRUE, sort_by = "none")
         expect_is(p, "Heatmap")
         expect_identical(rownames(p@matrix), setdiff(levels(kids), ks))
     }
 })
 
-test_that("plotMultiHeatmap() - DS; filtering", {
+test_that("plotDiffHeatmap() - DS; cluster filtering", {
     for (ks in lapply(c(1, 3, 5), sample, x = levels(kids))) {
         y <- filterSCE(x, !cluster_id %in% ks, k = k)
         nk <- nlevels(cluster_ids(y, k))
-        p <- plotDiffHeatmap(y, ds, top_n = (n <- 2)*nk,
-            order = FALSE, row_anno = FALSE)
+        p <- plotDiffHeatmap(y, ds, all = TRUE, top_n = Inf)
         expect_is(p, "Heatmap")
-        expect_identical(
-            rep(setdiff(levels(kids), ks), 2),
-            gsub(".*\\(([0-9]+)\\)", "\\1", rownames(p@matrix)))
+        hm_ks <- gsub(".*\\(([0-9]+)\\)", "\\1", rownames(p@matrix))
+        expect_true(!any(ks %in% hm_ks))
     }
+})
+test_that("plotDiffHeatmap() - DS; marker filtering", {
     for (ms in lapply(c(1, 3, 5), sample, x = state_markers(x))) {
         n <- sample(nlevels(kids)-5, 1)
         ks <- sample(levels(kids), n)
         y <- filterSCE(x[ms, ], cluster_id %in% ks, k = k)
-        p <- plotDiffHeatmap(y, ds, all = TRUE, order = FALSE)
+        p <- plotDiffHeatmap(y, ds, all = TRUE, top_n = Inf)
         expect_is(p, "Heatmap")
-        expect_identical(
-            table(rep(ms, n)),
-            table(gsub("(.*)\\(.*", "\\1", rownames(p@matrix))))
+        hm_ms <- gsub("(.*)\\(.*", "\\1", rownames(p@matrix))
+        expect_true(all(hm_ms %in% ms))
     }
 })
