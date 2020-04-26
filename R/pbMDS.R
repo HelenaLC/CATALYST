@@ -14,6 +14,10 @@
 #' @param shape_by character string specifying a 
 #'   non-numeric cell metadata column to shape by; 
 #'   valid values are \code{names(colData(x))}.
+#' @param assay character string specifying which assay data to use;
+#'   valid values are \code{assayNames(x)}.
+#' @param fun character string specifying 
+#'   which function to use as summary statistic.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -36,18 +40,22 @@
 #' @importFrom matrixStats rowMedians
 #' @importFrom methods is
 #' @importFrom S4Vectors metadata
-#' @importFrom SummarizedExperiment assay colData
+#' @importFrom SummarizedExperiment assay assayNames colData
 #' @export
 
-pbMDS <- function(x, color_by = "condition", label_by = "sample_id", shape_by = NULL) {
+pbMDS <- function(x, 
+    color_by = "condition", label_by = "sample_id", shape_by = NULL,
+    assay = "exprs", fun = c("median", "mean", "sum")) {
     # check validity of input arguments
     .check_sce(x)
+    .check_assay(x, assay)
     .check_cd_factor(x, color_by)
     .check_cd_factor(x, label_by)
     .check_cd_factor(x, shape_by)
+    fun <- match.arg(fun)
     
     # compute medians across samples
-    y <- .agg(x, "sample_id", "median")
+    y <- .agg(x, "sample_id", fun, assay)
     y <- y[, colSums(y) != 0]
     
     # get MDS coordinates

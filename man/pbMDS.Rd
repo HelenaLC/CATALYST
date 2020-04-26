@@ -4,7 +4,14 @@
 \alias{pbMDS}
 \title{Pseudobulk-level MDS plot}
 \usage{
-pbMDS(x, color_by = "condition", label_by = "sample_id", shape_by = NULL)
+pbMDS(
+  x,
+  color_by = "condition",
+  label_by = "sample_id",
+  shape_by = NULL,
+  assay = "exprs",
+  fun = c("median", "mean", "sum")
+)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -20,6 +27,12 @@ valid values are \code{names(colData(x))}.}
 \item{shape_by}{character string specifying a 
 non-numeric cell metadata column to shape by; 
 valid values are \code{names(colData(x))}.}
+
+\item{assay}{character string specifying which assay data to use;
+valid values are \code{assayNames(x)}.}
+
+\item{fun}{character string specifying 
+which function to use as summary statistic.}
 }
 \value{
 a \code{ggplot} object.
