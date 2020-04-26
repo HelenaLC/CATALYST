@@ -290,10 +290,20 @@
 .check_args_plotDiffHeatmap <- function(u) {
     .check_sce(u$x, TRUE)
     .check_pal(u$hm_pal)
+    .check_pal(u$fdr_pal)
+    .check_pal(u$lfc_pal)
+    .check_assay(u$x, u$assay)
     stopifnot(
+        length(u$fdr_pal) == 2, length(u$lfc_pal) == 3, 
         is.numeric(u$top_n), length(u$top_n) == 1, u$top_n > 1,
-        is.logical(u$order), length(u$order) == 1,
-        is.numeric(u$th), length(u$th) == 1, 
+        is.numeric(u$fdr), length(u$fdr) == 1, u$fdr > 0,
+        is.numeric(u$lfc), length(u$lfc) == 1, u$lfc < Inf,
+        is.logical(u$all), length(u$all) == 1,
+        is.character(u$y_cols), length(u$y_cols) == 2, 
+        u$y_cols %in% names(u$y), names(u$y_cols) == c("padj", "lfc"),
+        is.data.frame(u$y) || is(u$y, "DFrame"),
+        is.numeric(u$y[[u$y_cols[["padj"]]]]),
+        is.numeric(u$y[[u$y_cols[["lfc"]]]]),
         is.logical(u$normalize), length(u$normalize) == 1,
         is.logical(u$row_anno), length(u$row_anno) == 1,
         is.logical(u$col_anno) && length(u$col_anno) == 1
