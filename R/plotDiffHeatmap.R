@@ -14,60 +14,45 @@
 #'   \code{\link[diffcyt]{testDA_voom}}, \code{\link[diffcyt]{testDA_GLMM}}, 
 #'   \code{\link[diffcyt]{testDS_limma}}, or \code{\link[diffcyt]{testDS_LMM}}.
 #'   Alternatively, a list as returned by \code{\link[diffcyt]{diffcyt}}.
-#' @param top_n 
-#'   numeric. Number of top clusters (if \code{type = "DA"}) or
-#'   cluster-marker combinations (if \code{type = "DS"}) to display.
-#' @param all 
-#'   logical. Specifies whether all clusters or cluster-marker combinations 
-#'   should be displayed. If \code{TRUE}, \code{top_n} will be ignored.
-#' @param order 
-#'   logical. Should results be ordered by significance?
-#' @param th 
-#'   numeric. Threshold on adjusted p-values below which clusters (DA) 
-#'   or cluster-marker combinations (DS) should be considered significant.
+#' @param k character string specifying 
+#'   the clustering in \code{x} from which \code{y} was obtained.
+#'   If NULL, \code{plotDiffHeatmap} will try and guess it.
+#' @param top_n numeric. Number of top clusters (if \code{type = "DA"})
+#'   or cluster-marker combinations (if \code{type = "DS"}) to display.
+#' @param fdr numeric threshold on adjusted p-values below which 
+#'   results should be retained and considered to be significant.
+#' @param lfc numeric threshold on logFCs above which to retain results.
+#' @param all logical specifying whether all \code{top_n} results should 
+#'   be displayed. If \code{TRUE}, \code{fdr,lfc} filtering is skipped.
+#' @param sort_by character string specifying the \code{y} column to sort by; 
+#'   \code{"none"} to retain original ordering. Adj. p-values will increase, 
+#'   logFCs will decreasing from top to bottom.
+#' @param y_cols length 2 
 #' @param assay character string specifying which assay 
 #'   data to use; valid values are \code{assayNames(x)}.
 #' @param fun character string specifying the function to use 
-#'   as summary statistic for aggregation of expression values.
-#' @param scale logical specifying whether expression values should be scaled
-#'   between 0 and 1 using lower (1\%) and upper (99\%) quantiles as boundaries.
-#' @param normalize
-#'   logical. Specifies whether Z-score normalized values should be plotted 
-#'   in the right-hand side heatmap. If \code{y} contains DA analysis results, 
-#'   relative population abundances will be arcsine-square-root scaled 
-#'   prior to normalization.
-#' @param row_anno logical specifying whether to invlude a row annotation 
+#'   as summary statistic for aggregation of \code{assay} data.
+#' @param normalize logical specifying whether Z-score normalized values 
+#'   should be plotted. If \code{y} contains DA analysis results, 
+#'   frequencies will be arcsine-square-root scaled prior to normalization.
+#' @param row_anno logical specifying whether to include a row annotation 
 #'   indicating whether cluster (DA) or cluster-marker combinations (DS) 
-#'   are significant, labeled with adjusted p-values.
+#'   are significant, labeled with adjusted p-values, as well as logFCs.
 #' @param col_anno logical specifying whether to include column annotations 
 #'   for all non-numeric cell metadata variables; or a character vector 
 #'   in \code{names(colData(x))} to include only a subset of annotations.
 #'   (Only variables that map uniquely to each sample will be included)
-#' @param hm_pal character vector of colors to interpolate for the heatmap. 
-#' 
-#' @details 
-#' For DA tests, \code{plotDiffHeatmap} will display
+#' @param hm_pal character vector of colors to interpolate for the heatmap.
+#'   Defaults to \code{\link[RColorBrewer:RColorBrewer]{brewer.pal}}'s
+#'   \code{"RdYlBu"} for DS, \code{"RdBu"} for DA results heatmaps.
+#' @param fdr_pal,lfc_pal character vector of colors to use for row annotations
 #' \itemize{
-#'   \item{median (arcsinh-transformed) 
-#'     cell-type marker expressions (across all samples)}
-#'   \item{cluster abundances by samples}
-#'   \item{row annotations indicating if detected clusteres
-#'     are significant (i.e. adj. p-value >= \code{th})}
-#' }
-#' For DS tests, \code{plotDiffHeatmap} will display
-#'   \itemize{
-#'   \item{median (arcsinh-transformed) 
-#'     cell-type marker expressions (across all samples)}
-#'   \item{median (arcsinh-transformed) 
-#'     cell-state marker expressions by sample}
-#'   \item{row annotations indicating if detected cluster-marker combinations
-#'     are significant (i.e. adj. p-value >= \code{th})}
-#' }
+#' \item{\code{fdr_pal}}{length 2 for (non-)significant at given \code{fdr}}
+#' \item{\code{lfc_pal}}{length 3 for negative, zero and positive}}
 #' 
-#' @return a \code{\link{HeatmapList-class}} object.
+#' @return a \code{\link[ComplexHeatmap]{Heatmap-class}} object.
 #' 
-#' @author Lukas M Weber & 
-#' Helena L Crowell \email{helena.crowell@@uzh.ch}
+#' @author Lukas M Weber & Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @examples
 #' # construct SCE & run clustering
@@ -94,6 +79,10 @@
 #'     analysis_type = "DS", method_DS = "diffcyt-DS-limma",
 #'     clustering_to_use = "meta20")
 #'     
+#' # extract result tables
+#' da <- rowData(da$res)
+#' ds <- rowData(ds$res)
+#'     
 #' # display test results for
 #' # - top DA clusters
 #' # - top DS cluster-marker combinations
@@ -102,15 +91,16 @@
 #' 
 #' # visualize results for subset of clusters
 #' sub <- filterSCE(sce, k = "meta20", cluster_id %in% seq_len(5))
-#' plotDiffHeatmap(sub, da, order = FALSE)
+#' plotDiffHeatmap(sub, da, all = TRUE, sort_by = "none")
 #' 
 #' # visualize results for selected feature
 #' # & include only selected annotation
-#' plotDiffHeatmap(sce["pS6", ], ds, 
+#' plotDiffHeatmap(sce["pp38", ], ds, 
 #'   col_anno = "condition", all = TRUE)
 #' 
-#' @importFrom ComplexHeatmap rowAnnotation anno_simple row_anno_text Heatmap
-#' @importFrom dplyr mutate_at mutate_if
+#' @importFrom ComplexHeatmap rowAnnotation row_anno_text Heatmap
+#' @importFrom circlize colorRamp2
+#' @importFrom dplyr rename mutate_if
 #' @importFrom grid gpar unit
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom scales scientific
@@ -118,67 +108,111 @@
 #' @importFrom S4Vectors metadata
 #' @export
 
-plotDiffHeatmap <- function(x, y, 
-    top_n = 20, all = FALSE, order = TRUE, th = 0.1, 
+plotDiffHeatmap <- function(x, y, k = NULL,
+    top_n = 20, fdr = 0.05, lfc = 1, all = FALSE,
+    sort_by = c("padj", "lfc", "none"), 
+    y_cols = c(padj = "p_adj", lfc = "logFC"),
     assay = "exprs", fun = c("median", "mean", "sum"), 
-    scale = TRUE, normalize = TRUE,
-    col_anno = TRUE, row_anno = TRUE,
-    hm_pal = rev(brewer.pal(11, ifelse(
-        is.null(assayNames(y$res)), "RdYlBu", "RdBu")))) {
+    normalize = TRUE, col_anno = TRUE, row_anno = TRUE,
+    hm_pal = NULL, 
+    fdr_pal = c("lightgrey", "lightgreen"),
+    lfc_pal = c("blue3", "white", "red3")) {
     
     # check validity of input arguments
     fun <- match.arg(fun)
+    sort_by <- match.arg(sort_by)
     args <- as.list(environment())
     .check_args_plotDiffHeatmap(args)
+    y_cols <- as.list(y_cols)
     
-    stopifnot(!is.null(k <- metadata(y$res)$clustering_name))
-    k <- .check_k(x, k); m <- NULL
+    # guess clustering to use
+    if (is.null(k)) {
+        kids <- levels(y$cluster_id)
+        same <- vapply(cluster_codes(x), function(u) 
+            identical(levels(u), kids), logical(1))
+        if (!any(same)) 
+            stop("Couldn't match any clustering",
+                " in input data 'x' with results in 'y'.")
+        k <- names(cluster_codes(x))[same]
+    } else {
+        k <- .check_k(x, k)
+    }
     x$cluster_id <- cluster_ids(x, k)
+    nk <- length(unique(x$cluster_id))
     
-    y <- rowData(y$res)
-    type <- .get_dt_type(y)
+    y <- data.frame(y, check.names = FALSE)
+    y <- mutate_if(y, is.factor, as.character)
+    u <- apply(y, 2, function(u) any(rownames(x) %in% u))
+    if (any(u)) {
+        y_cols$target <- names(which(u))[1]
+        type <- "ds"
+    } else type <- "da"
+    
+    # rename relevant result variables
+    y <- rename(y, target = y_cols$target,
+        padj = y_cols$padj, lfc = y_cols$lfc)
     
     # subset results in case input SCE has been filtered
-    i <- y$cluster_id %in% levels(x$cluster_id)
-    if (type == "DS") i <- i & y$marker_id %in% rownames(x)
+    i <- !is.na(y$padj) & y$cluster_id %in% levels(x$cluster_id)
+    if (type == "ds") 
+        i <- i & y$target %in% rownames(x)
+    if (!all) 
+        i <- i & y$padj < fdr & abs(y$lfc) > lfc
     y <- y[i, , drop = FALSE]
 
     if (nrow(y) == 0)
         stop("No results remaining;",
-            " perhaps 'x' has been filtered?")
+            " perhaps 'x' or 'y' has been filtered,",
+            " or features couldn't be matched.")
     
     # get clusters/cluster-marker combinations to plot
-    if (order) y <- y[order(y$p_adj), , drop = FALSE]
-    if (all || top_n > nrow(y)) top_n <- nrow(y)
-    top <- data.frame(y[seq_len(top_n), ])
-    top <- mutate_if(top, is.factor, as.character)
+    if (sort_by != "none") {
+        o <- order(abs(y[[sort_by]]), 
+            decreasing = (sort_by == "lfc"))
+        y <- y[o, , drop = FALSE]
+    }
+    if (top_n > nrow(y)) 
+        top_n <- nrow(y)
+    top <- y[seq_len(top_n), ]
     
     # column annotation of non-numeric cell metadata variables
     if (!isFALSE(col_anno)) {
         top_anno <- .anno_factors(x, levels(x$sample_id), col_anno, "column")
     } else top_anno <- NULL
     
+    if (is.null(hm_pal)) hm_pal <- rev(brewer.pal(11, 
+        ifelse(type == "ds", "RdYlBu", "RdBu")))
+    
     # row annotation: significant = (adj. p-values <= th)
     if (row_anno) {
-        s <- top$p_adj <= th
-        s[is.na(s)] <- FALSE
-        ss <- c("no", "yes")
-        s <- factor(ss[s+1], ss)
-        txt <- scientific(top$p_adj, 2)
+        lfc_lims <- range(top$lfc, na.rm = TRUE)
+        if (all(lfc_lims > 0)) {
+            lfc_brks <- c(0, lfc_lims[2])
+            lfc_pal <- lfc_pal[-1]
+        } else if (all(lfc_lims < 0)) {
+            lfc_brks <- c(lfc_lims[1], 0)
+            lfc_pal <- lfc_pal[-3]
+        } else lfc_brks <- c(lfc_lims[1], 0, lfc_lims[2])
+        s <- factor(
+            ifelse(top$padj < fdr, "yes", "no"), 
+            levels = c("no", "yes"))
         right_anno <- rowAnnotation(
-            significant = anno_simple(s, 
-                gp = gpar(col = "white"),
-                simple_anno_size = unit(2, "mm"),
-                col = c(no = "lightgrey", yes = "lightgreen")),
-            "foo" = row_anno_text(txt,
-                width = unit(4, "mm"),
+            logFC = top$lfc,
+            significant = s,
+            "foo" = row_anno_text(
+                scientific(top$padj, 2),
                 gp = gpar(fontsize = 8)),
-            show_annotation_name = FALSE)
+            col = list(
+                logFC = colorRamp2(lfc_brks, lfc_pal),
+                significant = c(setNames(fdr_pal, levels(s)))),
+            gp = gpar(col = "white"),
+            show_annotation_name = FALSE,
+            simple_anno_size = unit(4, "mm"))
     } else right_anno <- NULL
 
     switch(type, 
         # relative cluster abundances by sample
-        DA = {
+        da = {
             ns <- table(x$cluster_id, x$sample_id)
             fq <- prop.table(ns, 2)
             fq <- fq[top$cluster_id, ]
@@ -197,7 +231,7 @@ plotDiffHeatmap <- function(x, y,
                 right_annotation = right_anno)
         },
         # median state-marker expression by sample
-        DS = {
+        ds = {
             y <- assay(x, assay)
             cs <- .split_cells(x, c("cluster_id", "sample_id"))
             z <- t(mapply(function(k, g)
@@ -206,8 +240,8 @@ plotDiffHeatmap <- function(x, y,
                     get(fun)(y[g, cs, drop = FALSE])
                 }, numeric(1)),
                 k = top$cluster_id, 
-                g = top$marker_id))
-            rownames(z) <- sprintf("%s(%s)", top$marker_id, top$cluster_id)
+                g = top$target))
+            rownames(z) <- sprintf("%s(%s)", top$target, top$cluster_id)
             if (normalize) z <- .z_normalize(z) 
             Heatmap(
                 matrix = z,
@@ -218,6 +252,8 @@ plotDiffHeatmap <- function(x, y,
                 top_annotation = top_anno,
                 row_names_side = "left",
                 rect_gp = gpar(col = "white"),
-                right_annotation = right_anno)
+                right_annotation = right_anno,
+                heatmap_legend_param = list(title_gp = gpar(
+                    fontsize = 10, fontface = "bold", lineheight = 0.8)))
     }) 
 }
