@@ -160,7 +160,7 @@ plotExprHeatmap <- function(x, features = NULL,
     by <- match.arg(by)
 
     # subset features of interest
-    x <- x[.get_features(x, features), ]
+    x <- x[unique(.get_features(x, features)), ]
     
     # get specified cluster IDs
     if (by != "sample_id") {
