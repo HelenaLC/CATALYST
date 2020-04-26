@@ -204,18 +204,19 @@ plotMultiHeatmap <- function(x,
                 k, m, assay, fun, scale[2], q[2], row_anno = FALSE, col_anno, 
                 row_clust, col_clust[2], row_dend, col_dend[2],
                 bars = FALSE, perc, bin_anno = FALSE, hm2_pal, k_pal, m_pal)
+            # make heatmap identifiers unique &
             # assure both legends show if ranges differ
-            b@matrix_color_mapping@name <- i
+            b@name <- b@matrix_color_mapping@name <- i
             b@matrix_legend_param$at <- range(
                 b@matrix_color_mapping@levels)
             # remove annotation names
-            if (!isFALSE(col_anno))
+            if (!isFALSE(col_anno) && match(i, hm2) < length(hm2)) {
                 for (j in seq_along(b@top_annotation@anno_list))
-                    b@top_annotation@anno_list[[j]]@label <- NULL
+                    b@top_annotation@anno_list[[j]]@name_param$show <- FALSE
+            }
             # remove column names if more than 1 & order is consistent
             if (!col_clust[2] && match(i, hm2) > 1)
                 b@column_names_param$show <- FALSE
-            b@name <- paste0("foo", i)
             a <- a + b
         }
         c <- a
