@@ -13,7 +13,8 @@
 #'   non-numeric cell metadata column to facet by; 
 #'   valid values are \code{names(colData(x))}.
 #' @param ncol integer scalar specifying number of facet columns; 
-#'   ignored unless coloring by a single feature & \code{!is.null(facet_by)}.
+#'   ignored unless coloring by multiple features without facetting
+#'   or coloring by a single feature with facetting.
 #' @param assay character string specifying which assay data to use
 #'   when coloring by marker(s); valid values are \code{assayNames(x)}.
 #' @param scale logical specifying whether \code{assay} data should be scaled
@@ -21,11 +22,13 @@
 #'   ignored if \code{!all(color_by \%in\% rownames(x))}.
 #' @param q single numeric in [0,0.5) determining the 
 #'   quantiles to trim when \code{scale = TRUE}.
+#' @param dims length 2 numeric specifying which dimensions to plot.
 #' @param k_pal character string specifying the cluster color palette; 
 #'   ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
 #'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
 #'   be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.
-#' @param dims length 2 numeric specifying which dimensions to plot.
+#' @param a_pal character string specifying the \code{assay} data palette 
+#'   when coloring by feature(s), i.e. \code{all(color_by \%in\% rownames(x))}.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -45,6 +48,14 @@
 #' # run clustering & dimension reduction
 #' sce <- cluster(sce)
 #' sce <- runDR(sce, dr = "UMAP", cells = 100)
+#' 
+#' # color by single marker, split by sample
+#' plotDR(sce, color_by = "CD7", facet_by = "sample_id", ncol = 4)
+#' 
+#' # color by a set of markers using custom color palette
+#' cdx <- grep("CD", rownames(sce), value = TRUE)
+#' plotDR(sce, color_by = cdx, ncol = 4,
+#'   a_pal = rev(hcl.colors(10, "Spectral")))
 #' 
 #' # color by scaled expression for 
 #' # set of markers, split by condition
@@ -70,8 +81,9 @@
 
 plotDR <- function(x, dr = NULL, 
     color_by = "condition", facet_by = NULL, ncol = NULL,
-    assay = "exprs", scale = TRUE, q = 0.01, 
-    k_pal = CATALYST:::.cluster_cols, dims = c(1, 2)) {
+    assay = "exprs", scale = TRUE, q = 0.01, dims = c(1, 2),
+    k_pal = CATALYST:::.cluster_cols, 
+    a_pal = hcl.colors(10, "Viridis")) {
     
     # check validity of input arguments
     stopifnot(
@@ -80,6 +92,7 @@ plotDR <- function(x, dr = NULL,
         length(reducedDims(x)) != 0,
         is.logical(scale), length(scale) == 1,
         is.numeric(q), length(q) == 1, q >= 0, q < 0.5)
+    .check_pal(a_pal)
     .check_cd_factor(x, facet_by)
     
     if (!is.null(ncol)) 
@@ -124,10 +137,11 @@ plotDR <- function(x, dr = NULL,
             cbind(df, t(es)), 
             id.vars = colnames(df))
         a <- switch(assay, exprs = "expression", assay)
-        scale <- scale_color_viridis_c(paste0("scaled\n"[scale], a))
+        scale <- scale_colour_gradientn(paste0("scaled\n"[scale], a), colors = a_pal)
+        #scale <- scale_color_viridis_c(paste0("scaled\n"[scale], a))
         thm <- guide <- NULL
         color_by <- "value"
-        facet <- facet_wrap("variable")
+        facet <- facet_wrap("variable", ncol = ncol)
     } else {
         facet <- NULL
         if (!is.null(kids)) {

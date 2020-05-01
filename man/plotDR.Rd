@@ -13,8 +13,9 @@ plotDR(
   assay = "exprs",
   scale = TRUE,
   q = 0.01,
+  dims = c(1, 2),
   k_pal = CATALYST:::.cluster_cols,
-  dims = c(1, 2)
+  a_pal = hcl.colors(10, "Viridis")
 )
 }
 \arguments{
@@ -31,7 +32,8 @@ non-numeric cell metadata column to facet by;
 valid values are \code{names(colData(x))}.}
 
 \item{ncol}{integer scalar specifying number of facet columns; 
-ignored unless coloring by a single feature & \code{!is.null(facet_by)}.}
+ignored unless coloring by multiple features without facetting
+or coloring by a single feature with facetting.}
 
 \item{assay}{character string specifying which assay data to use
 when coloring by marker(s); valid values are \code{assayNames(x)}.}
@@ -43,12 +45,15 @@ ignored if \code{!all(color_by \%in\% rownames(x))}.}
 \item{q}{single numeric in [0,0.5) determining the 
 quantiles to trim when \code{scale = TRUE}.}
 
+\item{dims}{length 2 numeric specifying which dimensions to plot.}
+
 \item{k_pal}{character string specifying the cluster color palette; 
 ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
 If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
 be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.}
 
-\item{dims}{length 2 numeric specifying which dimensions to plot.}
+\item{a_pal}{character string specifying the \code{assay} data palette 
+when coloring by feature(s), i.e. \code{all(color_by \%in\% rownames(x))}.}
 }
 \value{
 a \code{ggplot} object.
@@ -65,6 +70,14 @@ sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
 # run clustering & dimension reduction
 sce <- cluster(sce)
 sce <- runDR(sce, dr = "UMAP", cells = 100)
+
+# color by single marker, split by sample
+plotDR(sce, color_by = "CD7", facet_by = "sample_id", ncol = 4)
+
+# color by a set of markers using custom color palette
+cdx <- grep("CD", rownames(sce), value = TRUE)
+plotDR(sce, color_by = cdx, ncol = 4,
+  a_pal = rev(hcl.colors(10, "Spectral")))
 
 # color by scaled expression for 
 # set of markers, split by condition
