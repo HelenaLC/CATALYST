@@ -66,7 +66,7 @@ guessPanel <- function(x, sep = "_") {
             ps$antigen <- ps$desc
             ps$use_channel <- TRUE
         }
-        ex <- c("^(bc|mcb)", "dead", "dna", "bead", "vol")
+        ex <- c("^(BC|MCB)[0-9]", "dead", "dna", "bead", "vol")
         dont_use <- lapply(ex, grep, ps$antigen, ignore.case = TRUE)
         ps$use_channel[unlist(dont_use)] <- FALSE
     } else {

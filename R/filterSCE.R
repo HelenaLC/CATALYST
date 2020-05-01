@@ -40,12 +40,12 @@ filterSCE <- function(x, ..., k = NULL) {
     stopifnot(is(x, "SingleCellExperiment"))
     
     # construct data.frames of cell & feature metadata
-    rd <- vapply(rowData(x), as.character, character(nrow(x)))
-    cd <- vapply(colData(x), as.character, character(ncol(x)))
-    rd <- data.frame(i = seq_len(nrow(x)), rd, 
-        check.names = FALSE, stringsAsFactors = FALSE)
-    cd <- data.frame(i = seq_len(ncol(x)), cd, 
-        check.names = FALSE, stringsAsFactors = FALSE)
+    rd <- data.frame(rowData(x), check.names = FALSE)
+    cd <- data.frame(colData(x), check.names = FALSE)
+    rd <- mutate_all(rd, as.character)
+    cd <- mutate_all(cd, as.character)
+    rd$i <- seq_len(nrow(x))
+    cd$i <- seq_len(ncol(x))
     
     # get specified clustering IDs
     if (!is.null(k)) {
@@ -101,7 +101,8 @@ filterSCE <- function(x, ..., k = NULL) {
     } else dr <- NULL
     
     # subset assays & returned filtered SCE
-    as <- lapply(assays(x), "[", i = ri, j = ci)
+    as <- lapply(assays(x), function(a) 
+        a[ri, ci, drop = FALSE])
     SingleCellExperiment(assays = as, 
         rowData = rdf, colData = cdf, 
         reducedDims = dr, metadata = md)

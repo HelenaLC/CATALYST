@@ -7,20 +7,24 @@
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param dr character string specifying which dimension reduction to use. 
 #'   Should be one of \code{reducedDimNames(x)}; default to the 1st available.
-#' @param color_by character string corresponding to a
-#'   \code{colData(x)} column. Specifies the color coding.
+#' @param color_by character string specifying the color coding;
+#'   valid values are \code{rownames(sce)} and \code{names(colData(x))}.
 #' @param facet_by character string specifying a
 #'   non-numeric cell metadata column to facet by; 
 #'   valid values are \code{names(colData(x))}.
-#' @param k_pal character string specifying the cluster color palette; 
-#'   ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
-#'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
-#'   be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.
-#' @param scale logical specifying whether expression should be scaled
+#' @param ncol integer scalar specifying number of facet columns; 
+#'   ignored unless coloring by a single feature & \code{!is.null(facet_by)}.
+#' @param assay character string specifying which assay data to use
+#'   when coloring by marker(s); valid values are \code{assayNames(x)}.
+#' @param scale logical specifying whether \code{assay} data should be scaled
 #'   between 0 and 1 using lower (1\%) and upper (99\%) expression quantiles;
 #'   ignored if \code{!all(color_by \%in\% rownames(x))}.
 #' @param q single numeric in [0,0.5) determining the 
 #'   quantiles to trim when \code{scale = TRUE}.
+#' @param k_pal character string specifying the cluster color palette; 
+#'   ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
+#'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
+#'   be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.
 #' @param dims length 2 numeric specifying which dimensions to plot.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
@@ -65,17 +69,21 @@
 #' @export
 
 plotDR <- function(x, dr = NULL, 
-    color_by = "condition", facet_by = NULL,
-    k_pal = CATALYST:::.cluster_cols, 
-    scale = TRUE, q = 0.01, dims = c(1, 2)) {
+    color_by = "condition", facet_by = NULL, ncol = NULL,
+    assay = "exprs", scale = TRUE, q = 0.01, 
+    k_pal = CATALYST:::.cluster_cols, dims = c(1, 2)) {
     
     # check validity of input arguments
     stopifnot(
         is(x, "SingleCellExperiment"),
+        .check_assay(x, assay),
         length(reducedDims(x)) != 0,
         is.logical(scale), length(scale) == 1,
         is.numeric(q), length(q) == 1, q >= 0, q < 0.5)
     .check_cd_factor(x, facet_by)
+    
+    if (!is.null(ncol)) 
+        stopifnot(is.numeric(ncol), length(ncol) == 1, ncol %% 1 == 0)
     
     if (is.null(dr)) {
         dr <- reducedDimNames(x)[1]
@@ -108,15 +116,15 @@ plotDR <- function(x, dr = NULL,
     colnames(xy) <- c("x", "y")
     df <- data.frame(colData(x), xy)
     if (all(color_by %in% rownames(x))) {
-        es <- as.matrix(assay(x, "exprs"))
+        es <- as.matrix(assay(x, assay))
         es <- es[color_by, , drop = FALSE]
         if (scale) 
             es <- .scale_exprs(es, 1, q)
         df <- melt(
             cbind(df, t(es)), 
             id.vars = colnames(df))
-        scale <- scale_color_viridis_c(
-            paste0("scaled\n"[scale], "expression"))
+        a <- switch(assay, exprs = "expression", assay)
+        scale <- scale_color_viridis_c(paste0("scaled\n"[scale], a))
         thm <- guide <- NULL
         color_by <- "value"
         facet <- facet_wrap("variable")
@@ -162,6 +170,14 @@ plotDR <- function(x, dr = NULL,
     if (is.null(facet)) {
         p + facet_wrap(facet_by)
     } else {
-        p + facet_grid(reformulate("variable", facet_by))
+        if (nlevels(df$variable) == 1) {
+            p + facet_wrap(facet_by, ncol = ncol) + 
+                ggtitle(levels(df$variable))
+        } else {
+            fs <- c("variable", facet_by)
+            ns <- vapply(df[fs], nlevels, numeric(1))
+            if (ns[2] > ns[1]) fs <- rev(fs)
+            p + facet_grid(reformulate(fs[1], fs[2]))
+        }
     }
 }
