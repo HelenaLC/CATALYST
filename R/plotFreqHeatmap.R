@@ -84,7 +84,7 @@ plotFreqHeatmap <- function(x,
     # compute cell counts & frequencies by cluster-sample
     x$cluster_id <- cluster_ids(x, k)
     ns <- table(x$cluster_id, x$sample_id)
-    fq <- prop.table(ns, 1)
+    fq <- prop.table(ns, 2)
     y <- as.matrix(unclass(fq))
     
     # do Z-score normalization by cluster & across samples

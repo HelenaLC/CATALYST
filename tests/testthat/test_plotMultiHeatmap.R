@@ -23,8 +23,8 @@ test_that("plotMultiHeatmap() - hm2 = 'abundances'", {
     p <- plotMultiHeatmap(x, hm2 = "abundances", k = k, normalize = FALSE)
     y <- p@ht_list$frequency@matrix
     expect_is(p, "HeatmapList")
-    expect_true(all(rowSums(y) == 1))
-    expect_equal(c(y), c(prop.table(table(kids, x$sample_id), 1)))
+    expect_true(all(colSums(y) == 1))
+    expect_equal(c(y), c(prop.table(table(kids, x$sample_id), 2)))
 })
 
 test_that("plotMultiHeatmap() - hm2 = 'state'", {

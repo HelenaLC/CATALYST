@@ -164,7 +164,7 @@ plotDiffHeatmap <- function(x, y, k = NULL,
         i <- TRUE
         type <- "da"
     }
-    
+
     # rename relevant result variables
     y <- rename(y, 
         target = y_cols$target,

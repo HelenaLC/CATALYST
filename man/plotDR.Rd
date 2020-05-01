@@ -9,9 +9,11 @@ plotDR(
   dr = NULL,
   color_by = "condition",
   facet_by = NULL,
-  k_pal = CATALYST:::.cluster_cols,
+  ncol = NULL,
+  assay = "exprs",
   scale = TRUE,
   q = 0.01,
+  k_pal = CATALYST:::.cluster_cols,
   dims = c(1, 2)
 )
 }
@@ -21,24 +23,30 @@ plotDR(
 \item{dr}{character string specifying which dimension reduction to use. 
 Should be one of \code{reducedDimNames(x)}; default to the 1st available.}
 
-\item{color_by}{character string corresponding to a
-\code{colData(x)} column. Specifies the color coding.}
+\item{color_by}{character string specifying the color coding;
+valid values are \code{rownames(sce)} and \code{names(colData(x))}.}
 
 \item{facet_by}{character string specifying a
 non-numeric cell metadata column to facet by; 
 valid values are \code{names(colData(x))}.}
 
-\item{k_pal}{character string specifying the cluster color palette; 
-ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
-If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
-be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.}
+\item{ncol}{integer scalar specifying number of facet columns; 
+ignored unless coloring by a single feature & \code{!is.null(facet_by)}.}
 
-\item{scale}{logical specifying whether expression should be scaled
+\item{assay}{character string specifying which assay data to use
+when coloring by marker(s); valid values are \code{assayNames(x)}.}
+
+\item{scale}{logical specifying whether \code{assay} data should be scaled
 between 0 and 1 using lower (1\%) and upper (99\%) expression quantiles;
 ignored if \code{!all(color_by \%in\% rownames(x))}.}
 
 \item{q}{single numeric in [0,0.5) determining the 
 quantiles to trim when \code{scale = TRUE}.}
+
+\item{k_pal}{character string specifying the cluster color palette; 
+ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
+If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
+be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.}
 
 \item{dims}{length 2 numeric specifying which dimensions to plot.}
 }
