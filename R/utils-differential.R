@@ -270,15 +270,18 @@
     by = c("cluster_id", "sample_id"), 
     fun = c("median", "mean", "sum"),
     assay = "exprs") {
-    fun <- switch(
-        match.arg(fun), 
+    fun <- match.arg(fun)
+    y <- assay(x, assay)
+    if (fun == "median" && !is.matrix(y))
+        y <- as.matrix(y)
+    fun <- switch(fun, 
         median = rowMedians, 
         mean = rowMeans, 
         sum = rowSums)
     cs <- .split_cells(x, by)
     pb <- map_depth(cs, -1, function(i) {
         if (length(i) == 0) return(numeric(nrow(x)))
-        fun(assay(x, assay)[, i, drop = FALSE])
+        fun(y[, i, drop = FALSE])
     })
     map_depth(pb, -2, function(u) as.matrix(data.frame(
         u, row.names = rownames(x), check.names = FALSE)))
