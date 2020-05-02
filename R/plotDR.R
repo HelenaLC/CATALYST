@@ -137,8 +137,8 @@ plotDR <- function(x, dr = NULL,
             cbind(df, t(es)), 
             id.vars = colnames(df))
         a <- switch(assay, exprs = "expression", assay)
-        scale <- scale_colour_gradientn(paste0("scaled\n"[scale], a), colors = a_pal)
-        #scale <- scale_color_viridis_c(paste0("scaled\n"[scale], a))
+        a <- paste0("scaled\n"[scale], a)
+        scale <- scale_colour_gradientn(a, colors = a_pal)
         thm <- guide <- NULL
         color_by <- "value"
         facet <- facet_wrap("variable", ncol = ncol)
