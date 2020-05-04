@@ -272,18 +272,21 @@ prepData <- function(x, panel = NULL, md = NULL,
         metadata = list(experiment_info = md))
     
     ds <- keyword(fs[[1]])
-    keep <- lapply(c("\\$CYT$", "\\$CYTSN$"), grep, names(ds))
+    l <- list(cyt = "\\$CYT$", sn = "\\$CYTSN$")
+    keep <- lapply(l, grep, names(ds))
     int_metadata(sce)$description <- ds[unlist(keep)]
     
     # grep non-mass channels
-    is_mass <- !is.na(.get_ms_from_chs(chs0))
-    foo <- DataFrame(matrix(vector(), nrow = ncol(sce)))
-    icd <- DataFrame(t(es[!is_mass, , drop = FALSE]), check.names = FALSE)
-    colnames(icd) <- rownames(es)[!is_mass]
-    icd$reducedDims <- icd$altExps <- foo
-    # store & exclude from assay data
-    int_colData(sce) <- icd
-    sce <- sce[is_mass, ]
+    if (length(keep$cyt) == 0 || !grepl("FACS", ds[[keep$cyt]])) {
+        is_mass <- !is.na(.get_ms_from_chs(chs0))
+        foo <- DataFrame(matrix(vector(), nrow = ncol(sce)))
+        icd <- DataFrame(t(es[!is_mass, , drop = FALSE]), check.names = FALSE)
+        colnames(icd) <- rownames(es)[!is_mass]
+        icd$reducedDims <- icd$altExps <- foo
+        # store & exclude from assay data
+        int_colData(sce) <- icd
+        sce <- sce[is_mass, ]
+    }
     
     # (optionally) do arcsinh-transformation & return SCE
     if (transform) .transform(sce, cofactor) else sce
