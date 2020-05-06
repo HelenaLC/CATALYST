@@ -36,8 +36,10 @@
 #' 
 #' @import ggplot2
 #' @importFrom cowplot get_legend plot_grid
+#' @importFrom grDevices colorRampPalette
 #' @importFrom Rtsne Rtsne
 #' @importFrom stats prcomp
+#' @importFrom S4Vectors metadata
 #' @export
 
 plotCodes <- function(x, k = "meta20", 
@@ -45,8 +47,8 @@ plotCodes <- function(x, k = "meta20",
     
     # check validity of input arguments
     .check_sce(x, TRUE)
-    k <- .check_k(x, k)
     .check_pal(k_pal)
+    k <- .check_k(x, k)
     
     # ramp cluster color palette
     nk <- nlevels(cluster_ids(x, k))
@@ -57,7 +59,7 @@ plotCodes <- function(x, k = "meta20",
     codes <- metadata(x)$SOM_codes
     tsne <- Rtsne(codes, pca = FALSE)
     pca <- prcomp(codes, center = TRUE, scale. = FALSE)
-    
+
     # construct data.frame of t-SNE & PCA coordinates
     df <- data.frame(tsne$Y, pca$x[, c(1, 2)]) 
     colnames(df) <- c("tsne1", "tsne2", "pc1", "pc2")
