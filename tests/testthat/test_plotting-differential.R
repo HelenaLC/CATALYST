@@ -74,14 +74,58 @@ test_that("plotNRS()", {
     expect_error(plotNRS(x, color_by = "x"))
 })
 
-test_that("pbMDS()", {
+test_that("pbMDS() - by = 'sample_id'", {
     expect_error(pbMDS(x0, color_by = "x"))
     expect_is((p <- pbMDS(x0)), "ggplot")
     expect_identical(nrow(p$data), nlevels(x0$sample_id))
-    # removal of samples shouldn't cause error
+    # removal of samples
     s <- sample(levels(x0$sample_id), (n <- 3))
-    expect_silent(p <- pbMDS(x0[, !x$sample_id %in% s]))
+    expect_silent(p <- pbMDS(filterSCE(x0, !sample_id %in% s)))
     expect_equal(nrow(p$data) + 3, nlevels(x0$sample_id))
+})
+test_that("pbMDS() - by = 'cluster_id'", {
+    k <- sample(names(codes)[-seq_len(5)], 1)
+    nk <- length(kids <- levels(codes[[k]]))
+    expect_is(p <- pbMDS(x, by = "cluster_id", k = k), "ggplot")
+    expect_identical(nrow(p$data), nk)
+    expect_identical(levels(p$data$cluster_id), kids)
+    expect_equivalent(p$data$n_cells, c(table(cluster_ids(x, k))))
+    # removal of clusters
+    ks <- sample(kids, 3)
+    y <- filterSCE(x, !cluster_id %in% ks, k = k)
+    expect_silent(p <- pbMDS(y, by = "cluster_id", k = k))
+    expect_identical(levels(p$data$cluster_id), setdiff(kids, ks))
+    expect_equivalent(p$data$n_cells, c(table(cluster_ids(y, k))))
+})
+test_that("pbMDS() - by = 'both'", {
+    k <- sample(names(codes)[-seq_len(5)], 1)
+    nk <- length(kids <- levels(codes[[k]]))
+    ns <- length(sids <- levels(x$sample_id))
+    ks <- sample(kids, 3); ss <- sample(sids, 3)
+    .check_nc <- function() {
+        nc <- table(cluster_ids(y, k), y$sample_id)
+        nc <- nc[as.matrix(p$data[c("cluster_id", "sample_id")])]
+        expect_identical(p$data$n_cells, nc)
+    }
+    y <- filterSCE(x, k = k, !(cluster_id %in% ks & sample_id %in% ss)) 
+    expect_is(p <- pbMDS(y, by = "both", k = k), "ggplot")
+    expect_identical(nrow(p$data), nk*ns)
+    expect_true(all(table(p$data$sample_id) == nk))
+    expect_true(all(table(p$data$cluster_id) == ns))
+    .check_nc()
+    # removal of clusters 
+    y <- filterSCE(x, k = k, !cluster_id %in% ks) 
+    expect_is(p <- pbMDS(y, by = "both", k = k), "ggplot")
+    expect_identical(levels(p$data$cluster_id), setdiff(kids, ks))
+    .check_nc()
+    nc <- table(cluster_ids(y, k), y$sample_id)
+    nc <- nc[as.matrix(p$data[c("cluster_id", "sample_id")])]
+    expect_identical(p$data$n_cells, nc)
+    # removal of samples 
+    y <- filterSCE(x, k = k, !sample_id %in% ss) 
+    expect_is(p <- pbMDS(y, by = "both", k = k), "ggplot")
+    expect_identical(levels(p$data$sample_id), setdiff(sids, ss))
+    .check_nc()
 })
 
 test_that("plotExprs()", {
