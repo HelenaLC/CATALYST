@@ -107,38 +107,6 @@ prepData(PBMC_fs, panel2, md2,
 
 Note that, independent of the input panel and metadata tables, the constructor will fix the names of mandatory slots for latter data accession (`sample_id` in the `rowData`, `channel_name` and `marker_name` in the `colData`). The `md` table will be stored under `experiment_info` inside the `metadata`.
 
-# Diagnostic plots
-
-## `plotCounts`: Number of cells measured per sample
-
-The number of cells measured per sample may be plotted with `plotCounts`. This plot should be used as a guide together with other readouts to identify samples where not enough cells were assayed. Here, the grouping of samples (x-axis) is controlled by `group_by`; bars can be colored by a an additional cell metadata variable (argument `color_by`):
-
-```{r plotCounts-1, fig.width = 5, fig.height = 3}
-plotCounts(sce, 
-    group_by = "sample_id", 
-    color_by = "condition")
-```
-
-As opposed to plotting absolute cell counts, argument `prop` can be used to visualize relative abundances (frequencies) instead:
-
-```{r plotCounts-2, fig.width = 4, fig.height = 3}
-plotCounts(sce, 
-    prop = TRUE,
-    group_by = "condition", 
-    color_by = "patient_id")
-```
-
-## `pbMDS`: Pseudobulk-level multi-dimensional scaling plot
-
-A multi-dimensional scaling (MDS) plot on median expresion values may be rendered with `plotMDS`. Such a plot will give a sense of similarities between samples in an unsupervised way and of key difference in expression before conducting any formal testing. In our example, we can see a clear separation between reference (REF) and stimulation condition (BCRXL).
-
-```{r pbMDS, fig.width = 5}
-pbMDS(sce, 
-    color_by = "condition", 
-    label_by = "sample_id",
-    shape_by = "patient_id")
-```
-
 # Clustering
 
 ## `cluster`: *FlowSOM* clustering & *ConsensusClusterPlus* metaclustering
@@ -162,16 +130,6 @@ Let K = `xdim` x `ydim` be the number of `r BiocStyle::Biocpkg("FlowSOM")` clust
   - `cluster_codes`: a table with dimensions K x (`maxK` + 1). Contains the cluster codes for all metaclusterings.
   - `delta_area`: a `ggplot` object (see below for details).
 
-## Delta area plot
-
-The delta area represents the amount of extra cluster stability gained when clustering into k groups as compared to k-1 groups. It can be expected that high stability of clusters can be reached when clustering into the number of groups that best fits the data. The "natural" number of clusters present in the data should thus corresponds to the value of k where there is no longer a considerable increase in stability (pleateau onset). For more details, the user can refer to the original description of the consensus clustering method [@Monti2003-ConsensusClusterPlus].
-
-```{r delta-area, fig.width = 5, fig.height = 3}
-# access & render delta area plot
-# (equivalent to metadata(sce)$delta_area)
-delta_area(sce)
-```
-
 ## `mergeClusters`: Manual cluster merging
 
 Provided with a 2 column data.frame containing `old_cluster` and `new_cluster` IDs, `mergeClusters` allows for manual cluster merging of any clustering available within the input `SingleCellExperiment` (i.e. the `xdim` x `ydim` `r BiocStyle::Biocpkg("FlowSOM")` clusters, and any of the 2-`maxK` `r BiocStyle::Biocpkg("ConsensusClusterPlus")` metaclusters). For latter accession (visualization, differential testing), the function will assign a unique ID (specified with `id`) to each merging, and add a column to the `cluster_codes` inside the `metadata` slot of the input `SingleCellExperiment`. 
@@ -183,14 +141,71 @@ sce <- mergeClusters(sce, k = "meta20", table = merging_table, id = "merging1")
 head(cluster_codes(sce))[, seq_len(10)]
 ```
 
+## Delta area plot
+
+The delta area represents the amount of extra cluster stability gained when clustering into k groups as compared to k-1 groups. It can be expected that high stability of clusters can be reached when clustering into the number of groups that best fits the data. The "natural" number of clusters present in the data should thus corresponds to the value of k where there is no longer a considerable increase in stability (pleateau onset). For more details, the user can refer to the original description of the consensus clustering method [@Monti2003-ConsensusClusterPlus].
+
+```{r delta-area, fig.width = 5, fig.height = 3}
+# access & render delta area plot
+# (equivalent to metadata(sce)$delta_area)
+delta_area(sce)
+```
+
+# Visualization
+
+## `plotCounts`: Number of cells measured per sample
+
+The number of cells measured per sample may be plotted with `plotCounts`. This plot should be used as a guide together with other readouts to identify samples where not enough cells were assayed. Here, the grouping of samples (x-axis) is controlled by `group_by`; bars can be colored by a an additional cell metadata variable (argument `color_by`):
+
+```{r plotCounts-1, fig.width = 5, fig.height = 3}
+plotCounts(sce, 
+    group_by = "sample_id", 
+    color_by = "condition")
+```
+
+As opposed to plotting absolute cell counts, argument `prop` can be used to visualize relative abundances (frequencies) instead:
+
+```{r plotCounts-2, fig.width = 4, fig.height = 3}
+plotCounts(sce, 
+    prop = TRUE,
+    group_by = "condition", 
+    color_by = "patient_id")
+```
+
+## `pbMDS`: Pseudobulk-level MDS plot
+
+A multi-dimensional scaling (MDS) plot on aggregated measurement values may be rendered with `pbMDS`. Such a plot will give a sense of similarities between cluster and/or samples in an unsupervised way and of key difference in expression before conducting any formal testing.
+
+Arguments `by`, `assay` and `fun` control the aggregation strategy, allowing to compute pseudobulks by sample (`by = "sample_id"`), cluster (`by = "cluster_id"`) or cluster-sample instances (`by = "both"`) using the specified `assay` data and summarry statistic (argument `fun`)[^1]. When `by != "sample_id"`, i.e., when aggregating by cluster or cluster-sample, argument `k` specifies the clustering to use. The features to include in the computation of reduced dimensions may be specified via argument `features`.
+
+[^1]: By default, median expression values are computed.
+
+Arguments `color_by`, `label_by`, `shape_by` can be used to color, label, shape pseudobulk instances by cell metadata variables of interest. Moreover, `size_by = TRUE` will scale point sizes proportional to the number of cells that went into aggregation. Finally, a custom color palette may be supplied to argument `pal.`
+
+### Ex. 2: MDS on sample-level pseudobulks
+
+A multi-dimensional scaling (MDS) plot on median marker expression by sample has the potential to reveal global proteomic differences across conditions or other experimental metadata. Here, we color points by condition (to reveal treatment effects) and further shape them by patient (to highlight patient effects). In our example, we can see a clear horizontal (MDS dim. 1) separation between reference (REF) and stimulation condition (BCRXL), while patients are, to a lesser extent, separated vertically (MDS dim. 2):
+
+```{r pbMDS-1, fig.width = 5}
+pbMDS(sce, shape_by = "patient_id", size_by = FALSE)
+```
+
+### Ex. 1: MDS on pseudobulks by cluster-sample
+
+Complementary to the visualize above, we can generate an MDS plot on pseudobulks computed for each cluster-sample instance. Here, we color point by cluster (to highlight similarity between cell subpopulations), and shape them by condition (to reveal subpopulation-specific expression changes across conditions). In this example, we can see that cluster-sample instances of the same cell subpopulations group together. Meanwhile, most subpopulations exhibit a shift between instances where samples come from different treatment groups:
+
+```{r pbMDS-2, fig.width = 5}
+pbMDS(sce, by = "both", k = "meta12", shape_by = "condition")
+```
+
 ## `plotExprHeatmap`: Heatmap of aggregated marker expressions {#plotExprHeatmap}
 
 `plotExprHeatmap` allows generating heatmaps of aggregated (pseudobulk) marker expressions. Argument `assay` (default `"exprs"`) and `fun` (default `"median"`) control the aggregation. Depending on argument `by`, aggregation will be performed by `"sample_id"`, `"cluster"`, or `"both"`.
 
 **Scaling**  
-`plotExprHeatmap` supports various scaling strategies that are controlled by arguments `scale` and `q`, and will greatly alter the visualization and its interpretation[^1]: 
+`plotExprHeatmap` supports various scaling strategies that are controlled by arguments `scale` and `q`, and will greatly alter the visualization and its interpretation[^2]: 
 
-[^1]: Regardless of the chosen scaling strategy, row and column clusterings will be performed on unscaled data.
+[^2]: Regardless of the chosen scaling strategy, row and column clusterings will be performed on unscaled data.
 
 - When `scale = "first"`, the specified assay data will be scaled between 0 and 1 using lower (`q`) and upper (`1-q`) quantiles as boundaries, where `q = 0.01` by default. This way, while losing information on absolut expression values, marker expressions will stay comparable, and visualization is improved in cases where the expression range varies greatly between markers. 
 
@@ -226,9 +241,9 @@ plotExprHeatmap(sce, features = "type",
     scale = "first", q = 0.01, perc = TRUE, col_dend = FALSE)
 ```
 
-Finally, we can visualize the aggregated expression of specific markers by cluster *and* sample via `by = "both"`[^2]:
+Finally, we can visualize the aggregated expression of specific markers by cluster *and* sample via `by = "both"`[^3]:
 
-[^2]: In this case, only a single features is allowed as input.
+[^3]: In this case, only a single features is allowed as input.
 
 ```{r plotExprHeatmap-both, fig.width = 4, fig.height = 3.5}
 # raw (not scaled, not trimmed) 
@@ -279,7 +294,7 @@ plotAbundances(sce, k = "meta8", by = "cluster_id",
     group_by = "condition", shape_by = "patient_id")
 ```
 
-## `plotFreqHeatmap`: Heatmap of cluster fequencies
+## `plotFreqHeatmap`: Heatmap of cluster fequencies {#plotFreqHeatmap}
 
 Complementary to `plotAbundances`, a heatmap of relative cluster abundances by cluster can be generated with `plotFreqHeatmap`. By default (`normalize = TRUE`), frequencies will we standarized for each cluster, across samples. Analogous to `plotExprHeatmap` (Sec. \@ref(plotExprHeatmap)), arguments `row/col_clust/dend` control hierarchical clustering or rows (clusters) and columns (samples), and whether the resulting dendrograms should be display; `k` specifies the clustering across which to compute abundances, and `m` a secondary clustering for display. Again, `bars` and `perc` can be used to include a labelled cell count barplot.
 
@@ -336,9 +351,9 @@ plotMultiHeatmap(sce,
 
 ### Ex. 2: CDx markers & cluster frequencies {#plotMultiHeatmap-example2}
 
-As a second example, we plot an expession heatmap for a selection of markers (here, those starting with "CD": `hm1 = c("CDx", "CDy", ...`)[^3] next to the relative cluster abundances across samples (`hm2 = "abundances"`). We also add a barplot for the cell counts in each cluster (`bars = TRUE`) along with labels for their relative abundance (`perc = TRUE`):
+As a second example, we plot an expession heatmap for a selection of markers (here, those starting with "CD": `hm1 = c("CDx", "CDy", ...`)[^4] next to the relative cluster abundances across samples (`hm2 = "abundances"`). We also add a barplot for the cell counts in each cluster (`bars = TRUE`) along with labels for their relative abundance (`perc = TRUE`):
 
-[^3]: `hm1 = NULL` would include *all* markers.
+[^4]: `hm1 = NULL` would include *all* markers.
 
 ```{r plotMultiHeatmap-2, fig.width = 7.5, fig.height = 3}
 # 1st: CDx markers by cluster; 
@@ -511,6 +526,41 @@ plotDiffHeatmap(sce, tbl_DA, all = TRUE, col_anno = FALSE,
 ```
 
 # More
+
+## Exporting FCS files
+
+Conversion from SCE to `flowFrame`s/`flowSet`, which in turn can be writting to FCS files using `r Biocpkg("flowCore")`'s `write.FCS` function, is not straightforward. It is not recommended to directly write FCS via `write.FCS(flowFrame(t(assay(sce))))`, as this can lead to invalid FCS files or the data being shown on an inappropriate scale in e.g. Cytobank. Instead, `CATALYST` provides the `sce2fcs` function to facilitate correct back-conversion.
+
+`sce2fcs` allows specification of a `colData` column to split the SCE by (argument `split_by`), e.g., to split the data by cluster; whether to keep or drop any cell metadata (argument `keep_cd`) and dimension reductions (argument `keep_dr`) available within the object; and which assay data to use (argument `assay`)[^5]: 
+
+[^5]: Only count-like data should be written to FCS files and is guaranteed to show with approporiate scale in Cytobank!
+
+```{r sce2fcs-split, message = FALSE}
+# store final clustering in cell metadata
+sce$mm <- cluster_ids(sce, "merging1")
+# convert to 'flowSet' with one frame per cluster 
+(fs <- sce2fcs(sce, split_by = "mm"))
+# split check: number of cells per barcode ID
+# equals number of cells in each 'flowFrame'
+all(c(fsApply(fs, nrow)) == table(sce$mm))
+# store identifiers (= cluster names)
+(ids <- c(fsApply(fs, identifier)))
+```
+
+Having converted out SCE to a `flowSet`, we can write out each of its `flowFrame`s to an FCS file with a meaningul filename that retains the cluster of origin:
+
+```{r sce2fcs-write, eval = FALSE}
+for (id in ids) {
+    # subset 'flowFrame' for cluster 'id'
+    ff <- fs[[id]]                      
+    # specify output name that includes ID
+    fn <- sprintf("manuel_merging_%s.fcs", id) 
+    # construct output path
+    fn <- file.path("...", fn)   
+    # write frame to FCS
+    write.FCS(ff, fn)                   
+}
+```
 
 ## Using other clustering algorithms
 
