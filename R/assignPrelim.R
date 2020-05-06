@@ -67,6 +67,8 @@ assignPrelim <- function(x, bc_key, assay = "exprs", verbose = TRUE) {
     # extract masses & check validity of debarcoding scheme
     n_bcs <- length(ids <- rownames(bc_key))
     bc_ms <- as.numeric(colnames(bc_key))
+    if (any(is.na(bc_ms)))
+        stop("Column names of 'bc_key' should be numeric.")
     chs <- channels(x)
     ms <- .get_ms_from_chs(chs)
     if (any(!bc_ms %in% ms))
