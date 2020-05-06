@@ -6,15 +6,37 @@
 \usage{
 pbMDS(
   x,
-  color_by = "condition",
-  label_by = "sample_id",
-  shape_by = NULL,
+  by = c("sample_id", "cluster_id", "both"),
+  k = "meta20",
+  features = NULL,
   assay = "exprs",
-  fun = c("median", "mean", "sum")
+  fun = c("median", "mean", "sum"),
+  color_by = switch(by, sample_id = "condition", "cluster_id"),
+  label_by = if (by == "sample_id") "sample_id" else NULL,
+  shape_by = NULL,
+  size_by = TRUE,
+  pal = if (color_by == "cluster_id") .cluster_cols else NULL
 )
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
+
+\item{by}{character string specifying whether to aggregate 
+by \code{sample_id}, \code{cluster_id} or \code{both}.}
+
+\item{k}{character string specifying which clustering to use when 
+\code{by != "sample_id"}; valid values are \code{names(cluster_codes(x))}.}
+
+\item{features}{character string specifying which features to include
+for computation of reduced dimensions; valid values are 
+\code{"type"/"state"} for \code{type/state_markers(x)} 
+if \code{rowData(x)$marker_class} have been specified; 
+a subset of \code{rownames(x)}; NULL to use all features.}
+
+\item{assay}{character string specifying which assay data to use;
+valid values are \code{assayNames(x)}.}
+
+\item{fun}{character string specifying which summary statistic to use.}
 
 \item{color_by}{character string specifying a 
 non-numeric cell metadata column to color by; 
@@ -28,11 +50,12 @@ valid values are \code{names(colData(x))}.}
 non-numeric cell metadata column to shape by; 
 valid values are \code{names(colData(x))}.}
 
-\item{assay}{character string specifying which assay data to use;
-valid values are \code{assayNames(x)}.}
+\item{size_by}{logical specifying whether points should be 
+sized by the number of cells that went into aggregation; i.e., 
+the size of a give sample, cluster or cluster-sample instance.}
 
-\item{fun}{character string specifying 
-which function to use as summary statistic.}
+\item{pal}{character vector of colors to use; 
+NULL for default \code{ggplot2} colors.}
 }
 \value{
 a \code{ggplot} object.
@@ -44,7 +67,19 @@ plot computed on median marker expressions in each sample.
 \examples{
 data(PBMC_fs, PBMC_panel, PBMC_md)
 sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-pbMDS(sce)
+sce <- cluster(sce)
+
+# sample-level pseudobulks
+# including state-markers only
+pbMDS(sce, by = "sample_id", features = "state")
+
+# cluster-level pseudobulks
+# including type-features only
+pbMDS(sce, by = "cluster_id", features = "type")
+
+# pseudobulks by cluster-sample 
+# including all features
+pbMDS(sce, by = "both", k = "meta12", shape_by = "condition")
 
 }
 \references{

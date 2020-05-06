@@ -5,6 +5,18 @@
 #' plot computed on median marker expressions in each sample.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @param by character string specifying whether to aggregate 
+#'   by \code{sample_id}, \code{cluster_id} or \code{both}.
+#' @param k character string specifying which clustering to use when 
+#'   \code{by != "sample_id"}; valid values are \code{names(cluster_codes(x))}.
+#' @param features character string specifying which features to include
+#'   for computation of reduced dimensions; valid values are 
+#'   \code{"type"/"state"} for \code{type/state_markers(x)} 
+#'   if \code{rowData(x)$marker_class} have been specified; 
+#'   a subset of \code{rownames(x)}; NULL to use all features.
+#' @param assay character string specifying which assay data to use;
+#'   valid values are \code{assayNames(x)}.
+#' @param fun character string specifying which summary statistic to use.
 #' @param color_by character string specifying a 
 #'   non-numeric cell metadata column to color by; 
 #'   valid values are \code{names(colData(x))}.
@@ -14,10 +26,11 @@
 #' @param shape_by character string specifying a 
 #'   non-numeric cell metadata column to shape by; 
 #'   valid values are \code{names(colData(x))}.
-#' @param assay character string specifying which assay data to use;
-#'   valid values are \code{assayNames(x)}.
-#' @param fun character string specifying 
-#'   which function to use as summary statistic.
+#' @param size_by logical specifying whether points should be 
+#'   sized by the number of cells that went into aggregation; i.e., 
+#'   the size of a give sample, cluster or cluster-sample instance.
+#' @param pal character vector of colors to use; 
+#'   NULL for default \code{ggplot2} colors.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -32,50 +45,97 @@
 #' @examples
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-#' pbMDS(sce)
+#' sce <- cluster(sce)
+#' 
+#' # sample-level pseudobulks
+#' # including state-markers only
+#' pbMDS(sce, by = "sample_id", features = "state")
+#' 
+#' # cluster-level pseudobulks
+#' # including type-features only
+#' pbMDS(sce, by = "cluster_id", features = "type")
+#' 
+#' # pseudobulks by cluster-sample 
+#' # including all features
+#' pbMDS(sce, by = "both", k = "meta12", shape_by = "condition")
 #' 
 #' @import ggplot2
 #' @importFrom ggrepel geom_label_repel
-#' @importFrom limma plotMDS
-#' @importFrom matrixStats rowMedians
-#' @importFrom methods is
-#' @importFrom S4Vectors metadata
-#' @importFrom SummarizedExperiment assay assayNames colData
+#' @importFrom scater calculateMDS
+#' @importFrom SummarizedExperiment colData
 #' @export
 
-pbMDS <- function(x, 
-    color_by = "condition", label_by = "sample_id", shape_by = NULL,
-    assay = "exprs", fun = c("median", "mean", "sum")) {
+pbMDS <- function(x,
+    by = c("sample_id", "cluster_id", "both"), k = "meta20",
+    features = NULL, assay = "exprs", fun = c("median", "mean", "sum"), 
+    color_by = switch(by, sample_id = "condition", "cluster_id"),
+    label_by = if (by == "sample_id") "sample_id" else NULL, 
+    shape_by = NULL, size_by = TRUE,
+    pal = if (color_by == "cluster_id") .cluster_cols else NULL) {
+    
     # check validity of input arguments
-    .check_sce(x)
-    .check_assay(x, assay)
+    by <- match.arg(by)
+    fun <- match.arg(fun)
+    if (by != "sample_id") {
+        .check_sce(x, TRUE)
+        .check_k(x, k)
+        x$cluster_id <- cluster_ids(x, k)
+    } else .check_sce(x)
+    .check_pal(pal)
     .check_cd_factor(x, color_by)
     .check_cd_factor(x, label_by)
-    .check_cd_factor(x, shape_by)
-    fun <- match.arg(fun)
+    stopifnot(is.logical(size_by), length(size_by) == 1)
     
-    # compute medians across samples
-    y <- .agg(x, "sample_id", fun, assay)
-    y <- y[, colSums(y) != 0]
+    # aggregate & run MDS
+    by <- switch(by, both = c("cluster_id", "sample_id"), by)
+    x <- x[.get_features(x, features), ]
+    pbs <- .agg(x, by, fun, assay)
+    if (is.list(pbs))
+        pbs <- do.call("cbind", pbs)
+    mds <- calculateMDS(pbs)
     
-    # get MDS coordinates
-    mds <- plotMDS(y, plot = FALSE)
-    df <- data.frame(mds1 = mds$x, mds2 = mds$y)
+    # construct data.frame for plotting
+    df <- data.frame(mds)
+    colnames(df) <- c("x", "y")
+    if (length(by) == 1) {
+        df[[by]] <- factor(colnames(pbs), levels(colData(x)[[by]]))
+    } else {
+        ns <- length(sids <- levels(x$sample_id))
+        nk <- length(kids <- levels(x$cluster_id))
+        df$sample_id <- factor(rep(sids, nk), sids)
+        df$cluster_id <-  factor(rep(kids, each = ns), kids)
+    }
     
-    # add relevant cell metadata
-    m <- match(rownames(df), x$sample_id)
-    for (i in c(color_by, label_by, shape_by))
-        df[[i]] <- x[[i]][m]
+    # add sample metadata
+    if (!isTRUE(by == "cluster_id")) {
+        m <- match(df$sample_id, x$sample_id)
+        i <- setdiff(names(colData(x)), names(df))
+        df <- cbind(df, colData(x)[m, i])
+    }
     
-    ggplot(df, aes_string("mds1", "mds2", col = color_by, shape = shape_by)) + 
-        geom_point(alpha = 0.8, size = 2) + 
-        geom_label_repel(aes_string(label = label_by), show.legend = FALSE) + 
-        guides(shape = guide_legend(override.aes = list(size = 3)),
-            col = guide_legend(override.aes = list(alpha = 1, size = 3))) +
+    # add instance cell counts
+    if (size_by) {
+        size_by <- "n_cells" 
+        df$n_cells <- c(t(table(as.list(colData(x)[by]))))
+    } else size_by <- NULL
+    
+    # get number of legend columns to use
+    ncol <- ifelse(!is.null(color_by) && nlevels(df[[color_by]]) > 10, 2, 1)
+    
+    ggplot(df, aes_string("x", "y", 
+        col = color_by, shape = shape_by)) + 
+        geom_point(alpha = 0.8, aes_string(size = size_by)) + 
+        (if (!is.null(label_by)) geom_label_repel(
+            aes_string(label = label_by), show.legend = FALSE)) + 
+        (if (!is.null(pal)) scale_color_manual(values = pal)) +
+        scale_shape_manual(values = .get_shapes(x, shape_by)) +
+        guides(
+            col = guide_legend(order = 1, ncol = ncol, 
+                override.aes = list(alpha = 1, size = 3)),
+            shape = guide_legend(order = 2, override.aes = list(size = 3)),
+            size = guide_legend(order = 3)) + 
         labs(x = "MDS dim. 1", y = "MDS dim. 2") +
-        coord_equal() + theme_minimal() + theme(
-            legend.key.height  =  unit(0.8, "lines"),
-            axis.text = element_text(color = "black"),
+        coord_equal() + theme_linedraw() + theme(
             panel.grid.minor = element_blank(),
-            panel.grid.major = element_line(color = "grey", size = 0.2))
+            legend.key.height  =  unit(0.8, "lines"))
 }
