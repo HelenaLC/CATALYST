@@ -54,7 +54,7 @@
 #' 
 #' # color by a set of markers using custom color palette
 #' cdx <- grep("CD", rownames(sce), value = TRUE)
-#' plotDR(sce, color_by = cdx, ncol = 4,
+#' plotDR(sce, color_by = cdx, ncol = 4, 
 #'   a_pal = rev(hcl.colors(10, "Spectral")))
 #' 
 #' # color by scaled expression for 
@@ -73,7 +73,7 @@
 #' p$facet$params$ncol <- 4; p
 #' 
 #' @import ggplot2
-#' @importFrom grDevices colorRampPalette
+#' @importFrom grDevices colorRampPalette hcl.colors
 #' @importFrom SingleCellExperiment reducedDim reducedDimNames
 #' @importFrom SummarizedExperiment assay colData
 #' @importFrom stats reformulate

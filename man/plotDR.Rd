@@ -76,7 +76,7 @@ plotDR(sce, color_by = "CD7", facet_by = "sample_id", ncol = 4)
 
 # color by a set of markers using custom color palette
 cdx <- grep("CD", rownames(sce), value = TRUE)
-plotDR(sce, color_by = cdx, ncol = 4,
+plotDR(sce, color_by = cdx, ncol = 4, 
   a_pal = rev(hcl.colors(10, "Spectral")))
 
 # color by scaled expression for 
