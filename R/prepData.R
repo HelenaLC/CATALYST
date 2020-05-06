@@ -142,22 +142,24 @@ prepData <- function(x, panel = NULL, md = NULL,
         miss <- !names(defs) %in% names(args[[i]])    
         if (any(miss)) assign(i, c(args[[i]], defs[miss])[names(defs)])
     }
-    stopifnot(
-        c("channel", "antigen") %in% names(panel_cols),
-        c("file", "id", "factors") %in% names(md_cols))
     
     # if unspecified, construct panel & metadata tables
     if (is.null(panel)) {
         panel <- guessPanel(fs[[1]])
         panel$marker_class <- ifelse(panel$use_channel, "state", "none")
-    }
+    } else stopifnot(
+        c("channel", "antigen") %in% names(panel_cols),
+        all(setdiff(unlist(panel_cols), "marker_class") %in% names(panel)))
+    
     if (is.null(md)) {
         ids <- fsApply(fs, identifier)
         md <- data.frame(
             file_name = ids,
             sample_id = basename(ids))
         md_cols$factors <- NULL
-    }
+    } else stopifnot(
+        all(unlist(md_cols) %in% names(md)),
+        c("file", "id", "factors") %in% names(md_cols))
     
     # check channels listed in panel 
     stopifnot(panel[[panel_cols$channel]] %in% colnames(fs))
@@ -242,7 +244,7 @@ prepData <- function(x, panel = NULL, md = NULL,
 
     # get & check marker classes if provided
     mcs <- c("type", "state", "none")
-    if (is.null(panel_cols$class) | is.null(panel[[panel_cols$class]])) {
+    if (is.null(panel_cols$class) || is.null(panel[[panel_cols$class]])) {
         mcs <- factor("none", levels = mcs)
     } else {
         mcs <- factor(panel[[panel_cols$class]], levels = mcs)
