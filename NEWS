@@ -1,4 +1,27 @@
------------------------------------- 1.10.4 ------------------- Bioc 3.11, R 4.0
+------------------------------------ 1.12.1 ------------------------------------
+
+PREPROCESSING
+
+o bug fix in prepData(): by default, non-mass channels (time, event length etc.) 
+  are moved to the SCE's int_colData; forr FACS data, these are now kept inside
+  the assay data (since FACS channels do not contain masses)
+
+DIFFERENTIAL
+
+o bug fix in plotFreqHeatmap(): frequencies were previously computed for 
+  the wrong margin (across clusters instead of samples); this has been fixed
+
+o added checks in prepData() for the existence of md_/panel_cols to give a more   
+  intuitive error message when columns cannot be matched to the input md/panel
+
+o added flexibility for pbMDS() to allow specification of
+  - which assay data and summary statistic to use for aggregation
+  - the level at which to aggregate (cluster, sample, cluster-sample)
+  
+o added vignette section "More - Exporting FCS files" on 
+  how to write FCS files from a SCE using sce2fcs()
+  
+------------------------------------ 1.12.0 ------------------- Bioc 3.11, R 4.0
 
 PREPROCESSING
 
