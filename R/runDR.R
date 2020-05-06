@@ -49,7 +49,7 @@ runDR <- function(x,
     cells = NULL, features = "type", assay = "exprs", ...) {
     
     # check validity of input arguments
-    .check_sce(x)
+    stopifnot(is(x, "SingleCellExperiment"))
     dr <- match.arg(dr)
     .check_assay(x, assay)
     fs <- .get_features(x, features)
@@ -58,6 +58,9 @@ runDR <- function(x,
         # use all cells
         cs <- TRUE 
     } else {
+        if (is.null(x$sample_id))
+            stop("colData column sample_id not found,\n ", 
+                " but is required to downsample cells.")
         stopifnot(
             is.numeric(cells), length(cells) == 1,
             as.integer(cells) == cells, cells > 0)
