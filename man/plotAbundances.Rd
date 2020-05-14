@@ -8,8 +8,12 @@ plotAbundances(
   x,
   k = "meta20",
   by = c("sample_id", "cluster_id"),
-  group_by = NULL,
+  group_by = "condition",
   shape_by = NULL,
+  col_clust = TRUE,
+  distance = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"),
+  linkage = c("average", "ward.D", "single", "complete", "mcquitty", "median",
+    "centroid", "ward.D2"),
   k_pal = CATALYST:::.cluster_cols
 )
 }
@@ -24,12 +28,24 @@ to plot frequencies by samples or clusters.}
 
 \item{group_by}{character string specifying a non-numeric
 cell metadata columnd to group by (determines the color coding);
-valid values are \code{names(colData(x))} other than "sample_id"
-and "cluster_id"; NULL will use the first factor available.}
+valid values are \code{names(colData(x))} 
+other than "sample_id" and "cluster_id".}
 
 \item{shape_by}{character string specifying a non-numeric
 cell metadata columnd to shape by; valid values are 
 \code{names(colData(x))} other than "sample_id" and "cluster_id".}
+
+\item{col_clust}{for \code{by = "sample_id"}, 
+specifies whether to hierarchically cluster samples 
+and reorder them accordingly. When \code{col_clust = FALSE}, 
+samples are ordered according to \code{levels(x$sample_id)} 
+(or alphabetically, when \code{x$sample_id} is not a factor).}
+
+\item{distance}{character string specifying the distance metric 
+to use for sample clustering; passed to \code{\link[stats]{dist}}}
+
+\item{linkage}{character string specifying the agglomeration method 
+to use for sample clustering; passed to \code{\link[stats]{hclust}}.}
 
 \item{k_pal}{character string specifying the cluster 
 color palette; ignored when \code{by = "cluster_id"}. 

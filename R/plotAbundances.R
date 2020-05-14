@@ -14,11 +14,20 @@
 #'   to plot frequencies by samples or clusters.
 #' @param group_by character string specifying a non-numeric
 #'   cell metadata columnd to group by (determines the color coding);
-#'   valid values are \code{names(colData(x))} other than "sample_id"
-#'   and "cluster_id"; NULL will use the first factor available.
+#'   valid values are \code{names(colData(x))} 
+#'   other than "sample_id" and "cluster_id".
 #' @param shape_by character string specifying a non-numeric
 #'   cell metadata columnd to shape by; valid values are 
 #'   \code{names(colData(x))} other than "sample_id" and "cluster_id".
+#' @param col_clust for \code{by = "sample_id"}, 
+#'   specifies whether to hierarchically cluster samples 
+#'   and reorder them accordingly. When \code{col_clust = FALSE}, 
+#'   samples are ordered according to \code{levels(x$sample_id)} 
+#'   (or alphabetically, when \code{x$sample_id} is not a factor).
+#' @param distance character string specifying the distance metric 
+#'  to use for sample clustering; passed to \code{\link[stats]{dist}} 
+#' @param linkage character string specifying the agglomeration method 
+#'  to use for sample clustering; passed to \code{\link[stats]{hclust}}.
 #' @param k_pal character string specifying the cluster 
 #'   color palette; ignored when \code{by = "cluster_id"}. 
 #'   If less than \code{nlevels(cluster_ids(x, k))} 
@@ -54,11 +63,19 @@
 #' @importFrom grDevices colorRampPalette
 #' @importFrom reshape2 melt
 #' @importFrom S4Vectors metadata
+#' @importFrom stats dist hclust
 #' @export
 
 plotAbundances <- function(x, k = "meta20", 
     by = c("sample_id", "cluster_id"), 
-    group_by = NULL, shape_by = NULL,
+    group_by = "condition", shape_by = NULL,
+    col_clust = TRUE, 
+    distance = c(
+        "euclidean", "maximum", "manhattan", 
+        "canberra", "binary", "minkowski"), 
+    linkage = c(
+        "average", "ward.D", "single", "complete", 
+        "mcquitty", "median", "centroid", "ward.D2"),
     k_pal = CATALYST:::.cluster_cols) {
     
     # check validity of input arguments
@@ -68,6 +85,9 @@ plotAbundances <- function(x, k = "meta20",
     .check_cd_factor(x, group_by)
     .check_cd_factor(x, shape_by)
     .check_pal(k_pal)
+    linkage <- match.arg(linkage)
+    distance <- match.arg(distance)
+    stopifnot(is.logical(col_clust), length(col_clust) == 1)
     
     shapes <- .get_shapes(x, shape_by)
     if (is.null(shapes)) shape_by <- NULL
@@ -76,7 +96,6 @@ plotAbundances <- function(x, k = "meta20",
     if (length(valid) == 0)
         stop("No factors to group by. Metadata should contain", 
             " at least one column other than 'file' and 'id'.")
-    if (is.null(group_by)) group_by <- valid[1]
     
     # ramp cluster color palette
     if (by == "sample_id") {
@@ -97,6 +116,14 @@ plotAbundances <- function(x, k = "meta20",
     for (i in c(shape_by, group_by))
         df[[i]] <- x[[i]][m]
     
+    if (by == "sample_id" && col_clust 
+        && length(unique(df$sample_id)) > 1) {
+        d <- dist(t(fq), distance)
+        h <- hclust(d, linkage)
+        o <- colnames(fq)[h$order]
+        df$sample_id <- factor(df$sample_id, o)
+    }
+    
     # specify shared aesthetics
     p <- ggplot(df, aes_string(y = "Freq")) +
         labs(x = NULL, y = "Proportion [%]") + 
@@ -109,18 +136,19 @@ plotAbundances <- function(x, k = "meta20",
             legend.key.height  =  unit(0.8, "lines"))
     
     switch(by,
-        sample_id = p + 
-            facet_wrap(group_by, scales = "free_x") +
-            geom_bar(
-                aes_string(x = "sample_id", fill = "cluster_id"), 
-                position = "fill", stat = "identity") +
-            scale_fill_manual("cluster_id", values = k_pal) +
-            scale_x_discrete(expand = c(0, 0)) +
-            scale_y_continuous(expand = c(0, 0), labels = seq(0, 100, 25)) +
-            theme(
-                panel.border = element_blank(),
-                panel.spacing.x = unit(1, "lines"))
-        ,
+        sample_id = {
+            p + (if (!is.null(group_by)) 
+                facet_wrap(group_by, scales = "free_x")) +
+                geom_bar(
+                    aes_string(x = "sample_id", fill = "cluster_id"), 
+                    position = "fill", stat = "identity") +
+                scale_fill_manual("cluster_id", values = k_pal) +
+                scale_x_discrete(expand = c(0, 0)) +
+                scale_y_continuous(expand = c(0, 0), labels = seq(0, 100, 25)) +
+                theme(
+                    panel.border = element_blank(),
+                    panel.spacing.x = unit(1, "lines"))
+        },
         cluster_id = p + 
             facet_wrap("cluster_id", scales = "free_y", ncol = 4) +
             geom_boxplot(
