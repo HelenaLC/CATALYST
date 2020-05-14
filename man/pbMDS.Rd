@@ -14,7 +14,7 @@ pbMDS(
   color_by = switch(by, sample_id = "condition", "cluster_id"),
   label_by = if (by == "sample_id") "sample_id" else NULL,
   shape_by = NULL,
-  size_by = TRUE,
+  size_by = is.null(shape_by),
   pal = if (color_by == "cluster_id") .cluster_cols else NULL
 )
 }
@@ -79,7 +79,8 @@ pbMDS(sce, by = "cluster_id", features = "type")
 
 # pseudobulks by cluster-sample 
 # including all features
-pbMDS(sce, by = "both", k = "meta12", shape_by = "condition")
+pbMDS(sce, by = "both", k = "meta12", 
+  shape_by = "condition", size_by = TRUE)
 
 }
 \references{
