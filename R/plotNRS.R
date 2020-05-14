@@ -12,6 +12,8 @@
 #'   a subset of \code{rownames(x)}; NULL to use all features.
 #' @param color_by character string specifying the color coding;
 #'   valid values are \code{namescolData(x))}.
+#' @param assay character string specifying which assay data 
+#'   to use; valid values are \code{assayNames(x)}.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -38,18 +40,23 @@
 #' @importFrom SummarizedExperiment assay colData
 #' @export
 
-plotNRS <- function(x, features=NULL, color_by="condition") {
+plotNRS <- function(x, features = NULL, 
+    color_by = "condition", assay = "exprs") {
 
     # check validity of input arguments
     stopifnot(is(x, "SingleCellExperiment"), 
         is.character(color_by), length(color_by) == 1,
         sum(color_by == names(colData(x))) == 1)
+    
+    .check_assay(x, assay)
     features <- .get_features(x, features)
+    y <- assay(x, assay)
+    y <- y[features, ]
     
     # calculate NRS
     cs_by_s <- split(seq_len(ncol(x)), x$sample_id)
     nrs <- lapply(cs_by_s, function(cs)
-        .nrs(assay(x, "exprs")[features, cs, drop = FALSE]))
+        .nrs(y[, cs, drop = FALSE]))
     nrs <- do.call("rbind", nrs)
     
     # warn about excluded markers
