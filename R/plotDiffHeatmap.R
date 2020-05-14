@@ -47,8 +47,8 @@
 #'   for all non-numeric cell metadata variables; or a character vector 
 #'   in \code{names(colData(x))} to include only a subset of annotations.
 #'   (Only variables that map uniquely to each sample will be included)
-#' @param hm_pal character vector of colors to interpolate for the heatmap.
-#'   Defaults to \code{\link[RColorBrewer:RColorBrewer]{brewer.pal}}'s
+#' @param hm_pal character vector of colors 
+#'   to interpolate for the heatmap. Defaults to \code{brewer.pal}'s 
 #'   \code{"RdYlBu"} for DS, \code{"RdBu"} for DA results heatmaps.
 #' @param fdr_pal,lfc_pal character vector of colors to use for row annotations
 #' \itemize{
