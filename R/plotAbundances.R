@@ -86,9 +86,11 @@ plotAbundances <- function(x, k = "meta20",
     }
     
     # get frequencies by cluster & sample
-    ns <- table(cluster_ids(x, k), sample_ids(x))
+    ns <- table(
+        cluster_id = cluster_ids(x, k), 
+        sample_id = sample_ids(x))
     fq <- prop.table(ns, 2) * 100
-    df <- melt(fq, varnames = c("cluster_id", "sample_id"))
+    df <- as.data.frame(fq)
     
     # add relevant cell metadata
     m <- match(df$sample_id, x$sample_id)
@@ -96,7 +98,7 @@ plotAbundances <- function(x, k = "meta20",
         df[[i]] <- x[[i]][m]
     
     # specify shared aesthetics
-    p <- ggplot(df, aes_string(y = "value")) +
+    p <- ggplot(df, aes_string(y = "Freq")) +
         labs(x = NULL, y = "Proportion [%]") + 
         theme_bw() + theme(
             panel.grid = element_blank(),
@@ -110,7 +112,7 @@ plotAbundances <- function(x, k = "meta20",
         sample_id = p + 
             facet_wrap(group_by, scales = "free_x") +
             geom_bar(
-                aes_string(x = "sample_id", fill = "factor(cluster_id)"), 
+                aes_string(x = "sample_id", fill = "cluster_id"), 
                 position = "fill", stat = "identity") +
             scale_fill_manual("cluster_id", values = k_pal) +
             scale_x_discrete(expand = c(0, 0)) +

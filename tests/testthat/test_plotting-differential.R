@@ -128,6 +128,43 @@ test_that("pbMDS() - by = 'both'", {
     .check_nc()
 })
 
+test_that("clrDR()", {
+    k <- sample(names(codes)[-seq_len(11)], 1)
+    nk <- nlevels(kids <- cluster_ids(x, k))
+    ns <- nlevels(sids <- x$sample_id)
+    # by = 'sample_id'
+    expect_is(p <- clrDR(x, by = "sample_id", k = k), "ggplot")
+    expect_identical(nrow(p$data), nlevels(x$sample_id))
+    expect_identical(p$data$n_cells, tabulate(x$sample_id))
+    # PC loading arrows
+    ls <- p$layers; y <- ls[[length(ls)]]
+    expect_identical(nrow(y$data), nlevels(kids))
+    expect_equivalent(levels(y$data$cluster_id), levels(kids))
+    # removal of samples
+    ss <- sample(levels(sids), n <- 3)
+    y <- filterSCE(x, k = k, !sample_id %in% ss) 
+    p <- clrDR(y, by = "sample_id", k = k)
+    expect_identical(nrow(p$data), as.integer(ns-n))
+    expect_identical(p$data$n_cells, tabulate(y$sample_id))
+    expect_identical(levels(p$data$sample_id), setdiff(levels(sids), ss))
+    # by = 'cluster_id'
+    expect_is(p <- clrDR(x, by = "cluster_id", k = k), "ggplot")
+    expect_identical(nrow(p$data), nk)
+    expect_identical(p$data$n_cells, tabulate(kids))
+    expect_identical(levels(p$data$cluster_id), levels(kids))
+    # PC loading arrows
+    ls <- p$layers; y <- ls[[length(ls)]]
+    expect_identical(nrow(y$data), ns)
+    expect_equivalent(levels(y$data$sample_id), levels(sids))
+    # removal of clusters
+    ks <- sample(levels(kids), n <- 3)
+    y <- filterSCE(x, k = k, !cluster_id %in% ks) 
+    p <- clrDR(y, by = "cluster_id", k = k)
+    expect_identical(nrow(p$data), as.integer(nk-n))
+    expect_identical(p$data$n_cells, tabulate(cluster_ids(y, k)))
+    expect_identical(levels(p$data$cluster_id), setdiff(levels(kids), ks))
+})
+
 test_that("plotExprs()", {
     expect_error(plotExprs(x, color_by = "x"))  
     i <- sample(rownames(x), (n <- 5))
@@ -142,10 +179,10 @@ test_that("plotExprs()", {
         c(t(assay(x, "exprs")[i, ])))
 })
 
-test_that("plotMedExprs()", {
+test_that("plotAggExprs()", {
     # facet by antigen
     f <- sample(rownames(x), (n <- 6))
-    p <- plotMedExprs(x, k, f, facet = "antigen")
+    p <- plotAggExprs(x, k, f, facet = "antigen")
     expect_is(p, "ggplot")
     expect_true(nrow(p$data) == n*nlevels(x$sample_id))
     expect_equivalent(levels(p$data$antigen), f)
@@ -157,7 +194,7 @@ test_that("plotMedExprs()", {
     # facet by cluster ID
     k <- sample(names(codes), 1)
     kids <- cluster_ids(x, k)
-    p <- plotMedExprs(x, k, "state", facet = "cluster_id")
+    p <- plotAggExprs(x, k, "state", facet = "cluster_id")
     expect_is(p, "ggplot")
     expect_identical(nrow(p$data), 
         length(state_markers(x))*nlevels(x$sample_id)*nlevels(kids))
@@ -187,7 +224,7 @@ test_that("plotAbundances()", {
         expect_equal(nrow(p$data), nlevels(x$sample_id) * nlevels(kids))
         expect_true(all(table(p$data$sample_id) == nlevels(kids)))
         expect_true(all(table(p$data$cluster_id) == nlevels(x$sample_id)))
-        expect_equal(p$data$value/100, c(prop.table(table(kids, x$sample_id), 2)))
+        expect_equal(p$data$Freq/100, c(prop.table(table(kids, x$sample_id), 2)))
     }
 })
 
