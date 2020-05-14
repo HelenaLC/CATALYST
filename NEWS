@@ -1,3 +1,23 @@
+------------------------------------ 1.12.2 ------------------------------------
+
+DIFFERENTIAL
+
+o added argument 'assay' in plotExprs(), plotNRS() 
+  to allow specification of which assay data to use
+  
+o depracated plotMedExprs() in favor of plotAggExprs()
+  to allow flexibilty in input data and summary statistic
+  
+o but fix in plotAbundances(); plotting failed 
+  when colData()$sample_id was not of type factor or character.
+  
+o changed behavior of 'group_by' in plotAbundances(); 
+  not facetting the plot was previously impossible.
+  
+o added arguments 'col_clust,distance,linkage' in plotAbundances()
+  to allow sorting of samples according to hierarchical clustering
+  on cluster compositions when by = "sample_id"
+
 ------------------------------------ 1.12.1 ------------------------------------
 
 PREPROCESSING
