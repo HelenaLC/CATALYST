@@ -123,7 +123,7 @@ plotAbundances <- function(x, k = "meta20",
         o <- colnames(fq)[h$order]
         df$sample_id <- factor(df$sample_id, o)
     }
-    
+
     # specify shared aesthetics
     p <- ggplot(df, aes_string(y = "Freq")) +
         labs(x = NULL, y = "Proportion [%]") + 
@@ -136,28 +136,37 @@ plotAbundances <- function(x, k = "meta20",
             legend.key.height  =  unit(0.8, "lines"))
     
     switch(by,
-        sample_id = {
-            p + (if (!is.null(group_by)) 
-                facet_wrap(group_by, scales = "free_x")) +
-                geom_bar(
-                    aes_string(x = "sample_id", fill = "cluster_id"), 
-                    position = "fill", stat = "identity") +
-                scale_fill_manual("cluster_id", values = k_pal) +
-                scale_x_discrete(expand = c(0, 0)) +
-                scale_y_continuous(expand = c(0, 0), labels = seq(0, 100, 25)) +
-                theme(
-                    panel.border = element_blank(),
-                    panel.spacing.x = unit(1, "lines"))
-        },
-        cluster_id = p + 
-            facet_wrap("cluster_id", scales = "free_y", ncol = 4) +
-            geom_boxplot(
-                aes_string(x = group_by, color = group_by, fill = group_by),
-                position = position_dodge(), alpha = 0.2, outlier.color = NA) + 
-            geom_point(
-                aes_string(x = group_by, col = group_by, shape = shape_by),
-                position = position_jitter(width = 0.2)) +
-            scale_shape_manual(values = shapes) + guides(fill = FALSE, 
-                shape = guide_legend(override.aes = list(size = 3))) 
+        sample_id = p + (if (!is.null(group_by)) 
+            facet_wrap(group_by, scales = "free_x")) +
+            geom_bar(
+                aes_string(x = "sample_id", fill = "cluster_id"), 
+                position = "fill", stat = "identity") +
+            scale_fill_manual("cluster_id", values = k_pal) +
+            scale_x_discrete(expand = c(0, 0)) +
+            scale_y_continuous(expand = c(0, 0), labels = seq(0, 100, 25)) +
+            theme(
+                panel.border = element_blank(),
+                panel.spacing.x = unit(1, "lines"))
+        ,
+        cluster_id = {
+            p <- p + scale_shape_manual(values = shapes) + guides(
+                col = guide_legend(order = 1, override.aes = list(size = 3)),
+                shape = guide_legend(override.aes = list(size = 3)))
+            if (is.null(group_by)) {
+                p + geom_boxplot(aes_string(x = "cluster_id"), alpha = 0.2,
+                    position = position_dodge(), outlier.color = NA) + 
+                    geom_point(aes_string("cluster_id", shape = shape_by),
+                        position = position_jitter(width = 0.2))
+            } else {
+                p + facet_wrap("cluster_id", scales = "free_y", ncol = 4) +
+                    geom_boxplot(aes_string(x = group_by, 
+                        color = group_by, fill = group_by),
+                        position = position_dodge(), alpha = 0.2, 
+                        outlier.color = NA, show.legend = FALSE) + 
+                    geom_point(aes_string(x = group_by, 
+                        col = group_by, shape = shape_by),
+                        position = position_jitter(width = 0.2))
+            }
+        }
     )
 }
