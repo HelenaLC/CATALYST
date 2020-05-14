@@ -92,11 +92,6 @@ plotAbundances <- function(x, k = "meta20",
     shapes <- .get_shapes(x, shape_by)
     if (is.null(shapes)) shape_by <- NULL
     
-    valid <- setdiff(names(colData(x)), c("sample_id", "cluster_id"))
-    if (length(valid) == 0)
-        stop("No factors to group by. Metadata should contain", 
-            " at least one column other than 'file' and 'id'.")
-    
     # ramp cluster color palette
     if (by == "sample_id") {
         nk <- nlevels(cluster_ids(x, k))
