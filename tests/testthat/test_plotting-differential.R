@@ -230,9 +230,9 @@ test_that("plotAbundances()", {
 
 test_that("plotAbundances() - filtering", {
     # exclude random subset of clusters
-    k <- sample(names(codes)[-1], 1)
+    k <- sample(names(codes)[-seq_len(4)], 1)
     kids <- levels(cluster_ids(x, k))
-    ns <- sample(length(kids), 3)
+    ns <- sample(length(kids)-1, 3)
     for (ks in lapply(ns, sample, x = kids)) {
         y <- filterSCE(x, !cluster_id %in% ks, k = k)
         p <- plotAbundances(y, k, by = "sample_id")
@@ -246,7 +246,7 @@ test_that("plotAbundances() - filtering", {
         y <- filterSCE(x, !sample_id %in% ss, k = k)
         p <- plotAbundances(y, k, by = "sample_id")
         expect_is(p, "ggplot")
-        expect_identical(levels(p$data$sample_id), setdiff(sids, ss))
+        expect_true(setequal(levels(p$data$sample_id), setdiff(sids, ss)))
     }
 })
 
