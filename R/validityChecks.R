@@ -234,6 +234,34 @@
     return(TRUE)
 }
 
+.check_args_pbMDS <- function(u) {
+    if (u$by != "sample_id") {
+        .check_sce(u$x, TRUE)
+        .check_k(u$x, u$k)
+    } else .check_sce(u$x)
+    .check_pal(u$pal)
+    .check_cd_factor(u$x, u$color_by)
+    .check_cd_factor(u$x, u$label_by)
+    stopifnot(is.logical(u$size_by), length(u$size_by) == 1)
+}
+
+.check_args_clrDR <- function(u) {
+    .check_sce(u$x, TRUE)
+    .check_k(u$x, u$k)
+    .check_pal(u$point_pal)
+    .check_pal(u$arrow_pal)
+    .check_cd_factor(u$x, u$point_col)
+    .check_cd_factor(u$x, u$arrow_col)
+    .check_cd_factor(u$x, u$label_by)
+    stopifnot(
+        is.logical(u$arrows), length(u$arrows) == 1,
+        is.logical(u$size_by), length(u$size_by) == 1,
+        is.numeric(u$base), length(u$base) == 1, u$base > 1,
+        is.numeric(u$dims), length(u$dims) == 2, u$dims > 0, u$dims %% 1 == 0,
+        is.null(u$arrow_len) || is.numeric(u$arrow_len) && 
+            length(u$arrow_len) == 1 && u$arrow_len > 0)
+}
+
 #' @importFrom SummarizedExperiment colData
 .check_args_plotExprHeatmap <- function(u) {
     if (u$by[1] == "sample_id") {
