@@ -139,8 +139,11 @@ prepData <- function(x, panel = NULL, md = NULL,
     args <- as.list(environment())
     for (i in c("md_cols", "panel_cols")) {
         defs <- as.list(formals("prepData")[[i]][-1])
-        miss <- !names(defs) %in% names(args[[i]])    
-        if (any(miss)) assign(i, c(args[[i]], defs[miss])[names(defs)])
+        miss <- !names(defs) %in% names(args[[i]])  
+        if (any(miss)) {
+            fill <- lapply(defs[miss], eval)
+            assign(i, c(args[[i]], fill)[names(defs)])
+        }
     }
     
     # if unspecified, construct panel & metadata tables
@@ -210,7 +213,7 @@ prepData <- function(x, panel = NULL, md = NULL,
     
     # replace problematic characters
     as <- panel[[panel_cols$antigen]]
-    as[is.na(as)] <- panel$fcs_colname[is.na(as)]
+    as[is.na(as)] <- panel[[panel_cols$channel]][is.na(as)]
     
     # column & panel subsetting
     fs <- fs[, features]
