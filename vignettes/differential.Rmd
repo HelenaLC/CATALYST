@@ -195,7 +195,49 @@ pbMDS(sce, shape_by = "patient_id", size_by = FALSE)
 Complementary to the visualize above, we can generate an MDS plot on pseudobulks computed for each cluster-sample instance. Here, we color point by cluster (to highlight similarity between cell subpopulations), and shape them by condition (to reveal subpopulation-specific expression changes across conditions). In this example, we can see that cluster-sample instances of the same cell subpopulations group together. Meanwhile, most subpopulations exhibit a shift between instances where samples come from different treatment groups:
 
 ```{r pbMDS-2, fig.width = 5}
-pbMDS(sce, by = "both", k = "meta12", shape_by = "condition")
+pbMDS(sce, by = "both", k = "meta12", 
+    shape_by = "condition", size_by = TRUE)
+```
+
+## `clrDR`: Reduced dimension plot on CLR of proportions
+
+A  dimensionality reduction plot on centered log-ratios (CLR) of sample/cluster proportions across clusters/samples can be rendered with `clrDR`. Here, we view each sample (cluster) as a vector of cluster (sample) proportions. Complementary to `pbMDS`, such a plot will give a sense of similarities between samples/clusters in terms of their composition.
+
+**Centered log-ratio**  
+Let $s_i=s_1,...,s_S$ denote one of $S$ samples, $k_i=k_1,...,k_K$ one of $K$ clusters, and $p_k(s_i)$ be the proportion of cells of sample/cluster $s_i,k_i$ in cluster/sample $k,s$. The centered log-ratio (CLR) on cluster proportions across samples is then defined as: 
+
+$$\text{clr}_{sk} = \log p_k(s_i) - \frac{1}{K}\sum_{i=1}^K \log p_k(s_i)$$ 
+
+Analogously, the CLR on sample proportions across clusters is obtained by replacing $s$ by $k$ and $K$ by $S$.  
+Thus, each sample/cluster $s,k$ gives a vector with length $K/S$ and mean 0, and the CLRs computed across all instances can be represented as a matrix with dimensions $S \times K$ (or $K \times S$ for clusters) that we embed into a lower dimensional space.
+
+**Dimensionality reduction**  
+In principle, `clrDR` allows any dimension reduction to be applied on the CLRs, with `dims` (default `c(1, 2)`) speciying which dimensions to visualize. The default method `dr = "PCA"` will include the percentage of variance explained by each principal component (PC) in the axis labels. Noteworthily, *distances between points in the lower-dimensional space are meaningul only for linear DR methods* (PCA and MDS), and results obtained from other methods should be interpreted with caution. The output plot's aspect ratio should thus be kept as is for PCA and MDS; meanwhile, non-linear DR methods can use `aspect.ratio = 1`, rendering a squared plot. 
+
+**Interpreting loadings**  
+For `dr = "PCA"`, PC loadings will be represented as arrows that may be interpreted as follows: 0° (180°) between vectors indicates a strong positive (negative) relation between them, while vectors that are orthogonal to one another (90°) are roughly independent.  
+When a vector points towards a given quadrant, the variability in proportions for the points within this quadrant are largely driven by the corresponding variable. Here, only the relative orientation of loading vectors to each other and to the PC axes is meaningful; however, the sign of loadings (i.e., whether an arrow points left or right) can be flipped when re-computing PCs. 
+
+**Aesthetics**  
+Cell metadata variables to color points and PC loading arrows by are determined by arguments `point/arrow_col`, with `point/arrow_pal` specifiying the color palettes to use for each layer. For example, rather than coloring samples by their unique identifiers, we may choose to use their condition for coloring instead to highlight differences across groups. In addition, point sizes may be scaled by the number of cells in a given sample/cluster (when `by = "sample/cluster_id"`) via setting `size_by = TRUE`.  
+Argument `arrow_len` (default 0.5) controls the length of PC loading vectors relative to the largest absolute xy-coordinate. When specified, PC loading vectors will be re-scaled to improve their visibility: A value of 1 will stretch vectors such that the largest loading will touch on the outer most point. Importantly, while absolute arrow lengths are not interpretable, their relative length is.
+
+### Ex. 1: CLR on cluster proportions across samples
+
+We here visualize the first two PCs computed on CLRs of sample proportions across clusters: small distances between samples mean similar cluster compositions between them, while large distances are indicative of differences in cluster proportions.  
+In our example, PC 1 separates treatment groups, and the variability in clusters proportions is largely driven by a few clusters:
+
+```{r clrDR-1, fig.width = 5}
+clrDR(sce, by = "sample_id", k = "meta12")
+```
+
+### Ex. 2: CLR on sample proportions across clusters
+
+Analogous to the plot above, we visualize the first two PCs computed on CLRs of cluster proportions across samples. Here, small distances between clusters mean similar sample compositions between them, while large distances are indicative of differences in sample proportions.  
+In our example, we can observe that PC loadings of samples 1,2 and 3,4 within each condition track closely to one another (indicating similar cluster compositions, between them), and that treatment groups are again separated by PC 1. These observations are in line with those drawn from above.
+
+```{r clrDR-2, fig.width = 5}
+clrDR(sce, by = "cluster_id", arrow_col = "sample_id")
 ```
 
 ## `plotExprHeatmap`: Heatmap of aggregated marker expressions {#plotExprHeatmap}
