@@ -107,11 +107,16 @@
         length(u$zeros) == 1)
     for (i in seq_along(u$facet_by))
         .check_cd_factor(u$x, u$facet_by[i])
-    if (!is.null(u$color_by)) 
+    if (!is.null(u$color_by)) {
+        if (!is.null(codes <- cluster_codes(u$x)))
+            cd_vars <- c(cd_vars, names(codes))
         stopifnot(
             is.character(u$color_by), 
             length(u$color_by) == 1, 
             u$color_by %in% cd_vars)
+        if (u$color_by %in% names(codes))
+            .check_sce(u$x, TRUE)
+    }
 }
 
 # ==============================================================================
