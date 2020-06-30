@@ -81,6 +81,8 @@ sce2fcs <- function(x, split_by = NULL,
         cols_keep <- vapply(colData(x), function(u) 
             suppressWarnings(!all(is.na(as.numeric(as.character(u))))), 
             logical(1))
+        for (i in which(cols_keep))
+            x[[i]] <- as.numeric(x[[i]])
     } else cols_keep <- FALSE
     
     # construct 'flowFrame' identifiers
