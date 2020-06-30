@@ -39,6 +39,14 @@
 #' @param by_time logical; should samples be ordered by acquisition time? 
 #'   Ignored if \code{!is.null(md)} in which case samples will be ordered 
 #'   as they are listed in \code{md[[md_cols$file]]}. (see details)
+#' @param FACS logical; is this FACS / flow cytometry data? 
+#'   By default, \code{prepData} moves non-mass channels to 
+#'   the output SCE's \code{int_colData}; \code{FACS = TRUE} 
+#'   assures that all channels are kept as \code{assay} data.
+#'   If \code{FALSE}, \code{prepData} will try and access 
+#'   the input \code{flowFrame/Set}'s \code{"$CYT"} descriptor 
+#'   (\code{keyword(., "$CYT")}) to determine the data type; 
+#'   this may be inaccurate for some cytometer descriptors.
 #'   
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #'   
@@ -110,7 +118,7 @@ prepData <- function(x, panel = NULL, md = NULL,
     md_cols = list(
         file = "file_name", id = "sample_id", 
         factors = c("condition", "patient_id")),
-    by_time = TRUE) {
+    by_time = TRUE, FACS = FALSE) {
     
     # read in data as 'flowSet'
     fs <- .read_fs(x)
@@ -139,8 +147,11 @@ prepData <- function(x, panel = NULL, md = NULL,
     args <- as.list(environment())
     for (i in c("md_cols", "panel_cols")) {
         defs <- as.list(formals("prepData")[[i]][-1])
-        miss <- !names(defs) %in% names(args[[i]])    
-        if (any(miss)) assign(i, c(args[[i]], defs[miss])[names(defs)])
+        miss <- !names(defs) %in% names(args[[i]])  
+        if (any(miss)) {
+            fill <- lapply(defs[miss], eval)
+            assign(i, c(args[[i]], fill)[names(defs)])
+        }
     }
     
     # if unspecified, construct panel & metadata tables
@@ -210,7 +221,7 @@ prepData <- function(x, panel = NULL, md = NULL,
     
     # replace problematic characters
     as <- panel[[panel_cols$antigen]]
-    as[is.na(as)] <- panel$fcs_colname[is.na(as)]
+    as[is.na(as)] <- panel[[panel_cols$channel]][is.na(as)]
     
     # column & panel subsetting
     fs <- fs[, features]
@@ -279,7 +290,7 @@ prepData <- function(x, panel = NULL, md = NULL,
     int_metadata(sce)$description <- ds[unlist(keep)]
     
     # grep non-mass channels
-    if (length(keep$cyt) == 0 || !grepl("FACS", ds[[keep$cyt]])) {
+    if (!FACS && (length(keep$cyt) == 0 || !grepl("FACS", ds[[keep$cyt]]))) {
         is_mass <- !is.na(.get_ms_from_chs(chs0))
         foo <- DataFrame(matrix(vector(), nrow = ncol(sce)))
         icd <- DataFrame(t(es[!is_mass, , drop = FALSE]), check.names = FALSE)

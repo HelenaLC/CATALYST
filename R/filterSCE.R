@@ -42,8 +42,6 @@ filterSCE <- function(x, ..., k = NULL) {
     # construct data.frames of cell & feature metadata
     rd <- data.frame(rowData(x), check.names = FALSE)
     cd <- data.frame(colData(x), check.names = FALSE)
-    rd <- mutate_all(rd, as.character)
-    cd <- mutate_all(cd, as.character)
     rd$i <- seq_len(nrow(x))
     cd$i <- seq_len(ncol(x))
     
@@ -63,10 +61,8 @@ filterSCE <- function(x, ..., k = NULL) {
     if (inherits(cdf, "try-error")) cdf <- cd
     ri <- rdf$i; rdf <- select(rdf, -"i")
     ci <- cdf$i; cdf <- select(cdf, -"i")
-    
-    # convert to factors
-    rdf <- mutate_all(rdf, factor)
-    cdf <- mutate_all(cdf, factor)
+    rdf <- droplevels(rdf)
+    cdf <- droplevels(cdf)
     
     # update experimental design table
     md <- metadata(x)

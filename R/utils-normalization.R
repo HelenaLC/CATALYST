@@ -101,7 +101,10 @@
         geom_hline(data = bl, size = 0.4, lty = 2, show.legend = FALSE,
             aes_string(yintercept = "value", col = "variable")) +
         scale_color_manual(NULL, values = brewer.pal(9, "Set1")) +
-        labs(x = "time (s)", y = "smoothed intensity") +
+        scale_x_continuous(
+            expression("time ("*10^6~"ms)"),
+            labels = function(u) u/1e6) +
+        labs(y = "smoothed intensity") +
         theme_classic() + theme(
             legend.key.height = unit(0, "mm"),
             panel.grid.minor = element_blank(),

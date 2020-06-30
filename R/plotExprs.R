@@ -15,6 +15,8 @@
 #'   a non-numeric cell metadata column by which 
 #'   to color density curves for each sample; 
 #'   valid values are \code{names(colData(x))}.
+#' @param assay character string specifying which assay data 
+#'   to use; valid values are \code{assayNames(x)}.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -36,25 +38,29 @@
 #' @importFrom SummarizedExperiment assay colData
 #' @export
 
-plotExprs <- function(x, features = NULL, color_by = "condition") {
+plotExprs <- function(x, features = NULL, 
+    color_by = "condition", assay = "exprs") {
     # check validity of input arguments
     .check_sce(x)
+    .check_assay(x, assay)
     .check_cd_factor(x, color_by)
     
     # subset features to use
     features <- .get_features(x, features)
-    y <- assay(x, "exprs")[features, ]
+    y <- assay(x, assay)[features, ]
     
     # construct data.frame include cell metadata
     df <- data.frame(t(y), colData(x), check.names = FALSE)
+    value <- ifelse(assay == "exprs", "expression", assay)
+    
     gg_df <- melt(df, 
-        value.name = "expression",
+        value.name = value,
         variable.name = "antigen", 
         id.vars = names(colData(x)))
     
     ggplot(gg_df, fill = NULL, 
         aes_string(
-            x = "expression", y = "..ndensity..",
+            x = value, y = "..ndensity..",
             col = color_by, group = "sample_id")) + 
         facet_wrap(~ antigen, scales = "free_x") +
         geom_density() + 

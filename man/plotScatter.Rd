@@ -12,7 +12,8 @@ plotScatter(
   bins = 100,
   assay = "exprs",
   label = c("target", "channel", "both"),
-  zeros = FALSE
+  zeros = FALSE,
+  k_pal = CATALYST:::.cluster_cols
 )
 }
 \arguments{
@@ -24,9 +25,10 @@ channel names: \code{channels(x)} or non-mass
 channels stored in \code{names([int_]colData(x))}, 
 and should correspond to numeric variables.}
 
-\item{color_by}{character string specifying a 
-cell metadata column to color by; valid values are 
+\item{color_by}{character string specifying 
+a cell metadata column to color by; valid values are 
 \code{names(colData(x))}, \code{names(int_colData(x))}; 
+\code{names(cluster_codes(x))} (if \code{\link{cluster}} has been run);
 or NULL to color by density.}
 
 \item{facet_by}{character string specifying a non-numeric
@@ -44,6 +46,11 @@ Should be one of \code{assayNames(x)}.}
 antigen targets, channel names, or a concatenation of both.}
 
 \item{zeros}{logical specifying whether to include 0 values.}
+
+\item{k_pal}{character string specifying the cluster color palette; 
+ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
+If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
+be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.}
 }
 \value{
 a \code{ggplot} object.

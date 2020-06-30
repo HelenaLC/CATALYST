@@ -4,7 +4,7 @@
 \alias{plotExprs}
 \title{Expression densities}
 \usage{
-plotExprs(x, features = NULL, color_by = "condition")
+plotExprs(x, features = NULL, color_by = "condition", assay = "exprs")
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -19,6 +19,9 @@ a subset of \code{rownames(x)}; NULL to use all features.}
 a non-numeric cell metadata column by which 
 to color density curves for each sample; 
 valid values are \code{names(colData(x))}.}
+
+\item{assay}{character string specifying which assay data 
+to use; valid values are \code{assayNames(x)}.}
 }
 \value{
 a \code{\link{ggplot}} object.

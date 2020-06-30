@@ -4,7 +4,7 @@
 \alias{plotNRS}
 \title{Plot non-redundancy scores}
 \usage{
-plotNRS(x, features = NULL, color_by = "condition")
+plotNRS(x, features = NULL, color_by = "condition", assay = "exprs")
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}
@@ -17,6 +17,9 @@ a subset of \code{rownames(x)}; NULL to use all features.}
 
 \item{color_by}{character string specifying the color coding;
 valid values are \code{namescolData(x))}.}
+
+\item{assay}{character string specifying which assay data 
+to use; valid values are \code{assayNames(x)}.}
 }
 \value{
 a \code{ggplot} object.

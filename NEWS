@@ -1,3 +1,35 @@
+------------------------------------ 1.12.2 ------------------------------------
+
+PREPROCESSING
+
+o added argument 'FACS' to prepData(); dropping of non-mass channels
+  can now be ommitted explicitly via setting FACS = TRUE
+
+o allow coloring by clustering in plotScatter()
+
+DIFFERENTIAL
+
+o added new visualization clrDR() to plot low-dimensional embedding
+  of centered log-ratios (CLR) on cluster-compositions across samples
+  
+o added argument 'assay' in plotExprs(), plotNRS() 
+  to allow specification of which assay data to use
+  
+o depracated plotMedExprs() in favor of plotPbExprs() to allow flexibilty 
+  in input data and summary statistic, aggregating by cluster-sample 
+  (instead of by sample only), sizing by sample(-cluster) cell counts, 
+  and to specify whether to include (jittered) points, boxplots or both 
+  
+o but fix in plotAbundances(); plotting failed 
+  when colData()$sample_id was not of type factor or character
+  
+o changed behavior of 'group_by' in plotAbundances(); 
+  not facetting the plot was previously impossible
+  
+o added arguments 'col_clust,distance,linkage' in plotAbundances()
+  to allow sorting of samples according to hierarchical clustering
+  on cluster compositions when by = "sample_id"
+
 ------------------------------------ 1.12.1 ------------------------------------
 
 PREPROCESSING

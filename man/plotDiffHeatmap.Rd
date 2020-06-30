@@ -78,8 +78,8 @@ in \code{names(colData(x))} to include only a subset of annotations.
 indicating whether cluster (DA) or cluster-marker combinations (DS) 
 are significant, labeled with adjusted p-values, as well as logFCs.}
 
-\item{hm_pal}{character vector of colors to interpolate for the heatmap.
-Defaults to \code{\link[RColorBrewer:RColorBrewer]{brewer.pal}}'s
+\item{hm_pal}{character vector of colors 
+to interpolate for the heatmap. Defaults to \code{brewer.pal}'s 
 \code{"RdYlBu"} for DS, \code{"RdBu"} for DA results heatmaps.}
 
 \item{fdr_pal, lfc_pal}{character vector of colors to use for row annotations

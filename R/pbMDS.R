@@ -57,7 +57,8 @@
 #' 
 #' # pseudobulks by cluster-sample 
 #' # including all features
-#' pbMDS(sce, by = "both", k = "meta12", shape_by = "condition")
+#' pbMDS(sce, by = "both", k = "meta12", 
+#'   shape_by = "condition", size_by = TRUE)
 #' 
 #' @import ggplot2
 #' @importFrom ggrepel geom_label_repel
@@ -70,24 +71,20 @@ pbMDS <- function(x,
     features = NULL, assay = "exprs", fun = c("median", "mean", "sum"), 
     color_by = switch(by, sample_id = "condition", "cluster_id"),
     label_by = if (by == "sample_id") "sample_id" else NULL, 
-    shape_by = NULL, size_by = TRUE,
+    shape_by = NULL, size_by = is.null(shape_by),
     pal = if (color_by == "cluster_id") .cluster_cols else NULL) {
     
     # check validity of input arguments
     by <- match.arg(by)
     fun <- match.arg(fun)
-    if (by != "sample_id") {
-        .check_sce(x, TRUE)
-        .check_k(x, k)
+    args <- as.list(environment())
+    .check_args_pbMDS(args)
+    
+    if (by != "sample_id") 
         x$cluster_id <- cluster_ids(x, k)
-    } else .check_sce(x)
-    .check_pal(pal)
-    .check_cd_factor(x, color_by)
-    .check_cd_factor(x, label_by)
-    stopifnot(is.logical(size_by), length(size_by) == 1)
+    by <- switch(by, both = c("cluster_id", "sample_id"), by)
     
     # aggregate & run MDS
-    by <- switch(by, both = c("cluster_id", "sample_id"), by)
     x <- x[.get_features(x, features), ]
     pbs <- .agg(x, by, fun, assay)
     if (is.list(pbs))
@@ -98,7 +95,7 @@ pbMDS <- function(x,
     df <- data.frame(mds)
     colnames(df) <- c("x", "y")
     if (length(by) == 1) {
-        df[[by]] <- factor(colnames(pbs), levels(colData(x)[[by]]))
+        df[[by]] <- factor(colnames(pbs), levels(x[[by]]))
     } else {
         ns <- length(sids <- levels(x$sample_id))
         nk <- length(kids <- levels(x$cluster_id))

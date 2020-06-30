@@ -10,9 +10,10 @@
 #'   channel names: \code{channels(x)} or non-mass
 #'   channels stored in \code{names([int_]colData(x))}, 
 #'   and should correspond to numeric variables.
-#' @param color_by character string specifying a 
-#'   cell metadata column to color by; valid values are 
+#' @param color_by character string specifying 
+#'   a cell metadata column to color by; valid values are 
 #'   \code{names(colData(x))}, \code{names(int_colData(x))}; 
+#'   \code{names(cluster_codes(x))} (if \code{\link{cluster}} has been run);
 #'   or NULL to color by density.
 #' @param facet_by character string specifying a non-numeric
 #'   cell metadata column to facet by; valid values are 
@@ -25,6 +26,10 @@
 #' @param label character string specifying axis labels should include
 #'   antigen targets, channel names, or a concatenation of both.
 #' @param zeros logical specifying whether to include 0 values.
+#' @param k_pal character string specifying the cluster color palette; 
+#'   ignored when \code{color_by} is not one of \code{names(cluster_codes(x))}. 
+#'   If less than \code{nlevels(cluster_ids(x, k))} are supplied, colors will 
+#'   be interpolated via \code{\link[grDevices:colorRamp]{colorRampPalette}}.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -62,7 +67,7 @@
 plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
     bins = 100, assay = "exprs", 
     label = c("target", "channel", "both"),
-    zeros = FALSE) {
+    zeros = FALSE, k_pal = CATALYST:::.cluster_cols) {
     # check validity of input arguments
     label <- match.arg(label)
     args <- as.list(environment())
@@ -86,6 +91,8 @@ plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
     chs[i != 0] <- rownames(y) <- nms[i]
     
     # construct data.frame of specified assay data & all cell metadata
+    if (isTRUE(color_by %in% names(cluster_codes(x))))
+        x[[color_by]] <- cluster_ids(x, color_by)
     cd <- cbind(colData(x), int_colData(x))
     df <- data.frame(
         t(as.matrix(y)), cd,
@@ -93,7 +100,7 @@ plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
         stringsAsFactors = FALSE)
     cd_vars <- intersect(names(cd), names(df))
     
-    # initialize facetting & (optionally) melt data.frame 
+    # initialize faceting & (optionally) melt data.frame 
     if (length(chs) > 2) {
         df <- melt(df, id.vars = unique(c(chs[1], cd_vars)))
         facet <- "variable"
@@ -118,7 +125,9 @@ plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
             scales <- scale_color_gradientn(
                 colors = c("navy", rev(brewer.pal(11, "Spectral"))))
         } else {
-            scales <- NULL
+            if (color_by %in% names(cluster_codes(x))) {
+                scales <- scale_color_manual(values = k_pal)
+            } else scales <- NULL
             guides <- guides(col = guide_legend(
                 override.aes = list(alpha = 1, size = 3)))
         }
