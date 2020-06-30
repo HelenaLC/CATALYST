@@ -186,7 +186,7 @@ test_that("plotAggExprs()", {
     expect_is(p, "ggplot")
     expect_true(nrow(p$data) == n*nlevels(x$sample_id))
     expect_equivalent(levels(p$data$antigen), f)
-    ms <- data.frame(t(es), colData(x)) %>% 
+    ms <- data.frame(t(es), colData(x), check.names = FALSE) %>% 
         group_by(sample_id) %>% 
         summarize_at(f, median) %>% 
         select(all_of(f)) %>% as.matrix

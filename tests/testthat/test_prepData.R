@@ -57,13 +57,13 @@ test_that("prepData() - panel & md = NULL", {
     expect_is(y, "SingleCellExperiment")
     expect_identical(rev(dim(y)), dim(x))
     # data should be unchanged
-    expect_identical(t(assay(y)), x)
+    expect_equal(t(assay(y)), x, tolerance = 1e-6)
     # with transformation
     expect_error(prepData(ff, transform = "x"))
     y <- prepData(ff, by_time = FALSE,
         transform = TRUE, cofactor = (cf <- 20))
     expect_true("exprs" %in% assayNames(y))
-    expect_identical(assay(y, "exprs"), asinh(t(exprs(ff))/cf))
+    expect_equivalent(assay(y, "exprs"), asinh(t(exprs(ff))/cf))
     # construct artifical flowSet
     i <- sample(seq_len(n), 10)
     j <- seq_len(n)[-i]

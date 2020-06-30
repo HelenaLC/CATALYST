@@ -20,15 +20,15 @@ x <- prepData(ss_spill)
 test_that("compCytof() - method = 'flow'/'nnls'", {
     y <- compCytof(x, sm, method = "flow", overwrite = TRUE)
     comped <- assay(y, "counts")
-    expect_equal(unname(ref), unname(comped), tolerance = 10^-10)
+    expect_equivalent(ref, comped, tolerance = 1^-6)
     # test 'flow' method including comparison to 'flowCore' compensation
     comped_fC <- t(exprs(compensate(ss_spill, sm)))
-    expect_equivalent(ref, comped, tolerance = 10^-10)
-    expect_equivalent(ref, comped_fC, tolerance = 10^-10)
+    expect_equivalent(ref, comped, tolerance = 1^-6)
+    expect_equivalent(ref, comped_fC, tolerance = 1^-6)
     # test 'nnls' method
     y <- compCytof(x, sm, method = "nnls", overwrite = TRUE)
     comped_nnls <- assay(y, "counts")
-    expect_equivalent(ref, comped_nnls, tolerance = 10^-10)
+    expect_equivalent(ref, comped_nnls, tolerance = 1^-6)
 })
 
 test_that("compCytof() - overwrite = TRUE", {
