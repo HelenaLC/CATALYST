@@ -15,7 +15,8 @@ prepData(
     "marker_class"),
   md_cols = list(file = "file_name", id = "sample_id", factors = c("condition",
     "patient_id")),
-  by_time = TRUE
+  by_time = TRUE,
+  FACS = FALSE
 )
 }
 \arguments{
@@ -65,6 +66,15 @@ from the defaults, specifying only these is sufficient.}
 \item{by_time}{logical; should samples be ordered by acquisition time? 
 Ignored if \code{!is.null(md)} in which case samples will be ordered 
 as they are listed in \code{md[[md_cols$file]]}. (see details)}
+
+\item{FACS}{logical; is this FACS / flow cytometry data? 
+By default, \code{prepData} moves non-mass channels to 
+the output SCE's \code{int_colData}; \code{FACS = TRUE} 
+assures that all channels are kept as \code{assay} data.
+If \code{FALSE}, \code{prepData} will try and access 
+the input \code{flowFrame/Set}'s \code{"$CYT"} descriptor 
+(\code{keyword(., "$CYT")}) to determine the data type; 
+this may be inaccurate for some cytometer descriptors.}
 }
 \value{
 a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
