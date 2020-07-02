@@ -179,10 +179,10 @@ test_that("plotExprs()", {
         c(t(assay(x, "exprs")[i, ])))
 })
 
-test_that("plotAggExprs()", {
+test_that("plotPbExprs()", {
     # facet by antigen
     f <- sample(rownames(x), (n <- 6))
-    p <- plotAggExprs(x, k, f, facet = "antigen")
+    p <- plotPbExprs(x, k, f, facet = "antigen")
     expect_is(p, "ggplot")
     expect_true(nrow(p$data) == n*nlevels(x$sample_id))
     expect_equivalent(levels(p$data$antigen), f)
@@ -194,10 +194,10 @@ test_that("plotAggExprs()", {
     # facet by cluster ID
     k <- sample(names(codes), 1)
     kids <- cluster_ids(x, k)
-    p <- plotAggExprs(x, k, "state", facet = "cluster_id")
+    p <- plotPbExprs(x, k, "state", facet = "cluster_id")
     expect_is(p, "ggplot")
     expect_identical(nrow(p$data), 
-        length(state_markers(x))*nlevels(x$sample_id)*nlevels(kids))
+        length(state_markers(x))*sum(table(x$sample_id, kids) != 0))
     expect_equivalent(levels(p$data$antigen), state_markers(x))
 })
 
