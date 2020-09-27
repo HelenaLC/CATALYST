@@ -110,10 +110,7 @@ plotDR <- function(x, dr = NULL,
         
     if (!all(color_by %in% rownames(x))) {
         stopifnot(length(color_by) == 1)
-        if (color_by %in% names(colData(x))) {
-            .check_cd_factor(x, color_by)
-            kids <- NULL
-        } else {
+        if (!color_by %in% names(colData(x))) {
             .check_sce(x, TRUE)
             .check_pal(k_pal)
             .check_k(x, color_by)
@@ -121,13 +118,13 @@ plotDR <- function(x, dr = NULL,
             nk <- nlevels(kids)
             if (length(k_pal) < nk)
                 k_pal <- colorRampPalette(k_pal)(nk)
-        }
+        } else kids <- NULL
     }
     
     # construct data.frame of reduced dimensions & relevant cell metadata
     xy <- reducedDim(x, dr)[, dims]
     colnames(xy) <- c("x", "y")
-    df <- data.frame(colData(x), xy)
+    df <- data.frame(colData(x), xy, check.names = FALSE)
     if (all(color_by %in% rownames(x))) {
         es <- as.matrix(assay(x, assay))
         es <- es[color_by, , drop = FALSE]
@@ -136,12 +133,21 @@ plotDR <- function(x, dr = NULL,
         df <- melt(
             cbind(df, t(es)), 
             id.vars = colnames(df))
-        a <- switch(assay, exprs = "expression", assay)
-        a <- paste0("scaled\n"[scale], a)
-        scale <- scale_colour_gradientn(a, colors = a_pal)
+        l <- switch(assay, exprs = "expression", assay)
+        l <- paste0("scaled\n"[scale], l)
+        scale <- scale_colour_gradientn(l, colors = a_pal)
         thm <- guide <- NULL
         color_by <- "value"
         facet <- facet_wrap("variable", ncol = ncol)
+    } else if (is.numeric(df[[color_by]])) {
+        if (scale) {
+            vs <- as.matrix(df[[color_by]])
+            df[[color_by]] <- .scale_exprs(vs, 2, q)
+        }
+        l <- paste0("scaled\n"[scale], color_by)
+        scale <- scale_colour_gradientn(l, colors = a_pal)
+        color_by <- sprintf("`%s`", color_by)
+        facet <- thm <- guide <- NULL
     } else {
         facet <- NULL
         if (!is.null(kids)) {
