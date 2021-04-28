@@ -113,7 +113,8 @@ computeSpillmat <- function(x, assay = "counts",
     if (interactions == "default") {
         ex <- spill_chs <- .get_spill_chs(ms, mets)
     } else if (interactions == "all") {
-        spill_chs <- lapply(ms, function(u) setdiff(ms, c(u, NA)))
+        is <- seq_along(ms)
+        spill_chs <- lapply(is, function(i) is[-i])
         ex <- .get_spill_chs(ms, mets)
     }
     
