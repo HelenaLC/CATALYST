@@ -107,7 +107,7 @@ pbMDS <- function(x,
     if (!isTRUE(by == "cluster_id")) {
         m <- match(df$sample_id, x$sample_id)
         i <- setdiff(names(colData(x)), names(df))
-        df <- cbind(df, colData(x)[m, i])
+        df <- cbind(df, colData(x)[m, i, drop = FALSE])
     }
     
     # add instance cell counts

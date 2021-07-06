@@ -127,6 +127,12 @@ test_that("pbMDS() - by = 'both'", {
     expect_identical(levels(p$data$sample_id), setdiff(sids, ss))
     .check_nc()
 })
+test_that("pbMDS() - single factor in colData", {
+    colData(x) <- colData(x)[, seq(2)]
+    p <- pbMDS(x, by = "sample_id")
+    p <- tryCatch(print(p), error = function(e) e)
+    expect_false(inherits(p, "error"))
+})
 
 test_that("clrDR()", {
     k <- sample(names(codes)[-seq_len(11)], 1)
