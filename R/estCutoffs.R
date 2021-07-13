@@ -84,7 +84,9 @@ estCutoffs <- function(x) {
     
     # compute yields upon applying separation cutoffs
     ys <- vapply(seps, function(u) x$delta >= u, numeric(ncol(x)))
-    ys <- vapply(ids, function(id) colMeans(ys[cs[[id]], ]), numeric(n_seps))
+    ys <- vapply(ids, function(id) 
+        colMeans(ys[cs[[id]], , drop = FALSE]), 
+        numeric(n_seps))
     
     # three-parameter log-logistic function & 1st derivative
     dll <- D(ll <- quote(d/(1+exp(b*(log(seps)-log(e))))), "seps")
