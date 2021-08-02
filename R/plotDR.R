@@ -188,7 +188,7 @@ plotDR <- function(x, dr = NULL,
         return(p)
     
     if (is.null(facet)) {
-        p + facet_wrap(facet_by)
+        p + facet_wrap(facet_by, ncol = ncol)
     } else {
         if (nlevels(df$variable) == 1) {
             p + facet_wrap(facet_by, ncol = ncol) + 
