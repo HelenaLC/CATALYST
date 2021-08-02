@@ -9,6 +9,7 @@
 #'   by \code{sample_id}, \code{cluster_id} or \code{both}.
 #' @param k character string specifying which clustering to use when 
 #'   \code{by != "sample_id"}; valid values are \code{names(cluster_codes(x))}.
+#' @param dims two numeric scalars indicating which dimensions to plot.
 #' @param features character string specifying which features to include
 #'   for computation of reduced dimensions; valid values are 
 #'   \code{"type"/"state"} for \code{type/state_markers(x)} 
@@ -67,7 +68,7 @@
 #' @export
 
 pbMDS <- function(x,
-    by = c("sample_id", "cluster_id", "both"), k = "meta20",
+    by = c("sample_id", "cluster_id", "both"), k = "meta20", dims = c(1, 2),
     features = NULL, assay = "exprs", fun = c("median", "mean", "sum"), 
     color_by = switch(by, sample_id = "condition", "cluster_id"),
     label_by = if (by == "sample_id") "sample_id" else NULL, 
@@ -89,10 +90,10 @@ pbMDS <- function(x,
     pbs <- .agg(x, by, fun, assay)
     if (is.list(pbs))
         pbs <- do.call("cbind", pbs)
-    mds <- calculateMDS(pbs)
+    mds <- calculateMDS(pbs, ncomponents = max(dims))
     
     # construct data.frame for plotting
-    df <- data.frame(mds)
+    df <- data.frame(mds[, dims])
     colnames(df) <- c("x", "y")
     if (length(by) == 1) {
         df[[by]] <- factor(colnames(pbs), levels(x[[by]]))
@@ -131,7 +132,9 @@ pbMDS <- function(x,
                 override.aes = list(alpha = 1, size = 3)),
             shape = guide_legend(order = 2, override.aes = list(size = 3)),
             size = guide_legend(order = 3)) + 
-        labs(x = "MDS dim. 1", y = "MDS dim. 2") +
+        labs(
+            x = paste("MDS dim.", dims[1]), 
+            y = paste("MDS dim.", dims[2])) +
         coord_equal() + theme_linedraw() + theme(
             panel.grid.minor = element_blank(),
             legend.key.height  =  unit(0.8, "lines"))

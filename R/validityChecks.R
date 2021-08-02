@@ -247,7 +247,10 @@
     .check_pal(u$pal)
     .check_cd_factor(u$x, u$color_by)
     .check_cd_factor(u$x, u$label_by)
-    stopifnot(is.logical(u$size_by), length(u$size_by) == 1)
+    stopifnot(
+        is.numeric(u$dims), length(u$dims) == 2, 
+        identical(round(u$dims), u$dims), u$dims > 0,
+        is.logical(u$size_by), length(u$size_by) == 1)
 }
 
 .check_args_clrDR <- function(u) {

@@ -40,7 +40,7 @@ clrDR(
 \item{k}{character string specifying which clustering to use;
 valid values are \code{names(cluster_codes(x))}.}
 
-\item{dims}{length 2 numeric specifying which dimensions to plot.}
+\item{dims}{two numeric scalars indicating which dimensions to plot.}
 
 \item{base}{integer scalar specifying the logarithm base to use.}
 

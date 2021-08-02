@@ -8,6 +8,7 @@ pbMDS(
   x,
   by = c("sample_id", "cluster_id", "both"),
   k = "meta20",
+  dims = c(1, 2),
   features = NULL,
   assay = "exprs",
   fun = c("median", "mean", "sum"),
@@ -26,6 +27,8 @@ by \code{sample_id}, \code{cluster_id} or \code{both}.}
 
 \item{k}{character string specifying which clustering to use when 
 \code{by != "sample_id"}; valid values are \code{names(cluster_codes(x))}.}
+
+\item{dims}{two numeric scalars indicating which dimensions to plot.}
 
 \item{features}{character string specifying which features to include
 for computation of reduced dimensions; valid values are 
