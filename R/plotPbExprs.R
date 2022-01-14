@@ -115,7 +115,7 @@ plotPbExprs <- function(x, k = "meta20", features = "state",
     # add metadata information
     i <- match(df$sample_id, x$sample_id)
     j <- setdiff(names(colData(x)), c(names(df), "cluster_id"))
-    df <- cbind(df, colData(x)[i, j])
+    df <- cbind(df, colData(x)[i, j, drop = FALSE])
     
     # add cell counts per sample(-cluster)
     ncs <- table(as.list(colData(x)[by]))
