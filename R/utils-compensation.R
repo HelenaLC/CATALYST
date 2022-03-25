@@ -90,7 +90,7 @@
 # Helper functions to get mass and metal from a channel name
 # ------------------------------------------------------------------------------
 .get_ms_from_chs <- function(chs)
-    as.numeric(gsub("[[:punct:][:alpha:]]", "", chs))
+    as.numeric(gsub("[[:punct:][:alpha:]]|CD45", "", chs))
 
 .get_mets_from_chs <- function(chs)
     gsub("([[:punct:]]*)([[:digit:]]*)((Di)|(Dd))*", "", chs)
