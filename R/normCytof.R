@@ -9,6 +9,9 @@
 #' @param beads \code{"dvs"} (for bead masses 140, 151, 153 ,165, 175) or 
 #'   \code{"beta"} (for bead masses 139, 141, 159, 169, 175) or 
 #'   a numeric vector of masses.
+#' @param dna numeric vector of masses corresponding to DNA channels  
+#'   (only one is required; output scatter plot (see Value section)  
+#'   will be generated using the first matching channel).
 #' @param assays lnegth 2 character string specifying 
 #'   which assay data to use; both should be in \code{assayNames(x)} 
 #'   and correspond to count- and expression-like data, respectively.
@@ -55,7 +58,7 @@
 #'   bead-cell and cell-cell doublets)}
 #' } ...and \code{ggplot} objects:
 #' \itemize{
-#' \item{\code{scatter}: scatter plot of DNA vs. bead 
+#' \item{\code{scatter}: scatter plot of DNA vs. bead
 #'   intensities with indication of the applied gates}
 #' \item{\code{lines}: running-median smoothed bead 
 #'   intensities before and after normalization}
@@ -92,7 +95,9 @@
 #' @importFrom SummarizedExperiment assayNames assay assay<- rowData
 #' @export
 
-normCytof <- function(x, beads, k = 500, trim = 5, 
+normCytof <- function(x, 
+    beads = c("dvs", "beta"), 
+    dna = c(191, 193), k = 500, trim = 5, 
     remove_beads = TRUE, norm_to = NULL, 
     assays = c("counts", "exprs"),
     overwrite = TRUE, transform = TRUE, cofactor = NULL, 
@@ -102,6 +107,8 @@ normCytof <- function(x, beads, k = 500, trim = 5,
     .check_args_normCytof(args)
     if (is.null(cofactor))
         cofactor <- int_metadata(x)$cofactor
+    if (is.character(beads))
+        beads <- match.arg(beads)
 
     # get times, DNA & bead channels
     icd <- int_colData(x)
@@ -113,16 +120,17 @@ normCytof <- function(x, beads, k = 500, trim = 5,
         any(grepl("time", names(icd), ignore.case = TRUE)))
     
     ts <- icd[[grep("time", names(icd), ignore.case = TRUE)]]
-    dna_chs <- grep("Ir191|Ir193", chs, ignore.case = TRUE, value = TRUE)
-    bead_chs <- chs[.get_bead_cols(chs, beads)]
+    n_dna <- length(dna_chs <- chs[.get_dna_cols(chs, dna)])
+    n_beads <- length(bead_chs <- chs[.get_bead_cols(chs, beads)])
     rowData(x)$bead_ch <- chs %in% bead_chs
-    n_beads <- length(bead_chs)
     
     # identify bead singlets
     if (verbose) message("Identifying beads...")
     ms <- .get_ms_from_chs(chs)
     m <- match(c(dna_chs, bead_chs), chs)
-    key <- matrix(c(0, 0, rep(1, n_beads)), ncol = n_beads + 2, 
+    key <- matrix(
+        c(rep(0, n_dna), rep(1, n_beads)), 
+        nrow = 1, ncol = n_dna + n_beads, 
         dimnames = list("is_bead", ms[m]))
     key <- data.frame(key, check.names = FALSE)
     is_bead <- .get_bead_inds(x, key, assays[2])

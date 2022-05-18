@@ -16,7 +16,9 @@ prepData(
   md_cols = list(file = "file_name", id = "sample_id", factors = c("condition",
     "patient_id")),
   by_time = TRUE,
-  FACS = FALSE
+  FACS = FALSE,
+  fix_chs = c("common", "all"),
+  ...
 )
 }
 \arguments{
@@ -75,6 +77,17 @@ If \code{FALSE}, \code{prepData} will try and access
 the input \code{flowFrame/Set}'s \code{"$CYT"} descriptor 
 (\code{keyword(., "$CYT")}) to determine the data type; 
 this may be inaccurate for some cytometer descriptors.}
+
+\item{fix_chs}{specifies the strategy to use in case of panel discrepancies.
+\code{"common"} will retain only channels present in all frames/FCS files;
+\code{"all"} will retain the union of channels across samples. In the 
+latter case, a logical matrix with rows = channels and columns = samples 
+will be stored under \code{metadata} slot \code{chs_by_fcs} specifying 
+which channels were/n't (\code{FALSE/TRUE}) measured in which samples.}
+
+\item{...}{additional arguments passed to \code{\link{read.FCS}}. 
+E.g., \code{channel_alias} in case of panel discrepancies between frames/
+FCS files. By default, \code{transformation = truncate_max_range = FALSE}.}
 }
 \value{
 a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
@@ -86,7 +99,7 @@ Data preparation
 By default, non-mass channels (e.g., time, event lengths) will be removed 
 from the output SCE's assay data and instead stored in the object's internal 
 cell metadata (\code{int_colData}) to assure these data are not subject to 
-transformationsor other computations applied to the assay data.
+transformations or other computations applied to the assay data.
 
 For more than 1 sample, \code{prepData} will concatenate cells into a single 
 \code{SingleCellExperiment} object. Note that cells will hereby be order by 

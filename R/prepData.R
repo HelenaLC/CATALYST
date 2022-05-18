@@ -47,6 +47,15 @@
 #'   the input \code{flowFrame/Set}'s \code{"$CYT"} descriptor 
 #'   (\code{keyword(., "$CYT")}) to determine the data type; 
 #'   this may be inaccurate for some cytometer descriptors.
+#' @param fix_chs specifies the strategy to use in case of panel discrepancies.
+#'   \code{"common"} will retain only channels present in all frames/FCS files;
+#'   \code{"all"} will retain the union of channels across samples. In the 
+#'   latter case, a logical matrix with rows = channels and columns = samples 
+#'   will be stored under \code{metadata} slot \code{chs_by_fcs} specifying 
+#'   which channels were/n't (\code{FALSE/TRUE}) measured in which samples.
+#' @param ... additional arguments passed to \code{\link{read.FCS}}. 
+#'   E.g., \code{channel_alias} in case of panel discrepancies between frames/
+#'   FCS files. By default, \code{transformation = truncate_max_range = FALSE}.
 #'   
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #'   
@@ -56,7 +65,7 @@
 #' By default, non-mass channels (e.g., time, event lengths) will be removed 
 #' from the output SCE's assay data and instead stored in the object's internal 
 #' cell metadata (\code{int_colData}) to assure these data are not subject to 
-#' transformationsor other computations applied to the assay data.
+#' transformations or other computations applied to the assay data.
 #' 
 #' For more than 1 sample, \code{prepData} will concatenate cells into a single 
 #' \code{SingleCellExperiment} object. Note that cells will hereby be order by 
@@ -118,10 +127,13 @@ prepData <- function(x, panel = NULL, md = NULL,
     md_cols = list(
         file = "file_name", id = "sample_id", 
         factors = c("condition", "patient_id")),
-    by_time = TRUE, FACS = FALSE) {
+    by_time = TRUE, FACS = FALSE, 
+    fix_chs = c("common", "all"), ...) {
     
     # read in data as 'flowSet'
-    fs <- .read_fs(x)
+    fix_chs <- match.arg(fix_chs)
+    tmp <- .read_fs(x, fix_chs, ...)
+    fs <- tmp[[1]]; mtx <- tmp[[2]]
     
     # reorder by acquisition time if 'md' is unspecified
     if (is.null(md) && by_time && length(fs) > 1) {
@@ -131,7 +143,10 @@ prepData <- function(x, panel = NULL, md = NULL,
                 " acquisition time; ignoring argument 'by_time'.",
                 " Samples will be kept in their original order.")
         } else {
-            fs <- fs[order(ts)]
+            o <- order(ts)
+            fs <- fs[o]
+            if (!is.null(mtx))
+                mtx <- mtx[, o, drop = FALSE]
         }
     }
 
@@ -277,12 +292,17 @@ prepData <- function(x, panel = NULL, md = NULL,
         v <- as.character(rep(u, md$n_cells))
         factor(v, levels = levels(u))
     }), row.names = NULL) 
-    
+
     # construct SCE
     sce <- SingleCellExperiment(
         assays = list(counts = es), 
         rowData = rd, colData = cd,
         metadata = list(experiment_info = md))
+    
+    if (!is.null(mtx)) {
+        dimnames(mtx) <- list(chs, ids)
+        metadata(sce)$chs_by_fcs <- mtx
+    }
     
     ds <- keyword(fs[[1]])
     l <- list(cyt = "\\$CYT$", sn = "\\$CYTSN$")

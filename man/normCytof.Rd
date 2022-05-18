@@ -6,7 +6,8 @@
 \usage{
 normCytof(
   x,
-  beads,
+  beads = c("dvs", "beta"),
+  dna = c(191, 193),
   k = 500,
   trim = 5,
   remove_beads = TRUE,
@@ -25,6 +26,10 @@ normCytof(
 \item{beads}{\code{"dvs"} (for bead masses 140, 151, 153 ,165, 175) or 
 \code{"beta"} (for bead masses 139, 141, 159, 169, 175) or 
 a numeric vector of masses.}
+
+\item{dna}{numeric vector of masses corresponding to DNA channels
+(only one is required; output scatter plot (see Value section)  
+will be generated using the first matching channel).}
 
 \item{k}{integer width of the median window used 
 for bead smoothing (affects visualizations only!).}
@@ -81,7 +86,7 @@ a list of the following \code{SingleCellExperiment}...
   bead-cell and cell-cell doublets)}
 } ...and \code{ggplot} objects:
 \itemize{
-\item{\code{scatter}: scatter plot of DNA vs. bead 
+\item{\code{scatter}: scatter plot of DNA vs. bead
   intensities with indication of the applied gates}
 \item{\code{lines}: running-median smoothed bead 
   intensities before and after normalization}
