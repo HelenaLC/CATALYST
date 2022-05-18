@@ -1,17 +1,25 @@
 # ==============================================================================
+# get indices of dna columns
+# ------------------------------------------------------------------------------
+.get_dna_cols <- function(chs, dna) {
+    ms <- .get_ms_from_chs(chs)
+    n_dna <- length(dna)
+    dna_cols <- which(ms %in% dna)
+    if (length(dna_cols) != n_dna)
+        stop("Not all dna channels found.")
+    return(dna_cols)
+}
+
+# ==============================================================================
 # get indices of bead columns
 # ------------------------------------------------------------------------------
 .get_bead_cols <- function(chs, beads) {
     ms <- .get_ms_from_chs(chs)
-    if (is.character(beads)) {
-        if (isTRUE(beads == "dvs")) {
-            bead_ms <- c(140, 151, 153, 165, 175)
-        } else if (isTRUE(beads == "beta")) {
-            bead_ms <- c(139, 141, 159, 169, 175)
-        }
-    } else {
-        bead_ms <- beads
-    }
+    bead_ms <- if (is.character(beads)) {
+        switch(beads, 
+            dvs = c(140, 151, 153, 165, 175),
+            beta = c(139, 141, 159, 169, 175))
+    } else beads
     n_beads <- length(bead_ms)
     bead_cols <- which(ms %in% bead_ms)
     if (length(bead_cols) != n_beads)
