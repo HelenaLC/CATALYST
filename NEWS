@@ -1,3 +1,17 @@
+changes in version 1.20.1
+
++ added argument 'dna' in normCytof() 
+  to allow specifying custom DNA channels
+
++ prepData() now checks for & fixes panel discrepancies 
+  keeping the intersection/untion of channels
+  according to 'fix_chs = "common / all"'
+  
++ in prepData(), exposed '...' arguments 
+  to be used by flowCore::read.FCS()
+
++ added argument 'fix_chs'
+
 changes in version 1.18.1
 
 + bug fix in plotPbExprs(): added 'drop = FALSE' in "DataFrame' subsetting
