@@ -100,7 +100,7 @@ plotMahal <- function(x, which, assay = "exprs", n = 1e3) {
             chs <- sprintf("`%s`", bc_chs[c(i, j)])
             ps[[m[j, i]]] <- ggplot(df) + geom_point(size = 0.8,
                     aes_string(x = chs[1], y = chs[2], col = "d")) +
-                guides(color = FALSE) + scale_color_gradientn(
+                guides(color = "none") + scale_color_gradientn(
                     sprintf("%s: %s", which, 
                         paste(bc_key[which, ], collapse = "")),
                     colors = rev(brewer.pal(11, "RdYlBu")),

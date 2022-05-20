@@ -138,7 +138,7 @@ plotPbExprs <- function(x, k = "meta20", features = "state",
                 outlier.color = NA, show.legend = FALSE)) +
         scale_shape_manual(values = shapes) + 
         scale_size_continuous(range = c(0.5, 3)) +
-        guides(fill = FALSE, size = guide_legend(order = 3),
+        guides(fill = "none", size = guide_legend(order = 3),
             shape = guide_legend(order = 2, override.aes = list(size = 3)),
             col = guide_legend(order = 1, 
                 override.aes = list(alpha = 1, size = 3))) +

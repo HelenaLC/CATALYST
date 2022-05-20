@@ -64,7 +64,7 @@ plotSpillmat <- function(x, sm = NULL, anno = TRUE,
     colnames(df) <- c("emitting", "receiving", "spill")
     df$spillover <- paste0(sprintf("%2.3f", df$spill), "%")
     max <- ceiling(max(100 * sm[row(sm) != col(sm)]) / 0.25) * 0.25
-    total <- paste0(sprintf("%2.2f", colSums(sm) * 100 - 100, "%"))
+    total <- paste0(sprintf("%2.2f", colSums(sm) * 100 - 100), "%")
     
     labs <- chs[bc_rng]
     ex <- !labs %in% chs[bc_idx]
