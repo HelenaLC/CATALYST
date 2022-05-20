@@ -12,7 +12,6 @@ test_that("cluster() - default parameters", {
 
 test_that("cluster() - use feature-subset", {
     y <- x[(fs <- sample(rownames(x), 5)), ]
-    expect_error(cluster(y))
     rowData(y)$marker_class <- "type"
     set.seed(1); x1 <- cluster(y, maxK = 3, verbose = FALSE)
     set.seed(1); x2 <- cluster(x, maxK = 3, features = fs, verbose = FALSE)

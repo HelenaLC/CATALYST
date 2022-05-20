@@ -20,23 +20,23 @@ test_that(".read_fs() - input arguments", {
     expect_error(.read_fs(u))
 })
 test_that(".read_fs() - 'flowSet' as input", {
-    x <- .read_fs(fs)
+    x <- .read_fs(fs)[[1]]
     expect_identical(x, fs)
 })
 test_that(".read_fs() - 'flowFrame's as input", {
     ffs <- list(fs[[1]], fs[[2]])
-    x <- .read_fs(ffs)
+    x <- .read_fs(ffs)[[1]]
     expect_equal(x, flowSet(ffs))
 })
 test_that(".read_fs() - FCS files as input", {
     fcs <- system.file("extdata", package = "flowCore")
     fcs <- file.path(fcs, dir(fcs))[seq_len(3)]
-    x <- .read_fs(fcs)
-    y <- read.flowSet(fcs, 
+    x <- .read_fs(fcs)[[1]]
+    y <- lapply(fcs, read.FCS,
         transformation = FALSE,
         truncate_max_range = FALSE)
     expect_is(x, "flowSet")
-    expect_equal(x, y)
+    expect_equal(x, flowSet(y))
 })
 
 # ------------------------------------------------------------------------------
