@@ -134,7 +134,7 @@ prepData <- function(x, panel = NULL, md = NULL,
     fix_chs <- match.arg(fix_chs)
     tmp <- .read_fs(x, fix_chs, ...)
     fs <- tmp[[1]]; mtx <- tmp[[2]]
-    
+
     # reorder by acquisition time if 'md' is unspecified
     if (is.null(md) && by_time && length(fs) > 1) {
         ts <- keyword(fs, "$BTIM")
@@ -285,7 +285,7 @@ prepData <- function(x, panel = NULL, md = NULL,
         marker_name = chs, marker_class = mcs)
     m <- match(chs0, panel[[panel_cols$channel]], nomatch = 0)
     rd$use_channel <- panel$use_channel
-
+    
     md$n_cells <- as.numeric(fsApply(fs, nrow))
     k <- setdiff(names(md), "n_cells")
     cd <- DataFrame(lapply(md[k], function(u) {
@@ -299,10 +299,10 @@ prepData <- function(x, panel = NULL, md = NULL,
         rowData = rd, colData = cd,
         metadata = list(experiment_info = md))
     
-    if (!is.null(mtx)) {
-        dimnames(mtx) <- list(chs, ids)
-        metadata(sce)$chs_by_fcs <- mtx
-    }
+    if (is.null(mtx)) 
+        mtx <- matrix(TRUE, length(chs), length(fs))
+    dimnames(mtx) <- list(chs, ids)
+    metadata(sce)$chs_by_fcs <- mtx
     
     ds <- keyword(fs[[1]])
     l <- list(cyt = "\\$CYT$", sn = "\\$CYTSN$")
