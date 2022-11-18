@@ -83,7 +83,7 @@
     if (any(!valid)) 
         stop("\nThe supplied spillover matrix seems to be invalid.\n",
             "All isotopes should appear in `", deparse(substitute(l)), "`.")
-    sm[, colSums(sm) != 0]
+    return(sm)
 }
 
 # ==============================================================================
