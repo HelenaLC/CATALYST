@@ -7,3 +7,4 @@ vignettes/*.html
 vignettes/*/
 *.pdf
 */**/.pdf
+logo/
