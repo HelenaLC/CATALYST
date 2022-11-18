@@ -104,12 +104,11 @@
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom SummarizedExperiment colData
-#' @importFrom scater calculatePCA calculateMDS
-#'   calculateUMAP calculateTSNE calculateDiffusionMap
+#' @importFrom scater calculatePCA calculateMDS calculateUMAP calculateTSNE
 #' @export
 
 clrDR <- function(x,
-    dr = c("PCA", "MDS", "UMAP", "TSNE", "DiffusionMap"),
+    dr = c("PCA", "MDS", "UMAP", "TSNE"),
     by = c("sample_id", "cluster_id"), k = "meta20",
     dims = c(1, 2), base = 2, arrows = TRUE,
     point_col = switch(by, sample_id = "condition", "cluster_id"),

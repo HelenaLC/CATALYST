@@ -6,7 +6,7 @@
 \usage{
 runDR(
   x,
-  dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"),
+  dr = c("UMAP", "TSNE", "PCA", "MDS"),
   cells = NULL,
   features = "type",
   assay = "exprs",
@@ -32,9 +32,8 @@ for dimension reduction; valid values are \code{assayNames(x)}.}
 
 \item{...}{optional arguments for dimension reduction; passed to 
 \code{\link[scater]{runUMAP}}, \code{\link[scater]{runTSNE}}, 
-\code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}}
-and \code{\link[scater]{runDiffusionMap}}, respecttively.
-See \code{?"scater-red-dim-args"} for details.}
+\code{\link[scater]{runPCA}}, and \code{\link[scater]{runMDS}},
+respecttively. See \code{?"scater-red-dim-args"} for details.}
 }
 \value{
 a \code{ggplot} object.

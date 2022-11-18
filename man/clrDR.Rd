@@ -6,7 +6,7 @@
 \usage{
 clrDR(
   x,
-  dr = c("PCA", "MDS", "UMAP", "TSNE", "DiffusionMap"),
+  dr = c("PCA", "MDS", "UMAP", "TSNE"),
   by = c("sample_id", "cluster_id"),
   k = "meta20",
   dims = c(1, 2),

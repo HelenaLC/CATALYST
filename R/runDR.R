@@ -17,9 +17,8 @@
 #'   for dimension reduction; valid values are \code{assayNames(x)}.
 #' @param ... optional arguments for dimension reduction; passed to 
 #'   \code{\link[scater]{runUMAP}}, \code{\link[scater]{runTSNE}}, 
-#'   \code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}}
-#'   and \code{\link[scater]{runDiffusionMap}}, respecttively.
-#'   See \code{?"scater-red-dim-args"} for details.
+#'   \code{\link[scater]{runPCA}}, and \code{\link[scater]{runMDS}},
+#'   respecttively. See \code{?"scater-red-dim-args"} for details.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -39,13 +38,13 @@
 #' # run UMAP on <= 200 cells per sample
 #' sce <- runDR(sce, features = type_markers(sce), cells = 100)
 #' 
-#' @importFrom scater runUMAP runTSNE runPCA runMDS runDiffusionMap
+#' @importFrom scater runUMAP runTSNE runPCA runMDS
 #' @importFrom SingleCellExperiment reducedDim reducedDim<-
 #' @importFrom SummarizedExperiment assayNames
 #' @export
 
 runDR <- function(x, 
-    dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"), 
+    dr = c("UMAP", "TSNE", "PCA", "MDS"), 
     cells = NULL, features = "type", assay = "exprs", ...) {
     
     # check validity of input arguments
