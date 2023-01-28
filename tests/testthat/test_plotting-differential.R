@@ -2,11 +2,12 @@ suppressPackageStartupMessages({
     library(dplyr)
     library(SingleCellExperiment)
 })
+set.seed(3004)
 data(PBMC_fs, PBMC_panel, PBMC_md)
 x0 <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-x <- cluster(x0, verbose = FALSE)
-codes <- cluster_codes(x)
+x <- cluster(x0, seed = 3004, verbose = FALSE)
 es <- assay(x, "exprs")
+codes <- cluster_codes(x)
 
 test_that("plotCounts() - prop = FALSE", {
     p <- plotCounts(x0, 

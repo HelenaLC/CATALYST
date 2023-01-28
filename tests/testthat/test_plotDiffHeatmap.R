@@ -4,20 +4,25 @@ suppressPackageStartupMessages({
     library(SummarizedExperiment)
 })
 
+set.seed(3004)
 data(PBMC_fs, PBMC_panel, PBMC_md)
 x <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-x <- cluster(x, verbose = FALSE)
+x <- cluster(x, seed = 3004, verbose = FALSE)
+
+k <- "meta20"
 es <- assay(x, "exprs")
-kids <- cluster_ids(x, (k <- "meta20"))
+kids <- cluster_ids(x, k)
 
 design <- createDesignMatrix(PBMC_md, cols_design = 3:4)
 contrast <- createContrast(c(0, 1, 0, 0, 0))
 
-da <- diffcyt(x, clustering_to_use = k, design = design, contrast = contrast,
-    analysis_type = "DA", method_DA = "diffcyt-DA-edgeR", verbose = FALSE)
+da <- diffcyt(x,
+    analysis_type = "DA", method_DA = "diffcyt-DA-edgeR", verbose = FALSE,
+    min_cells = 0, clustering_to_use = k, design = design, contrast = contrast)
 
-ds <- diffcyt(x, clustering_to_use = k, design = design, contrast = contrast,
-    analysis_type = "DS", method_DS = "diffcyt-DS-limma", verbose = FALSE)
+ds <- diffcyt(x,
+    analysis_type = "DS", method_DS = "diffcyt-DS-limma", verbose = FALSE,
+    min_cells = 5, clustering_to_use = k, design = design, contrast = contrast)
 
 da <- rowData(da$res)
 ds <- rowData(ds$res)
@@ -36,7 +41,7 @@ test_that("plotDiffHeatmap() - DA", {
 })
 
 test_that("plotDiffHeatmap() - DS", {
-    p <- plotDiffHeatmap(x, ds, top_n = (n <- 10), 
+    p <- plotDiffHeatmap(x, ds, top_n = (n <- 5), 
         sort_by = "padj", lfc = 0, normalize = FALSE)
     expect_is(p, "Heatmap")
     df <- mutate_if(data.frame(ds), is.factor, as.character)
