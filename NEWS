@@ -1,3 +1,8 @@
+changes in version 1.23.1
+
++ updated 'ggplot2' syntax according to depracation
++ fixed unit testing via 'set.seed' to avoid edge cases
+
 changes in version 1.20.1
 
 + added argument 'dna' in normCytof() 
