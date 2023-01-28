@@ -66,19 +66,8 @@ filterSCE <- function(x, ..., k = NULL) {
     
     # update experimental design table
     md <- metadata(x)
-    if (nrow(cdf) != ncol(x) && !is.null(ei <- ei(x))) {
-        cols <- intersect(colnames(cdf), colnames(ei))
-        keep <- vapply(cols, function(u) 
-            ei[, u] %in% levels(cdf[, u]), 
-            logical(nrow(ei)))
-        ei <- ei[apply(keep, 1, all), ]
-        ei <- mutate_if(ei, is.factor, droplevels)
-        rownames(ei) <- NULL
-        n_cells <- table(cdf$sample_id)
-        m <- match(ei$sample_id, levels(cdf$sample_id))
-        ei$n_cells <- as.numeric(n_cells[m])
-        md$experiment_info <- droplevels(ei)
-    }
+    ei <- .get_ei(cdf)
+    md$experiment_info <- ei
     
     # revert colData(x)$cluster_id to 100 SOM clusters
     if (!is.null(cluster_codes(x)))

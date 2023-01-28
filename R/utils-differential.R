@@ -83,6 +83,32 @@
 }
 
 # ==============================================================================
+# retrieve experimental design table from current object
+# ------------------------------------------------------------------------------
+#' @importFrom methods is
+#' @importFrom SummarizedExperiment colData
+.get_ei <- function(x) {
+    if (is(x, "SingleCellExperiment")) 
+        x <- colData(x)
+    # get sample identifiers
+    ids <- levels(droplevels(factor(x$sample_id)))
+    # get uniquely mappable metadata
+    j <- names(x)
+    keep <- vapply(j, \(.) 
+        !is.numeric(x[[.]]), 
+        logical(1))
+    j <- j[keep]
+    keep <- vapply(j, \(.) {
+        ns <- table(x$sample_id, x[[.]])
+        all(rowSums(ns != 0) == 1)
+    }, logical(1))
+    j <- j[keep]
+    i <- match(ids, x$sample_id)
+    ncs <- table(x$sample_id)
+    data.frame(x[i, j], n_cells=as.integer(ncs))
+}
+
+# ==============================================================================
 # wrapper for ComplexHeatmap annotations
 # ------------------------------------------------------------------------------
 #' @importFrom ComplexHeatmap rowAnnotation
@@ -219,7 +245,7 @@
         ylab("Relative change\nin area under CDF curve") +
         theme(plot.title=element_text(face="bold"),
             axis.text=element_text(color="black"),
-            panel.grid.major=element_line(color="grey", size=.2))
+            panel.grid.major=element_line(color="grey", linewidth=.2))
 }
 
 # ==============================================================================

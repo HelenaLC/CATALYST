@@ -297,7 +297,7 @@ prepData <- function(x, panel = NULL, md = NULL,
     sce <- SingleCellExperiment(
         assays = list(counts = es), 
         rowData = rd, colData = cd,
-        metadata = list(experiment_info = md))
+        metadata = list(experiment_info = .get_ei(cd)))
     
     if (is.null(mtx)) 
         mtx <- matrix(TRUE, length(chs), length(fs))

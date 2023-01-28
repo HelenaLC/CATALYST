@@ -69,7 +69,7 @@
         scale_y_continuous(expand = c(0, 0), 
             breaks = seq(0, maxs[2], 2), limits = c(-0.5, maxs[2])) +
         geom_rect(data = gate, inherit.aes = FALSE, 
-            col = "blue", fill = NA, size = 0.4,
+            col = "blue", fill = NA, linewidth = 0.4,
             aes_string(
                 xmin = "xmin", xmax = "xmax", 
                 ymin = "ymin", ymax = "ymax")) + 
@@ -105,7 +105,7 @@
     bl$id <- factor(bl$id, levels = names(l))
     df$id <- factor(df$id, levels = names(l))
     ggplot(df, aes_string("t", "value", col = "variable")) +
-        facet_wrap("id", ncol = 1) + geom_line(size = 0.8) + 
+        facet_wrap("id", ncol = 1) + geom_line(linewidth = 0.8) + 
         geom_hline(data = bl, size = 0.4, lty = 2, show.legend = FALSE,
             aes_string(yintercept = "value", col = "variable")) +
         scale_color_manual(NULL, values = brewer.pal(9, "Set1")) +

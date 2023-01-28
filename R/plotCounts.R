@@ -97,7 +97,7 @@ plotCounts <- function(x,
         theme_minimal() + theme(
             panel.grid.minor = element_blank(), 
             panel.grid.major.x = element_blank(),
-            panel.grid.major.y = element_line(color = "grey", size = 0.2), 
+            panel.grid.major.y = element_line(color = "grey", linewidth = 0.2), 
             axis.text = element_text(color = "black"),
             axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 }

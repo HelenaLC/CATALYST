@@ -82,7 +82,7 @@ NULL
 #' @rdname SCE-accessors
 #' @importFrom S4Vectors metadata
 setMethod("ei", "SingleCellExperiment",
-    function(x) metadata(x)$experiment_info)
+    function(x) .get_ei(x))
 
 #' @rdname SCE-accessors
 #' @importFrom stats setNames
