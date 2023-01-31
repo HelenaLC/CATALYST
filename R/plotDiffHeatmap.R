@@ -63,13 +63,14 @@
 #' # construct SCE & run clustering
 #' data(PBMC_fs, PBMC_panel, PBMC_md)
 #' sce <- prepData(PBMC_fs, PBMC_panel, PBMC_md)
-#' sce <- cluster(sce)
+#' sce <- cluster(sce, verbose = FALSE)
 #' 
 #' ## differential analysis
 #' library(diffcyt)
 #' 
 #' # create design & constrast matrix
-#' design <- createDesignMatrix(PBMC_md, cols_design=3:4)
+#' ei <- metadata(sce)$experiment_info
+#' design <- createDesignMatrix(ei, cols_design=2:3)
 #' contrast <- createContrast(c(0, 1, 0, 0, 0))
 #' 
 #' # test for
@@ -78,11 +79,11 @@
 #' 
 #' da <- diffcyt(sce, design = design, contrast = contrast, 
 #'     analysis_type = "DA", method_DA = "diffcyt-DA-edgeR",
-#'     clustering_to_use = "meta20")
+#'     clustering_to_use = "meta20", verbose = FALSE)
 #'     
 #' ds <- diffcyt(sce, design = design, contrast = contrast, 
 #'     analysis_type = "DS", method_DS = "diffcyt-DS-limma",
-#'     clustering_to_use = "meta20")
+#'     clustering_to_use = "meta20", verbose = FALSE)
 #'     
 #' # extract result tables
 #' da <- rowData(da$res)
