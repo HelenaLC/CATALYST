@@ -494,7 +494,7 @@ plot_grid(
 Please refer to the `r BiocStyle::Biocpkg("diffcyt")` [vignette](https://bioconductor.org/packages/3.7/bioc/vignettes/diffcyt/inst/doc/diffcyt_workflow.html) and R documentation (`??diffcyt`) for more detailed information.
 
 ```{r diffcyt, message = FALSE, warning = FALSE, fig.show = "hide"}
-# create design & constrast matrix
+# create design & contrast matrix
 design <- createDesignMatrix(ei(sce), cols_design = "condition")
 contrast <- createContrast(c(0, 1))
 
@@ -523,7 +523,7 @@ For differential abundance (DA) tests, `plotDiffHeatmap` will display relative c
 The results to retain for visualization can be filtered via 
 
 - `fdr`: threshold on adjusted p-values *below* which to keep a result
-- `lfc`: thershold on absolute logFCs *above* which to keep a result
+- `lfc`: threshold on absolute logFCs *above* which to keep a result
 
 The number of top findings to display can be specified with `top_n` (default 20). When `all = TRUE`, significance and logFC filtering will be skipped, and all `top_n` results are shown.
 
@@ -587,7 +587,7 @@ Conversion from SCE to `flowFrame`s/`flowSet`, which in turn can be writting to 
 
 `sce2fcs` allows specification of a `colData` column to split the SCE by (argument `split_by`), e.g., to split the data by cluster; whether to keep or drop any cell metadata (argument `keep_cd`) and dimension reductions (argument `keep_dr`) available within the object; and which assay data to use (argument `assay`)[^5]: 
 
-[^5]: Only count-like data should be written to FCS files and is guaranteed to show with approporiate scale in Cytobank!
+[^5]: Only count-like data should be written to FCS files and is guaranteed to show with appropriate scale in Cytobank!
 
 ```{r sce2fcs-split, message = FALSE}
 # store final clustering in cell metadata
@@ -601,7 +601,7 @@ all(c(fsApply(fs, nrow)) == table(sce$mm))
 (ids <- c(fsApply(fs, identifier)))
 ```
 
-Having converted out SCE to a `flowSet`, we can write out each of its `flowFrame`s to an FCS file with a meaningul filename that retains the cluster of origin:
+Having converted out SCE to a `flowSet`, we can write out each of its `flowFrame`s to an FCS file with a meaningful filename that retains the cluster of origin:
 
 ```{r sce2fcs-write, eval = FALSE}
 for (id in ids) {
