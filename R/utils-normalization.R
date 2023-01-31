@@ -106,7 +106,7 @@
     df$id <- factor(df$id, levels = names(l))
     ggplot(df, aes_string("t", "value", col = "variable")) +
         facet_wrap("id", ncol = 1) + geom_line(linewidth = 0.8) + 
-        geom_hline(data = bl, size = 0.4, lty = 2, show.legend = FALSE,
+        geom_hline(data = bl, linewidth = 0.4, lty = 2, show.legend = FALSE,
             aes_string(yintercept = "value", col = "variable")) +
         scale_color_manual(NULL, values = brewer.pal(9, "Set1")) +
         scale_x_continuous(

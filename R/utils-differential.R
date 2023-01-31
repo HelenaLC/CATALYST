@@ -93,7 +93,7 @@
     # get sample identifiers
     ids <- levels(droplevels(factor(x$sample_id)))
     # get uniquely mappable metadata
-    j <- names(x)
+    j <- setdiff(names(x), "cluster_id")
     keep <- vapply(j, \(.) 
         !is.numeric(x[[.]]), 
         logical(1))
@@ -105,7 +105,9 @@
     j <- j[keep]
     i <- match(ids, x$sample_id)
     ncs <- table(x$sample_id)
-    data.frame(x[i, j], n_cells=as.integer(ncs))
+    data.frame(x[i, j], 
+        row.names=NULL,
+        n_cells=as.integer(ncs))
 }
 
 # ==============================================================================

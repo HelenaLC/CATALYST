@@ -91,5 +91,5 @@ plotNRS <- function(x, features = NULL,
             legend.key.height  =  unit(0.8, "lines"),
             axis.text = element_text(color = "black"),
             axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
-            panel.grid.major = element_line(color = "grey", size = 0.2))
+            panel.grid.major = element_line(color = "grey", linewidth = 0.2))
 }
