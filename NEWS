@@ -1,3 +1,8 @@
+changes in version 1.23.2
+
++ fixed typos in vignette & documentation
++ fixed bug in 'plotDiffHeatmap' examples & differential vignette
+
 changes in version 1.23.1
 
 + updated 'ggplot2' syntax according to depracation
