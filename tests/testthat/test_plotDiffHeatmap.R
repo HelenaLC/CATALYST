@@ -13,16 +13,17 @@ k <- "meta20"
 es <- assay(x, "exprs")
 kids <- cluster_ids(x, k)
 
-design <- createDesignMatrix(PBMC_md, cols_design = 3:4)
+ei <- metadata(x)$experiment_info
+design <- createDesignMatrix(ei, cols_design = 2:3)
 contrast <- createContrast(c(0, 1, 0, 0, 0))
 
 da <- diffcyt(x,
     analysis_type = "DA", method_DA = "diffcyt-DA-edgeR", verbose = FALSE,
-    min_cells = 0, clustering_to_use = k, design = design, contrast = contrast)
+    clustering_to_use = k, design = design, contrast = contrast)
 
 ds <- diffcyt(x,
     analysis_type = "DS", method_DS = "diffcyt-DS-limma", verbose = FALSE,
-    min_cells = 5, clustering_to_use = k, design = design, contrast = contrast)
+    clustering_to_use = k, design = design, contrast = contrast)
 
 da <- rowData(da$res)
 ds <- rowData(ds$res)
