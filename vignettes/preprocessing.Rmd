@@ -497,7 +497,7 @@ sce <- sce[, sce$bc_id != 0]
 all(c(fsApply(fs, nrow)) == table(sce$bc_id))
 ```
 
-Having converted out SCE to a `flowSet`, we can write out each of its `flowFrame`s to an FCS file with a meaningul filename that retains the sample of origin:
+Having converted out SCE to a `flowSet`, we can write out each of its `flowFrame`s to an FCS file with a meaningful filename that retains the sample of origin:
 
 ```{r sce2fcs-write, eval = FALSE}
 # get sample identifiers
