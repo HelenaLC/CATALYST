@@ -4,7 +4,7 @@ on:
     branches:
       - master
   schedule:
-    - cron: '0 8 * * 5'
+    - cron: '0 9 * * 5'
 
 name: R-CMD-check
 
@@ -19,22 +19,18 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        #- { os: ubuntu-latest, r: 'devel', bioc: 'devel', cont: "bioconductor/bioconductor_docker:devel", rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
+        - { os: windows-latest, bioc: 'devel'}
+        - { os: macOS-latest, bioc: 'devel', curlConfigPath: '/usr/bin/'}
         - { os: ubuntu-latest, bioc: 'devel'}
-        - { os: windows-latest, r: 'devel', bioc: 'devel'}
-        - { os: macOS-latest, r: 'devel', bioc: 'devel'}
-        #- { os: ubuntu-latest, r: '4.2', bioc: '3.16', cont: "bioconductor/bioconductor_docker:RELEASE_3_16", rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
-        #- { os: windows-latest, r: '4.2', bioc: '3.16'}
-        #- { os: macOS-latest, r: '4.2', bioc: '3.16'}
-        #- { os: ubuntu-latest, r: '4.2', bioc: 'devel', cont: "bioconductor/bioconductor_docker:devel", rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest" }
-        #- { os: windows-latest, r: '4.2', bioc: 'devel'}
-        #- { os: macOS-latest, r: '4.2', bioc: 'devel'}
+#        - { os: ubuntu-latest, bioc: 'devel', cran: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
+        - { os: ubuntu-latest, image: 'bioconductor/bioconductor_docker:devel'}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       CRAN: ${{ matrix.config.cran }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      CURL_CONFIG: ${{ matrix.config.curlConfigPath }}curl-config
 
     steps:
       - name: Check out repo
@@ -50,28 +46,13 @@ jobs:
         uses: r-lib/actions/setup-pandoc@v2
         if: matrix.config.image == null
 
-      - name: Install windows dependencies
-        if: runner.os == 'Windows'
-        run: choco install curl
-          
+      - name: Set bitmapType
+        if: runner.os == 'macOS'
+        run: echo 'options(bitmapType = "cairo")' >> $HOME/.Rprofile
+        
       - name: Install remotes
         run: |
           install.packages('remotes')
-          install.packages('RCurl')
-        shell: Rscript {0}
-        
-      - name: Install rmarkdown
-        run: |
-          install.packages('rmarkdown')
-          install.packages('BiocManager')
-          BiocManager::install("BiocStyle")
-        shell: Rscript {0}
-        
-      - name: Set BiocManager version
-        if: matrix.config.image == null
-        run: |
-          install.packages('BiocManager')
-          BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE)
         shell: Rscript {0}
 
       - name: Query dependencies
@@ -84,10 +65,10 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-r-${{ matrix.config.r }}-bioc-${{ matrix.config.bioc }}-${{ hashFiles('depends.Rds') }}
-          restore-keys: ${{ runner.os }}-r-${{ matrix.config.r }}-bioc-${{ matrix.config.bioc }}-
+          key: ${{ runner.os }}-bioc-${{ matrix.config.bioc }}-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-bioc-${{ matrix.config.bioc }}-
 
-      - name: Install system dependencies
+      - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         env:
           RHUB_PLATFORM: linux-x86_64-ubuntu-gcc
@@ -95,15 +76,18 @@ jobs:
           Rscript -e "remotes::install_github('r-hub/sysreqs')"
           sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
           sudo -s eval "$sysreqs"
-          sudo apt-get update && sudo apt-get -y install libcurl4-openssl-dev
-          sudo apt-get update && sudo apt-get -y install libmagick++-dev
+          sudo apt-get update && sudo apt-get -y install libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install harfbuzz
+          brew install fribidi
       - name: Install dependencies
         run: |
           local_deps <- remotes::local_package_deps(dependencies = TRUE)
           deps <- remotes::dev_package_deps(dependencies = TRUE, repos = BiocManager::repositories())
           BiocManager::install(local_deps[local_deps %in% deps$package[deps$diff != 0]], Ncpu = 2L)
           remotes::install_cran('rcmdcheck', Ncpu = 2L)
-          BiocManager::install(c("magick","DelayedMatrixStats"))
         shell: Rscript {0}
 
       - name: Session info
@@ -113,15 +97,14 @@ jobs:
           sessioninfo::session_info(pkgs, include_base = TRUE)
         shell: Rscript {0}
 
-      - name: Check
-        run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning", check_dir = "check")
-        shell: Rscript {0}
+      - name: Build, Install, Check
+        uses: grimbough/bioc-actions/build-install-check@v1
 
-      - name: BiocCheck
-        run: |
-          BiocManager::install("BiocCheck")
-          BiocCheck::BiocCheck(".")
-        shell: Rscript {0}
+      - name: Run BiocCheck
+        uses: grimbough/bioc-actions/run-BiocCheck@v1
+        with:
+          arguments: '--no-check-bioc-views --no-check-bioc-help'
+          error-on: 'error'
 
       - name: Show testthat output
         if: always()
@@ -132,5 +115,18 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@master
         with:
-          name: ${{ runner.os }}-r${{ matrix.config.r }}-bioc-${{ matrix.config.bioc }}-results
+          name: ${{ runner.os }}-bioc-${{ matrix.config.bioc }}-results
           path: check
+
+      - name: Test coverage
+        if: matrix.config.os == 'macOS-latest'
+        run: |
+          install.packages("covr")
+          covr::codecov(token = "${{secrets.CODECOV_TOKEN}}")
+        shell: Rscript {0}
+
+      - name: Deploy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.config.os == 'macOS-latest'
+        run: |
+          R CMD INSTALL .
+          Rscript -e "remotes::install_dev('pkgdown'); pkgdown::deploy_to_branch(new_process = FALSE)"
