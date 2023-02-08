@@ -61,7 +61,7 @@ plotClusterExprs <- function(x,
         id.vars = names(cd),
         variable.name = "antigen", 
         value.name = "expression")
-    # add average across all clusters as referebce
+    # add average across all clusters as reference
     df$avg <- "no"
     avg <- df
     avg$cluster_id <- "avg"
