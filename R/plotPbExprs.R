@@ -149,7 +149,7 @@ plotPbExprs <- function(x, k = "meta20", features = "state",
             strip.text = element_text(face = "bold"),
             strip.background = element_rect(fill = NA, color = NA),
             panel.grid.minor = element_blank(),
-            panel.grid.major = element_line(color = "grey", size = 0.2)) +
+            panel.grid.major = element_line(color = "grey", linewidth = 0.2)) +
         if (length(unique(c(x_var, color_by, group_by))) == 1) {
             theme(
                 axis.text.x = element_blank(),

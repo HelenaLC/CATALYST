@@ -142,7 +142,7 @@ plotYields <- function(x, which = 0,
             p <- ggplot(df, aes_string(x = "cutoff")) +
                 geom_bar(aes_string(y = "count"), 
                     stat = "identity", orientation = "x",
-                    size = 0.2, col = "white", fill = "darkgrey") + 
+                    linewidth = 0.2, col = "white", fill = "darkgrey") + 
                 geom_line(aes_string(y = "yield"), col = "red") + 
                 ggtitle(labs[id]) + thm(max) 
             if (!is.null(cuts[id])) {

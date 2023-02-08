@@ -74,7 +74,7 @@ plotCodes <- function(x, k = "meta20",
             aspect.ratio = 1, 
             legend.position = "top",
             panel.grid.minor = element_blank(),
-            panel.grid.major = element_line(color = "grey", size = 0.2), 
+            panel.grid.major = element_line(color = "grey", linewidth = 0.2), 
             axis.text=element_text(color = "black"))
 
     ps <- list(

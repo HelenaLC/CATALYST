@@ -237,7 +237,7 @@ clrDR <- function(x,
                 arrow_pal <- colorRampPalette(arrow_pal)(na)
             p <- p + geom_segment(
                 data = rot, inherit.aes = FALSE,
-                size = 0.5, arrow = arrow(length = unit(1, "mm")),
+                linewidth = 0.5, arrow = arrow(length = unit(1, "mm")),
                 aes_string(0, 0, xend = "x", yend = "y", col = arrow_col)) +
                 scale_color_manual(values = arrow_pal) +
                 guides(col = guide_legend(
