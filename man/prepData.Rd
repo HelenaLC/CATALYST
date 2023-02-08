@@ -11,8 +11,7 @@ prepData(
   features = NULL,
   transform = TRUE,
   cofactor = 5,
-  panel_cols = list(channel = "fcs_colname", antigen = "antigen", class =
-    "marker_class"),
+  panel_cols = list(channel = "fcs_colname", antigen = "antigen", class = "marker_class"),
   md_cols = list(file = "file_name", id = "sample_id", factors = c("condition",
     "patient_id")),
   by_time = TRUE,
