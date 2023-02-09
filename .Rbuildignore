@@ -1,4 +1,3 @@
+^\.git$
 ^\.github$
-^.*\.Rproj$
-^\.Rproj\.user$
-^\.travis\.yml$
+^\.gitignore$
