@@ -80,8 +80,8 @@ plotCodes <- function(x, k = "meta20",
     ps <- list(
         p + geom_point(aes_string("tsne1", "tsne2")) + 
             labs(x = "t-SNE dim. 1", y = "t-SNE dim. 2") +
-            scale_color_manual(values = k_pal, guide = FALSE) +
-            scale_size(guide = FALSE)
+            scale_color_manual(values = k_pal, guide = "none") +
+            scale_size(guide = "none")
         ,
         p + geom_point(aes_string("pc1", "pc2")) +
             labs(x = "1st PC", y = "2nd PC") +

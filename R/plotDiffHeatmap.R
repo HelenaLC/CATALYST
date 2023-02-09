@@ -69,8 +69,7 @@
 #' library(diffcyt)
 #' 
 #' # create design & constrast matrix
-#' ei <- metadata(sce)$experiment_info
-#' design <- createDesignMatrix(ei, cols_design=2:3)
+#' design <- createDesignMatrix(ei(sce), cols_design=2:3)
 #' contrast <- createContrast(c(0, 1, 0, 0, 0))
 #' 
 #' # test for

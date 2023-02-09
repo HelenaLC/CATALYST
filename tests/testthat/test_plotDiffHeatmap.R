@@ -13,8 +13,7 @@ k <- "meta20"
 es <- assay(x, "exprs")
 kids <- cluster_ids(x, k)
 
-ei <- metadata(x)$experiment_info
-design <- createDesignMatrix(ei, cols_design = 2:3)
+design <- createDesignMatrix(ei(sce), cols_design = 2:3)
 contrast <- createContrast(c(0, 1, 0, 0, 0))
 
 da <- diffcyt(x,

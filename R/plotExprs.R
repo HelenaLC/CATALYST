@@ -60,7 +60,7 @@ plotExprs <- function(x, features = NULL,
     
     ggplot(gg_df, fill = NULL, 
         aes_string(
-            x = value, y = "..ndensity..",
+            x = value, y = "after_stat(ndensity)",
             col = color_by, group = "sample_id")) + 
         facet_wrap(~ antigen, scales = "free_x") +
         geom_density() + 
