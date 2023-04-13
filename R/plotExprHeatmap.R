@@ -212,13 +212,14 @@ plotExprHeatmap <- function(x, features = NULL,
     
     # left-hand side heatmap annotation:
     # non-numeric cell metadata variables
+    sids <- levels(droplevels(factor(x$sample_id)))
     if (!isFALSE(row_anno)) {
         left_anno <- switch(by[1],
-            sample_id = .anno_factors(x, levels(x$sample_id), row_anno, "row"),
+            sample_id = .anno_factors(x, sids, row_anno, "row"),
             .anno_clusters(x, k, m, k_pal, m_pal))
     } else left_anno <- NULL
     if (!isFALSE(col_anno) && length(by) == 2) {
-        top_anno <- .anno_factors(x, levels(x$sample_id), col_anno, "colum")
+        top_anno <- .anno_factors(x, sids, col_anno, "colum")
     } else top_anno <- NULL
 
     # right-hand side heatmap annotation:

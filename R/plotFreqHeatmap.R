@@ -96,7 +96,8 @@ plotFreqHeatmap <- function(x,
     } else left_anno <- NULL
     # column annotation of cell metadata variables
     if (!isFALSE(col_anno)) {
-        top_anno <- .anno_factors(x, levels(x$sample_id), col_anno, "colum") 
+        sids <- levels(droplevels(factor(x$sample_id)))
+        top_anno <- .anno_factors(x, sids, col_anno, "colum") 
     } else top_anno <- NULL
  
     # right-hand side row annotation of cell counts & frequencies by cluster

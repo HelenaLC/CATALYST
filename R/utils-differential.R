@@ -154,7 +154,7 @@
     df <- data.frame(cd, check.names = FALSE)
     df <- select_if(df, ~!is.numeric(.))
     df <- mutate_all(df, ~droplevels(factor(.x)))
-    
+
     # store sample matching
     m <- match(ids, df$sample_id)
     
@@ -171,7 +171,7 @@
         keep <- intersect(keep, which)
     if (length(keep) == 0) return(NULL)
     df <- df[m, keep, drop = FALSE]
-  
+
     # get list of colors for each annotation
     lvls <- lapply(as.list(df), levels)
     nlvls <- vapply(lvls, length, numeric(1))

@@ -197,7 +197,8 @@ plotDiffHeatmap <- function(x, y, k = NULL,
     
     # column annotation of non-numeric cell metadata variables
     if (!isFALSE(col_anno)) {
-        top_anno <- .anno_factors(x, levels(x$sample_id), col_anno, "column")
+        sids <- levels(droplevels(factor(x$sample_id)))
+        top_anno <- .anno_factors(x, sids, col_anno, "column")
     } else top_anno <- NULL
     
     if (is.null(hm_pal)) hm_pal <- rev(brewer.pal(11, 
