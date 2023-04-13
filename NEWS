@@ -1,5 +1,10 @@
 changes in version 1.23.5
 
++ bug fix in 'ComplexHeatmap's: assure annotation
+colors show when 'sample_id's are not factors.
+
+changes in version 1.23.5
+
 + fixed unit tests & examples
 + added utility function to construct experimental design table
   from current SCE and avoid out-of-synch, e.g., after filtering
