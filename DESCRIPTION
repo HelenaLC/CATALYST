@@ -31,7 +31,7 @@ Imports:
 	data.table, dplyr, drc,
 	flowCore, FlowSOM, 
 	ggplot2, ggrepel, ggridges, graphics, grDevices, grid, gridExtra, 
-	magrittr, Matrix, matrixStats, methods,
+	Matrix, matrixStats, methods,
 	nnls, 
 	purrr, 
 	RColorBrewer, reshape2, Rtsne, 

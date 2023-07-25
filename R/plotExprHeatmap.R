@@ -126,7 +126,6 @@
 #' @importFrom dplyr select select_if
 #' @importFrom grid gpar grid.text
 #' @importFrom grDevices colorRampPalette
-#' @importFrom magrittr set_rownames
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom S4Vectors metadata
 #' @importFrom stats dist hclust
@@ -174,11 +173,11 @@ plotExprHeatmap <- function(x, features = NULL,
     # using 'assay' data & 'fun' as summary statistic
     .do_agg <- function() {
         z <- .agg(x, by, fun, assay)
-        if (length(by) == 1)
-            return(z)
-        set_rownames(
-            do.call("rbind", z),
-            levels(x$cluster_id))
+        if (length(by) > 1) {
+            z <- do.call("rbind", z)
+            rownames(z) <- levels(x$cluster_id)
+        }
+        return(z)
     }
     # do 0-1 scaling for each marker trimming 
     # lower ('q'%) & upper (1-'q'%) quantiles
