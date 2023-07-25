@@ -1,3 +1,13 @@
+changes in version 1.25.1
+
++ fixed unit tests for differential plotting
+  (expecting silence, but 'scater::calculateX' is
+  throwing warnings related to argument 'useNames')
+
+changes in version 1.25.0
+
++ Bioconductor release 3.18
+
 changes in version 1.23.5
 
 + bug fix in 'ComplexHeatmap's: assure annotation
