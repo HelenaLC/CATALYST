@@ -55,7 +55,9 @@ test_that("plotExprHeatmap()", {
     expect_is(p, "Heatmap")
     expect_is(m <- p@matrix, "matrix")
     df <- data.frame(t(es), sample_id = x$sample_id)
-    ms <- group_map(group_by(df, sample_id), ~colMedians(as.matrix(.x)))
+    ms <- group_map(
+        group_by(df, sample_id), 
+        ~colMedians(as.matrix(.x), useNames=FALSE))
     ms <- do.call(rbind, ms)
     expect_identical(c(m), c(ms))
 })

@@ -81,7 +81,7 @@ test_that("pbMDS() - by = 'sample_id'", {
     expect_identical(nrow(p$data), nlevels(x0$sample_id))
     # removal of samples
     s <- sample(levels(x0$sample_id), (n <- 3))
-    expect_silent(p <- pbMDS(filterSCE(x0, !sample_id %in% s)))
+    expect_is(p <- pbMDS(filterSCE(x0, !sample_id %in% s)), "ggplot")
     expect_equal(nrow(p$data) + 3, nlevels(x0$sample_id))
 })
 test_that("pbMDS() - by = 'cluster_id'", {
@@ -94,7 +94,7 @@ test_that("pbMDS() - by = 'cluster_id'", {
     # removal of clusters
     ks <- sample(kids, 3)
     y <- filterSCE(x, !cluster_id %in% ks, k = k)
-    expect_silent(p <- pbMDS(y, by = "cluster_id", k = k))
+    expect_is(p <- pbMDS(y, by = "cluster_id", k = k), "ggplot")
     expect_identical(levels(p$data$cluster_id), setdiff(kids, ks))
     expect_equivalent(p$data$n_cells, c(table(cluster_ids(y, k))))
 })
