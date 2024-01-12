@@ -243,7 +243,7 @@ plotDiffHeatmap <- function(x, y, k = NULL,
         da = {
             ns <- table(x$cluster_id, x$sample_id)
             fq <- prop.table(ns, 2)
-            fq <- fq[top$cluster_id, ]
+            fq <- fq[top$cluster_id, , drop=FALSE]
             y <- as.matrix(unclass(fq))
             if (normalize) y <- .z_normalize(asin(sqrt(y)))
             Heatmap(

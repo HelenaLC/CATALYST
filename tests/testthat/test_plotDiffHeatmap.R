@@ -68,6 +68,12 @@ test_that("plotDiffHeatmap() - DA; cluster filtering", {
     }
 })
 
+test_that("plotDiffHeatmap() - DA; single cluster (#382)", {
+    y <- da[da$cluster_id == 1, ]
+    p <- plotDiffHeatmap(x, y)
+    expect_is(p, "Heatmap")
+})
+
 test_that("plotDiffHeatmap() - DS; cluster filtering", {
     for (ks in lapply(c(1, 3, 5), sample, x = levels(kids))) {
         y <- filterSCE(x, !cluster_id %in% ks, k = k)
