@@ -2,7 +2,7 @@ Package: CATALYST
 Type: Package
 Title: Cytometry dATa anALYSis Tools
 Version: 1.27.1
-Depends: R (>= 4.2), SingleCellExperiment
+Depends: R (>= 4.4), SingleCellExperiment
 Authors@R: c(
 	person("Helena L.", "Crowell", 
 	    role=c("aut", "cre"),
