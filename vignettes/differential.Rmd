@@ -26,8 +26,6 @@ output:
 knitr::opts_chunk$set(cache = TRUE)
 ```
 
----
-
 <span style="color:firebrick">**Most of the pipeline and visualizations presented herein have been adapted from @Nowicka2019-F1000's *"CyTOF workflow: differential discovery in high-throughput high-dimensional cytometry datasets"* available [here](https://f1000research.com/articles/6-748/v4).**</span>
 
 ```{r warning = FALSE, message = FALSE}
@@ -121,10 +119,10 @@ sce <- cluster(sce, features = "type",
 
 Let K = `xdim` x `ydim` be the number of `r BiocStyle::Biocpkg("FlowSOM")` clusters. `cluster` will add information to the following slots of the input `SingleCellExperiment`: 
 
-- `rowData`:
-  - `cluster_id`: cluster ID as inferred by `r BiocStyle::Biocpkg("FlowSOM")`. One of 1, ..., K.
+- `rowData``:
+  - `marker_class`: factor `"type"` or `"state"`. Specifies whether a marker has been used for clustering or not, respectively.
 - `colData`:
-  - `marker_class`: factor `"type"` or `"state"`. Specifyies whether a marker has been used for clustering or not, respectively.
+  - `cluster_id`: cluster ID as inferred by `r BiocStyle::Biocpkg("FlowSOM")`. One of 1, ..., K.
 - `metadata`:
   - `SOM_codes`: a table with dimensions K x (# type markers). Contains the SOM codes. 
   - `cluster_codes`: a table with dimensions K x (`maxK` + 1). Contains the cluster codes for all metaclusterings.
