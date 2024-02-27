@@ -2,6 +2,8 @@ changes in version 1.27.1
 
 + bug fix in 'plotDiffHeatmap': add 'drop=FALSE'
   to avoid failure for DA when 1 cluster remains
+  
++ fix typos in differential vignette (issue #387)
 
 changes in version 1.27.0
 
