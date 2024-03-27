@@ -75,7 +75,7 @@ plotFreqHeatmap <- function(x,
     row_dend = TRUE, col_dend = TRUE,
     bars = TRUE, perc = FALSE,
     hm_pal = rev(brewer.pal(11, "RdBu")),
-    k_pal = CATALYST:::.cluster_cols, m_pal = k_pal) {
+    k_pal = .cluster_cols, m_pal = k_pal) {
     
     # check validity of input arguments
     args <- as.list(environment())

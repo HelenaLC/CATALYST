@@ -13,7 +13,7 @@ plotScatter(
   assay = "exprs",
   label = c("target", "channel", "both"),
   zeros = FALSE,
-  k_pal = CATALYST:::.cluster_cols
+  k_pal = .cluster_cols
 )
 }
 \arguments{

@@ -14,7 +14,7 @@ plotDR(
   scale = TRUE,
   q = 0.01,
   dims = c(1, 2),
-  k_pal = CATALYST:::.cluster_cols,
+  k_pal = .cluster_cols,
   a_pal = hcl.colors(10, "Viridis")
 )
 }

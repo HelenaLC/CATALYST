@@ -33,7 +33,7 @@
 #'   of cells in a given sample/cluster (for \code{by = "sample/cluster_id"}).
 #' @param point_pal,arrow_pal character string of colors to use
 #'   for points and PC loading arrows. Arguments default to
-#'   \code{CATALYST:::.cluster_cols} for clusters,
+#'   \code{.cluster_cols} for clusters (defined internally),
 #'   and \code{brewer.pal}'s \code{"Set3"} for samples.
 #' @inheritParams runDR
 #' @inheritParams pbMDS
@@ -43,7 +43,7 @@
 #' \describe{
 #' \item{The centered log-ratio (CLR)}{
 #' Let \code{k} be one of \eqn{S} samples, \code{k} one of \eqn{K} clusters,
-#' and \code{p(s,k)} be the proprtion of cells from \code{s} in \eqn{k}.
+#' and \code{p(s,k)} be the proportion of cells from \code{s} in \eqn{k}.
 #' The centered log-ratio (CLR) is defined as
 #' \deqn{clr(sk) = log p(s,k) - \sum p(s,k) / K}
 #' and analogous for clusters replacing \code{s} by \code{k} and \code{K} by
@@ -178,7 +178,7 @@ clrDR <- function(x,
     } else lines <- asp <- NULL
 
     # make base plot
-    p <- ggplot(df, aes_string("x", "y", fill = point_col)) +
+    p <- ggplot(df, aes(.data$x, .data$y, fill = .data$point_col)) +
         lines + guides(
             fill = guide_legend(order = 1, ncol = ncol,
                 override.aes = list(alpha = 1, size = 4)),

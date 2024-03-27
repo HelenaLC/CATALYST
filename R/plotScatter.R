@@ -67,7 +67,7 @@
 plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
     bins = 100, assay = "exprs", 
     label = c("target", "channel", "both"),
-    zeros = FALSE, k_pal = CATALYST:::.cluster_cols) {
+    zeros = FALSE, k_pal = .cluster_cols) {
     # check validity of input arguments
     label <- match.arg(label)
     args <- as.list(environment())

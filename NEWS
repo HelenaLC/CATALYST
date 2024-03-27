@@ -1,3 +1,9 @@
+changes in version 1.27.2
+
++ fixed typos in man pages and vignette
++ fixed unit test failures due to 'ggplot2'-updates etc.
++ omit usage of ':::' operator throughout the package
+
 changes in version 1.27.1
 
 + bug fix in 'plotDiffHeatmap': add 'drop=FALSE'

@@ -25,7 +25,7 @@ plotMultiHeatmap(
   perc = FALSE,
   hm1_pal = rev(brewer.pal(11, "RdYlBu")),
   hm2_pal = if (isTRUE(hm2 == "abundances")) rev(brewer.pal(11, "PuOr")) else hm1_pal,
-  k_pal = CATALYST:::.cluster_cols,
+  k_pal = .cluster_cols,
   m_pal = k_pal,
   distance = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"),
   linkage = c("average", "ward.D", "single", "complete", "mcquitty", "median",

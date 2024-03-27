@@ -4,7 +4,7 @@
 \alias{plotCodes}
 \title{tSNE and PCA on SOM codes}
 \usage{
-plotCodes(x, k = "meta20", k_pal = CATALYST:::.cluster_cols)
+plotCodes(x, k = "meta20", k_pal = .cluster_cols)
 }
 \arguments{
 \item{x}{a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.}

@@ -21,23 +21,24 @@ corresponding to barcode channels. When the latter is supplied,
 \value{
 a \code{SingleCellExperiment} structured as follows: 
 \describe{
-\item{assays}{
+\item{\code{assays}}{
 \itemize{
-\item{\code{counts} - raw counts}
-\item{\code{exprs} - arcsinh-transformed counts}
-\item{\code{scaled} - population-wise scaled 
-expression using (95\%)-quantiles as boundaries}
+\item \code{counts} - raw counts
+\item \code{exprs} - arcsinh-transformed counts
+\item \code{scaled} - population-wise scaled 
+expression using (95\%)-quantiles as boundaries
 }
 }
 \item{\code{colData}}{
 \itemize{
-\item{bc_id}{numeric verctor of barcode assignments}
-\item{delta}{separation between positive and negative barcode populations}
+\item \code{bc_id} - numeric verctor of barcode assignments
+\item \code{delta} - separation between
+positive and negative barcode populations
 }
 }
 \item{\code{metadata}}{
 \itemize{
-\item{bc_key}{the input debarcoding scheme}
+\item \code{bc_key} - the input debarcoding scheme
 }
 }
 }

@@ -36,5 +36,5 @@ test_that("plotScatter() - color_by", {
     expect_is(p$scales$scales[[1]], "ScaleContinuous")    
     p <- plotScatter(x, chs, color_by = "bc_id")
     expect_is(p, "ggplot")
-    expect_is(p$guides$colour, "guide")
+    expect_is(p$guides$guides[[1]], "GuideLegend")
 })

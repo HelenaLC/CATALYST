@@ -116,7 +116,7 @@ plotMahal <- function(x, which, assay = "exprs", n = 1e3) {
                         legend.key.width = unit(4, "line"),
                         legend.text = element_text(size = 8), 
                         legend.key = element_blank())
-                lgd <- get_legend(foo)
+                suppressWarnings(lgd <- get_legend(foo))
                 first <- FALSE
             }
         }
