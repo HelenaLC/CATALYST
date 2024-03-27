@@ -24,7 +24,7 @@ plotExprHeatmap(
   perc = FALSE,
   bin_anno = FALSE,
   hm_pal = rev(brewer.pal(11, "RdYlBu")),
-  k_pal = CATALYST:::.cluster_cols,
+  k_pal = .cluster_cols,
   m_pal = k_pal,
   distance = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"),
   linkage = c("average", "ward.D", "single", "complete", "mcquitty", "median",

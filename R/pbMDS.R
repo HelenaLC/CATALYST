@@ -120,11 +120,13 @@ pbMDS <- function(x,
     # get number of legend columns to use
     ncol <- ifelse(!is.null(color_by) && nlevels(df[[color_by]]) > 10, 2, 1)
     
-    ggplot(df, aes_string("x", "y", 
-        col = color_by, shape = shape_by)) + 
-        geom_point(alpha = 0.8, aes_string(size = size_by)) + 
+    ggplot(df, aes(.data$x, .data$y, 
+        col = if (!is.null(color_by)) .data[[color_by]], 
+        shape = if (!is.null(shape_by)) .data[[shape_by]])) + 
+        geom_point(alpha = 0.8, 
+            aes(size = if (!is.null(size_by)) .data[[size_by]])) + 
         (if (!is.null(label_by)) geom_label_repel(
-            aes_string(label = label_by), show.legend = FALSE)) + 
+            aes(label = .data[[label_by]]), show.legend = FALSE)) + 
         (if (!is.null(pal)) scale_color_manual(values = pal)) +
         scale_shape_manual(values = .get_shapes(x, shape_by)) +
         guides(
@@ -134,7 +136,8 @@ pbMDS <- function(x,
             size = guide_legend(order = 3)) + 
         labs(
             x = paste("MDS dim.", dims[1]), 
-            y = paste("MDS dim.", dims[2])) +
+            y = paste("MDS dim.", dims[2]),
+            col=color_by, shape=shape_by, size=size_by) +
         coord_equal() + theme_linedraw() + theme(
             panel.grid.minor = element_blank(),
             legend.key.height  =  unit(0.8, "lines"))

@@ -65,7 +65,7 @@ of cells in a given sample/cluster (for \code{by = "sample/cluster_id"}).}
 
 \item{point_pal, arrow_pal}{character string of colors to use
 for points and PC loading arrows. Arguments default to
-\code{CATALYST:::.cluster_cols} for clusters,
+\code{.cluster_cols} for clusters (defined internally),
 and \code{brewer.pal}'s \code{"Set3"} for samples.}
 }
 \value{

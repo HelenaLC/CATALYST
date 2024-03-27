@@ -141,7 +141,7 @@ plotExprHeatmap <- function(x, features = NULL,
     row_dend = TRUE, col_dend = TRUE, 
     bars = FALSE, perc = FALSE, bin_anno = FALSE,
     hm_pal = rev(brewer.pal(11, "RdYlBu")), 
-    k_pal = CATALYST:::.cluster_cols, m_pal = k_pal,
+    k_pal = .cluster_cols, m_pal = k_pal,
     distance = c(
         "euclidean", "maximum", "manhattan", 
         "canberra", "binary", "minkowski"), 

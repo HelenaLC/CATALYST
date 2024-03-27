@@ -1,7 +1,7 @@
 Package: CATALYST
 Type: Package
 Title: Cytometry dATa anALYSis Tools
-Version: 1.26.0
+Version: 1.26.1
 Depends: R (>= 4.2), SingleCellExperiment
 Authors@R: c(
 	person("Helena L.", "Crowell", 
@@ -44,7 +44,7 @@ Suggests:
 URL: https://github.com/HelenaLC/CATALYST
 BugReports: https://github.com/HelenaLC/CATALYST/issues
 VignetteBuilder: knitr
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true

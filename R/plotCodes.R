@@ -42,8 +42,7 @@
 #' @importFrom S4Vectors metadata
 #' @export
 
-plotCodes <- function(x, k = "meta20", 
-    k_pal = CATALYST:::.cluster_cols) {
+plotCodes <- function(x, k = "meta20", k_pal = .cluster_cols) {
     
     # check validity of input arguments
     .check_sce(x, TRUE)
@@ -92,7 +91,7 @@ plotCodes <- function(x, k = "meta20",
     )
     
     # arrange plots side-by-side
-    lgd <- get_legend(ps[[2]])
+    suppressWarnings(lgd <- get_legend(ps[[2]]))
     ps <- lapply(ps, "+", theme(legend.position = "none"))
     plot_grid(
         lgd, ncol = 1, rel_heights = c(1, 5),

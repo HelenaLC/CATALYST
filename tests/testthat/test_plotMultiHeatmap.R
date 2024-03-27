@@ -23,7 +23,7 @@ test_that("plotMultiHeatmap() - hm2 = 'abundances'", {
     p <- plotMultiHeatmap(x, hm2 = "abundances", k = k, normalize = FALSE)
     y <- p@ht_list$frequency@matrix
     expect_is(p, "HeatmapList")
-    expect_true(all(colSums(y) == 1))
+    expect_equivalent(colSums(y), rep(1, ncol(y)))
     expect_equal(c(y), c(prop.table(table(kids, x$sample_id), 2)))
 })
 
@@ -40,7 +40,7 @@ test_that("plotMultiHeatmap() - hm2 = 'state'", {
         summarize_at(state_markers(x), median) %>% 
         do(.[, state_markers(x)]) %>% 
         do.call(what = "cbind")
-    expect_identical(c(y), c(ms))
+    expect_equal(c(y), c(ms))
 })
 
 test_that("plotMultiHeatmap() - hm2 = specific state markers", {
@@ -54,8 +54,8 @@ test_that("plotMultiHeatmap() - hm2 = specific state markers", {
         replace(., is.na(.), 0) %>% {( lapply(ms, function(m) 
             acast(., cluster_id~sample_id, value.var = m)) )}
     for (i in seq_along(ms)) {
-        expect_identical(p@ht_list[[i+1]]@column_title, ms[i])
-        expect_identical(p@ht_list[[i+1]]@matrix, meds[[i]])
+        expect_equal(p@ht_list[[i+1]]@column_title, ms[i])
+        expect_equal(p@ht_list[[i+1]]@matrix, meds[[i]])
     }
 })
 

@@ -18,7 +18,7 @@ plotFreqHeatmap(
   bars = TRUE,
   perc = FALSE,
   hm_pal = rev(brewer.pal(11, "RdBu")),
-  k_pal = CATALYST:::.cluster_cols,
+  k_pal = .cluster_cols,
   m_pal = k_pal
 )
 }

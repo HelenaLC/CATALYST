@@ -124,7 +124,7 @@ Let K = `xdim` x `ydim` be the number of `r BiocStyle::Biocpkg("FlowSOM")` clust
 - `rowData`:
   - `cluster_id`: cluster ID as inferred by `r BiocStyle::Biocpkg("FlowSOM")`. One of 1, ..., K.
 - `colData`:
-  - `marker_class`: factor `"type"` or `"state"`. Specifyies whether a marker has been used for clustering or not, respectively.
+  - `marker_class`: factor `"type"` or `"state"`. Specifies whether a marker has been used for clustering or not, respectively.
 - `metadata`:
   - `SOM_codes`: a table with dimensions K x (# type markers). Contains the SOM codes. 
   - `cluster_codes`: a table with dimensions K x (`maxK` + 1). Contains the cluster codes for all metaclusterings.

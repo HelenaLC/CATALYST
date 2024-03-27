@@ -76,7 +76,7 @@ plotAbundances <- function(x, k = "meta20",
     linkage = c(
         "average", "ward.D", "single", "complete", 
         "mcquitty", "median", "centroid", "ward.D2"),
-    k_pal = CATALYST:::.cluster_cols) {
+    k_pal = .cluster_cols) {
     
     # check validity of input arguments
     by <- match.arg(by)
