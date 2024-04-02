@@ -238,7 +238,7 @@
     
     df <- data.frame(k=seq_len(maxK)[-1], y=deltaK)
     y_max <- ceiling(max(df$y)*2)/2
-    ggplot(df, aes_string(x="k", y="y")) + 
+    ggplot(df, aes(.data$k, .data$y)) + 
         theme_classic() + geom_line(color="steelblue", lty=2) + 
         geom_point(size=2.5, color="navy") + coord_fixed(4) +
         scale_x_continuous(breaks=seq(2, 20, 2), expand=c(0,.5)) +

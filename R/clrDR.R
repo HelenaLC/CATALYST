@@ -178,7 +178,8 @@ clrDR <- function(x,
     } else lines <- asp <- NULL
 
     # make base plot
-    p <- ggplot(df, aes(.data$x, .data$y, fill = .data$point_col)) +
+    p <- ggplot(df, aes(.data$x, .data$y, 
+        fill = .data[[point_col]])) +
         lines + guides(
             fill = guide_legend(order = 1, ncol = ncol,
                 override.aes = list(alpha = 1, size = 4)),

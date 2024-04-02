@@ -135,12 +135,16 @@ test_that("pbMDS() - single factor in colData", {
     expect_false(inherits(p, "error"))
 })
 
+.printable <- \(p) !inherits(tryCatch(p, error=\(e) e), "error")
+
 test_that("clrDR()", {
     k <- sample(names(codes)[-seq_len(11)], 1)
     nk <- nlevels(kids <- cluster_ids(x, k))
     ns <- nlevels(sids <- x$sample_id)
     # by = 'sample_id'
-    expect_is(p <- clrDR(x, by = "sample_id", k = k), "ggplot")
+    p <- clrDR(x, by = "sample_id", k = k)
+    expect_is(p, "ggplot")
+    expect_true(.printable(p))
     expect_identical(nrow(p$data), nlevels(x$sample_id))
     expect_identical(p$data$n_cells, tabulate(x$sample_id))
     # PC loading arrows
@@ -151,11 +155,14 @@ test_that("clrDR()", {
     ss <- sample(levels(sids), n <- 3)
     y <- filterSCE(x, k = k, !sample_id %in% ss) 
     p <- clrDR(y, by = "sample_id", k = k)
+    expect_true(.printable(p))
     expect_identical(nrow(p$data), as.integer(ns-n))
     expect_identical(p$data$n_cells, tabulate(y$sample_id))
     expect_identical(levels(p$data$sample_id), setdiff(levels(sids), ss))
     # by = 'cluster_id'
-    expect_is(p <- clrDR(x, by = "cluster_id", k = k), "ggplot")
+    p <- clrDR(x, by = "cluster_id", k = k)
+    expect_is(p, "ggplot")
+    expect_true(.printable(p))
     expect_identical(nrow(p$data), nk)
     expect_identical(p$data$n_cells, tabulate(kids))
     expect_identical(levels(p$data$cluster_id), levels(kids))
@@ -167,6 +174,7 @@ test_that("clrDR()", {
     ks <- sample(levels(kids), n <- 3)
     y <- filterSCE(x, k = k, !cluster_id %in% ks) 
     p <- clrDR(y, by = "cluster_id", k = k)
+    expect_true(.printable(p))
     expect_identical(nrow(p$data), as.integer(nk-n))
     expect_identical(p$data$n_cells, tabulate(cluster_ids(y, k)))
     expect_identical(levels(p$data$cluster_id), setdiff(levels(kids), ks))
