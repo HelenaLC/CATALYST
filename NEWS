@@ -3,6 +3,8 @@ changes in version 1.27.2
 + fixed typos in man pages and vignette
 + fixed unit test failures due to 'ggplot2'-updates etc.
 + omit usage of ':::' operator throughout the package
++ deprecate 'plotClusterHeatmap()' and 'plotMedExprs()' for good
++ fixed 'ggplot2'-related messages/warnings (e.g., 'aes_string()' deprecation)
 
 changes in version 1.27.1
 
@@ -93,7 +95,7 @@ differential
 + added argument 'assay' in plotExprs(), plotNRS() 
   to allow specification of which assay data to use
   
-+ depracated plotMedExprs() in favor of plotPbExprs() to allow flexibilty 
++ deprecated plotMedExprs() in favor of plotPbExprs() to allow flexibilty 
   in input data and summary statistic, aggregating by cluster-sample 
   (instead of by sample only), sizing by sample(-cluster) cell counts, 
   and to specify whether to include (jittered) points, boxplots or both 
