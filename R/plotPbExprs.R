@@ -159,19 +159,3 @@ plotPbExprs <- function(x, k = "meta20", features = "state",
                 angle = 45, hjust = 1, vjust = 1))
         }
 }
-
-#' @export
-#' @rdname plotPbExprs
-plotMedExprs <- function(x, 
-    k = "meta20", features = "state",
-    facet_by = c("antigen", "cluster_id"), 
-    group_by = "condition", shape_by = NULL) {
-    
-    .Deprecated(
-        old = "plotMedExprs",
-        new = "plotPbExprs")
-    
-    plotPbExprs(x, k, features, 
-        assay = "exprs", fun = "median", 
-        facet_by, group_by, shape_by = shape_by)
-}

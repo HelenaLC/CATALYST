@@ -166,7 +166,6 @@ high-throughput high-dimensional cytometry datasets.
 \emph{F1000Research} 2017, 6:748 (doi: 10.12688/f1000research.11622.1)
 }
 \seealso{
-\code{\link{plotMedExprs}}, 
 \code{\link{plotFreqHeatmap}}, 
 \code{\link{plotMultiHeatmap}}
 }

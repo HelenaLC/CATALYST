@@ -2,7 +2,6 @@
 % Please edit documentation in R/plotPbExprs.R
 \name{plotPbExprs}
 \alias{plotPbExprs}
-\alias{plotMedExprs}
 \title{Pseudobulk-level boxplot}
 \usage{
 plotPbExprs(
@@ -19,15 +18,6 @@ plotPbExprs(
   geom = c("both", "points", "boxes"),
   jitter = TRUE,
   ncol = NULL
-)
-
-plotMedExprs(
-  x,
-  k = "meta20",
-  features = "state",
-  facet_by = c("antigen", "cluster_id"),
-  group_by = "condition",
-  shape_by = NULL
 )
 }
 \arguments{

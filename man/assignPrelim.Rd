@@ -31,7 +31,7 @@ expression using (95\%)-quantiles as boundaries
 }
 \item{\code{colData}}{
 \itemize{
-\item \code{bc_id} - numeric verctor of barcode assignments
+\item \code{bc_id} - numeric vector of barcode assignments
 \item \code{delta} - separation between
 positive and negative barcode populations
 }
