@@ -475,11 +475,11 @@ While the `SingleCellExperiment` class provides many advantages in terms of comp
 
 ## Writing FCS files
 
-Conversion from SCE to `flowFrame`s/`flowSet`, which in turn can be writting to FCS files using `r Biocpkg("flowCore")`'s `write.FCS` function, is not straightforward. It is not recommended to directly write FCS via `write.FCS(flowFrame(t(assay(sce))))`, as this can lead to invalid FCS files or the data being shown on an inappropriate scale in e.g. Cytobank. Instead, `CATALYST` provides the `sce2fcs` function to facilitate correct back-conversion.
+Conversion from SCE to `flowFrame`s/`flowSet`, which in turn can be written to FCS files using `r Biocpkg("flowCore")`'s `write.FCS` function, is not straightforward. It is not recommended to directly write FCS via `write.FCS(flowFrame(t(assay(sce))))`, as this can lead to invalid FCS files or the data being shown on an inappropriate scale in e.g. Cytobank. Instead, `CATALYST` provides the `sce2fcs` function to facilitate correct back-conversion.
 
 `sce2fcs` allows specification of a variable to split the SCE by (argument `split_by`), e.g., to split the data by sample after debarcoding; whether to keep or drop any cell metadata (argument `keep_cd`) and dimension reductions (argument `keep_dr`) available within the object; and which assay data to use (argument `assay`)[^1]: 
 
-[^1]: Only count-like data should be written to FCS files and is guaranteed to show with approporiate scale in Cytobank!
+[^1]: Only count-like data should be written to FCS files and is guaranteed to show with appropriate scale in Cytobank!
 
 ```{r sce2fcs-split, message = FALSE}
 # run debarcoding

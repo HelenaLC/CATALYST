@@ -297,19 +297,19 @@ The specified `assay` values (default `"exprs"`) will be aggregated using `fun` 
 
 In order to compare medians for each cluster, and potentially identify changes across conditions early on, we specify `facet = "cluster_id"`: 
 
-```{r plotMedExprs-1, fig.width = 12, fig.height = 5}
+```{r plotPbExprs-1, fig.width = 12, fig.height = 5}
 plotPbExprs(sce, k = "meta8", facet_by = "cluster_id", ncol = 4)
 ```
 
 Alternatively, we can facet the above plot by `antigen` in order to compare marker expressions calculated over all cells across conditions:
 
-```{r plotMedExprs-2, fig.width = 12, fig.height = 4}
+```{r plotPbExprs-2, fig.width = 12, fig.height = 4}
 plotPbExprs(sce, facet_by = "antigen", ncol = 7)
 ```
 
 Thirdly, we can investigate how consistent type-markers are expressed across clusters. To this end, we specify `color_by = "cluster_id"` in order to aggregate expression values by both clusters and samples. The resulting plot gives an indication how *good* our selection of type markers is: Ideally, their expression should be fairly specific to a subset of clusters.
 
-```{r plotMedExprs-3, fig.width = 12, fig.height = 4}
+```{r plotPbExprs-3, fig.width = 12, fig.height = 4}
 plotPbExprs(sce, k = "meta10", features = "type", 
   group_by = "cluster_id", color_by = "sample_id", 
   size_by = TRUE, geom = "points", jitter = FALSE, ncol = 5)
@@ -317,7 +317,7 @@ plotPbExprs(sce, k = "meta10", features = "type",
 
 Finally, we can investigate how variable state-marker expressions are across clusters by setting `group_by = "cluster_id"` (to aggregate by both, samples and clusters) and `color_by = "condition"` (to additionally group samples by treatment). This type  of visualization yields similar information as the plot above: We can observe that there are global shifts in expression for a set of markers (e.g., pNFkB, pp38), and rather subpopulation-specific changes for others (e.g., pS6).
 
-```{r plotMedExprs-4, fig.width = 12, fig.height = 4}
+```{r plotPbExprs-4, fig.width = 12, fig.height = 4}
 plotPbExprs(sce, k = "meta6", features = "state",  
     group_by = "cluster_id", color_by = "condition", ncol = 7)
 ```
@@ -654,8 +654,8 @@ The examples below serve to illustrate how some less exposed `ggplot` aesthetics
 
 ### Modifying `ggplot`s
 
-```{r plotMedExprs-custom, fig.width = 8, fig.height = 2}
-p <- plotMedExprs(sce, k = "meta4", facet_by = "cluster_id")
+```{r plotPbExprs-custom, fig.width = 8, fig.height = 2}
+p <- plotPbExprs(sce, k = "meta4", facet_by = "cluster_id")
 # facetting layout is 2x2; plot all side-by-side instead
 p$facet$params$nrow <- 1
 # remove points
@@ -663,7 +663,7 @@ p$layers <- p$layers[-1]
 # overwrite default colors
 p <- p + scale_color_manual(values = c("royalblue", "orange"))
 # remove x-axis title, change angle & decrease size of labels
-(p + labs(x = NULL) + theme(axis.text.x = element_text(angle = 90, size = 8)))
+(p + labs(x = NULL) + theme(axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)))
 ```
 
 ### Modifying `ComplexHeatmap`s
