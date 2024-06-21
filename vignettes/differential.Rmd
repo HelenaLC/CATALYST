@@ -109,7 +109,7 @@ Note that, independent of the input panel and metadata tables, the constructor w
 
 ## `cluster`: *FlowSOM* clustering & *ConsensusClusterPlus* metaclustering
 
-`r BiocStyle::Biocpkg("CATALYST")` provides a simple wrapper to perform high resolution `FlowSOM` clustering and lower resolution `ConsensusClusterPlus` metaclustering. By default, the data will be initially clustered into `xdim = 10` x `ydim = 10` = 100 groups. Secondly, the function will metacluster populations into 2 through `maxK` (default 20) clusters. To make analyses reproducible, the random seed may be set via `seed`. By default, if the `colData(sce)$marker_class` column is specified, the set of markers with marker class `"type"` will be used for clustering (argument `features = "type"`). Alternatively, the markers that should be used for clustering can be specified manually.
+`r BiocStyle::Biocpkg("CATALYST")` provides a simple wrapper to perform high resolution `FlowSOM` clustering and lower resolution `ConsensusClusterPlus` metaclustering. By default, the data will be initially clustered into `xdim = 10` x `ydim = 10` = 100 groups. Secondly, the function will metacluster populations into 2 through `maxK` (default 20) clusters. To make analyses reproducible, the random seed may be set via `seed`. By default, if the `rowData(sce)$marker_class` column is specified, the set of markers with marker class `"type"` will be used for clustering (argument `features = "type"`). Alternatively, the markers that should be used for clustering can be specified manually.
 
 ```{r cluster}
 sce <- cluster(sce, features = "type", 
@@ -119,7 +119,7 @@ sce <- cluster(sce, features = "type",
 
 Let K = `xdim` x `ydim` be the number of `r BiocStyle::Biocpkg("FlowSOM")` clusters. `cluster` will add information to the following slots of the input `SingleCellExperiment`: 
 
-- `rowData``:
+- `rowData`:
   - `marker_class`: factor `"type"` or `"state"`. Specifies whether a marker has been used for clustering or not, respectively.
 - `colData`:
   - `cluster_id`: cluster ID as inferred by `r BiocStyle::Biocpkg("FlowSOM")`. One of 1, ..., K.
