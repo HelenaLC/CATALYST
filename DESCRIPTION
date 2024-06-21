@@ -1,17 +1,21 @@
 Package: CATALYST
 Type: Package
 Title: Cytometry dATa anALYSis Tools
-Version: 1.29.0
+Version: 1.29.1
 Depends: R (>= 4.4), SingleCellExperiment
 Authors@R: c(
 	person("Helena L.", "Crowell", 
 	    role=c("aut", "cre"),
-	    email="helena.crowell@uzh.ch", 
+	    email="helena@crowell.eu", 
 	    comment=c(ORCID="0000-0002-4801-1767")),  
-	person("Vito R.T.", "Zanotelli", role="aut", email="vito.zanotelli@uzh.ch"), 
-	person("Stéphane", "Chevrier", role=c("aut", "dtc")),
-	person("Mark D.", "Robinson", role=c("aut", "fnd"), email="mark.robinson@imls.uzh.ch"),
-	person("Bernd", "Bodenmiller", role="fnd"))
+	person("Vito R.T.", "Zanotelli", role="aut",
+	    comment=c(ORCID="0000-0001-7268-311X")), 
+	person("Stéphane", "Chevrier", role=c("aut", "dtc"),
+	    comment=c(ORCID="0000-0002-9216-7910")),
+	person("Mark D.", "Robinson", role=c("aut", "fnd"), 
+	    comment=c(ORCID="0000-0002-3048-5518")),  
+	person("Bernd", "Bodenmiller", role="fnd",
+	    comment=c(ORCID="0000-0002-6325-7861")))
 biocViews: 
 	Clustering, DataImport, DifferentialExpression, ExperimentalDesign, 
 	FlowCytometry, ImmunoOncology, MassSpectrometry,Normalization, 
