@@ -33,7 +33,7 @@ test_that("plotDiffHeatmap() - DA", {
     y <- p@matrix
     expect_gte(min(y), 0)
     expect_lte(max(y), 1)
-    expect_true(all(colSums(y) == 1))
+    expect_equivalent(colSums(y), rep(1, ncol(y)))
     expect_equal(dim(y), c(nlevels(kids), nlevels(x$sample_id)))
     expect_identical(rownames(y), levels(kids))
     expect_identical(colnames(y), levels(x$sample_id))
