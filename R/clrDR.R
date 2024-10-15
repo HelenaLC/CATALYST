@@ -135,8 +135,8 @@ clrDR <- function(x,
     ncs <- table(x$sample_id, x$cluster_id)
     fqs <- log(prop.table(ncs + 1, 1), base)
     clr <- fqs-rowMeans(fqs)
+    clr <- as.matrix(unclass(clr))
     if (by == "sample_id") clr <- t(clr)
-    #clr <- scale(t(clr))
 
     # run dimensionality reduction
     fun <- get(paste0("calculate", dr))
@@ -191,11 +191,11 @@ clrDR <- function(x,
         (if (!is.null(label_by))
             geom_text_repel(
                 show.legend = FALSE,
-                aes_string(label = label_by))) +
+                aes(label = .data[[label_by]]))) +
         (if (is.null(size_by)) {
             geom_point(size = 5, alpha = 0.8, shape = 21, stroke = 0)
         } else geom_point(
-            aes_string(size = size_by),
+            aes(size = .data[[size_by]]),
             alpha = 0.8, shape = 21, stroke = 0)) +
         labs(x = labs[1], y = labs[2]) +
         asp + theme_minimal() + theme(
