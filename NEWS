@@ -1,3 +1,7 @@
+changes in version 1.29.2
+
++ bug fix in 'clrDR' caused by 'calculateDR' failing when input is a 'table'
+
 changes in version 1.27.2
 
 + fixed typos in man pages and vignette
