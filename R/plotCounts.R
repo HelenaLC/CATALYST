@@ -86,9 +86,9 @@ plotCounts <- function(x,
         df[[group_by]] <- rownames(y)
     }
     
-    ggplot(df[df$value != 0, ], aes(
-        .data[[group_by]], .data$value, 
-        fill = .data[[color_by]])) +
+    ggplot(df[df$value != 0, ], 
+        aes(.data[[group_by]], .data$value, 
+            fill = if (!is.null(color_by)) .data[[color_by]])) +
         geom_bar(stat = "identity", 
             col = ifelse(prop, "white", NA), 
             position = ifelse(prop, "stack", "dodge2")) +
