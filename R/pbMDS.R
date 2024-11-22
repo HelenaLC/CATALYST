@@ -121,7 +121,8 @@ pbMDS <- function(x,
     ncol <- ifelse(!is.null(color_by) && nlevels(df[[color_by]]) > 10, 2, 1)
     
     ggplot(df, aes(.data$x, .data$y, 
-        col = color_by, shape = shape_by)) + 
+        col = if (!is.null(color_by)) .data[[color_by]], 
+        shape = if (!is.null(shape_by)) .data[[shape_by]])) + 
         geom_point(alpha = 0.8, aes_string(size = size_by)) + 
         (if (!is.null(label_by)) geom_label_repel(
             aes_string(label = label_by), show.legend = FALSE)) + 
