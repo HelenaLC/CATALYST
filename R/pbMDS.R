@@ -129,10 +129,11 @@ pbMDS <- function(x,
         (if (!is.null(pal)) scale_color_manual(values = pal)) +
         scale_shape_manual(values = .get_shapes(x, shape_by)) +
         guides(
-            col = guide_legend(order = 1, ncol = ncol, 
+            col = guide_legend(color_by, order = 1, ncol = ncol, 
                 override.aes = list(alpha = 1, size = 3)),
-            shape = guide_legend(order = 2, override.aes = list(size = 3)),
-            size = guide_legend(order = 3)) + 
+            shape = guide_legend(shape_by, order = 2, 
+                override.aes = list(size = 3)),
+            size = guide_legend(size_by, order = 3)) + 
         labs(
             x = paste("MDS dim.", dims[1]), 
             y = paste("MDS dim.", dims[2])) +
