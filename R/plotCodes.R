@@ -68,7 +68,7 @@ plotCodes <- function(x, k = "meta20", k_pal = .cluster_cols) {
     df$counts <- as.numeric(table(cluster_ids(x)))
     
     # specify shared aesthetics
-    p <- ggplot(df, aes_string(col = "cluster_id", size = "counts")) +
+    p <- ggplot(df, aes(col=.data$cluster_id, size=.data$counts)) +
         theme_classic() + theme(
             aspect.ratio = 1, 
             legend.position = "top",
@@ -77,12 +77,12 @@ plotCodes <- function(x, k = "meta20", k_pal = .cluster_cols) {
             axis.text=element_text(color = "black"))
 
     ps <- list(
-        p + geom_point(aes_string("tsne1", "tsne2")) + 
+        p + geom_point(aes(.data$tsne1, .data$tsne2)) + 
             labs(x = "t-SNE dim. 1", y = "t-SNE dim. 2") +
             scale_color_manual(values = k_pal, guide = "none") +
             scale_size(guide = "none")
         ,
-        p + geom_point(aes_string("pc1", "pc2")) +
+        p + geom_point(aes(.data$pc1, .data$pc2)) +
             labs(x = "1st PC", y = "2nd PC") +
             scale_color_manual(values = k_pal) +
             guides(col = guide_legend(

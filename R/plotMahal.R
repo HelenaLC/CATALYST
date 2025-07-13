@@ -81,10 +81,10 @@ plotMahal <- function(x, which, assay = "exprs", n = 1e3) {
     # histogram of barcode distributions
     hi <- c(1, cumsum(seq(n_bcs, 2)) + 1)
     for (p in hi) {
-        ch <- sprintf("`%s`", bc_chs[match(p, hi)])
+        ch <- bc_chs[match(p, hi)]
         ps[[p]] <- ggplot(df) + 
             scale_x_continuous(limits = lims) +
-            geom_histogram(aes_string(x = ch), 
+            geom_histogram(aes(.data[[ch]]), 
                 breaks = seq(axes_min + 0.05, axes_max - 0.05, 0.1),
                 binwidth = 0.1, fill = "black", color = NA) + 
             labs(x = " ", y = " ") + coord_fixed(1) + thm
@@ -97,9 +97,9 @@ plotMahal <- function(x, which, assay = "exprs", n = 1e3) {
     first <- TRUE
     for (i in seq_len(n_bcs - 1)) {
         for (j in seq((i + 1), n_bcs)) {
-            chs <- sprintf("`%s`", bc_chs[c(i, j)])
+            chs <- bc_chs[c(i, j)]
             ps[[m[j, i]]] <- ggplot(df) + geom_point(size = 0.8,
-                    aes_string(x = chs[1], y = chs[2], col = "d")) +
+                    aes(.data[[chs[1]]], .data[[chs[2]]], col=.data$d)) +
                 guides(color = "none") + scale_color_gradientn(
                     sprintf("%s: %s", which, 
                         paste(bc_key[which, ], collapse = "")),

@@ -129,21 +129,21 @@ plotYields <- function(x, which = 0,
                 pal <- sample(pal, n_bcs)
             }
             ggplot() +
-                geom_bar(data = h, orientation = "x",
-                    aes_string(x = "cutoff", y = "count"), 
-                    stat = "identity", width = 1 / n_seps, 
-                    fill = "lightgrey", col = "white") +
-                geom_line(data = l, aes_string("cutoff", "yield", col = "bc_id")) + 
+                geom_bar(
+                    aes(.data$cutoff, .data$count), h,
+                    orientation = "x", stat="identity", 
+                    width=1/n_seps, fill="lightgrey", col="white") +
+                geom_line(aes(.data$cutoff, .data$yield, col=.data$bc_id), l) +
                 scale_color_manual(NULL, values = pal, labels = labs) +
                 thm(max, legend.position = "none")
         } else {
             df <- data.frame(cutoff = seps, count = counts[, id]) 
             df$yield <- yields[, id] * (max <- max(df$count))
-            p <- ggplot(df, aes_string(x = "cutoff")) +
-                geom_bar(aes_string(y = "count"), 
+            p <- ggplot(df, aes(x=.data$cutoff)) +
+                geom_bar(aes(y=.data$count),
                     stat = "identity", orientation = "x",
                     linewidth = 0.2, col = "white", fill = "darkgrey") + 
-                geom_line(aes_string(y = "yield"), col = "red") + 
+                geom_line(aes(y=.data$yield), col = "red") + 
                 ggtitle(labs[id]) + thm(max) 
             if (!is.null(cuts[id])) {
                 cut <- round(cuts[id], 2)

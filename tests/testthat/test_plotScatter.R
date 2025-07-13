@@ -15,8 +15,8 @@ test_that("plotScatter() - labels", {
             paste(chs, rownames(x), sep = "-"))
         i <- sample(nrow(x), 2)
         p <- plotScatter(x, rownames(x)[i], label = l)
-        expect_is(p, "ggplot")
-        labs <- unlist(p$labels[c("x", "y")])
+        expect_s3_class(p, "ggplot")
+        labs <- unlist(get_labs(p)[c("x", "y")])
         expect_equivalent(labs, ls[i])
     }
 })
@@ -24,8 +24,8 @@ test_that("plotScatter() - labels", {
 test_that("plotScatter() - facetting", {
     chs <- sample(rownames(x), 3)
     p <- plotScatter(x, chs, label = "target")
-    expect_is(p, "ggplot")
-    expect_true(p$labels$x == chs[1])
+    expect_s3_class(p, "ggplot")
+    expect_true(get_labs(p)$x == chs[1])
     expect_identical(levels(p$data$variable), chs[-1])
 })
 

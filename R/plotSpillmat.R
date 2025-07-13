@@ -75,8 +75,8 @@ plotSpillmat <- function(x, sm = NULL, anno = TRUE,
     if (hm_pal[1] != "white")
         hm_pal <- c("white", hm_pal)
     p <- ggplot(df, 
-        aes_string("receiving", "emitting", group = "spillover")) +
-        geom_tile(aes_string(fill = "spill"), col = "lightgrey") +
+        aes(.data$receiving, .data$emitting, group=.data$spillover)) +
+        geom_tile(aes(fill=.data$spill), col = "lightgrey") +
         scale_fill_gradientn(
             guide = FALSE, limits = c(0, max),
             colors = hm_pal, na.value = "lightgrey") +
@@ -90,9 +90,7 @@ plotSpillmat <- function(x, sm = NULL, anno = TRUE,
     if (anno) {
         anno <- sprintf("%.1f", df$spill)
         anno[df$spill == 0 | df$spill == 100] <- ""
-        p <- p + geom_text(
-            aes_string(label = "anno"), 
-            col = anno_col, size = 2)
+        p <- p + geom_text(aes(label=.data$anno, col=anno_col, size=2))
     }
     return(p)
 }

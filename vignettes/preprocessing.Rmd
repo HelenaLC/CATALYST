@@ -535,8 +535,9 @@ gs_add_gating_method(
     gating_args = "K=1,q=0.9")
 
 # plot scatter of DNA channels including elliptical gate
-ggcyto(gs, 
-    aes_string(dna_chs[1], dna_chs[2])) + 
+ggcyto(gs, aes(
+    x=.data[[dna_chs[1]]], 
+    y=.data[[dna_chs[2]]])) +
     geom_hex(bins = 128) + 
     geom_gate(data = "cells") +
     facet_null() + ggtitle(NULL) +

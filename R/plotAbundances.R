@@ -120,7 +120,7 @@ plotAbundances <- function(x, k = "meta20",
     }
 
     # specify shared aesthetics
-    p <- ggplot(df, aes_string(y = "Freq")) +
+    p <- ggplot(df, aes(y=.data$Freq)) +
         labs(x = NULL, y = "Proportion [%]") + 
         theme_bw() + theme(
             panel.grid = element_blank(),
@@ -134,7 +134,7 @@ plotAbundances <- function(x, k = "meta20",
         sample_id = p + (if (!is.null(group_by)) 
             facet_wrap(group_by, scales = "free_x")) +
             geom_bar(
-                aes_string(x = "sample_id", fill = "cluster_id"), 
+                aes(x=.data$sample_id, fill=.data$cluster_id),
                 position = "fill", stat = "identity") +
             scale_fill_manual("cluster_id", values = k_pal) +
             scale_x_discrete(expand = c(0, 0)) +
@@ -148,18 +148,23 @@ plotAbundances <- function(x, k = "meta20",
                 col = guide_legend(order = 1, override.aes = list(size = 3)),
                 shape = guide_legend(override.aes = list(size = 3)))
             if (is.null(group_by)) {
-                p + geom_boxplot(aes_string(x = "cluster_id"), alpha = 0.2,
+                p + geom_boxplot(aes(.data$cluster_id), alpha = 0.2,
                     position = position_dodge(), outlier.color = NA) + 
-                    geom_point(aes_string("cluster_id", shape = shape_by),
+                    geom_point(aes(.data$cluster_id, 
+                        shape = if (!is.null(shape_by)) .data[[shape_by]]),
                         position = position_jitter(width = 0.2))
             } else {
                 p + facet_wrap("cluster_id", scales = "free_y", ncol = 4) +
-                    geom_boxplot(aes_string(x = group_by, 
-                        color = group_by, fill = group_by),
+                    geom_boxplot(aes(
+                        x=.data[[group_by]], 
+                        col=.data[[group_by]], 
+                        fill=.data[[group_by]]),
                         position = position_dodge(), alpha = 0.2, 
-                        outlier.color = NA, show.legend = FALSE) + 
-                    geom_point(aes_string(x = group_by, 
-                        col = group_by, shape = shape_by),
+                        outlier.color = NA, show.legend = FALSE) +
+                    geom_point(aes(
+                        x=.data[[group_by]],
+                        col=.data[[group_by]],
+                        shape=.data[[shape_by]]),
                         position = position_jitter(width = 0.2))
             }
         }
