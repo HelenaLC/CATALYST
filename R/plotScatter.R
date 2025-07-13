@@ -112,13 +112,11 @@ plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
     }
     if (is.null(color_by)) {
         col_var <- guides <- NULL
-        fill_var <- "..ncount.."
         scales <- scale_fill_gradientn(trans = "sqrt",
             colors = c("navy", rev(brewer.pal(11, "Spectral"))))
         geom <- geom_hex(bins = bins, na.rm = TRUE, show.legend = FALSE)
     } else {
-        fill_var <- NULL
-        col_var <- sprintf("`%s`", color_by)
+        col_var <- color_by
         geom <- geom_point(alpha = 0.2, size = 0.8, na.rm = TRUE)
         if (is.numeric(df[[color_by]])) {
             guides <- NULL
@@ -142,10 +140,11 @@ plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
                 rows = vars(!!sym(facet[2])))
         }
     }
-    xy <- sprintf("`%s`", chs)
     if (!zeros) df <- df[rowSums(df[, chs[c(1, 2)]] == 0) == 0, ]
-    ggplot(df, aes_string(xy[1], xy[2], col = col_var, fill = fill_var)) + 
-        geom + scales + guides + facet + ylab + 
+    ggplot(df, aes(.data[[chs[1]]], .data[[chs[2]]], 
+        col=if (!is.null(col_var)) .data[[col_var]])) +
+        labs(col=col_var) + ylab + 
+        geom + scales + guides + facet +
         theme_bw() + theme(aspect.ratio = 1,
             panel.grid = element_blank(), 
             axis.text = element_text(color = "black"),

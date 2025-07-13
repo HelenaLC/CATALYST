@@ -70,9 +70,8 @@
             breaks = seq(0, maxs[2], 2), limits = c(-0.5, maxs[2])) +
         geom_rect(data = gate, inherit.aes = FALSE, 
             col = "blue", fill = NA, linewidth = 0.4,
-            aes_string(
-                xmin = "xmin", xmax = "xmax", 
-                ymin = "ymin", ymax = "ymax")) + 
+            aes(xmin=.data$xmin, xmax=.data$xmax, 
+                ymin=.data$ymin, ymax=.data$ymax)) +
         coord_flip() + theme(
             legend.position = "none", 
             panel.spacing = unit(0, "mm"))
@@ -104,10 +103,11 @@
     df <- melt(df, id.vars = c("t", "id"))
     bl$id <- factor(bl$id, levels = names(l))
     df$id <- factor(df$id, levels = names(l))
-    ggplot(df, aes_string("t", "value", col = "variable")) +
+    ggplot(df, aes(.data$t, .data$value, col=.data$variable)) +
         facet_wrap("id", ncol = 1) + geom_line(linewidth = 0.8) + 
-        geom_hline(data = bl, linewidth = 0.4, lty = 2, show.legend = FALSE,
-            aes_string(yintercept = "value", col = "variable")) +
+        geom_hline(
+            aes(yintercept=.data$value, col=.data$variable), bl,
+            linewidth = 0.4, lty = 2, show.legend = FALSE) +
         scale_color_manual(NULL, values = brewer.pal(9, "Set1")) +
         scale_x_continuous(
             expression("time ("*10^6~"ms)"),

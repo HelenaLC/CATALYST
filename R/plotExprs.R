@@ -58,10 +58,9 @@ plotExprs <- function(x, features = NULL,
         variable.name = "antigen", 
         id.vars = names(colData(x)))
     
-    ggplot(gg_df, fill = NULL, 
-        aes_string(
-            x = value, y = "after_stat(ndensity)",
-            col = color_by, group = "sample_id")) + 
+    ggplot(gg_df, aes(
+        col=if (!is.null(color_by)) .data[[color_by]],
+        .data[[value]], after_stat(ndensity), group=.data$sample_id)) +
         facet_wrap(~ antigen, scales = "free_x") +
         geom_density() + 
         ylab("normalized density") +

@@ -126,13 +126,17 @@ plotPbExprs <- function(x, k = "meta20", features = "state",
     } else size_by <- NULL
     df <- df[ncs > 0, , drop = FALSE]
 
-    ggplot(df, aes_string(x_var, "value", col = color_by)) +
+    ggplot(df, aes(.data[[x_var]], .data$value, 
+        col=if (!is.null(color_by)) .data[[color_by]])) +
         facet_wrap(facet_by, ncol = ncol, scales = "free_y") +
         (if (geom != "boxes") geom_point(
             alpha = 0.8, position = (if (jitter) {
                 position_jitterdodge(jitter.width = 0.2, jitter.height = 0)
             } else "identity"),
-            aes_string(fill = color_by, size = size_by, shape = shape_by))) +
+            aes(
+                size=if (!is.null(size_by)) .data[[size_by]], 
+                fill=if (!is.null(color_by)) .data[[color_by]], 
+                shape=if (!is.null(shape_by)) .data[[shape_by]]))) +
         (if (geom != "points")
             geom_boxplot(alpha = 0.4, width = 0.8, fill = NA,
                 outlier.color = NA, show.legend = FALSE)) +
@@ -143,6 +147,7 @@ plotPbExprs <- function(x, k = "meta20", features = "state",
             col = guide_legend(order = 1, 
                 override.aes = list(alpha = 1, size = 3))) +
         ylab(paste(fun, ifelse(assay == "exprs", "expression", assay))) + 
+        labs(col=color_by, size=size_by, fill=color_by, shape=shape_by) +
         theme_bw() + theme(
             legend.key.height  =  unit(0.8, "lines"),
             axis.text = element_text(color = "black"),

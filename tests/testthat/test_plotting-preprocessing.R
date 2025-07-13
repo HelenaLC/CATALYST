@@ -39,9 +39,8 @@ test_that("plotYields()", {
     y <- estCutoffs(x)
     which <- sample(ids, 3)
     p <- plotYields(y, which)
-    cuts <- vapply(p[which], function(u) 
-        as.numeric(u$layer[[4]]$data), numeric(1))
-    expect_identical(cuts, metadata(y)$sep_cutoffs[which])
+    cuts <- vapply(p, \(q) tail(q$layers, 1)[[1]]$data[[1]], numeric(1))
+    expect_identical(cuts[which], metadata(y)$sep_cutoffs[which])
     # save output to .pdf
     foo <- plotYields(x, ids[1], 
         out_path = (dir <- tempdir()),

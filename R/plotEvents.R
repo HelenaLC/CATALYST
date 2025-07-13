@@ -95,7 +95,7 @@ plotEvents <- function(x, which = "all", assay = "scaled",
         df <- data.frame(t(bc_es[, cs[[id]]]), check.names = FALSE)
         df$i <- seq_len(nrow(df))
         gg_df <- melt(df, id.vars = "i")
-        ggplot(gg_df, aes_string(x = "i", y = "value", col = "variable")) +
+        ggplot(gg_df, aes(.data$i, .data$value, col=.data$variable)) +
             geom_point() + scale_color_manual(NULL, values = pal) +
             scale_x_continuous(limits = c(0, nrow(df) + 1), expand = c(0, 0)) +
             ggtitle(bquote(bold(.(labs[id]))*" ("*.(ns[id])*" events)")) +

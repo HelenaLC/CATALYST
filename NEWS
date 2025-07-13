@@ -1,3 +1,12 @@
+changes in version 1.32.1
+
++ omit 'aes_string' everywhere
++ ggplot2 goes S7-related fixes
+
+changes in version 1.32.0
+
++ Bioc 3.21 release
+
 changes in version 1.30.2
 
 + in 'pbMDS()', fix legend titles

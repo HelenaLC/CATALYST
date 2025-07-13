@@ -79,8 +79,8 @@ plotNRS <- function(x, features = NULL,
     o <- names(sort(avg_nrs, decreasing = TRUE))
     df$antigen <- factor(df$antigen, levels = o)
     
-    ggplot(df, aes_string(x = "antigen", y = "NRS")) +
-        geom_point(aes_string(color = color_by), alpha = 0.8,
+    ggplot(df, aes(.data$antigen, .data$NRS)) +
+        geom_point(aes(col=.data[[color_by]]), alpha = 0.8,
             position = position_jitter(width = 0.2, height = 0)) +
         geom_boxplot(width = 0.8, fill = NA, outlier.color = NA) +
         stat_summary(fun = "mean", orientation = "x",

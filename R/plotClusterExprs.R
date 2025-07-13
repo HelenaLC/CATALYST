@@ -78,9 +78,9 @@ plotClusterExprs <- function(x,
         levels = rev(c("avg", levels(x$cluster_id)[o])),
         labels = rev(c("average", paste0(names(fq), " (", fq, "%)")[o])))
     
-    ggplot(df, aes_string(
-        x = "expression", y = "cluster_id", 
-        col = "avg", fill = "avg")) + 
+    ggplot(df, aes(
+        col=.data$avg, fill=.data$avg,
+        x=.data$expression, y=.data$cluster_id)) +
         facet_wrap(~antigen, scales = "free_x", nrow = 2) + 
         geom_density_ridges(alpha = 0.2) + 
         theme_ridges() + theme(

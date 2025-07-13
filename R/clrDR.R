@@ -208,8 +208,8 @@ clrDR <- function(x,
         # include variance explained in axis labels
         ve <- attr(xy, "percentVar")[dims]
         ve <- sprintf("(%s%%)", round(ve))
-        labs <- unlist(p$labels[c("x", "y")])
-        p$labels[c("x", "y")] <- paste(labs, ve)
+        # labs <- unlist(p$labels[c("x", "y")])
+        # p$labels[c("x", "y")] <- paste(labs, ve)
         # (optionally) add loading arrows
         if (arrows) {
             # construct data.frame of PC loadings
@@ -239,8 +239,10 @@ clrDR <- function(x,
             p <- p + geom_segment(
                 data = rot, inherit.aes = FALSE,
                 linewidth = 0.5, arrow = arrow(length = unit(1, "mm")),
-                aes_string(0, 0, xend = "x", yend = "y", col = arrow_col)) +
+                aes(0, 0, col = .data[[arrow_col]],
+                    xend = .data$x, yend = .data$y)) +
                 scale_color_manual(values = arrow_pal) +
+                labs(x=paste(labs[1], ve[1]), y=paste(labs[2], ve[2])) +
                 guides(col = guide_legend(
                     override.aes = list(size = 1),
                     ncol = ifelse(nrow(rot) > 10, 2, 1)))
