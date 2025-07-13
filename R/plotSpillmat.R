@@ -78,7 +78,7 @@ plotSpillmat <- function(x, sm = NULL, anno = TRUE,
         aes(.data$receiving, .data$emitting, group=.data$spillover)) +
         geom_tile(aes(fill=.data$spill), col = "lightgrey") +
         scale_fill_gradientn(
-            guide = FALSE, limits = c(0, max),
+            guide = "none", limits = c(0, max),
             colors = hm_pal, na.value = "lightgrey") +
         scale_x_discrete(limits = colnames(sm), expand = c(0, 0)) +
         scale_y_discrete(limits = rev(rownames(sm)), expand = c(0, 0)) +
@@ -90,7 +90,7 @@ plotSpillmat <- function(x, sm = NULL, anno = TRUE,
     if (anno) {
         anno <- sprintf("%.1f", df$spill)
         anno[df$spill == 0 | df$spill == 100] <- ""
-        p <- p + geom_text(aes(label=.data$anno, col=anno_col, size=2))
+        p <- p + geom_text(aes(label=anno), size=2, col=anno_col)
     }
     return(p)
 }

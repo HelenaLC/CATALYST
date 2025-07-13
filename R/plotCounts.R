@@ -92,8 +92,8 @@ plotCounts <- function(x,
         geom_bar(stat = "identity", 
             col = ifelse(prop, "white", NA), 
             position = ifelse(prop, "stack", "dodge2")) +
+        labs(y=ifelse(prop, "frequency", "n_cells"), fill=color_by) +
         scale_y_continuous(expand = c(0, 0)) +
-        ylab(ifelse(prop, "frequency", "n_cells")) +
         coord_cartesian(clip = "off") + 
         theme_minimal() + theme(
             panel.grid.minor = element_blank(), 

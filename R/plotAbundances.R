@@ -147,7 +147,7 @@ plotAbundances <- function(x, k = "meta20",
             p <- p + scale_shape_manual(values = shapes) + guides(
                 col = guide_legend(order = 1, override.aes = list(size = 3)),
                 shape = guide_legend(override.aes = list(size = 3)))
-            if (is.null(group_by)) {
+            p <- if (is.null(group_by)) {
                 p + geom_boxplot(aes(.data$cluster_id), alpha = 0.2,
                     position = position_dodge(), outlier.color = NA) + 
                     geom_point(aes(.data$cluster_id, 
@@ -157,16 +157,17 @@ plotAbundances <- function(x, k = "meta20",
                 p + facet_wrap("cluster_id", scales = "free_y", ncol = 4) +
                     geom_boxplot(aes(
                         x=.data[[group_by]], 
-                        col=.data[[group_by]], 
-                        fill=.data[[group_by]]),
+                        col=if (!is.null(group_by)) .data[[group_by]], 
+                        fill=if (!is.null(group_by)) .data[[group_by]]),
                         position = position_dodge(), alpha = 0.2, 
                         outlier.color = NA, show.legend = FALSE) +
                     geom_point(aes(
                         x=.data[[group_by]],
-                        col=.data[[group_by]],
-                        shape=.data[[shape_by]]),
-                        position = position_jitter(width = 0.2))
+                        col=if (!is.null(group_by)) .data[[group_by]],
+                        shape=if (!is.null(shape_by)) .data[[shape_by]]),
+                        position = position_jitter(width = 0.2)) 
             }
+            p + labs(col=group_by, fill=group_by, shape=shape_by)
         }
     )
 }

@@ -140,9 +140,8 @@ plotScatter <- function(x, chs, color_by = NULL, facet_by = NULL,
                 rows = vars(!!sym(facet[2])))
         }
     }
-    xy <- chs#sprintf("`%s`", chs)
     if (!zeros) df <- df[rowSums(df[, chs[c(1, 2)]] == 0) == 0, ]
-    ggplot(df, aes(.data[[xy[1]]], .data[[xy[2]]], 
+    ggplot(df, aes(.data[[chs[1]]], .data[[chs[2]]], 
         col=if (!is.null(col_var)) .data[[col_var]])) +
         labs(col=col_var) + ylab + 
         geom + scales + guides + facet +

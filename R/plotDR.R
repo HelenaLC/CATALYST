@@ -176,8 +176,8 @@ plotDR <- function(x, dr = NULL,
     
     p <- ggplot(df, aes(.data$x, .data$y, 
         col=if (!is.null(color_by)) .data[[color_by]])) +
+        labs(x = labs[1], y = labs[2], col = color_by) +
         geom_point(size = 0.4, alpha = 0.8) + 
-        labs(x = labs[1], y = labs[2]) +
         facet + scale + guide + asp + 
         theme_minimal() + thm + theme(
             panel.grid.minor = element_blank(),

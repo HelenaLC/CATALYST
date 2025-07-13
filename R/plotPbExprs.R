@@ -147,6 +147,7 @@ plotPbExprs <- function(x, k = "meta20", features = "state",
             col = guide_legend(order = 1, 
                 override.aes = list(alpha = 1, size = 3))) +
         ylab(paste(fun, ifelse(assay == "exprs", "expression", assay))) + 
+        labs(col=color_by, size=size_by, fill=color_by, shape=shape_by) +
         theme_bw() + theme(
             legend.key.height  =  unit(0.8, "lines"),
             axis.text = element_text(color = "black"),
