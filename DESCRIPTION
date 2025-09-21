@@ -48,7 +48,7 @@ Suggests:
 URL: https://github.com/HelenaLC/CATALYST
 BugReports: https://github.com/HelenaLC/CATALYST/issues
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true
