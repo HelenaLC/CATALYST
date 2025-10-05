@@ -534,9 +534,10 @@ gs_add_gating_method(
 ggcyto(gs, aes(
     x = .data[[dna_chs[1]]], 
     y = .data[[dna_chs[2]]])) +
-    facet_null() + ggtitle(NULL) +
-    geom_hex(bins = 128) + geom_gate(data = "cells") + 
-    theme(aspect.ratio = 1, panel.grid.minor = element_blank())
+    geom_hex(bins = 128) + 
+    geom_gate(data = "cells") + 
+    theme(panel.grid.minor = element_blank()) +
+    facet_null() + ggtitle(NULL) + coord_equal()
 ```
 
 # Session information
