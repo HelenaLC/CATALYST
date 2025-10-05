@@ -35,10 +35,6 @@ output:
 
 \DeclareMathOperator*{\argmin}{argmin}
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(cache = TRUE)
-```
-
 <span style="color:firebrick">**Most of the pipeline and visualizations presented herein have been adapted from @Chevrier2018-CATALYST's *"Compensation of Signal Spillover in Suspension and Imaging Mass Cytometry"* available [here](https://doi.org/10.1016/j.cels.2018.02.010).**</span>
 
 ```{r load-libs, warning = FALSE, message = FALSE}
