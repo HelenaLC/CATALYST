@@ -284,7 +284,7 @@
 # ==============================================================================
 # aggregation of single-cell to pseudobulk data; 
 # e.g., median expression by cluster- or cluster-sample
-#   - x:   a SCE with rows = cells, columns = features
+#   - x:   a SCE with rows = features, columns = observations
 #   - by:  colData columns specifying factor(s) to aggregate by
 #   - fun: aggregation function specifying the
 #          summary statistic, e.g., sum, mean, median
