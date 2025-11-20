@@ -50,13 +50,12 @@ plotSpillmat <- function(x, sm = NULL, anno = TRUE,
         is.logical(anno), length(anno) == 1,
         !is.null(sm) || !is.null(sm <- metadata(x)$spillover_matrix),
         .check_pal(hm_pal), .check_pal(anno_col, n = 1))
-
+    
     # check validity of input spillover matrix
     sm <- .check_sm(sm, isotope_list)
-    chs <- colnames(sm)
-    ms <- .get_ms_from_chs(chs)
+    chs <- channels(x)
     bc_chs <- chs[rowData(x)$is_bc]
-    bc_idx <- which(bc_chs %in% colnames(sm))
+    bc_idx <- which(colnames(sm) %in% bc_chs)
     bc_rng <- seq(min(bc_idx), max(bc_idx))
     sm <- .make_symetric(sm)[bc_rng, bc_rng]
     
