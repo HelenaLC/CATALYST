@@ -9,7 +9,7 @@ bibentry(bibtype = "article",
   pages   = "612--620.e5",
   year    =  2018,
   doi     = "10.1016/j.cels.2018.02.010"
-}
+)
 
 bibentry(bibtype = "article",
   title   = "{CyTOF} workflow: differential discovery in high-throughput
@@ -22,7 +22,7 @@ bibentry(bibtype = "article",
   pages   =  748 [v4],
   year    =  2019,
   doi     = "10.12688/f1000research.11622.3"
-}
+)
 
 bibentry(bibtype = "article",
   title    = "An {R}-based reproducible and user-friendly preprocessing pipeline
@@ -35,4 +35,4 @@ bibentry(bibtype = "article",
   pages    = "1263 [v2]",
   year     =  2022,
   doi      = "10.12688/f1000research.26073.2"
-}
+)
