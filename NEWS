@@ -1,6 +1,9 @@
 changes in version 1.34.1
 
++ add inst/CITATION
 + fix in 'plotSpillmat' (#204)
++ in 'plotExprs', color legend title
++ in 'plotExprs', fix R CMD warning re:ndensity
 
 changes in version 1.34.0
 
