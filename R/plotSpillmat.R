@@ -53,24 +53,31 @@ plotSpillmat <- function(x, sm = NULL, anno = TRUE,
     
     # check validity of input spillover matrix
     sm <- .check_sm(sm, isotope_list)
+    
+    # get barcode channels
     chs <- channels(x)
     bc_chs <- chs[rowData(x)$is_bc]
+    
+    # make symmetric & subset
     bc_idx <- which(colnames(sm) %in% bc_chs)
     bc_rng <- seq(min(bc_idx), max(bc_idx))
     sm <- .make_symetric(sm)[bc_rng, bc_rng]
     
+    # get bin labels
     df <- melt(sm * 100)
     colnames(df) <- c("emitting", "receiving", "spill")
     df$spillover <- paste0(sprintf("%2.3f", df$spill), "%")
     max <- ceiling(max(100 * sm[row(sm) != col(sm)]) / 0.25) * 0.25
     total <- paste0(sprintf("%2.2f", colSums(sm) * 100 - 100), "%")
     
+    # get bin colors
     labs <- chs[bc_rng]
     ex <- !labs %in% chs[bc_idx]
     lab_cols <- rep("black", nrow(sm))
     lab_cols[ex] <- "grey"
     total[ex] <- NA
     
+    # plotting
     if (hm_pal[1] != "white")
         hm_pal <- c("white", hm_pal)
     p <- ggplot(df, 
