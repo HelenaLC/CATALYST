@@ -1,0 +1,38 @@
+bibentry(bibtype = "article",
+  title   = "Compensation of Signal Spillover in Suspension and Imaging Mass
+             Cytometry",
+  author  = "Chevrier, Stéphane and Crowell, Helena L and Zanotelli, Vito R T
+             and Engler, Stefanie and Robinson, Mark D and Bodenmiller, Bernd",
+  journal = "Cell Systems",
+  volume  =  6,
+  number  =  5,
+  pages   = "612--620.e5",
+  year    =  2018,
+  doi     = "10.1016/j.cels.2018.02.010"
+)
+
+bibentry(bibtype = "article",
+  title   = "{CyTOF} workflow: differential discovery in high-throughput
+             high-dimensional cytometry datasets",
+  author  = "Nowicka, Malgorzata and Krieg, Carsten and Crowell, Helena L and
+             Weber, Lukas M and Hartmann, Felix J and Guglietta, Silvia and
+             Becher, Burkhard and Levesque, Mitchell P and Robinson, Mark D",
+  journal = "F1000Research",
+  volume  =  6,
+  pages   =  "748 [v4]",
+  year    =  2019,
+  doi     = "10.12688/f1000research.11622.3"
+)
+
+bibentry(bibtype = "article",
+  title    = "An {R}-based reproducible and user-friendly preprocessing pipeline
+              for {CyTOF} data",
+  author   = "Crowell, Helena L and Chevrier, Stéphane and Jacobs, Andrea and
+              Sivapatham, Sujana and {Tumor Profiler Consortium} and
+              Bodenmiller, Bernd and Robinson, Mark D",
+  journal  = "F1000Research",
+  volume   =  9,
+  pages    = "1263 [v2]",
+  year     =  2022,
+  doi      = "10.12688/f1000research.26073.2"
+)
