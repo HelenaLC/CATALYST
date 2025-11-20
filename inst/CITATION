@@ -19,7 +19,7 @@ bibentry(bibtype = "article",
              Becher, Burkhard and Levesque, Mitchell P and Robinson, Mark D",
   journal = "F1000Research",
   volume  =  6,
-  pages   =  748 [v4],
+  pages   =  "748 [v4]",
   year    =  2019,
   doi     = "10.12688/f1000research.11622.3"
 )
