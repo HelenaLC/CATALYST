@@ -270,15 +270,17 @@
 #   - x:   a SCE with rows = cells, columns = features
 #   - by:  colData columns specifying factor(s) to aggregate by
 # ------------------------------------------------------------------------------
-#' @importFrom data.table data.table
 #' @importFrom SummarizedExperiment colData
-#' @importFrom purrr map_depth
 .split_cells <- function(x, by) {
-    stopifnot(is.character(by), by %in% colnames(colData(x)))
-    cd <- data.frame(colData(x))
-    dt <- data.table(cd, i = seq_len(ncol(x)))
-    dt_split <- split(dt, by = by, sorted = TRUE, flatten = FALSE)
-    map_depth(dt_split, length(by), "i")
+    stopifnot(
+        length(by) > 0, length(by) <= 3,
+        is.character(by), by %in% names(colData(x)))
+    cd <- data.frame(colData(x)[by], i=seq_len(ncol(x)), check.names=FALSE)
+    cd <- split(cd, cd[[by[1]]])
+    if (length(by) > 1) cd <- lapply(cd, \(.) split(., .[[by[2]]]))
+    if (length(by) > 2) cd <- lapply(cd, \(.) lapply(., \(.) split(., .[[by[3]]])))
+    f <- \(x, g=\(.) .$i) if (is.data.frame(x)) g(x) else lapply(x, f, g)
+    return(f(cd))
 }
 
 # ==============================================================================

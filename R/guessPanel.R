@@ -26,14 +26,13 @@
 #' Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
 #' @examples
-#' # examplary data with Time, DNA, BC channels, etc.
+#' # exemplary data with Time, DNA, BC channels, etc.
 #' data(raw_data)
 #' guessPanel(raw_data[[1]])
 #' 
 #' @importFrom dplyr mutate_if rename
 #' @importFrom flowCore parameters
 #' @importFrom methods as is
-#' @importFrom purrr map
 #' @export
 
 guessPanel <- function(x, sep = "_") {
@@ -48,18 +47,20 @@ guessPanel <- function(x, sep = "_") {
     # do this if descriptions contain channel masses
     ms1 <- .get_ms_from_chs(ps$name)
     ms2 <- .get_ms_from_chs(ps$desc)
-    check <- map(lapply(ms1[!is.na(ms1)], grep, x = ms2), 1)
+    check <- lapply(ms1[!is.na(ms1)], grep, x = ms2)
+    check <- lapply(check, \(.) if (length(.)) .[[1]])
     if (length(unlist(check)) == sum(!is.na(ms1))) {
         # make some guesses of how to parse / what columns to use
         if (any(grepl(sep, ps$desc))) {
-            # split on 1st occurange of 'sep'
+            # split on 1st occurrence of 'sep'
             ss <- strsplit(ps$desc, sep)
             ss <- lapply(ss, function(u) if (length(u) > 2) 
                 c(u[1], paste(u[-1], collapse = sep)) else u)
             ps <- rename(ps, desc0 = "desc")
-            ps$desc <- map(ss, 1)
-            ps$antigen <- map(ss, function(u)
-                ifelse(length(u) == 1, u[1], paste(u[-1], collapse = sep)))
+            ps$desc <- lapply(ss, \(.) .[1])
+            ps$antigen <- lapply(ss, \(u) ifelse(
+                length(u) == 1, u[1], 
+                paste(u[-1], collapse = sep)))
             ps$use_channel <- !is.na(ps$antigen)
             ps$use_channel[paste(ps$desc) == paste(ps$antigen)] <- FALSE
         } else {

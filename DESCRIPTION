@@ -33,7 +33,7 @@ Description:
 	profiles at the subpopulation-level, respectively.
 Imports: 
 	circlize, ComplexHeatmap, ConsensusClusterPlus, cowplot, 
-	data.table, dplyr, drc,
+	dplyr, drc,
 	flowCore, FlowSOM, 
 	ggplot2, ggrepel, ggridges, graphics, grDevices, grid, gridExtra, 
 	Matrix, matrixStats, methods,

@@ -89,7 +89,6 @@
 #' @importFrom graphics hist
 #' @importFrom matrixStats colQuantiles
 #' @importFrom methods is
-#' @importFrom purrr map
 #' @importFrom reshape2 melt
 #' @importFrom SummarizedExperiment assay rowData rowData<-
 #' @importFrom S4Vectors DataFrame metadata<-
@@ -137,7 +136,7 @@ cluster <- function(x, features = "type",
     mcs <- seq_len(maxK)[-1]
     
     # construct data.frame of clustering codes
-    codes <- data.frame(seq_len(k), map(mc[-1], "consensusClass"))
+    codes <- data.frame(seq_len(k), lapply(mc[-1], \(.) .$consensusClass))
     codes <- mutate_all(codes, function(u) factor(u, levels = sort(unique(u))))
     colnames(codes) <- c(sprintf("som%s", k), sprintf("meta%s", mcs))
     
