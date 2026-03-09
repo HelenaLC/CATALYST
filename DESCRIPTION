@@ -37,8 +37,7 @@ Imports:
 	flowCore, FlowSOM, 
 	ggplot2, ggrepel, ggridges, graphics, grDevices, grid, gridExtra, 
 	Matrix, matrixStats, methods,
-	nnls, 
-	purrr, 
+	nnls,
 	RColorBrewer, reshape2, Rtsne, 
 	SummarizedExperiment, 
 	S4Vectors, scales, scater, stats

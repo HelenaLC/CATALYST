@@ -291,10 +291,8 @@
 #   - fun: aggregation function specifying the
 #          summary statistic, e.g., sum, mean, median
 # ------------------------------------------------------------------------------
-#' @importFrom dplyr bind_rows
 #' @importFrom Matrix rowMeans rowSums
 #' @importFrom matrixStats rowMedians
-#' @importFrom purrr map_depth
 #' @importFrom SummarizedExperiment assay
 .agg <- function(x, 
     by = c("cluster_id", "sample_id"), 
@@ -308,13 +306,18 @@
         median = rowMedians, 
         mean = rowMeans, 
         sum = rowSums)
+    na <- numeric(nrow(x))
     cs <- .split_cells(x, by)
-    pb <- map_depth(cs, -1, function(i) {
-        if (length(i) == 0) return(numeric(nrow(x)))
-        fun(y[, i, drop = FALSE])
-    })
-    map_depth(pb, -2, function(u) as.matrix(data.frame(
-        u, row.names = rownames(x), check.names = FALSE)))
+    fn <- \(x) {
+        ys <- vapply(x, \(.) {
+            if (length(.) == 0) return(na)
+            fun(y[, ., drop=FALSE])
+        }, na) 
+        if (!is.null(nrow(ys)))
+            rownames(ys) <- rownames(y)
+        return(ys)
+    }
+    if (length(by) == 1) fn(cs) else lapply(cs, fn)
 }
 
 # ==============================================================================
