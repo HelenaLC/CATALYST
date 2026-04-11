@@ -6,7 +6,7 @@
 \usage{
 runDR(
   x,
-  dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"),
+  dr = c("UMAP", "TSNE", "PCA"),
   cells = NULL,
   features = "type",
   assay = "exprs",
@@ -31,17 +31,15 @@ a subset of \code{rownames(x)}; NULL to use all features.}
 for dimension reduction; valid values are \code{assayNames(x)}.}
 
 \item{...}{optional arguments for dimension reduction; passed to 
-\code{\link[scater]{runUMAP}}, \code{\link[scater]{runTSNE}}, 
-\code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}}
-and \code{\link[scater]{runDiffusionMap}}, respecttively.
-See \code{?"scater-red-dim-args"} for details.}
+\code{\link[scrapper]{runPca}}, \code{\link[scrapper]{runUmap}}, 
+and \code{\link[scrapper]{runTsne}}, respectively.}
 }
 \value{
 a \code{ggplot} object.
 }
 \description{
 Wrapper around dimension reduction methods available 
-through \code{scater}, with optional subsampling of cells per each sample.
+through \code{scrapper}, with optional subsampling of cells per each sample.
 }
 \examples{
 # construct SCE

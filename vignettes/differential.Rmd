@@ -30,7 +30,7 @@ library(CATALYST)
 library(cowplot)
 library(flowCore)
 library(diffcyt)
-library(scater)
+library(scrapper)
 library(SingleCellExperiment)
 ```
 
@@ -428,7 +428,7 @@ plotMultiHeatmap(sce,
 
 # Dimensionality reduction
 
-The number of cells in cytometry data is typically large, and for visualization of cells in a two-dimensional space it is often sufficient to run dimension reductions on a subset of the data. Thus, `CATALYST` provides the wrapper function `runDR` to apply any of the dimension reductions available from `BiocStyle::Biocpkg("scater")` using
+The number of cells in cytometry data is typically large, and for visualization of cells in a two-dimensional space it is often sufficient to run dimension reductions on a subset of the data. Thus, `CATALYST` provides the wrapper function `runDR` to apply any of the dimension reductions available from `BiocStyle::Biocpkg("scrapper")` using
 
 1. the subset of features specified via argument `features`; either a subset of `rownames(.)` or, e.g., `"type"` for `type_markers(.)` (if `marker_classes(.)` have been specified).
 2. the subset of cells specified via argument `cells`; either `NULL` for all cells, or `n` to sample a random subset of n cells per sample.
@@ -440,10 +440,12 @@ set.seed(1601)
 sce <- runDR(sce, dr = "UMAP", cells = 500, features = "type")
 ```
 
-Alternatively, dimension reductions can be computed using one of `r BiocStyle::Biocpkg("scater")`'s `runX` functions (`X = "TSNE", "UMAP", ...`). Note that, by default, `scater` expects expression values to be stored in the `logcounts` assay of the SCE; specification of `exprs_values = "exprs"` is thus required:
+Alternatively, dimension reductions can be computed using one of `r BiocStyle::Biocpkg("scrapper")`'s `runX.se` functions (`X = "Tsne", "Umap", ...`). Note that, by default, `scrapper` expects expression values to be stored in the `logcounts` assay of the SCE; specification of `assay.type = "exprs"` is thus required:
 
-```{r runUMAP-scater, eval = FALSE}
-sce <- runUMAP(sce, exprs_values = "exprs")
+```{r runUMAP-scrapper, eval = FALSE}
+# run UMAP on principal components computed from all features
+sce <- runPca.se(sce, features=rownames(sce), assay.type="exprs")
+sce <- runUmap(sce, reddim.type="PCA")
 ```
 
 DRs available within the SCE can be viewed via `reducedDimNames` and accessed with `reducedDim(s)`:

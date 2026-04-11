@@ -54,17 +54,17 @@
 #' 
 #' # cluster-level pseudobulks
 #' # including type-features only
-#' pbMDS(sce, by = "cluster_id", features = "type")
+#' set.seed(1); pbMDS(sce, by = "cluster_id", features = "type")
 #' 
 #' # pseudobulks by cluster-sample 
 #' # including all features
 #' pbMDS(sce, by = "both", k = "meta12", 
 #'   shape_by = "condition", size_by = TRUE)
 #' 
-#' @import ggplot2
-#' @importFrom ggrepel geom_label_repel
-#' @importFrom scater calculateMDS
 #' @importFrom SummarizedExperiment colData
+#' @importFrom ggrepel geom_label_repel
+#' @importFrom stats cmdscale
+#' @import ggplot2
 #' @export
 
 pbMDS <- function(x,
@@ -90,7 +90,7 @@ pbMDS <- function(x,
     pbs <- .agg(x, by, fun, assay)
     if (is.list(pbs))
         pbs <- do.call("cbind", pbs)
-    mds <- calculateMDS(pbs, ncomponents = max(dims))
+    mds <- cmdscale(dist(t(pbs)), k=max(dims))
     
     # construct data.frame for plotting
     df <- data.frame(mds[, dims])

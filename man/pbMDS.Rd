@@ -78,7 +78,7 @@ pbMDS(sce, by = "sample_id", features = "state")
 
 # cluster-level pseudobulks
 # including type-features only
-pbMDS(sce, by = "cluster_id", features = "type")
+set.seed(1); pbMDS(sce, by = "cluster_id", features = "type")
 
 # pseudobulks by cluster-sample 
 # including all features

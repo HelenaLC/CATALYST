@@ -104,19 +104,18 @@
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom SummarizedExperiment colData
-#' @importFrom scater calculatePCA calculateMDS
-#'   calculateUMAP calculateTSNE calculateDiffusionMap
+#' @importFrom scrapper runPca runUmap runTsne
 #' @export
 
 clrDR <- function(x,
-    dr = c("PCA", "MDS", "UMAP", "TSNE", "DiffusionMap"),
-    by = c("sample_id", "cluster_id"), k = "meta20",
-    dims = c(1, 2), base = 2, arrows = TRUE,
-    point_col = switch(by, sample_id = "condition", "cluster_id"),
-    arrow_col = switch(by, sample_id = "cluster_id", "condition"),
-    arrow_len = 0.5, arrow_opa = 0.5,
-    label_by = NULL, size_by = TRUE,
-    point_pal = NULL, arrow_pal = NULL) {
+    dr=c("PCA", "UMAP", "TSNE"),
+    by=c("sample_id", "cluster_id"), k="meta20",
+    dims=c(1, 2), base=2, arrows=TRUE,
+    point_col=switch(by, sample_id="condition", "cluster_id"),
+    arrow_col=switch(by, sample_id="cluster_id", "condition"),
+    arrow_len=0.5, arrow_opa=0.5,
+    label_by=NULL, size_by=TRUE,
+    point_pal=NULL, arrow_pal=NULL) {
 
     # check validity of input arguments
     by <- match.arg(by)
@@ -127,8 +126,8 @@ clrDR <- function(x,
     # if unspecified, get default color palettes
     k_pal <- .cluster_cols
     s_pal <- brewer.pal(8, "Set3")[-2]
-    if (is.null(point_pal)) point_pal <- switch(by, cluster_id = k_pal, s_pal)
-    if (is.null(arrow_pal)) arrow_pal <- switch(by, sample_id = k_pal, s_pal)
+    if (is.null(point_pal)) point_pal <- switch(by, cluster_id=k_pal, s_pal)
+    if (is.null(arrow_pal)) arrow_pal <- switch(by, sample_id=k_pal, s_pal)
 
     # compute CLR on cluster-proportions across samples
     x$cluster_id <- cluster_ids(x, k)
@@ -139,8 +138,16 @@ clrDR <- function(x,
     if (by == "sample_id") clr <- t(clr)
 
     # run dimensionality reduction
-    fun <- get(paste0("calculate", dr))
-    xy <- fun(clr, ncomponents = max(dims))
+    g <- substr(f <- tolower(dr),1,1)
+    substr(f,1,1) <- toupper(g)
+    f <- get(sprintf("run%s", f))
+    xy <- f(clr)
+    if (dr == "PCA") {
+        mx <- t(xy$components)
+        as <- c("rotation", "variance.explained")
+        for (. in as) attr(mx, .) <- xy[[.]]
+        xy <- mx
+    }
 
     # construct data.frame for plotting
     df <- data.frame(xy[, dims])
@@ -162,54 +169,52 @@ clrDR <- function(x,
 
     # get axis labels & number of legend columns to use
     ncol <- ifelse(!is.null(point_col) && nlevels(df[[point_col]]) > 10, 2, 1)
-    labs <- paste(switch(dr, PCA = "PC", paste(dr, "dim. ")), dims)
+    labs <- paste(switch(dr, PCA="PC", paste(dr, "dim. ")), dims)
 
     # ramp point color palette
     np <- nlevels(df[[point_col]])
     if (length(point_pal) < np)
         point_pal <- colorRampPalette(point_pal)(np)
-    pals <- list(p = point_pal, a = arrow_pal)
+    pals <- list(p=point_pal, a=arrow_pal)
 
     if (dr %in% c("PCA", "MDS")) {
         lines <- list(
-            geom_vline(xintercept = 0, lty = 2),
-            geom_hline(yintercept = 0, lty = 2))
+            geom_vline(xintercept=0, lty=2),
+            geom_hline(yintercept=0, lty=2))
         asp <- coord_equal()
     } else lines <- asp <- NULL
 
     # make base plot
     p <- ggplot(df, aes(.data$x, .data$y, 
-        fill = .data[[point_col]])) +
+        fill=.data[[point_col]])) +
         lines + guides(
-            fill = guide_legend(order = 1, ncol = ncol,
-                override.aes = list(alpha = 1, size = 4)),
-            size = guide_legend(order = 2,
-                override.aes = list(shape = 19))) +
+            fill=guide_legend(order=1, ncol=ncol,
+                override.aes=list(alpha=1, size=4)),
+            size=guide_legend(order=2,
+                override.aes=list(shape=19))) +
         (if (!is.null(point_pal))
             scale_fill_manual(
-                values = point_pal)) +
+                values=point_pal)) +
         (if (!is.null(label_by))
             geom_text_repel(
-                show.legend = FALSE,
-                aes(label = .data[[label_by]]))) +
+                show.legend=FALSE,
+                aes(label=.data[[label_by]]))) +
         (if (is.null(size_by)) {
-            geom_point(size = 5, alpha = 0.8, shape = 21, stroke = 0)
+            geom_point(size=5, alpha=0.8, shape=21, stroke=0)
         } else geom_point(
-            aes(size = .data[[size_by]]),
-            alpha = 0.8, shape = 21, stroke = 0)) +
-        labs(x = labs[1], y = labs[2]) +
+            aes(size=.data[[size_by]]),
+            alpha=0.8, shape=21, stroke=0)) +
+        labs(x=labs[1], y=labs[2]) +
         asp + theme_minimal() + theme(
-            panel.grid.minor = element_blank(),
-            legend.key.height  =  unit(0.8, "lines"),
-            axis.text = element_text(color = "black"),
-            aspect.ratio = if (is.null(asp)) 1 else NULL)
+            panel.grid.minor=element_blank(),
+            legend.key.height = unit(0.8, "lines"),
+            axis.text=element_text(color="black"),
+            aspect.ratio=if (is.null(asp)) 1 else NULL)
 
     if (dr == "PCA") {
         # include variance explained in axis labels
-        ve <- attr(xy, "percentVar")[dims]
+        ve <- attr(xy, "variance.explained")
         ve <- sprintf("(%s%%)", round(ve))
-        # labs <- unlist(p$labels[c("x", "y")])
-        # p$labels[c("x", "y")] <- paste(labs, ve)
         # (optionally) add loading arrows
         if (arrows) {
             # construct data.frame of PC loadings
@@ -218,8 +223,8 @@ clrDR <- function(x,
             colnames(rot) <- c("x", "y")
             # add sample metadata
             arrow_by <- switch(by,
-                sample_id = "cluster_id",
-                cluster_id = "sample_id")
+                sample_id="cluster_id",
+                cluster_id="sample_id")
             if (arrow_by == "sample_id") {
                 m <- match(rownames(rot), x$sample_id)
                 rot <- cbind(rot, colData(x)[m, ])
@@ -237,15 +242,15 @@ clrDR <- function(x,
             if (length(arrow_pal) < na)
                 arrow_pal <- colorRampPalette(arrow_pal)(na)
             p <- p + geom_segment(
-                data = rot, inherit.aes = FALSE,
-                linewidth = 0.5, arrow = arrow(length = unit(1, "mm")),
-                aes(0, 0, col = .data[[arrow_col]],
-                    xend = .data$x, yend = .data$y)) +
-                scale_color_manual(values = arrow_pal) +
+                data=rot, inherit.aes=FALSE,
+                linewidth=0.5, arrow=arrow(length=unit(1, "mm")),
+                aes(0, 0, col=.data[[arrow_col]],
+                    xend=.data$x, yend=.data$y)) +
+                scale_color_manual(values=arrow_pal) +
                 labs(x=paste(labs[1], ve[1]), y=paste(labs[2], ve[2])) +
-                guides(col = guide_legend(
-                    override.aes = list(size = 1),
-                    ncol = ifelse(nrow(rot) > 10, 2, 1)))
+                guides(col=guide_legend(
+                    override.aes=list(size=1),
+                    ncol=ifelse(nrow(rot) > 10, 2, 1)))
         }
     }
     return(p)

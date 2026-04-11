@@ -32,7 +32,7 @@ test_that("sce2fcs()", {
     y <- sce2fcs(x, split_by = "cluster_id")
     expect_equivalent(fsApply(y, nrow), c(table(x$cluster_id)))
     # with propagation of dimension reductions
-    x <- runDR(x, dr = "PCA", ncomponents = 2)
+    x <- runDR(x, dr = "PCA", number = 2)
     y <- sce2fcs(x, split_by = "sample_id", keep_dr = TRUE)
     expect_true(length(y) == nlevels(x$sample_id))
     expect_true(ncol(y[[1]]) == nrow(x) + ncol(reducedDim(x)))

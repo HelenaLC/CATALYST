@@ -2,7 +2,7 @@
 #' @title Dimension reduction
 #' 
 #' @description Wrapper around dimension reduction methods available 
-#' through \code{scater}, with optional subsampling of cells per each sample.
+#' through \code{scrapper}, with optional subsampling of cells per each sample.
 #'
 #' @param x a \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @param dr character string specifying which dimension reduction to use.
@@ -16,10 +16,8 @@
 #' @param assay character string specifying which assay data to use
 #'   for dimension reduction; valid values are \code{assayNames(x)}.
 #' @param ... optional arguments for dimension reduction; passed to 
-#'   \code{\link[scater]{runUMAP}}, \code{\link[scater]{runTSNE}}, 
-#'   \code{\link[scater]{runPCA}}, \code{\link[scater]{runMDS}}
-#'   and \code{\link[scater]{runDiffusionMap}}, respecttively.
-#'   See \code{?"scater-red-dim-args"} for details.
+#'   \code{\link[scrapper]{runPca}}, \code{\link[scrapper]{runUmap}}, 
+#'   and \code{\link[scrapper]{runTsne}}, respectively.
 #' 
 #' @author Helena L Crowell \email{helena.crowell@@uzh.ch}
 #' 
@@ -39,14 +37,14 @@
 #' # run UMAP on <= 200 cells per sample
 #' sce <- runDR(sce, features = type_markers(sce), cells = 100)
 #' 
-#' @importFrom scater runUMAP runTSNE runPCA runMDS runDiffusionMap
-#' @importFrom SingleCellExperiment reducedDim reducedDim<-
-#' @importFrom SummarizedExperiment assayNames
+#' @importFrom scrapper runUmap runTsne runPca
+#' @importFrom SingleCellExperiment reducedDim<-
+#' @importFrom SummarizedExperiment assay
 #' @export
 
-runDR <- function(x, 
-    dr = c("UMAP", "TSNE", "PCA", "MDS", "DiffusionMap"), 
-    cells = NULL, features = "type", assay = "exprs", ...) {
+runDR <- \(x, 
+    dr=c("UMAP", "TSNE", "PCA"), 
+    cells=NULL, features="type", assay="exprs", ...) {
     
     # check validity of input arguments
     stopifnot(is(x, "SingleCellExperiment"))
@@ -72,15 +70,24 @@ runDR <- function(x,
     }
     
     # run dimension reduction
-    fun <- get(paste0("run", dr))
-    y <- fun(x[, cs], subset_row = fs, exprs_values = assay, ...)
+    g <- substr(f <- tolower(dr),1,1)
+    substr(f,1,1) <- toupper(g)
+    f <- get(sprintf("run%s.se", f))
+    if (dr != "PCA") {
+        reducedDim(x, "PCA") <- t(assay(x[fs, ], assay))
+        y <- f(x[, cs], ...)
+        reducedDim(x, "PCA") <- NULL
+        reducedDim(y, "PCA") <- NULL
+    } else {
+        y <- f(x[, cs], features=fs, assay.type=assay, ...)
+    }
 
     # return SCE when no cell subsetting has been done
     if (is.null(cells)) return(y)
     
     # else, write coordinates into original SCE
     xy <- reducedDim(y, dr)
-    m <- matrix(NA, nrow = ncol(x), ncol = ncol(xy))
+    m <- matrix(NA, nrow=ncol(x), ncol=ncol(xy))
     m[cs, ] <- xy
     reducedDim(x, dr) <- m
     return(x)

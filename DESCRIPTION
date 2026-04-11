@@ -40,7 +40,7 @@ Imports:
 	nnls,
 	RColorBrewer, reshape2, Rtsne, 
 	SummarizedExperiment, 
-	S4Vectors, scales, scater, stats
+	S4Vectors, scales, scrapper, stats
 Suggests: 
     BiocStyle, diffcyt, flowWorkspace, ggcyto,
     knitr, openCyto, rmarkdown, testthat, uwot
